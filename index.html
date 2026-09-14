@@ -138,6 +138,58 @@ function useColecao(nome, ordenarPor){
 }
 
 // ======================= LOGIN =======================
+function TelaPrimeiroAcesso({ aoLogar }){
+  const [nome, setNome] = useState('');
+  const [login, setLogin] = useState('');
+  const [senha, setSenha] = useState('');
+  const [criando, setCriando] = useState(false);
+  const [erro, setErro] = useState('');
+
+  async function criar(e){
+    e.preventDefault();
+    setErro('');
+    if(senha.length < 4){ setErro('Use uma senha com pelo menos 4 caracteres.'); return; }
+    setCriando(true);
+    const senhaHash = await hashSenha(senha);
+    const dados = {
+      nome, login, senhaHash,
+      cargo: 'Administrador',
+      comissaoPorPeca: 0,
+      ativo: true,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+    const ref = await db.collection('funcionarios').add(dados);
+    setCriando(false);
+    localStorage.setItem('pecas_sessao', ref.id);
+    aoLogar({ id: ref.id, ...dados });
+  }
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+      <form onSubmit={criar} className="card" style={{width:340}}>
+        <div style={{textAlign:'center',marginBottom:6}}>
+          <div style={{fontSize:28}}>🔧</div>
+          <h2 style={{margin:'8px 0 2px'}}>Bem-vindo</h2>
+          <div style={{color:'var(--texto-fraco)',fontSize:13}}>Ainda não há nenhum usuário. Crie o primeiro acesso (administrador) para começar.</div>
+        </div>
+        <label>Seu nome</label>
+        <input value={nome} onChange={e=>setNome(e.target.value)} required />
+        <label>Login</label>
+        <input value={login} onChange={e=>setLogin(e.target.value)} required />
+        <label>Senha</label>
+        <input type="password" value={senha} onChange={e=>setSenha(e.target.value)} required />
+        {erro && <div style={{color:'var(--vermelho)',fontSize:13,marginTop:10}}>{erro}</div>}
+        <button className="btn" style={{width:'100%',justifyContent:'center',marginTop:16}} disabled={criando}>
+          {criando ? 'Criando...' : 'Criar acesso e entrar'}
+        </button>
+        <div style={{fontSize:12,color:'var(--texto-fraco)',marginTop:12}}>
+          Depois de entrar, cadastre os demais funcionários na aba "Funcionários".
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function TelaLogin({ funcionarios, aoLogar }){
   const [funcId, setFuncId] = useState('');
   const [senha, setSenha] = useState('');
@@ -179,11 +231,6 @@ function TelaLogin({ funcionarios, aoLogar }){
         <button className="btn" style={{width:'100%',justifyContent:'center',marginTop:16}} disabled={entrando}>
           {entrando ? 'Entrando...' : 'Entrar'}
         </button>
-        {funcionarios.length===0 && (
-          <div style={{fontSize:12,color:'var(--texto-fraco)',marginTop:12}}>
-            Nenhum funcionário cadastrado ainda. Peça para o administrador criar o primeiro acesso direto no Firebase, ou abra o sistema sem senha nenhuma vez para liberar o primeiro cadastro.
-          </div>
-        )}
       </form>
     </div>
   );
@@ -191,7 +238,7 @@ function TelaLogin({ funcionarios, aoLogar }){
 
 // ======================= LAYOUT =======================
 function App(){
-  const [funcionarios] = useColecao('funcionarios');
+  const [funcionarios, carregandoFuncionarios] = useColecao('funcionarios');
   const [usuario, setUsuario] = useState(null);
   const [aba, setAba] = useState('pecas');
   const [carregado, setCarregado] = useState(false);
@@ -202,8 +249,8 @@ function App(){
       const f = funcionarios.find(x=>x.id===id);
       if(f) setUsuario(f);
     }
-    setCarregado(true);
-  },[funcionarios]);
+    if(!carregandoFuncionarios) setCarregado(true);
+  },[funcionarios, carregandoFuncionarios]);
 
   useEffect(()=>{
     if(usuario){
@@ -218,6 +265,7 @@ function App(){
   }
 
   if(!carregado) return null;
+  if(!usuario && funcionarios.length===0) return <TelaPrimeiroAcesso aoLogar={setUsuario} />;
   if(!usuario) return <TelaLogin funcionarios={funcionarios} aoLogar={setUsuario} />;
 
   const abas = [
