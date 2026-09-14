@@ -97,8 +97,10 @@ function formatMoeda(v) {
   });
 }
 function formatCNPJ(v) {
-  const d = (v || '').replace(/\D/g, '').slice(0, 14);
-  return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2}).*/, '$1.$2.$3/$4-$5');
+  const d = (v || '').replace(/\D/g, '');
+  if (d.length === 14) return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2}).*/, '$1.$2.$3/$4-$5');
+  if (d.length === 11) return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+  return d;
 }
 function formatData(v) {
   if (!v) return '-';
@@ -537,32 +539,59 @@ function AbaClientes() {
     try {
       const texto = await file.text();
       const doc = new DOMParser().parseFromString(texto, 'text/html');
-      const linhas = Array.from(doc.querySelectorAll('table tr'));
-      if (linhas.length < 2) {
+
+      // Arquivos de relatório costumam ter tabelas de layout por fora da
+      // tabela de dados de verdade. Preferimos a tabela que tem thead+tbody
+      // explícitos; se não houver, usamos a tabela com mais linhas.
+      const tabelas = Array.from(doc.querySelectorAll('table'));
+      let tabelaAlvo = tabelas.find(t => t.querySelector('thead') && t.querySelector('tbody'));
+      let linhaCabecalho, linhasDados;
+      if (tabelaAlvo) {
+        linhaCabecalho = tabelaAlvo.querySelector('thead tr');
+        linhasDados = Array.from(tabelaAlvo.querySelectorAll('tbody tr'));
+      } else {
+        tabelaAlvo = tabelas.reduce((maior, t) => {
+          const n = t.querySelectorAll(':scope > tbody > tr, :scope > tr').length;
+          const nMaior = maior ? maior.querySelectorAll(':scope > tbody > tr, :scope > tr').length : 0;
+          return n > nMaior ? t : maior;
+        }, null);
+        const linhas = tabelaAlvo ? Array.from(tabelaAlvo.querySelectorAll('tr')) : [];
+        linhaCabecalho = linhas[0];
+        linhasDados = linhas.slice(1);
+      }
+      if (!linhaCabecalho || linhasDados.length === 0) {
         alert('Não encontrei uma tabela com dados nesse arquivo HTML.');
         setImportando(false);
         return;
       }
-      const cabecalho = Array.from(linhas[0].querySelectorAll('th,td')).map(c => c.textContent.trim().toLowerCase());
+      const cabecalho = Array.from(linhaCabecalho.querySelectorAll('th,td')).map(c => c.textContent.trim().toLowerCase());
       const mapa = {
-        cnpj: cabecalho.findIndex(h => h.includes('cnpj')),
+        cnpj: cabecalho.findIndex(h => h.includes('cnpj') || h.includes('cpf')),
         razaoSocial: cabecalho.findIndex(h => h.includes('razão') || h.includes('razao') || h.includes('nome')),
         nomeFantasia: cabecalho.findIndex(h => h.includes('fantasia')),
+        ie: cabecalho.findIndex(h => h.includes('inscri')),
         telefone: cabecalho.findIndex(h => h.includes('telefone') || h.includes('fone') || h.includes('celular')),
         email: cabecalho.findIndex(h => h.includes('email') || h.includes('e-mail')),
         endereco: cabecalho.findIndex(h => h.includes('endereço') || h.includes('endereco')),
         cidade: cabecalho.findIndex(h => h.includes('cidade')),
-        uf: cabecalho.findIndex(h => h.includes('uf') || h.includes('estado'))
+        uf: cabecalho.findIndex(h => h.includes('uf') || h.includes('estado')),
+        situacao: cabecalho.findIndex(h => h.includes('situaç') || h.includes('situac') || h.includes('status'))
       };
       let importados = 0;
+      let inativosIgnorados = 0;
       const lote = db.batch();
-      linhas.slice(1).forEach(linha => {
+      linhasDados.forEach(linha => {
         const cols = Array.from(linha.querySelectorAll('td')).map(c => c.textContent.trim());
         if (cols.length === 0 || cols.every(c => !c)) return;
+        if (mapa.situacao >= 0 && (cols[mapa.situacao] || '').toLowerCase().includes('inativ')) {
+          inativosIgnorados++;
+          return;
+        }
         const cliente = {
           cnpj: mapa.cnpj >= 0 ? (cols[mapa.cnpj] || '').replace(/\D/g, '') : '',
           razaoSocial: mapa.razaoSocial >= 0 ? cols[mapa.razaoSocial] || '' : cols[0] || '',
           nomeFantasia: mapa.nomeFantasia >= 0 ? cols[mapa.nomeFantasia] || '' : '',
+          ie: mapa.ie >= 0 ? cols[mapa.ie] || '' : '',
           telefone: mapa.telefone >= 0 ? cols[mapa.telefone] || '' : '',
           email: mapa.email >= 0 ? cols[mapa.email] || '' : '',
           endereco: mapa.endereco >= 0 ? cols[mapa.endereco] || '' : '',
@@ -577,7 +606,7 @@ function AbaClientes() {
         importados++;
       });
       if (importados > 0) await lote.commit();
-      alert(`${importados} cliente(s) importado(s) com sucesso.`);
+      alert(`${importados} cliente(s) importado(s) com sucesso.` + (inativosIgnorados > 0 ? ` (${inativosIgnorados} inativo(s) ignorado(s))` : ''));
     } catch (err) {
       console.error(err);
       alert('Não consegui ler esse arquivo HTML. Confira se ele contém uma tabela (<table>) com os clientes.');
@@ -654,7 +683,7 @@ function AbaClientes() {
     type: "checkbox",
     checked: todosFiltradosSelecionados,
     onChange: alternarSelecionarTodos
-  })), /*#__PURE__*/React.createElement("th", null, "Razão social"), /*#__PURE__*/React.createElement("th", null, "Fantasia"), /*#__PURE__*/React.createElement("th", null, "CNPJ"), /*#__PURE__*/React.createElement("th", null, "Telefone"), /*#__PURE__*/React.createElement("th", null, "Cidade/UF"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(c => /*#__PURE__*/React.createElement("tr", {
+  })), /*#__PURE__*/React.createElement("th", null, "Razão social"), /*#__PURE__*/React.createElement("th", null, "Fantasia"), /*#__PURE__*/React.createElement("th", null, "CNPJ/CPF"), /*#__PURE__*/React.createElement("th", null, "Telefone"), /*#__PURE__*/React.createElement("th", null, "Cidade/UF"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(c => /*#__PURE__*/React.createElement("tr", {
     key: c.id
   }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
     type: "checkbox",
@@ -765,7 +794,7 @@ function ModalCliente({
     style: {
       marginTop: 0
     }
-  }, cliente ? 'Editar cliente' : 'Novo cliente'), /*#__PURE__*/React.createElement("label", null, "CNPJ"), /*#__PURE__*/React.createElement("div", {
+  }, cliente ? 'Editar cliente' : 'Novo cliente'), /*#__PURE__*/React.createElement("label", null, "CNPJ/CPF"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8
@@ -785,7 +814,7 @@ function ModalCliente({
     }
   }, buscandoCnpj ? 'Buscando...' : 'Buscar CNPJ')), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Razão social"), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Razão social / Nome"), /*#__PURE__*/React.createElement("input", {
     value: f.razaoSocial,
     onChange: e => campo('razaoSocial', e.target.value),
     required: true
@@ -800,7 +829,10 @@ function ModalCliente({
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "E-mail"), /*#__PURE__*/React.createElement("input", {
     value: f.email,
     onChange: e => campo('email', e.target.value)
-  }))), /*#__PURE__*/React.createElement("label", null, "Endereço"), /*#__PURE__*/React.createElement("input", {
+  }))), /*#__PURE__*/React.createElement("label", null, "Inscrição estadual"), /*#__PURE__*/React.createElement("input", {
+    value: f.ie,
+    onChange: e => campo('ie', e.target.value)
+  }), /*#__PURE__*/React.createElement("label", null, "Endereço"), /*#__PURE__*/React.createElement("input", {
     value: f.endereco,
     onChange: e => campo('endereco', e.target.value)
   }), /*#__PURE__*/React.createElement("div", {
