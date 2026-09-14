@@ -491,11 +491,46 @@ function AbaClientes() {
   const [editando, setEditando] = useState(null);
   const [busca, setBusca] = useState('');
   const [importando, setImportando] = useState(false);
+  const [selecionados, setSelecionados] = useState(() => new Set());
+  const [excluindoLote, setExcluindoLote] = useState(false);
   const inputImportRef = useRef();
   const filtrados = clientes.filter(c => (c.razaoSocial || '').toLowerCase().includes(busca.toLowerCase()) || (c.nomeFantasia || '').toLowerCase().includes(busca.toLowerCase()) || (c.cnpj || '').includes(busca.replace(/\D/g, '')));
+  const todosFiltradosSelecionados = filtrados.length > 0 && filtrados.every(c => selecionados.has(c.id));
+  function alternarSelecao(id) {
+    setSelecionados(prev => {
+      const novo = new Set(prev);
+      if (novo.has(id)) novo.delete(id);else novo.add(id);
+      return novo;
+    });
+  }
+  function alternarSelecionarTodos() {
+    setSelecionados(prev => {
+      if (todosFiltradosSelecionados) {
+        const novo = new Set(prev);
+        filtrados.forEach(c => novo.delete(c.id));
+        return novo;
+      }
+      const novo = new Set(prev);
+      filtrados.forEach(c => novo.add(c.id));
+      return novo;
+    });
+  }
   async function excluir(c) {
     if (!confirm(`Excluir o cliente "${c.razaoSocial || c.nomeFantasia}"?`)) return;
     await db.collection('clientes').doc(c.id).delete();
+  }
+  async function excluirSelecionados() {
+    if (selecionados.size === 0) return;
+    if (!confirm(`Excluir ${selecionados.size} cliente(s) selecionado(s)? Essa ação não pode ser desfeita.`)) return;
+    setExcluindoLote(true);
+    const ids = Array.from(selecionados);
+    for (let i = 0; i < ids.length; i += 450) {
+      const lote = db.batch();
+      ids.slice(i, i + 450).forEach(id => lote.delete(db.collection('clientes').doc(id)));
+      await lote.commit();
+    }
+    setSelecionados(new Set());
+    setExcluindoLote(false);
   }
   async function processarImportacao(file) {
     setImportando(true);
@@ -586,23 +621,46 @@ function AbaClientes() {
       setEditando(null);
       setModalAberto(true);
     }
-  }, "+ Novo cliente"))), /*#__PURE__*/React.createElement("input", {
+  }, "+ Novo cliente"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 14,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
     placeholder: "Buscar por nome, fantasia ou CNPJ...",
     value: busca,
     onChange: e => setBusca(e.target.value),
     style: {
-      marginBottom: 14,
       maxWidth: 360
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  }), selecionados.size > 0 && /*#__PURE__*/React.createElement("button", {
+    className: "btn perigo",
+    disabled: excluindoLote,
+    onClick: excluirSelecionados
+  }, excluindoLote ? 'Excluindo...' : `🗑️ Excluir selecionados (${selecionados.size})`)), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Razão social"), /*#__PURE__*/React.createElement("th", null, "Fantasia"), /*#__PURE__*/React.createElement("th", null, "CNPJ"), /*#__PURE__*/React.createElement("th", null, "Telefone"), /*#__PURE__*/React.createElement("th", null, "Cidade/UF"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(c => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    style: {
+      width: 34
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: todosFiltradosSelecionados,
+    onChange: alternarSelecionarTodos
+  })), /*#__PURE__*/React.createElement("th", null, "Razão social"), /*#__PURE__*/React.createElement("th", null, "Fantasia"), /*#__PURE__*/React.createElement("th", null, "CNPJ"), /*#__PURE__*/React.createElement("th", null, "Telefone"), /*#__PURE__*/React.createElement("th", null, "Cidade/UF"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(c => /*#__PURE__*/React.createElement("tr", {
     key: c.id
-  }, /*#__PURE__*/React.createElement("td", null, c.razaoSocial), /*#__PURE__*/React.createElement("td", null, c.nomeFantasia || '-'), /*#__PURE__*/React.createElement("td", null, c.cnpj ? formatCNPJ(c.cnpj) : '-'), /*#__PURE__*/React.createElement("td", null, c.telefone || '-'), /*#__PURE__*/React.createElement("td", null, c.cidade ? `${c.cidade}/${c.uf || ''}` : '-'), /*#__PURE__*/React.createElement("td", {
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: selecionados.has(c.id),
+    onChange: () => alternarSelecao(c.id)
+  })), /*#__PURE__*/React.createElement("td", null, c.razaoSocial), /*#__PURE__*/React.createElement("td", null, c.nomeFantasia || '-'), /*#__PURE__*/React.createElement("td", null, c.cnpj ? formatCNPJ(c.cnpj) : '-'), /*#__PURE__*/React.createElement("td", null, c.telefone || '-'), /*#__PURE__*/React.createElement("td", null, c.cidade ? `${c.cidade}/${c.uf || ''}` : '-'), /*#__PURE__*/React.createElement("td", {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
@@ -617,7 +675,7 @@ function AbaClientes() {
     className: "btn perigo pequeno",
     onClick: () => excluir(c)
   }, "Excluir")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "6",
+    colSpan: "7",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
