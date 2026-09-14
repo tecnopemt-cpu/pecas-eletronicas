@@ -564,11 +564,13 @@ function AbaClientes() {
   }
   async function excluir(c) {
     if (!confirm(`Excluir o cliente "${c.razaoSocial || c.nomeFantasia}"?`)) return;
+    if (!confirmarSenhaMaster('Digite a senha master para excluir este cliente:')) return;
     await db.collection('clientes').doc(c.id).delete();
   }
   async function excluirSelecionados() {
     if (selecionados.size === 0) return;
     if (!confirm(`Excluir ${selecionados.size} cliente(s) selecionado(s)? Essa ação não pode ser desfeita.`)) return;
+    if (!confirmarSenhaMaster('Digite a senha master para excluir os clientes selecionados:')) return;
     setExcluindoLote(true);
     const ids = Array.from(selecionados);
     for (let i = 0; i < ids.length; i += 450) {
@@ -935,6 +937,7 @@ function AbaCatalogo() {
   const filtrados = catalogo.filter(p => (p.codigo || '').toLowerCase().includes(busca.toLowerCase()) || (p.descricao || '').toLowerCase().includes(busca.toLowerCase()));
   async function excluir(p) {
     if (!confirm(`Excluir "${p.descricao}" do cadastro?`)) return;
+    if (!confirmarSenhaMaster('Digite a senha master para excluir esta peça:')) return;
     await db.collection('catalogoPecas').doc(p.id).delete();
   }
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -2018,6 +2021,7 @@ function AbaOrcamentos() {
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   async function excluir(o) {
     if (!confirm(`Excluir o orçamento #${o.numero}?`)) return;
+    if (!confirmarSenhaMaster('Digite a senha master para excluir este orçamento:')) return;
     await db.collection('orcamentos').doc(o.id).delete();
   }
   async function mudarStatus(o, status) {
@@ -2402,6 +2406,7 @@ function AbaFuncionarios({
       return;
     }
     if (!confirm(`Excluir o funcionário "${f.nome}"?`)) return;
+    if (!confirmarSenhaMaster('Digite a senha master para excluir este funcionário:')) return;
     await db.collection('funcionarios').doc(f.id).delete();
   }
   async function alternarAtivo(f) {
