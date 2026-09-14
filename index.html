@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Controle de Peças Eletrônicas</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1c2b39" />
+<style>
+  :root{
+    --azul-escuro:#132436;
+    --azul-painel:#1c2b39;
+    --azul-borda:#2c4257;
+    --laranja:#e07a1f;
+    --laranja-escuro:#c2660f;
+    --verde:#2f9e5b;
+    --vermelho:#c0392b;
+    --texto:#e8edf1;
+    --texto-fraco:#93a6b5;
+    --fundo:#0e1a26;
+    --card:#16242f;
+    --input-bg:#0e1a26;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--fundo);color:var(--texto);}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;background:var(--input-bg);border:1px solid var(--azul-borda);color:var(--texto);border-radius:6px;padding:9px 10px;font-size:14px;width:100%;}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--laranja);border-color:var(--laranja);}
+  label{font-size:12.5px;color:var(--texto-fraco);display:block;margin-bottom:4px;margin-top:10px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;color:var(--texto-fraco);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--azul-borda);white-space:nowrap;}
+  td{padding:9px 10px;border-bottom:1px solid #1f313f;vertical-align:middle;}
+  tr:hover td{background:#182633;}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:var(--laranja);color:#fff;border:none;padding:9px 14px;border-radius:6px;font-size:13.5px;font-weight:600;}
+  .btn:hover{background:var(--laranja-escuro);}
+  .btn.secundario{background:var(--azul-borda);}
+  .btn.secundario:hover{background:#3a5670;}
+  .btn.perigo{background:var(--vermelho);}
+  .btn.verde{background:var(--verde);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn.pequeno{padding:6px 10px;font-size:12.5px;}
+  .card{background:var(--card);border:1px solid var(--azul-borda);border-radius:10px;padding:18px;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+  .badge.estoque{background:#2c4257;color:#bcd2e3;}
+  .badge.conserto{background:#5a4415;color:#f2c353;}
+  .badge.consertada{background:#173d29;color:#5fd88f;}
+  .badge.entregue{background:#1d3a26;color:#8fd6a8;}
+  .badge.pendente{background:#5a4415;color:#f2c353;}
+  .badge.aprovado{background:#173d29;color:#5fd88f;}
+  .badge.recusado{background:#4a1f1c;color:#e88f85;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--azul-borda);border-radius:6px;}
+  .modal-fundo{position:fixed;inset:0;background:rgba(3,8,13,.65);display:flex;align-items:flex-start;justify-content:center;padding:30px 14px;z-index:50;overflow:auto;}
+  .modal{background:var(--card);border:1px solid var(--azul-borda);border-radius:12px;padding:22px;width:100%;max-width:560px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+  @media (max-width:640px){.grid2{grid-template-columns:1fr;}}
+  .foto-thumb{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--azul-borda);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+// ======================= FIREBASE =======================
+// SUBSTITUA pelos dados do SEU projeto Firebase (Firestore em modo produção,
+// com regras liberando leitura/escrita para o app, já que o controle de
+// acesso aqui é feito pelo próprio sistema, não pelo Firebase Auth).
+const firebaseConfig = {
+  apiKey: "AIzaSyCIHIGfSHmPTMF376-qsLfO5Se2vgGVXho",
+  authDomain: "controle-processos-a2f99.firebaseapp.com",
+  projectId: "controle-processos-a2f99",
+  storageBucket: "controle-processos-a2f99.firebasestorage.app",
+  messagingSenderId: "379540239747",
+  appId: "1:379540239747:web:7ab46e2da886ff802032b6"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ======================= HELPERS =======================
+function formatMoeda(v){
+  const n = Number(v)||0;
+  return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function formatCNPJ(v){
+  const d = (v||'').replace(/\D/g,'').slice(0,14);
+  return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2}).*/,'$1.$2.$3/$4-$5');
+}
+function formatData(v){
+  if(!v) return '-';
+  const d = v.toDate ? v.toDate() : new Date(v);
+  return d.toLocaleDateString('pt-BR');
+}
+async function hashSenha(senha){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(senha));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function resizeImagem(file, maxW=900, qualidade=0.62){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w > maxW){ h = Math.round(h*(maxW/w)); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg', qualidade));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function useColecao(nome, ordenarPor){
+  const [dados, setDados] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  useEffect(()=>{
+    let ref = db.collection(nome);
+    if(ordenarPor) ref = ref.orderBy(ordenarPor,'desc');
+    const unsub = ref.onSnapshot(snap=>{
+      setDados(snap.docs.map(d=>({id:d.id, ...d.data()})));
+      setCarregando(false);
+    }, err=>{ console.error(nome, err); setCarregando(false); });
+    return unsub;
+  },[nome]);
+  return [dados, carregando];
+}
+
+// ======================= LOGIN =======================
+function TelaLogin({ funcionarios, aoLogar }){
+  const [funcId, setFuncId] = useState('');
+  const [senha, setSenha] = useState('');
+  const [erro, setErro] = useState('');
+  const [entrando, setEntrando] = useState(false);
+
+  async function entrar(e){
+    e.preventDefault();
+    setErro('');
+    const f = funcionarios.find(x=>x.id===funcId);
+    if(!f){ setErro('Selecione seu nome.'); return; }
+    setEntrando(true);
+    const hash = await hashSenha(senha);
+    setEntrando(false);
+    if(hash !== f.senhaHash){ setErro('Senha incorreta.'); return; }
+    if(f.ativo === false){ setErro('Usuário inativo. Fale com o administrador.'); return; }
+    localStorage.setItem('pecas_sessao', f.id);
+    aoLogar(f);
+  }
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+      <form onSubmit={entrar} className="card" style={{width:340}}>
+        <div style={{textAlign:'center',marginBottom:6}}>
+          <div style={{fontSize:28}}>🔧</div>
+          <h2 style={{margin:'8px 0 2px'}}>Controle de Peças</h2>
+          <div style={{color:'var(--texto-fraco)',fontSize:13}}>Entrada, saída e conserto de eletrônicos</div>
+        </div>
+        <label>Funcionário</label>
+        <select value={funcId} onChange={e=>setFuncId(e.target.value)} required>
+          <option value="">Selecione...</option>
+          {funcionarios.filter(f=>f.ativo!==false).map(f=>(
+            <option key={f.id} value={f.id}>{f.nome}</option>
+          ))}
+        </select>
+        <label>Senha</label>
+        <input type="password" value={senha} onChange={e=>setSenha(e.target.value)} required />
+        {erro && <div style={{color:'var(--vermelho)',fontSize:13,marginTop:10}}>{erro}</div>}
+        <button className="btn" style={{width:'100%',justifyContent:'center',marginTop:16}} disabled={entrando}>
+          {entrando ? 'Entrando...' : 'Entrar'}
+        </button>
+        {funcionarios.length===0 && (
+          <div style={{fontSize:12,color:'var(--texto-fraco)',marginTop:12}}>
+            Nenhum funcionário cadastrado ainda. Peça para o administrador criar o primeiro acesso direto no Firebase, ou abra o sistema sem senha nenhuma vez para liberar o primeiro cadastro.
+          </div>
+        )}
+      </form>
+    </div>
+  );
+}
+
+// ======================= LAYOUT =======================
+function App(){
+  const [funcionarios] = useColecao('funcionarios');
+  const [usuario, setUsuario] = useState(null);
+  const [aba, setAba] = useState('pecas');
+  const [carregado, setCarregado] = useState(false);
+
+  useEffect(()=>{
+    const id = localStorage.getItem('pecas_sessao');
+    if(id && funcionarios.length){
+      const f = funcionarios.find(x=>x.id===id);
+      if(f) setUsuario(f);
+    }
+    setCarregado(true);
+  },[funcionarios]);
+
+  useEffect(()=>{
+    if(usuario){
+      const atualizado = funcionarios.find(f=>f.id===usuario.id);
+      if(atualizado) setUsuario(atualizado);
+    }
+  },[funcionarios]);
+
+  function sair(){
+    localStorage.removeItem('pecas_sessao');
+    setUsuario(null);
+  }
+
+  if(!carregado) return null;
+  if(!usuario) return <TelaLogin funcionarios={funcionarios} aoLogar={setUsuario} />;
+
+  const abas = [
+    {id:'pecas', nome:'Peças', icone:'🔩'},
+    {id:'clientes', nome:'Clientes', icone:'🏢'},
+    {id:'orcamentos', nome:'Orçamentos', icone:'📋'},
+    {id:'comissoes', nome:'Comissões', icone:'💰'},
+    {id:'funcionarios', nome:'Funcionários', icone:'👤'},
+  ];
+
+  return (
+    <div style={{display:'flex',minHeight:'100vh'}}>
+      <div style={{width:210,background:'var(--azul-painel)',borderRight:'1px solid var(--azul-borda)',display:'flex',flexDirection:'column',flexShrink:0}}>
+        <div style={{padding:'18px 16px',borderBottom:'1px solid var(--azul-borda)'}}>
+          <div style={{fontWeight:700,fontSize:15}}>🔧 Peças Eletrônicas</div>
+          <div style={{fontSize:12,color:'var(--texto-fraco)',marginTop:2}}>{usuario.nome}</div>
+        </div>
+        <div style={{flex:1,padding:'10px 8px'}}>
+          {abas.map(a=>(
+            <button key={a.id} onClick={()=>setAba(a.id)}
+              style={{display:'flex',alignItems:'center',gap:9,width:'100%',textAlign:'left',padding:'10px 12px',
+                background: aba===a.id ? 'var(--laranja)' : 'transparent', color: aba===a.id?'#fff':'var(--texto)',
+                border:'none',borderRadius:7,marginBottom:4,fontSize:14,fontWeight: aba===a.id?600:400}}>
+              <span>{a.icone}</span><span>{a.nome}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{padding:12,borderTop:'1px solid var(--azul-borda)'}}>
+          <button onClick={sair} className="btn secundario" style={{width:'100%',justifyContent:'center'}}>Sair</button>
+        </div>
+      </div>
+      <div style={{flex:1,padding:'22px 26px',minWidth:0}}>
+        {aba==='pecas' && <AbaPecas usuario={usuario} funcionarios={funcionarios} />}
+        {aba==='clientes' && <AbaClientes />}
+        {aba==='orcamentos' && <AbaOrcamentos />}
+        {aba==='comissoes' && <AbaComissoes funcionarios={funcionarios} />}
+        {aba==='funcionarios' && <AbaFuncionarios usuario={usuario} />}
+      </div>
+    </div>
+  );
+}
+
+// ======================= CLIENTES =======================
+function AbaClientes(){
+  const [clientes, carregando] = useColecao('clientes');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [busca, setBusca] = useState('');
+  const [importando, setImportando] = useState(false);
+  const inputImportRef = useRef();
+
+  const filtrados = clientes.filter(c=>
+    (c.razaoSocial||'').toLowerCase().includes(busca.toLowerCase()) ||
+    (c.nomeFantasia||'').toLowerCase().includes(busca.toLowerCase()) ||
+    (c.cnpj||'').includes(busca.replace(/\D/g,''))
+  );
+
+  async function excluir(c){
+    if(!confirm(`Excluir o cliente "${c.razaoSocial||c.nomeFantasia}"?`)) return;
+    await db.collection('clientes').doc(c.id).delete();
+  }
+
+  async function processarImportacao(file){
+    setImportando(true);
+    try{
+      const texto = await file.text();
+      const doc = new DOMParser().parseFromString(texto, 'text/html');
+      const linhas = Array.from(doc.querySelectorAll('table tr'));
+      if(linhas.length < 2){ alert('Não encontrei uma tabela com dados nesse arquivo HTML.'); setImportando(false); return; }
+      const cabecalho = Array.from(linhas[0].querySelectorAll('th,td')).map(c=>c.textContent.trim().toLowerCase());
+      const mapa = {
+        cnpj: cabecalho.findIndex(h=>h.includes('cnpj')),
+        razaoSocial: cabecalho.findIndex(h=>h.includes('razão') || h.includes('razao') || h.includes('nome')),
+        nomeFantasia: cabecalho.findIndex(h=>h.includes('fantasia')),
+        telefone: cabecalho.findIndex(h=>h.includes('telefone') || h.includes('fone') || h.includes('celular')),
+        email: cabecalho.findIndex(h=>h.includes('email') || h.includes('e-mail')),
+        endereco: cabecalho.findIndex(h=>h.includes('endereço') || h.includes('endereco')),
+        cidade: cabecalho.findIndex(h=>h.includes('cidade')),
+        uf: cabecalho.findIndex(h=>h.includes('uf') || h.includes('estado')),
+      };
+      let importados = 0;
+      const lote = db.batch();
+      linhas.slice(1).forEach(linha=>{
+        const cols = Array.from(linha.querySelectorAll('td')).map(c=>c.textContent.trim());
+        if(cols.length===0 || cols.every(c=>!c)) return;
+        const cliente = {
+          cnpj: mapa.cnpj>=0 ? (cols[mapa.cnpj]||'').replace(/\D/g,'') : '',
+          razaoSocial: mapa.razaoSocial>=0 ? cols[mapa.razaoSocial]||'' : (cols[0]||''),
+          nomeFantasia: mapa.nomeFantasia>=0 ? cols[mapa.nomeFantasia]||'' : '',
+          telefone: mapa.telefone>=0 ? cols[mapa.telefone]||'' : '',
+          email: mapa.email>=0 ? cols[mapa.email]||'' : '',
+          endereco: mapa.endereco>=0 ? cols[mapa.endereco]||'' : '',
+          cidade: mapa.cidade>=0 ? cols[mapa.cidade]||'' : '',
+          uf: mapa.uf>=0 ? cols[mapa.uf]||'' : '',
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+          importado: true,
+        };
+        if(!cliente.razaoSocial) return;
+        const ref = db.collection('clientes').doc();
+        lote.set(ref, cliente);
+        importados++;
+      });
+      if(importados>0) await lote.commit();
+      alert(`${importados} cliente(s) importado(s) com sucesso.`);
+    }catch(err){
+      console.error(err);
+      alert('Não consegui ler esse arquivo HTML. Confira se ele contém uma tabela (<table>) com os clientes.');
+    }
+    setImportando(false);
+    if(inputImportRef.current) inputImportRef.current.value = '';
+  }
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:10}}>
+        <h2 style={{margin:0}}>Clientes</h2>
+        <div style={{display:'flex',gap:8}}>
+          <input type="file" accept=".html,.htm" ref={inputImportRef} style={{display:'none'}}
+            onChange={e=> e.target.files[0] && processarImportacao(e.target.files[0])} />
+          <button className="btn secundario" disabled={importando} onClick={()=>inputImportRef.current.click()}>
+            {importando ? 'Importando...' : '📄 Importar clientes (HTML)'}
+          </button>
+          <button className="btn" onClick={()=>{setEditando(null);setModalAberto(true);}}>+ Novo cliente</button>
+        </div>
+      </div>
+      <input placeholder="Buscar por nome, fantasia ou CNPJ..." value={busca} onChange={e=>setBusca(e.target.value)} style={{marginBottom:14,maxWidth:360}} />
+      <div className="card" style={{overflowX:'auto',padding:0}}>
+        <table>
+          <thead><tr><th>Razão social</th><th>Fantasia</th><th>CNPJ</th><th>Telefone</th><th>Cidade/UF</th><th></th></tr></thead>
+          <tbody>
+            {filtrados.map(c=>(
+              <tr key={c.id}>
+                <td>{c.razaoSocial}</td>
+                <td>{c.nomeFantasia||'-'}</td>
+                <td>{c.cnpj ? formatCNPJ(c.cnpj) : '-'}</td>
+                <td>{c.telefone||'-'}</td>
+                <td>{c.cidade ? `${c.cidade}/${c.uf||''}` : '-'}</td>
+                <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+                  <button className="btn secundario pequeno" onClick={()=>{setEditando(c);setModalAberto(true);}}>Editar</button>{' '}
+                  <button className="btn perigo pequeno" onClick={()=>excluir(c)}>Excluir</button>
+                </td>
+              </tr>
+            ))}
+            {!carregando && filtrados.length===0 && <tr><td colSpan="6" style={{color:'var(--texto-fraco)',textAlign:'center',padding:22}}>Nenhum cliente encontrado.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      {modalAberto && <ModalCliente cliente={editando} aoFechar={()=>setModalAberto(false)} />}
+    </div>
+  );
+}
+
+function ModalCliente({ cliente, aoFechar }){
+  const [f, setF] = useState(cliente || { cnpj:'', razaoSocial:'', nomeFantasia:'', ie:'', endereco:'', bairro:'', cidade:'', uf:'', cep:'', telefone:'', email:'' });
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+
+  function campo(k,v){ setF(prev=>({...prev,[k]:v})); }
+
+  async function buscarCnpj(){
+    const numeros = (f.cnpj||'').replace(/\D/g,'');
+    if(numeros.length!==14){ alert('Digite um CNPJ com 14 dígitos.'); return; }
+    setBuscandoCnpj(true);
+    try{
+      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${numeros}`);
+      if(!resp.ok) throw new Error('CNPJ não encontrado');
+      const d = await resp.json();
+      setF(prev=>({...prev,
+        razaoSocial: d.razao_social || prev.razaoSocial,
+        nomeFantasia: d.nome_fantasia || prev.nomeFantasia,
+        endereco: [d.descricao_tipo_de_logradouro, d.logradouro, d.numero].filter(Boolean).join(' ') || prev.endereco,
+        bairro: d.bairro || prev.bairro,
+        cidade: d.municipio || prev.cidade,
+        uf: d.uf || prev.uf,
+        cep: d.cep || prev.cep,
+        telefone: d.ddd_telefone_1 || prev.telefone,
+        email: d.email || prev.email,
+      }));
+    }catch(err){
+      alert('Não consegui localizar esse CNPJ automaticamente. Preencha os dados manualmente.');
+    }
+    setBuscandoCnpj(false);
+  }
+
+  async function salvar(e){
+    e.preventDefault();
+    setSalvando(true);
+    const dados = {...f, cnpj:(f.cnpj||'').replace(/\D/g,'')};
+    if(cliente){
+      await db.collection('clientes').doc(cliente.id).update(dados);
+    }else{
+      dados.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('clientes').add(dados);
+    }
+    setSalvando(false);
+    aoFechar();
+  }
+
+  return (
+    <div className="modal-fundo" onClick={e=>e.target===e.currentTarget && aoFechar()}>
+      <form className="modal" onSubmit={salvar}>
+        <h3 style={{marginTop:0}}>{cliente ? 'Editar cliente' : 'Novo cliente'}</h3>
+        <label>CNPJ</label>
+        <div style={{display:'flex',gap:8}}>
+          <input value={formatCNPJ(f.cnpj)} onChange={e=>campo('cnpj', e.target.value)} placeholder="00.000.000/0000-00" maxLength={18} />
+          <button type="button" className="btn secundario" disabled={buscandoCnpj} onClick={buscarCnpj} style={{whiteSpace:'nowrap'}}>
+            {buscandoCnpj ? 'Buscando...' : 'Buscar CNPJ'}
+          </button>
+        </div>
+        <div className="grid2">
+          <div><label>Razão social</label><input value={f.razaoSocial} onChange={e=>campo('razaoSocial',e.target.value)} required /></div>
+          <div><label>Nome fantasia</label><input value={f.nomeFantasia} onChange={e=>campo('nomeFantasia',e.target.value)} /></div>
+        </div>
+        <div className="grid2">
+          <div><label>Telefone</label><input value={f.telefone} onChange={e=>campo('telefone',e.target.value)} /></div>
+          <div><label>E-mail</label><input value={f.email} onChange={e=>campo('email',e.target.value)} /></div>
+        </div>
+        <label>Endereço</label>
+        <input value={f.endereco} onChange={e=>campo('endereco',e.target.value)} />
+        <div className="grid2">
+          <div><label>Bairro</label><input value={f.bairro} onChange={e=>campo('bairro',e.target.value)} /></div>
+          <div><label>CEP</label><input value={f.cep} onChange={e=>campo('cep',e.target.value)} /></div>
+        </div>
+        <div className="grid2">
+          <div><label>Cidade</label><input value={f.cidade} onChange={e=>campo('cidade',e.target.value)} /></div>
+          <div><label>UF</label><input value={f.uf} onChange={e=>campo('uf',e.target.value.toUpperCase())} maxLength={2} /></div>
+        </div>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:20}}>
+          <button type="button" className="btn secundario" onClick={aoFechar}>Cancelar</button>
+          <button className="btn" disabled={salvando}>{salvando?'Salvando...':'Salvar'}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ======================= PEÇAS =======================
+const STATUS_PECA = ['Em estoque','Em conserto','Consertada','Entregue'];
+const STATUS_CLASSE = {'Em estoque':'estoque','Em conserto':'conserto','Consertada':'consertada','Entregue':'entregue'};
+
+function AbaPecas({ usuario, funcionarios }){
+  const [pecas, carregando] = useColecao('pecas', 'criadoEm');
+  const [clientes] = useColecao('clientes');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [busca, setBusca] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('');
+
+  const nomeCliente = id => clientes.find(c=>c.id===id)?.razaoSocial || '-';
+  const nomeFunc = id => funcionarios.find(f=>f.id===id)?.nome || '-';
+
+  const filtradas = pecas.filter(p=>
+    (!filtroStatus || p.status===filtroStatus) &&
+    ((p.codigo||'').toLowerCase().includes(busca.toLowerCase()) || (p.descricao||'').toLowerCase().includes(busca.toLowerCase()))
+  );
+
+  async function excluir(p){
+    if(!confirm(`Excluir a peça "${p.descricao}"?`)) return;
+    await db.collection('pecas').doc(p.id).delete();
+  }
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:10}}>
+        <h2 style={{margin:0}}>Peças — Entrada e Saída</h2>
+        <button className="btn" onClick={()=>{setEditando(null);setModalAberto(true);}}>+ Nova peça</button>
+      </div>
+      <div style={{display:'flex',gap:10,marginBottom:14,flexWrap:'wrap'}}>
+        <input placeholder="Buscar por código ou descrição..." value={busca} onChange={e=>setBusca(e.target.value)} style={{maxWidth:300}} />
+        <select value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)} style={{maxWidth:180}}>
+          <option value="">Todos os status</option>
+          {STATUS_PECA.map(s=><option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+      <div className="card" style={{overflowX:'auto',padding:0}}>
+        <table>
+          <thead><tr><th>Foto</th><th>Código</th><th>Descrição</th><th>Cliente</th><th>Técnico</th><th>Status</th><th>Valor</th><th></th></tr></thead>
+          <tbody>
+            {filtradas.map(p=>(
+              <tr key={p.id}>
+                <td>{p.fotos && p.fotos[0] ? <img src={p.fotos[0]} className="foto-thumb" /> : <div className="foto-thumb" style={{display:'flex',alignItems:'center',justifyContent:'center',color:'var(--texto-fraco)'}}>—</div>}</td>
+                <td>{p.codigo||'-'}</td>
+                <td>{p.descricao}</td>
+                <td>{p.clienteId ? nomeCliente(p.clienteId) : '-'}</td>
+                <td>{p.tecnicoId ? nomeFunc(p.tecnicoId) : '-'}</td>
+                <td><span className={`badge ${STATUS_CLASSE[p.status]||'estoque'}`}>{p.status}</span></td>
+                <td>{formatMoeda(p.valorVenda)}</td>
+                <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+                  <button className="btn secundario pequeno" onClick={()=>{setEditando(p);setModalAberto(true);}}>Editar</button>{' '}
+                  <button className="btn perigo pequeno" onClick={()=>excluir(p)}>Excluir</button>
+                </td>
+              </tr>
+            ))}
+            {!carregando && filtradas.length===0 && <tr><td colSpan="8" style={{color:'var(--texto-fraco)',textAlign:'center',padding:22}}>Nenhuma peça encontrada.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      {modalAberto && <ModalPeca peca={editando} clientes={clientes} funcionarios={funcionarios} usuario={usuario} aoFechar={()=>setModalAberto(false)} />}
+    </div>
+  );
+}
+
+function ModalPeca({ peca, clientes, funcionarios, usuario, aoFechar }){
+  const [f, setF] = useState(peca || {
+    codigo:'', descricao:'', categoria:'', clienteId:'', tecnicoId:'', quantidade:1,
+    valorCusto:0, valorVenda:0, status:'Em estoque', observacoes:'', fotos:[]
+  });
+  const [salvando, setSalvando] = useState(false);
+  const [processandoFoto, setProcessandoFoto] = useState(false);
+  const inputFotoRef = useRef();
+
+  function campo(k,v){ setF(prev=>({...prev,[k]:v})); }
+
+  async function adicionarFoto(file){
+    if(!file) return;
+    setProcessandoFoto(true);
+    try{
+      const dataUrl = await resizeImagem(file);
+      setF(prev=>({...prev, fotos:[...(prev.fotos||[]), dataUrl].slice(0,4)}));
+    }catch(err){ alert('Não consegui processar essa foto.'); }
+    setProcessandoFoto(false);
+  }
+  function removerFoto(i){
+    setF(prev=>({...prev, fotos: prev.fotos.filter((_,idx)=>idx!==i)}));
+  }
+
+  async function salvar(e){
+    e.preventDefault();
+    setSalvando(true);
+    const statusAnterior = peca?.status;
+    const dados = {...f, quantidade:Number(f.quantidade)||1, valorCusto:Number(f.valorCusto)||0, valorVenda:Number(f.valorVenda)||0};
+    let pecaId = peca?.id;
+    if(peca){
+      await db.collection('pecas').doc(peca.id).update(dados);
+    }else{
+      dados.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
+      const ref = await db.collection('pecas').add(dados);
+      pecaId = ref.id;
+    }
+    // gera comissão automaticamente quando a peça passa a "Consertada" pela 1ª vez
+    if(dados.status === 'Consertada' && statusAnterior !== 'Consertada' && dados.tecnicoId){
+      const tecnico = funcionarios.find(x=>x.id===dados.tecnicoId);
+      const valorComissao = Number(tecnico?.comissaoPorPeca) || 0;
+      if(valorComissao > 0){
+        await db.collection('comissoes').add({
+          funcionarioId: dados.tecnicoId,
+          pecaId,
+          pecaDescricao: dados.descricao,
+          valor: valorComissao,
+          data: firebase.firestore.FieldValue.serverTimestamp(),
+          lancadoPor: usuario?.nome || '',
+        });
+      }
+    }
+    setSalvando(false);
+    aoFechar();
+  }
+
+  return (
+    <div className="modal-fundo" onClick={e=>e.target===e.currentTarget && aoFechar()}>
+      <form className="modal" onSubmit={salvar}>
+        <h3 style={{marginTop:0}}>{peca ? 'Editar peça' : 'Nova peça'}</h3>
+
+        <label>Fotos (tire direto do celular)</label>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+          {(f.fotos||[]).map((foto,i)=>(
+            <div key={i} style={{position:'relative'}}>
+              <img src={foto} className="foto-thumb" />
+              <button type="button" onClick={()=>removerFoto(i)}
+                style={{position:'absolute',top:-6,right:-6,width:20,height:20,borderRadius:'50%',background:'var(--vermelho)',color:'#fff',border:'none',fontSize:12,lineHeight:'20px',padding:0}}>×</button>
+            </div>
+          ))}
+          {(f.fotos||[]).length < 4 && (
+            <button type="button" className="btn secundario pequeno" disabled={processandoFoto} onClick={()=>inputFotoRef.current.click()}>
+              {processandoFoto ? 'Carregando...' : '📷 Tirar/anexar foto'}
+            </button>
+          )}
+          <input ref={inputFotoRef} type="file" accept="image/*" capture="environment" style={{display:'none'}}
+            onChange={e=>{adicionarFoto(e.target.files[0]); e.target.value='';}} />
+        </div>
+
+        <div className="grid2">
+          <div><label>Código</label><input value={f.codigo} onChange={e=>campo('codigo',e.target.value)} /></div>
+          <div><label>Categoria</label><input value={f.categoria} onChange={e=>campo('categoria',e.target.value)} placeholder="Ex: Placa, Controle, Fonte..." /></div>
+        </div>
+        <label>Descrição</label>
+        <input value={f.descricao} onChange={e=>campo('descricao',e.target.value)} required />
+        <div className="grid2">
+          <div>
+            <label>Cliente</label>
+            <select value={f.clienteId} onChange={e=>campo('clienteId',e.target.value)}>
+              <option value="">-</option>
+              {clientes.map(c=><option key={c.id} value={c.id}>{c.razaoSocial}</option>)}
+            </select>
+          </div>
+          <div>
+            <label>Técnico responsável</label>
+            <select value={f.tecnicoId} onChange={e=>campo('tecnicoId',e.target.value)}>
+              <option value="">-</option>
+              {funcionarios.map(fu=><option key={fu.id} value={fu.id}>{fu.nome}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="grid2">
+          <div><label>Quantidade</label><input type="number" min="1" value={f.quantidade} onChange={e=>campo('quantidade',e.target.value)} /></div>
+          <div>
+            <label>Status</label>
+            <select value={f.status} onChange={e=>campo('status',e.target.value)}>
+              {STATUS_PECA.map(s=><option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="grid2">
+          <div><label>Valor de custo</label><input type="number" step="0.01" value={f.valorCusto} onChange={e=>campo('valorCusto',e.target.value)} /></div>
+          <div><label>Valor de venda</label><input type="number" step="0.01" value={f.valorVenda} onChange={e=>campo('valorVenda',e.target.value)} /></div>
+        </div>
+        <label>Observações</label>
+        <textarea rows="2" value={f.observacoes} onChange={e=>campo('observacoes',e.target.value)}></textarea>
+        <div style={{fontSize:12,color:'var(--texto-fraco)',marginTop:10}}>
+          Marcar o status como "Consertada" com um técnico selecionado lança automaticamente a comissão dele.
+        </div>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
+          <button type="button" className="btn secundario" onClick={aoFechar}>Cancelar</button>
+          <button className="btn" disabled={salvando}>{salvando?'Salvando...':'Salvar'}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ======================= ORÇAMENTOS =======================
+function AbaOrcamentos(){
+  const [orcamentos, carregando] = useColecao('orcamentos', 'criadoEm');
+  const [clientes] = useColecao('clientes');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [editando, setEditando] = useState(null);
+
+  const nomeCliente = id => clientes.find(c=>c.id===id)?.razaoSocial || '-';
+
+  async function excluir(o){
+    if(!confirm(`Excluir o orçamento #${o.numero}?`)) return;
+    await db.collection('orcamentos').doc(o.id).delete();
+  }
+  async function mudarStatus(o, status){
+    await db.collection('orcamentos').doc(o.id).update({status});
+  }
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+        <h2 style={{margin:0}}>Orçamentos</h2>
+        <button className="btn" onClick={()=>{setEditando(null);setModalAberto(true);}}>+ Novo orçamento</button>
+      </div>
+      <div className="card" style={{overflowX:'auto',padding:0}}>
+        <table>
+          <thead><tr><th>Nº</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {orcamentos.map(o=>(
+              <tr key={o.id}>
+                <td>{o.numero}</td>
+                <td>{nomeCliente(o.clienteId)}</td>
+                <td>{formatData(o.criadoEm)}</td>
+                <td>{formatMoeda(o.total)}</td>
+                <td>
+                  <select value={o.status} onChange={e=>mudarStatus(o,e.target.value)}
+                    className={`badge ${STATUS_CLASSE[o.status]||'pendente'}`} style={{width:'auto',border:'none',padding:'4px 8px'}}>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Aprovado">Aprovado</option>
+                    <option value="Recusado">Recusado</option>
+                  </select>
+                </td>
+                <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+                  <button className="btn secundario pequeno" onClick={()=>{setEditando(o);setModalAberto(true);}}>Editar</button>{' '}
+                  <button className="btn perigo pequeno" onClick={()=>excluir(o)}>Excluir</button>
+                </td>
+              </tr>
+            ))}
+            {!carregando && orcamentos.length===0 && <tr><td colSpan="6" style={{color:'var(--texto-fraco)',textAlign:'center',padding:22}}>Nenhum orçamento cadastrado.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      {modalAberto && <ModalOrcamento orcamento={editando} clientes={clientes} totalAtual={orcamentos.length} aoFechar={()=>setModalAberto(false)} />}
+    </div>
+  );
+}
+
+function ModalOrcamento({ orcamento, clientes, totalAtual, aoFechar }){
+  const [clienteId, setClienteId] = useState(orcamento?.clienteId || '');
+  const [validade, setValidade] = useState(orcamento?.validade || '');
+  const [itens, setItens] = useState(orcamento?.itens || [{descricao:'',qtd:1,valorUnit:0}]);
+  const [salvando, setSalvando] = useState(false);
+
+  const total = itens.reduce((s,i)=> s + (Number(i.qtd)||0)*(Number(i.valorUnit)||0), 0);
+
+  function mudarItem(i, campo, valor){
+    setItens(prev=> prev.map((it,idx)=> idx===i ? {...it,[campo]:valor} : it));
+  }
+  function addItem(){ setItens(prev=>[...prev,{descricao:'',qtd:1,valorUnit:0}]); }
+  function removerItem(i){ setItens(prev=> prev.filter((_,idx)=>idx!==i)); }
+
+  async function salvar(e){
+    e.preventDefault();
+    if(!clienteId){ alert('Selecione um cliente.'); return; }
+    setSalvando(true);
+    const dados = { clienteId, validade, itens, total, status: orcamento?.status || 'Pendente' };
+    if(orcamento){
+      await db.collection('orcamentos').doc(orcamento.id).update(dados);
+    }else{
+      dados.numero = totalAtual + 1;
+      dados.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('orcamentos').add(dados);
+    }
+    setSalvando(false);
+    aoFechar();
+  }
+
+  return (
+    <div className="modal-fundo" onClick={e=>e.target===e.currentTarget && aoFechar()}>
+      <form className="modal" style={{maxWidth:620}} onSubmit={salvar}>
+        <h3 style={{marginTop:0}}>{orcamento ? `Editar orçamento #${orcamento.numero}` : 'Novo orçamento'}</h3>
+        <div className="grid2">
+          <div>
+            <label>Cliente</label>
+            <select value={clienteId} onChange={e=>setClienteId(e.target.value)} required>
+              <option value="">Selecione...</option>
+              {clientes.map(c=><option key={c.id} value={c.id}>{c.razaoSocial}</option>)}
+            </select>
+          </div>
+          <div><label>Validade</label><input type="date" value={validade} onChange={e=>setValidade(e.target.value)} /></div>
+        </div>
+
+        <label style={{marginTop:16}}>Itens</label>
+        {itens.map((it,i)=>(
+          <div key={i} style={{display:'flex',gap:6,alignItems:'flex-end',marginBottom:6}}>
+            <div style={{flex:1}}><input placeholder="Descrição" value={it.descricao} onChange={e=>mudarItem(i,'descricao',e.target.value)} /></div>
+            <div style={{width:60}}><input type="number" min="1" value={it.qtd} onChange={e=>mudarItem(i,'qtd',e.target.value)} /></div>
+            <div style={{width:100}}><input type="number" step="0.01" placeholder="Valor un." value={it.valorUnit} onChange={e=>mudarItem(i,'valorUnit',e.target.value)} /></div>
+            <button type="button" className="btn perigo pequeno" onClick={()=>removerItem(i)}>×</button>
+          </div>
+        ))}
+        <button type="button" className="btn secundario pequeno" onClick={addItem}>+ Adicionar item</button>
+
+        <div style={{marginTop:16,textAlign:'right',fontSize:17,fontWeight:700}}>Total: {formatMoeda(total)}</div>
+
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
+          <button type="button" className="btn secundario" onClick={aoFechar}>Cancelar</button>
+          <button className="btn" disabled={salvando}>{salvando?'Salvando...':'Salvar'}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ======================= COMISSÕES =======================
+function AbaComissoes({ funcionarios }){
+  const [comissoes, carregando] = useColecao('comissoes', 'data');
+  const [filtroFunc, setFiltroFunc] = useState('');
+  const [de, setDe] = useState('');
+  const [ate, setAte] = useState('');
+
+  const nomeFunc = id => funcionarios.find(f=>f.id===id)?.nome || '-';
+
+  const filtradas = comissoes.filter(c=>{
+    if(filtroFunc && c.funcionarioId!==filtroFunc) return false;
+    if(!c.data) return true;
+    const d = c.data.toDate ? c.data.toDate() : new Date(c.data);
+    if(de && d < new Date(de)) return false;
+    if(ate && d > new Date(ate+'T23:59:59')) return false;
+    return true;
+  });
+
+  const totalGeral = filtradas.reduce((s,c)=> s + (Number(c.valor)||0), 0);
+  const porFuncionario = {};
+  filtradas.forEach(c=>{
+    porFuncionario[c.funcionarioId] = porFuncionario[c.funcionarioId] || {qtd:0, total:0};
+    porFuncionario[c.funcionarioId].qtd++;
+    porFuncionario[c.funcionarioId].total += Number(c.valor)||0;
+  });
+
+  return (
+    <div>
+      <h2 style={{margin:'0 0 16px'}}>Análise de comissão</h2>
+      <div style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
+        <select value={filtroFunc} onChange={e=>setFiltroFunc(e.target.value)} style={{maxWidth:220}}>
+          <option value="">Todos os funcionários</option>
+          {funcionarios.map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}
+        </select>
+        <div><label style={{margin:0}}>De</label><input type="date" value={de} onChange={e=>setDe(e.target.value)} /></div>
+        <div><label style={{margin:0}}>Até</label><input type="date" value={ate} onChange={e=>setAte(e.target.value)} /></div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12,marginBottom:20}}>
+        <div className="card">
+          <div style={{color:'var(--texto-fraco)',fontSize:12.5}}>Peças consertadas</div>
+          <div style={{fontSize:26,fontWeight:700,marginTop:4}}>{filtradas.length}</div>
+        </div>
+        <div className="card">
+          <div style={{color:'var(--texto-fraco)',fontSize:12.5}}>Comissão total no período</div>
+          <div style={{fontSize:26,fontWeight:700,marginTop:4,color:'var(--laranja)'}}>{formatMoeda(totalGeral)}</div>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:20,overflowX:'auto',padding:0}}>
+        <table>
+          <thead><tr><th>Funcionário</th><th>Peças consertadas</th><th>Comissão total</th></tr></thead>
+          <tbody>
+            {Object.entries(porFuncionario).map(([fid,dados])=>(
+              <tr key={fid}><td>{nomeFunc(fid)}</td><td>{dados.qtd}</td><td>{formatMoeda(dados.total)}</td></tr>
+            ))}
+            {Object.keys(porFuncionario).length===0 && <tr><td colSpan="3" style={{color:'var(--texto-fraco)',textAlign:'center',padding:20}}>Sem lançamentos nesse período.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={{marginBottom:10}}>Lançamentos</h3>
+      <div className="card" style={{overflowX:'auto',padding:0}}>
+        <table>
+          <thead><tr><th>Data</th><th>Funcionário</th><th>Peça</th><th>Valor</th></tr></thead>
+          <tbody>
+            {filtradas.map(c=>(
+              <tr key={c.id}><td>{formatData(c.data)}</td><td>{nomeFunc(c.funcionarioId)}</td><td>{c.pecaDescricao||'-'}</td><td>{formatMoeda(c.valor)}</td></tr>
+            ))}
+            {!carregando && filtradas.length===0 && <tr><td colSpan="4" style={{color:'var(--texto-fraco)',textAlign:'center',padding:20}}>Nenhum lançamento.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ======================= FUNCIONÁRIOS =======================
+function AbaFuncionarios({ usuario }){
+  const [funcionarios, carregando] = useColecao('funcionarios');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [editando, setEditando] = useState(null);
+
+  async function excluir(f){
+    if(f.id===usuario.id){ alert('Você não pode excluir o próprio usuário enquanto estiver logado com ele.'); return; }
+    if(!confirm(`Excluir o funcionário "${f.nome}"?`)) return;
+    await db.collection('funcionarios').doc(f.id).delete();
+  }
+  async function alternarAtivo(f){
+    await db.collection('funcionarios').doc(f.id).update({ativo: f.ativo===false});
+  }
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+        <h2 style={{margin:0}}>Funcionários</h2>
+        <button className="btn" onClick={()=>{setEditando(null);setModalAberto(true);}}>+ Novo funcionário</button>
+      </div>
+      <div className="card" style={{overflowX:'auto',padding:0}}>
+        <table>
+          <thead><tr><th>Nome</th><th>Cargo</th><th>Login</th><th>Comissão por peça</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {funcionarios.map(f=>(
+              <tr key={f.id}>
+                <td>{f.nome}</td>
+                <td>{f.cargo||'-'}</td>
+                <td>{f.login||'-'}</td>
+                <td>{formatMoeda(f.comissaoPorPeca)}</td>
+                <td>
+                  <button className={`badge ${f.ativo===false?'recusado':'aprovado'}`} style={{border:'none'}} onClick={()=>alternarAtivo(f)}>
+                    {f.ativo===false ? 'Inativo' : 'Ativo'}
+                  </button>
+                </td>
+                <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+                  <button className="btn secundario pequeno" onClick={()=>{setEditando(f);setModalAberto(true);}}>Editar</button>{' '}
+                  <button className="btn perigo pequeno" onClick={()=>excluir(f)}>Excluir</button>
+                </td>
+              </tr>
+            ))}
+            {!carregando && funcionarios.length===0 && <tr><td colSpan="6" style={{color:'var(--texto-fraco)',textAlign:'center',padding:22}}>Nenhum funcionário cadastrado. Crie o primeiro para poder fazer login.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      {modalAberto && <ModalFuncionario funcionario={editando} aoFechar={()=>setModalAberto(false)} />}
+    </div>
+  );
+}
+
+function ModalFuncionario({ funcionario, aoFechar }){
+  const [f, setF] = useState(funcionario || { nome:'', cargo:'', login:'', comissaoPorPeca:0, ativo:true });
+  const [senha, setSenha] = useState('');
+  const [salvando, setSalvando] = useState(false);
+
+  function campo(k,v){ setF(prev=>({...prev,[k]:v})); }
+
+  async function salvar(e){
+    e.preventDefault();
+    if(!funcionario && !senha){ alert('Defina uma senha para o novo funcionário.'); return; }
+    setSalvando(true);
+    const dados = {...f, comissaoPorPeca: Number(f.comissaoPorPeca)||0};
+    if(senha) dados.senhaHash = await hashSenha(senha);
+    if(funcionario){
+      await db.collection('funcionarios').doc(funcionario.id).update(dados);
+    }else{
+      dados.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('funcionarios').add(dados);
+    }
+    setSalvando(false);
+    aoFechar();
+  }
+
+  return (
+    <div className="modal-fundo" onClick={e=>e.target===e.currentTarget && aoFechar()}>
+      <form className="modal" onSubmit={salvar}>
+        <h3 style={{marginTop:0}}>{funcionario ? 'Editar funcionário' : 'Novo funcionário'}</h3>
+        <div className="grid2">
+          <div><label>Nome</label><input value={f.nome} onChange={e=>campo('nome',e.target.value)} required /></div>
+          <div><label>Cargo</label><input value={f.cargo} onChange={e=>campo('cargo',e.target.value)} placeholder="Ex: Técnico, Administrador..." /></div>
+        </div>
+        <div className="grid2">
+          <div><label>Login</label><input value={f.login} onChange={e=>campo('login',e.target.value)} /></div>
+          <div><label>Comissão por peça consertada (R$)</label><input type="number" step="0.01" value={f.comissaoPorPeca} onChange={e=>campo('comissaoPorPeca',e.target.value)} /></div>
+        </div>
+        <label>{funcionario ? 'Nova senha (deixe em branco para manter a atual)' : 'Senha'}</label>
+        <input type="password" value={senha} onChange={e=>setSenha(e.target.value)} />
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
+          <button type="button" className="btn secundario" onClick={aoFechar}>Cancelar</button>
+          <button className="btn" disabled={salvando}>{salvando?'Salvando...':'Salvar'}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
