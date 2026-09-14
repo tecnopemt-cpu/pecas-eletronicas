@@ -1,9 +1,17 @@
 {
-  "name": "Controle de Peças Eletrônicas",
-  "short_name": "Peças",
+  "name": "Controle de Peças - Tecnopemt",
+  "short_name": "Peças Tecnopemt",
+  "description": "Entrada, saída e conserto de peças eletrônicas da Tecnopemt",
   "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#0e1a26",
-  "theme_color": "#1c2b39",
-  "icons": []
+  "orientation": "portrait-primary",
+  "background_color": "#F2EFEE",
+  "theme_color": "#453B3C",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }
