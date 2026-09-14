@@ -1375,9 +1375,20 @@ function AbaLotes({
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id
-  }, /*#__PURE__*/React.createElement("td", null, nomeCliente(l.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("td", null, l.fotoLote ? /*#__PURE__*/React.createElement("img", {
+    src: l.fotoLote,
+    className: "foto-thumb"
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "foto-thumb",
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--texto-fraco)'
+    }
+  }, "—")), /*#__PURE__*/React.createElement("td", null, nomeCliente(l.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
     className: `badge ${STATUS_CLASSE[l.status] || 'estoque'}`
   }, l.status)), /*#__PURE__*/React.createElement("td", {
     style: {
@@ -1391,7 +1402,7 @@ function AbaLotes({
     className: "btn perigo pequeno",
     onClick: () => excluirLote(l)
   }, "Excluir")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "5",
+    colSpan: "6",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
@@ -1419,7 +1430,10 @@ function ModalNovoLote({
     pecaCatalogoId: '',
     quantidade: 1
   }]);
+  const [fotoLote, setFotoLote] = useState('');
+  const [processandoFoto, setProcessandoFoto] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const inputFotoRef = useRef();
   function mudarItem(i, campo, valor) {
     setItens(prev => prev.map((it, idx) => idx === i ? {
       ...it,
@@ -1435,6 +1449,17 @@ function ModalNovoLote({
   function removerItem(i) {
     setItens(prev => prev.filter((_, idx) => idx !== i));
   }
+  async function capturarFoto(file) {
+    if (!file) return;
+    setProcessandoFoto(true);
+    try {
+      const dataUrl = await resizeImagem(file);
+      setFotoLote(dataUrl);
+    } catch (err) {
+      alert('Não consegui processar essa foto.');
+    }
+    setProcessandoFoto(false);
+  }
   async function salvar(e) {
     e.preventDefault();
     if (!clienteId) {
@@ -1444,6 +1469,10 @@ function ModalNovoLote({
     const itensValidos = itens.filter(it => it.pecaCatalogoId && Number(it.quantidade) > 0);
     if (itensValidos.length === 0) {
       alert('Adicione ao menos uma peça com quantidade.');
+      return;
+    }
+    if (!fotoLote) {
+      alert('Tire uma foto do lote completo antes de dar entrada.');
       return;
     }
     setSalvando(true);
@@ -1463,6 +1492,7 @@ function ModalNovoLote({
     await db.collection('lotes').add({
       clienteId,
       itens: itensLote,
+      fotoLote,
       status: 'Em análise',
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -1487,6 +1517,49 @@ function ModalNovoLote({
     value: clienteId,
     onChange: setClienteId
   }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 16
+    }
+  }, "Foto do lote completo"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center',
+      flexWrap: 'wrap'
+    }
+  }, fotoLote && /*#__PURE__*/React.createElement("img", {
+    src: fotoLote,
+    style: {
+      width: 84,
+      height: 84,
+      objectFit: 'cover',
+      borderRadius: 8,
+      border: '1px solid var(--borda)'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: processandoFoto,
+    onClick: () => inputFotoRef.current.click()
+  }, processandoFoto ? 'Carregando...' : fotoLote ? '📷 Tirar outra foto' : '📷 Tirar foto do lote'), /*#__PURE__*/React.createElement("input", {
+    ref: inputFotoRef,
+    type: "file",
+    accept: "image/*",
+    capture: "environment",
+    style: {
+      display: 'none'
+    },
+    onChange: e => {
+      capturarFoto(e.target.files[0]);
+      e.target.value = '';
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 4
+    }
+  }, "Serve para validar depois quais peças foram coletadas com o cliente."), /*#__PURE__*/React.createElement("label", {
     style: {
       marginTop: 16
     }
@@ -1556,6 +1629,11 @@ function ModalLoteDetalhe({
   const nomeCliente = clientes.find(c => c.id === lote.clienteId)?.razaoSocial || '-';
   const totalmenteTriado = (lote.itens || []).every(it => (it.qtdConsertada || 0) + (it.qtdNaoConsertada || 0) === it.quantidade);
   const [processando, setProcessando] = useState(false);
+  async function mudarStatusManual(novoStatus) {
+    await db.collection('lotes').doc(lote.id).update({
+      status: novoStatus
+    });
+  }
   async function alterarContagem(idx, tipo, delta) {
     const item = lote.itens[idx];
     if (tipo === 'consertada' && delta > 0 && !item.tecnicoId) {
@@ -1697,7 +1775,23 @@ function ModalLoteDetalhe({
       marginBottom: 6,
       gap: 10
     }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      alignItems: 'flex-start'
+    }
+  }, lote.fotoLote && /*#__PURE__*/React.createElement("img", {
+    src: lote.fotoLote,
+    style: {
+      width: 56,
+      height: 56,
+      objectFit: 'cover',
+      borderRadius: 8,
+      border: '1px solid var(--borda)',
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     style: {
       margin: 0
     }
@@ -1706,9 +1800,20 @@ function ModalLoteDetalhe({
       fontSize: 12,
       color: 'var(--texto-fraco)'
     }
-  }, "Entrada em ", formatData(lote.criadoEm))), /*#__PURE__*/React.createElement("span", {
-    className: `badge ${STATUS_CLASSE[lote.status] || 'estoque'}`
-  }, lote.status)), /*#__PURE__*/React.createElement("div", {
+  }, "Entrada em ", formatData(lote.criadoEm)))), /*#__PURE__*/React.createElement("select", {
+    value: lote.status,
+    onChange: e => mudarStatusManual(e.target.value),
+    className: `badge ${STATUS_CLASSE[lote.status] || 'estoque'}`,
+    style: {
+      width: 'auto',
+      border: 'none',
+      padding: '4px 8px',
+      flexShrink: 0
+    }
+  }, STATUS_LOTE.map(s => /*#__PURE__*/React.createElement("option", {
+    key: s,
+    value: s
+  }, s)))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 16,
       display: 'flex',
