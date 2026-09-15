@@ -1495,7 +1495,11 @@ function ModalNovoLote({
         pecaDescricao: peca ? `${peca.codigo ? peca.codigo + ' — ' : ''}${peca.descricao}` : '',
         quantidade: Number(it.quantidade),
         qtdConsertada: 0,
+        qtdGarantia: 0,
         qtdNaoConsertada: 0,
+        qtdConsertadaOrcada: 0,
+        qtdGarantiaOrcada: 0,
+        qtdNaoConsertadaOrcada: 0,
         valorConserto: Number(peca?.valorConserto) || 0
       };
     });
@@ -1637,7 +1641,6 @@ function ModalLoteDetalhe({
   aoFechar
 }) {
   const nomeCliente = clientes.find(c => c.id === lote.clienteId)?.razaoSocial || '-';
-  const totalmenteTriado = (lote.itens || []).every(it => (it.qtdConsertada || 0) + (it.qtdNaoConsertada || 0) === it.quantidade);
   const [processando, setProcessando] = useState(false);
   async function mudarStatusManual(novoStatus) {
     await db.collection('lotes').doc(lote.id).update({
@@ -1646,15 +1649,15 @@ function ModalLoteDetalhe({
   }
   async function alterarContagem(idx, tipo, delta) {
     const item = lote.itens[idx];
-    const consertadaAtual = item.qtdConsertada || 0;
-    const naoConsertadaAtual = item.qtdNaoConsertada || 0;
-    const novoConsertada = tipo === 'consertada' ? Math.max(0, consertadaAtual + delta) : consertadaAtual;
-    const novoNao = tipo === 'naoConsertada' ? Math.max(0, naoConsertadaAtual + delta) : naoConsertadaAtual;
-    if (novoConsertada + novoNao > item.quantidade) return;
+    const chave = tipo === 'consertada' ? 'qtdConsertada' : tipo === 'garantia' ? 'qtdGarantia' : 'qtdNaoConsertada';
+    const chaveOrcada = tipo === 'consertada' ? 'qtdConsertadaOrcada' : tipo === 'garantia' ? 'qtdGarantiaOrcada' : 'qtdNaoConsertadaOrcada';
+    const atual = item[chave] || 0;
+    const novo = Math.max(item[chaveOrcada] || 0, atual + delta);
+    const outrasClassificadas = ['qtdConsertada', 'qtdGarantia', 'qtdNaoConsertada'].filter(k => k !== chave).reduce((s, k) => s + (item[k] || 0), 0);
+    if (novo + outrasClassificadas > item.quantidade) return;
     const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
       ...it,
-      qtdConsertada: novoConsertada,
-      qtdNaoConsertada: novoNao
+      [chave]: novo
     } : it);
     await db.collection('lotes').doc(lote.id).update({
       itens: itensAtualizados
@@ -1669,25 +1672,34 @@ function ModalLoteDetalhe({
       itens: itensAtualizados
     });
   }
-  async function avancarParaOrcamento() {
-    setProcessando(true);
-    await db.collection('lotes').doc(lote.id).update({
-      status: 'Pendente envio de orçamento'
-    });
-    setProcessando(false);
-  }
   async function gerarOrcamento() {
-    const itensOrcamento = (lote.itens || []).filter(it => (it.qtdConsertada || 0) > 0).map(it => ({
-      descricao: it.pecaDescricao,
-      qtd: it.qtdConsertada,
-      valorUnit: it.valorConserto || 0
-    }));
-    if (itensOrcamento.length === 0) {
-      alert('Nenhum item consertado nesse lote para gerar orçamento.');
+    const linhas = [];
+    (lote.itens || []).forEach(it => {
+      const pendConserto = (it.qtdConsertada || 0) - (it.qtdConsertadaOrcada || 0);
+      const pendGarantia = (it.qtdGarantia || 0) - (it.qtdGarantiaOrcada || 0);
+      const pendSem = (it.qtdNaoConsertada || 0) - (it.qtdNaoConsertadaOrcada || 0);
+      if (pendConserto > 0) linhas.push({
+        descricao: it.pecaDescricao,
+        qtd: pendConserto,
+        valorUnit: it.valorConserto || 0
+      });
+      if (pendGarantia > 0) linhas.push({
+        descricao: `${it.pecaDescricao} (Garantia)`,
+        qtd: pendGarantia,
+        valorUnit: 0
+      });
+      if (pendSem > 0) linhas.push({
+        descricao: `${it.pecaDescricao} (Sem conserto)`,
+        qtd: pendSem,
+        valorUnit: 0
+      });
+    });
+    if (linhas.length === 0) {
+      alert('Não há peças classificadas (conserto, garantia ou sem conserto) pendentes de orçamento nesse lote.');
       return;
     }
     setProcessando(true);
-    const total = itensOrcamento.reduce((s, i) => s + i.qtd * i.valorUnit, 0);
+    const total = linhas.reduce((s, l) => s + l.qtd * l.valorUnit, 0);
     const comissoes = calcularComissoesOrcamento(total, funcionarios);
     const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
     const snap = await db.collection('orcamentos').get();
@@ -1695,7 +1707,7 @@ function ModalLoteDetalhe({
     const ref = await db.collection('orcamentos').add({
       numero,
       clienteId: lote.clienteId,
-      itens: itensOrcamento,
+      itens: linhas,
       total,
       comissaoTotal,
       status: 'Pendente',
@@ -1712,12 +1724,19 @@ function ModalLoteDetalhe({
         lancadoPor: usuario?.nome || ''
       });
     });
-    await opBatch.commit();
-    await db.collection('lotes').doc(lote.id).update({
-      status: 'Aguardando aprovação',
+    // marca como já orçado tudo que estiver classificado até agora
+    const itensAtualizados = lote.itens.map(it => ({
+      ...it,
+      qtdConsertadaOrcada: it.qtdConsertada || 0,
+      qtdGarantiaOrcada: it.qtdGarantia || 0,
+      qtdNaoConsertadaOrcada: it.qtdNaoConsertada || 0
+    }));
+    opBatch.update(db.collection('lotes').doc(lote.id), {
+      itens: itensAtualizados,
       orcamentoId: ref.id,
       orcamentoNumero: numero
     });
+    await opBatch.commit();
     setProcessando(false);
   }
   async function marcarEntregue() {
@@ -1741,6 +1760,7 @@ function ModalLoteDetalhe({
     setProcessando(false);
     aoFechar();
   }
+  const temPendenteDeOrcamento = (lote.itens || []).some(it => (it.qtdConsertada || 0) > (it.qtdConsertadaOrcada || 0) || (it.qtdGarantia || 0) > (it.qtdGarantiaOrcada || 0) || (it.qtdNaoConsertada || 0) > (it.qtdNaoConsertadaOrcada || 0));
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && aoFechar()
@@ -1803,7 +1823,9 @@ function ModalLoteDetalhe({
       gap: 10
     }
   }, (lote.itens || []).map((it, idx) => {
-    const restante = it.quantidade - (it.qtdConsertada || 0) - (it.qtdNaoConsertada || 0);
+    const classificadas = (it.qtdConsertada || 0) + (it.qtdGarantia || 0) + (it.qtdNaoConsertada || 0);
+    const restante = it.quantidade - classificadas;
+    const jaOrcadas = (it.qtdConsertadaOrcada || 0) + (it.qtdGarantiaOrcada || 0) + (it.qtdNaoConsertadaOrcada || 0);
     return /*#__PURE__*/React.createElement("div", {
       key: idx,
       className: "card",
@@ -1837,7 +1859,7 @@ function ModalLoteDetalhe({
       style: {
         marginTop: 0
       }
-    }, "Consertadas"), /*#__PURE__*/React.createElement("div", {
+    }, "Conserto"), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         alignItems: 'center',
@@ -1847,7 +1869,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'consertada', -1),
-      disabled: (it.qtdConsertada || 0) <= 0
+      disabled: (it.qtdConsertada || 0) <= (it.qtdConsertadaOrcada || 0)
     }, "－"), /*#__PURE__*/React.createElement("span", {
       style: {
         minWidth: 20,
@@ -1863,7 +1885,33 @@ function ModalLoteDetalhe({
       style: {
         marginTop: 0
       }
-    }, "Não consertadas"), /*#__PURE__*/React.createElement("div", {
+    }, "Garantia"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => alterarContagem(idx, 'garantia', -1),
+      disabled: (it.qtdGarantia || 0) <= (it.qtdGarantiaOrcada || 0)
+    }, "－"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        minWidth: 20,
+        textAlign: 'center',
+        fontWeight: 700
+      }
+    }, it.qtdGarantia || 0), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => alterarContagem(idx, 'garantia', 1),
+      disabled: restante <= 0
+    }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+      style: {
+        marginTop: 0
+      }
+    }, "Sem conserto"), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         alignItems: 'center',
@@ -1873,7 +1921,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'naoConsertada', -1),
-      disabled: (it.qtdNaoConsertada || 0) <= 0
+      disabled: (it.qtdNaoConsertada || 0) <= (it.qtdNaoConsertadaOrcada || 0)
     }, "－"), /*#__PURE__*/React.createElement("span", {
       style: {
         minWidth: 20,
@@ -1889,46 +1937,47 @@ function ModalLoteDetalhe({
       style: {
         marginTop: 0
       }
-    }, "Pendente"), /*#__PURE__*/React.createElement("div", {
+    }, "Em análise"), /*#__PURE__*/React.createElement("div", {
       style: {
         fontWeight: 700,
         paddingTop: 8
       }
-    }, restante))));
+    }, restante))), jaOrcadas > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)',
+        marginTop: 8
+      }
+    }, "Já incluído em orçamento: ", it.qtdConsertadaOrcada || 0, " conserto, ", it.qtdGarantiaOrcada || 0, " garantia, ", it.qtdNaoConsertadaOrcada || 0, " sem conserto."));
   })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 10
+    }
+  }, "Peças de garantia e sem conserto entram no orçamento sem cobrança e sem gerar comissão. Peças que ficarem \"Em análise\" continuam no lote para um orçamento futuro."), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 18,
       paddingTop: 16,
-      borderTop: '1px solid var(--borda)'
+      borderTop: '1px solid var(--borda)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
     }
-  }, lote.status === 'Em análise' && /*#__PURE__*/React.createElement(React.Fragment, null, !totalmenteTriado && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--texto-fraco)',
-      marginBottom: 10
-    }
-  }, "Classifique todas as unidades de cada item (consertada ou não) para liberar o orçamento."), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("button", {
     className: "btn",
-    disabled: !totalmenteTriado || processando,
-    onClick: avancarParaOrcamento,
-    style: {
-      width: '100%',
-      justifyContent: 'center'
-    }
-  }, "Avançar para orçamento")), lote.status === 'Pendente envio de orçamento' && /*#__PURE__*/React.createElement("button", {
-    className: "btn",
-    disabled: processando,
+    disabled: !temPendenteDeOrcamento || processando,
     onClick: gerarOrcamento,
     style: {
       width: '100%',
       justifyContent: 'center'
     }
-  }, "Gerar e enviar orçamento"), lote.status === 'Aguardando aprovação' && /*#__PURE__*/React.createElement("div", {
+  }, temPendenteDeOrcamento ? 'Gerar orçamento das peças classificadas' : 'Nada novo para orçar'), lote.orcamentoNumero && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 13,
+      fontSize: 12,
       color: 'var(--texto-fraco)'
     }
-  }, "Orçamento ", lote.orcamentoNumero ? `#${lote.orcamentoNumero} ` : '', "enviado — aguardando aprovação do cliente. Acompanhe na aba Orçamento."), lote.status === 'Em rota de entrega/devolução' && /*#__PURE__*/React.createElement("button", {
+  }, "Último orçamento gerado: #", lote.orcamentoNumero, ". Acompanhe o status na aba Orçamento."), lote.status !== 'Entregue' && /*#__PURE__*/React.createElement("button", {
     className: "btn verde",
     disabled: processando,
     onClick: marcarEntregue,
@@ -1980,11 +2029,6 @@ function AbaOrcamentos() {
     await db.collection('orcamentos').doc(o.id).update({
       status
     });
-    if (status === 'Aprovado' && o.loteId) {
-      await db.collection('lotes').doc(o.loteId).update({
-        status: 'Em rota de entrega/devolução'
-      });
-    }
   }
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
