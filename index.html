@@ -2523,21 +2523,23 @@ function AbaComissoes({
 function dataDe(v) {
   return v?.toDate ? v.toDate() : v ? new Date(v) : null;
 }
-function chaveMes(d) {
-  return d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` : null;
-}
 function chaveDia(d) {
   return d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : null;
 }
 function formatarDataInput(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-function diasNoMesSelecionado(mesStr) {
-  const [ano, mes] = mesStr.split('-').map(Number);
-  const diasTotais = new Date(ano, mes, 0).getDate();
-  const agora = new Date();
-  if (ano === agora.getFullYear() && mes === agora.getMonth() + 1) return Math.max(1, agora.getDate());
-  return diasTotais;
+function dentroDoIntervalo(d, inicioStr, fimStr) {
+  if (!d || !inicioStr || !fimStr) return false;
+  const chave = chaveDia(d);
+  return chave >= inicioStr && chave <= fimStr;
+}
+function diasNoIntervalo(inicioStr, fimStr) {
+  if (!inicioStr || !fimStr) return 1;
+  const inicio = new Date(inicioStr + 'T00:00:00');
+  const fim = new Date(fimStr + 'T00:00:00');
+  const diff = Math.round((fim - inicio) / (1000 * 60 * 60 * 24)) + 1;
+  return Math.max(1, diff);
 }
 function agruparPorCategoria(itensComTipo, tipo) {
   const mapa = {};
@@ -2675,21 +2677,21 @@ function AbaDashboard() {
   const [orcamentos] = useColecao('orcamentos');
   const [comissoes] = useColecao('comissoes');
   const hoje = new Date();
-  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-  const [mes, setMes] = useState(mesAtual);
   const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const [dataInicioPrincipal, setDataInicioPrincipal] = useState(formatarDataInput(primeiroDiaMes));
+  const [dataFimPrincipal, setDataFimPrincipal] = useState(formatarDataInput(hoje));
   const [dataInicio, setDataInicio] = useState(formatarDataInput(primeiroDiaMes));
   const [dataFim, setDataFim] = useState(formatarDataInput(hoje));
-  const orcamentosDoMes = orcamentos.filter(o => chaveMes(dataDe(o.criadoEm)) === mes);
-  const lotesDoMes = lotes.filter(l => chaveMes(dataDe(l.criadoEm)) === mes);
-  const comissoesDoMes = comissoes.filter(c => chaveMes(dataDe(c.data)) === mes);
+  const orcamentosDoMes = orcamentos.filter(o => dentroDoIntervalo(dataDe(o.criadoEm), dataInicioPrincipal, dataFimPrincipal));
+  const lotesDoMes = lotes.filter(l => dentroDoIntervalo(dataDe(l.criadoEm), dataInicioPrincipal, dataFimPrincipal));
+  const comissoesDoMes = comissoes.filter(c => dentroDoIntervalo(dataDe(c.data), dataInicioPrincipal, dataFimPrincipal));
   const itensDoMes = orcamentosDoMes.flatMap(o => o.itens || []);
   const totalConsertadas = itensDoMes.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
   const totalGarantia = itensDoMes.filter(i => i.tipo === 'garantia').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
   const totalSemConserto = itensDoMes.filter(i => i.tipo === 'naoConsertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
   const totalEntrada = lotesDoMes.flatMap(l => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
   const percentualGarantia = totalConsertadas > 0 ? totalGarantia / totalConsertadas * 100 : 0;
-  const dias = diasNoMesSelecionado(mes);
+  const dias = diasNoIntervalo(dataInicioPrincipal, dataFimPrincipal);
   const mediaConsertadasDia = totalConsertadas / dias;
   const totalComissaoMes = comissoesDoMes.reduce((s, c) => s + (Number(c.valor) || 0), 0);
   const mediaComissaoDia = totalComissaoMes / dias;
@@ -2735,14 +2737,30 @@ function AbaDashboard() {
     style: {
       margin: 0
     }
-  }, "Painel"), /*#__PURE__*/React.createElement("input", {
-    type: "month",
-    value: mes,
-    onChange: e => setMes(e.target.value),
+  }, "Painel"), /*#__PURE__*/React.createElement("div", {
     style: {
-      maxWidth: 170
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center',
+      flexWrap: 'wrap'
     }
-  })), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "De"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataInicioPrincipal,
+    onChange: e => setDataInicioPrincipal(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "Até"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataFimPrincipal,
+    onChange: e => setDataFimPrincipal(e.target.value)
+  })))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
@@ -2750,15 +2768,15 @@ function AbaDashboard() {
       marginBottom: 20
     }
   }, /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Peças consertadas no mês",
+    titulo: "Peças consertadas no período",
     valor: totalConsertadas,
     cor: "var(--verde)"
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Entrada de peças no mês",
+    titulo: "Entrada de peças no período",
     valor: totalEntrada,
     cor: "var(--laranja)"
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Peças em garantia no mês",
+    titulo: "Peças em garantia no período",
     valor: totalGarantia
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "% de garantia",
