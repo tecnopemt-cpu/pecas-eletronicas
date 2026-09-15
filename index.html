@@ -2419,24 +2419,23 @@ function ModalApuracao({
   aoFechar
 }) {
   const hoje = new Date();
-  const [chave, setChave] = useState(`${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`);
+  const mesAtualChave = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  const padrao = periodoApuracao(mesAtualChave);
+  const [inicioStr, setInicioStr] = useState(padrao.inicioStr);
+  const [fimStr, setFimStr] = useState(padrao.fimStr);
   const [registros, setRegistros] = useState([]);
   const [carregandoRegistros, setCarregandoRegistros] = useState(true);
   useEffect(() => {
     setCarregandoRegistros(true);
-    const unsub = db.collection('apuracaoRegistros').where('periodoChave', '==', chave).onSnapshot(snap => {
+    const unsub = db.collection('apuracaoRegistros').where('periodoInicio', '==', inicioStr).onSnapshot(snap => {
       setRegistros(snap.docs.map(d => ({
         id: d.id,
         ...d.data()
-      })));
+      })).filter(r => r.periodoFim === fimStr));
       setCarregandoRegistros(false);
     }, () => setCarregandoRegistros(false));
     return unsub;
-  }, [chave]);
-  const {
-    inicioStr,
-    fimStr
-  } = periodoApuracao(chave);
+  }, [inicioStr, fimStr]);
   const orcamentosPeriodo = orcamentos.filter(o => dentroDoIntervalo(dataDe(o.criadoEm), inicioStr, fimStr));
   const itensPeriodo = orcamentosPeriodo.flatMap(o => o.itens || []);
   const qtdConsertada = itensPeriodo.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
@@ -2474,9 +2473,10 @@ function ModalApuracao({
     };
   });
   async function salvarRegistro(funcionarioId, campo, valor) {
-    const id = `${chave}_${funcionarioId}`;
+    const id = `${inicioStr}_${fimStr}_${funcionarioId}`;
     await db.collection('apuracaoRegistros').doc(id).set({
-      periodoChave: chave,
+      periodoInicio: inicioStr,
+      periodoFim: fimStr,
       funcionarioId,
       [campo]: valor
     }, {
@@ -2495,14 +2495,17 @@ function ModalApuracao({
     style: {
       marginTop: 0
     }
-  }, "Período de Apuração"), /*#__PURE__*/React.createElement("label", null, "Mês de referência"), /*#__PURE__*/React.createElement("input", {
-    type: "month",
-    value: chave,
-    onChange: e => setChave(e.target.value),
-    style: {
-      maxWidth: 180
-    }
-  }), /*#__PURE__*/React.createElement("div", {
+  }, "Período de Apuração"), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "De"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: inicioStr,
+    onChange: e => setInicioStr(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Até"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: fimStr,
+    onChange: e => setFimStr(e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: 'var(--texto-fraco)',
