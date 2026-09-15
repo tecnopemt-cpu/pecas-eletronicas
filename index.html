@@ -2526,6 +2526,12 @@ function dataDe(v) {
 function chaveMes(d) {
   return d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` : null;
 }
+function chaveDia(d) {
+  return d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : null;
+}
+function formatarDataInput(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 function diasNoMesSelecionado(mesStr) {
   const [ano, mes] = mesStr.split('-').map(Number);
   const diasTotais = new Date(ano, mes, 0).getDate();
@@ -2671,7 +2677,9 @@ function AbaDashboard() {
   const hoje = new Date();
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
   const [mes, setMes] = useState(mesAtual);
-  const [mesesComparativo, setMesesComparativo] = useState(6);
+  const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const [dataInicio, setDataInicio] = useState(formatarDataInput(primeiroDiaMes));
+  const [dataFim, setDataFim] = useState(formatarDataInput(hoje));
   const orcamentosDoMes = orcamentos.filter(o => chaveMes(dataDe(o.criadoEm)) === mes);
   const lotesDoMes = lotes.filter(l => chaveMes(dataDe(l.criadoEm)) === mes);
   const comissoesDoMes = comissoes.filter(c => chaveMes(dataDe(c.data)) === mes);
@@ -2688,25 +2696,30 @@ function AbaDashboard() {
   const porCategoriaConsertada = agruparPorCategoria(itensDoMes, 'consertada');
   const porCategoriaGarantia = agruparPorCategoria(itensDoMes, 'garantia');
   const porCategoriaSemConserto = agruparPorCategoria(itensDoMes, 'naoConsertada');
-  const mesesArray = Array.from({
-    length: mesesComparativo
-  }).map((_, i) => {
-    const d = new Date(hoje.getFullYear(), hoje.getMonth() - (mesesComparativo - 1 - i), 1);
+  const diasArray = [];
+  if (dataInicio && dataFim) {
+    let cursor = new Date(dataInicio + 'T00:00:00');
+    const fim = new Date(dataFim + 'T00:00:00');
+    let protecao = 0;
+    while (cursor <= fim && protecao < 366) {
+      diasArray.push({
+        chave: chaveDia(cursor),
+        label: cursor.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit'
+        })
+      });
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+      protecao++;
+    }
+  }
+  const dadosComparativo = diasArray.map(dia => {
+    const entradaDia = lotes.filter(l => chaveDia(dataDe(l.criadoEm)) === dia.chave).flatMap(l => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
+    const consertadaDia = orcamentos.filter(o => chaveDia(dataDe(o.criadoEm)) === dia.chave).flatMap(o => o.itens || []).filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
     return {
-      chave: chaveMes(d),
-      label: d.toLocaleDateString('pt-BR', {
-        month: 'short',
-        year: '2-digit'
-      })
-    };
-  });
-  const dadosComparativo = mesesArray.map(m => {
-    const entradaMes = lotes.filter(l => chaveMes(dataDe(l.criadoEm)) === m.chave).flatMap(l => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
-    const consertadaMes = orcamentos.filter(o => chaveMes(dataDe(o.criadoEm)) === m.chave).flatMap(o => o.itens || []).filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
-    return {
-      ...m,
-      entrada: entradaMes,
-      consertada: consertadaMes
+      ...dia,
+      entrada: entradaDia,
+      consertada: consertadaDia
     };
   });
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -2775,19 +2788,36 @@ function AbaDashboard() {
       margin: 0,
       fontSize: 15
     }
-  }, "Entrada de peças × Peças consertadas"), /*#__PURE__*/React.createElement("select", {
-    value: mesesComparativo,
-    onChange: e => setMesesComparativo(Number(e.target.value)),
+  }, "Entrada de peças × Peças consertadas"), /*#__PURE__*/React.createElement("div", {
     style: {
-      maxWidth: 160
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center',
+      flexWrap: 'wrap'
     }
-  }, /*#__PURE__*/React.createElement("option", {
-    value: 3
-  }, "Últimos 3 meses"), /*#__PURE__*/React.createElement("option", {
-    value: 6
-  }, "Últimos 6 meses"), /*#__PURE__*/React.createElement("option", {
-    value: 12
-  }, "Últimos 12 meses"))), /*#__PURE__*/React.createElement(GraficoComparativo, {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "De"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataInicio,
+    onChange: e => setDataInicio(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "Até"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataFim,
+    onChange: e => setDataFim(e.target.value)
+  })))), diasArray.length > 90 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--vermelho)',
+      marginBottom: 8
+    }
+  }, "Período muito longo (", diasArray.length, " dias) — escolha um intervalo menor para o gráfico ficar legível."), /*#__PURE__*/React.createElement(GraficoComparativo, {
     dados: dadosComparativo
   }), /*#__PURE__*/React.createElement("div", {
     style: {
