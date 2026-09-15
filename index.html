@@ -433,7 +433,7 @@ function TelaLogin({
 function App() {
   const [funcionarios, carregandoFuncionarios] = useColecao('funcionarios');
   const [usuario, setUsuario] = useState(null);
-  const [aba, setAba] = useState('lotes');
+  const [aba, setAba] = useState('dashboard');
   const [carregado, setCarregado] = useState(false);
   useEffect(() => {
     const id = localStorage.getItem('pecas_sessao');
@@ -488,6 +488,10 @@ function App() {
     aoLogar: setUsuario
   });
   const abas = [{
+    id: 'dashboard',
+    nome: 'Painel',
+    icone: '📊'
+  }, {
     id: 'lotes',
     nome: 'Entrada de Peças',
     icone: '📦'
@@ -540,7 +544,7 @@ function App() {
     }
   }, "Sair")), /*#__PURE__*/React.createElement("div", {
     className: "conteudo-app"
-  }, aba === 'lotes' && /*#__PURE__*/React.createElement(AbaLotes, {
+  }, aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, null), aba === 'lotes' && /*#__PURE__*/React.createElement(AbaLotes, {
     usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'catalogo' && /*#__PURE__*/React.createElement(AbaCatalogo, null), aba === 'clientes' && /*#__PURE__*/React.createElement(AbaClientes, null), aba === 'orcamentos' && /*#__PURE__*/React.createElement(AbaOrcamentos, null), aba === 'comissoes' && /*#__PURE__*/React.createElement(AbaComissoes, {
@@ -1428,6 +1432,7 @@ function AbaLotes({
     lote: loteSelecionado,
     clientes: clientes,
     funcionarios: funcionarios,
+    catalogo: catalogo,
     usuario: usuario,
     aoFechar: () => setLoteSelecionadoId(null)
   }));
@@ -1637,6 +1642,7 @@ function ModalLoteDetalhe({
   lote,
   clientes,
   funcionarios,
+  catalogo,
   usuario,
   aoFechar
 }) {
@@ -1680,6 +1686,7 @@ function ModalLoteDetalhe({
     const linhas = [];
     const ajustes = [];
     (lote.itens || []).forEach((it, idx) => {
+      const categoria = catalogo.find(c => c.id === it.pecaCatalogoId)?.categoria || '';
       const pendConserto = (it.qtdConsertada || 0) - (it.qtdConsertadaOrcada || 0);
       const pendGarantia = (it.qtdGarantia || 0) - (it.qtdGarantiaOrcada || 0);
       const pendSem = (it.qtdNaoConsertada || 0) - (it.qtdNaoConsertadaOrcada || 0);
@@ -1687,7 +1694,9 @@ function ModalLoteDetalhe({
         linhas.push({
           descricao: it.pecaDescricao,
           qtd: pendConserto,
-          valorUnit: it.valorConserto || 0
+          valorUnit: it.valorConserto || 0,
+          categoria,
+          tipo: 'consertada'
         });
         ajustes.push({
           idx,
@@ -1699,7 +1708,9 @@ function ModalLoteDetalhe({
         linhas.push({
           descricao: `${it.pecaDescricao} (Garantia)`,
           qtd: pendGarantia,
-          valorUnit: 0
+          valorUnit: 0,
+          categoria,
+          tipo: 'garantia'
         });
         ajustes.push({
           idx,
@@ -1711,7 +1722,9 @@ function ModalLoteDetalhe({
         linhas.push({
           descricao: `${it.pecaDescricao} (Sem conserto)`,
           qtd: pendSem,
-          valorUnit: 0
+          valorUnit: 0,
+          categoria,
+          tipo: 'naoConsertada'
         });
         ajustes.push({
           idx,
@@ -2218,12 +2231,16 @@ function ModalOrcamento({
       return;
     }
     setSalvando(true);
+    const itensComTipo = itens.map(it => ({
+      tipo: 'consertada',
+      ...it
+    }));
     if (orcamento) {
       const dados = {
         numero,
         clienteId,
         validade,
-        itens,
+        itens: itensComTipo,
         total,
         status: orcamento?.status || 'Em análise'
       };
@@ -2235,7 +2252,7 @@ function ModalOrcamento({
         numero,
         clienteId,
         validade,
-        itens,
+        itens: itensComTipo,
         total,
         comissaoTotal,
         status: 'Em análise',
@@ -2500,6 +2517,341 @@ function AbaComissoes({
       padding: 20
     }
   }, "Nenhum lançamento."))))));
+}
+
+// ======================= DASHBOARD =======================
+function dataDe(v) {
+  return v?.toDate ? v.toDate() : v ? new Date(v) : null;
+}
+function chaveMes(d) {
+  return d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` : null;
+}
+function diasNoMesSelecionado(mesStr) {
+  const [ano, mes] = mesStr.split('-').map(Number);
+  const diasTotais = new Date(ano, mes, 0).getDate();
+  const agora = new Date();
+  if (ano === agora.getFullYear() && mes === agora.getMonth() + 1) return Math.max(1, agora.getDate());
+  return diasTotais;
+}
+function agruparPorCategoria(itensComTipo, tipo) {
+  const mapa = {};
+  itensComTipo.filter(i => i.tipo === tipo).forEach(i => {
+    const cat = i.categoria || 'Sem categoria';
+    mapa[cat] = (mapa[cat] || 0) + (Number(i.qtd) || 0);
+  });
+  return Object.entries(mapa).sort((a, b) => b[1] - a[1]);
+}
+function CartaoMetrica({
+  titulo,
+  valor,
+  cor
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--texto-fraco)',
+      fontSize: 12
+    }
+  }, titulo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      fontWeight: 700,
+      marginTop: 4,
+      color: cor || 'var(--texto)'
+    }
+  }, valor));
+}
+function BarraCategoria({
+  dados,
+  cor
+}) {
+  const max = Math.max(1, ...dados.map(d => d[1]));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 9
+    }
+  }, dados.map(([cat, val]) => /*#__PURE__*/React.createElement("div", {
+    key: cat
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 12.5,
+      marginBottom: 3
+    }
+  }, /*#__PURE__*/React.createElement("span", null, cat), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700
+    }
+  }, val)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--fundo)',
+      borderRadius: 6,
+      height: 10,
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: `${val / max * 100}%`,
+      background: cor,
+      height: '100%'
+    }
+  })))), dados.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Sem dados nesse mês."));
+}
+function GraficoComparativo({
+  dados
+}) {
+  const largura = 680,
+    altura = 220,
+    margem = {
+      top: 16,
+      right: 10,
+      bottom: 32,
+      left: 6
+    };
+  const areaW = largura - margem.left - margem.right;
+  const areaH = altura - margem.top - margem.bottom;
+  const maxVal = Math.max(1, ...dados.flatMap(d => [d.entrada, d.consertada]));
+  const grupoW = areaW / Math.max(1, dados.length);
+  const barW = Math.min(26, grupoW / 3.2);
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: `0 0 ${largura} ${altura}`,
+    style: {
+      width: '100%',
+      height: 'auto',
+      display: 'block'
+    }
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: margem.left,
+    y1: margem.top + areaH,
+    x2: margem.left + areaW,
+    y2: margem.top + areaH,
+    stroke: "var(--borda)"
+  }), dados.map((d, i) => {
+    const xGrupo = margem.left + i * grupoW + grupoW / 2;
+    const hEntrada = d.entrada / maxVal * areaH;
+    const hConsertada = d.consertada / maxVal * areaH;
+    return /*#__PURE__*/React.createElement("g", {
+      key: i
+    }, /*#__PURE__*/React.createElement("rect", {
+      x: xGrupo - barW - 2,
+      y: margem.top + areaH - hEntrada,
+      width: barW,
+      height: Math.max(0, hEntrada),
+      fill: "var(--laranja)",
+      rx: "3"
+    }), /*#__PURE__*/React.createElement("rect", {
+      x: xGrupo + 2,
+      y: margem.top + areaH - hConsertada,
+      width: barW,
+      height: Math.max(0, hConsertada),
+      fill: "var(--verde)",
+      rx: "3"
+    }), /*#__PURE__*/React.createElement("text", {
+      x: xGrupo,
+      y: margem.top + areaH + 16,
+      textAnchor: "middle",
+      fontSize: "10",
+      fill: "var(--texto-fraco)"
+    }, d.label));
+  }));
+}
+function AbaDashboard() {
+  const [lotes] = useColecao('lotes');
+  const [orcamentos] = useColecao('orcamentos');
+  const [comissoes] = useColecao('comissoes');
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  const [mes, setMes] = useState(mesAtual);
+  const [mesesComparativo, setMesesComparativo] = useState(6);
+  const orcamentosDoMes = orcamentos.filter(o => chaveMes(dataDe(o.criadoEm)) === mes);
+  const lotesDoMes = lotes.filter(l => chaveMes(dataDe(l.criadoEm)) === mes);
+  const comissoesDoMes = comissoes.filter(c => chaveMes(dataDe(c.data)) === mes);
+  const itensDoMes = orcamentosDoMes.flatMap(o => o.itens || []);
+  const totalConsertadas = itensDoMes.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const totalGarantia = itensDoMes.filter(i => i.tipo === 'garantia').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const totalSemConserto = itensDoMes.filter(i => i.tipo === 'naoConsertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const totalEntrada = lotesDoMes.flatMap(l => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
+  const percentualGarantia = totalConsertadas > 0 ? totalGarantia / totalConsertadas * 100 : 0;
+  const dias = diasNoMesSelecionado(mes);
+  const mediaConsertadasDia = totalConsertadas / dias;
+  const totalComissaoMes = comissoesDoMes.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+  const mediaComissaoDia = totalComissaoMes / dias;
+  const porCategoriaConsertada = agruparPorCategoria(itensDoMes, 'consertada');
+  const porCategoriaGarantia = agruparPorCategoria(itensDoMes, 'garantia');
+  const porCategoriaSemConserto = agruparPorCategoria(itensDoMes, 'naoConsertada');
+  const mesesArray = Array.from({
+    length: mesesComparativo
+  }).map((_, i) => {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - (mesesComparativo - 1 - i), 1);
+    return {
+      chave: chaveMes(d),
+      label: d.toLocaleDateString('pt-BR', {
+        month: 'short',
+        year: '2-digit'
+      })
+    };
+  });
+  const dadosComparativo = mesesArray.map(m => {
+    const entradaMes = lotes.filter(l => chaveMes(dataDe(l.criadoEm)) === m.chave).flatMap(l => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
+    const consertadaMes = orcamentos.filter(o => chaveMes(dataDe(o.criadoEm)) === m.chave).flatMap(o => o.itens || []).filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+    return {
+      ...m,
+      entrada: entradaMes,
+      consertada: consertadaMes
+    };
+  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+      flexWrap: 'wrap',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: 0
+    }
+  }, "Painel"), /*#__PURE__*/React.createElement("input", {
+    type: "month",
+    value: mes,
+    onChange: e => setMes(e.target.value),
+    style: {
+      maxWidth: 170
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
+      gap: 12,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Peças consertadas no mês",
+    valor: totalConsertadas,
+    cor: "var(--verde)"
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Entrada de peças no mês",
+    valor: totalEntrada,
+    cor: "var(--laranja)"
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Peças em garantia no mês",
+    valor: totalGarantia
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "% de garantia",
+    valor: `${percentualGarantia.toFixed(1)}%`
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Média consertadas/dia",
+    valor: mediaConsertadasDia.toFixed(1)
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Média de comissão/dia",
+    valor: formatMoeda(mediaComissaoDia)
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 10,
+      flexWrap: 'wrap',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      fontSize: 15
+    }
+  }, "Entrada de peças × Peças consertadas"), /*#__PURE__*/React.createElement("select", {
+    value: mesesComparativo,
+    onChange: e => setMesesComparativo(Number(e.target.value)),
+    style: {
+      maxWidth: 160
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: 3
+  }, "Últimos 3 meses"), /*#__PURE__*/React.createElement("option", {
+    value: 6
+  }, "Últimos 6 meses"), /*#__PURE__*/React.createElement("option", {
+    value: 12
+  }, "Últimos 12 meses"))), /*#__PURE__*/React.createElement(GraficoComparativo, {
+    dados: dadosComparativo
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 16,
+      marginTop: 8,
+      fontSize: 12,
+      color: 'var(--texto-fraco)'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-block',
+      width: 10,
+      height: 10,
+      background: 'var(--laranja)',
+      borderRadius: 2,
+      marginRight: 5
+    }
+  }), "Entrada"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-block',
+      width: 10,
+      height: 10,
+      background: 'var(--verde)',
+      borderRadius: 2,
+      marginRight: 5
+    }
+  }), "Consertadas"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 12px',
+      fontSize: 15
+    }
+  }, "Consertadas por categoria"), /*#__PURE__*/React.createElement(BarraCategoria, {
+    dados: porCategoriaConsertada,
+    cor: "var(--verde)"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 12px',
+      fontSize: 15
+    }
+  }, "Garantias por categoria"), /*#__PURE__*/React.createElement(BarraCategoria, {
+    dados: porCategoriaGarantia,
+    cor: "var(--laranja)"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 12px',
+      fontSize: 15
+    }
+  }, "Sem conserto por categoria"), /*#__PURE__*/React.createElement(BarraCategoria, {
+    dados: porCategoriaSemConserto,
+    cor: "var(--vermelho)"
+  }))));
 }
 
 // ======================= FUNCIONÁRIOS =======================
