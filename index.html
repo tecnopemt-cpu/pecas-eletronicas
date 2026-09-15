@@ -942,15 +942,12 @@ function ModalCliente({
 
 // ======================= CATÁLOGO DE PEÇAS =======================
 const CATEGORIAS_PECA = ['Joystick', 'Placa', 'Módulo', 'Carregador', 'Display', 'Controle', 'Outros'];
-const STATUS_LOTE = ['Em análise', 'Pendente envio de orçamento', 'Aguardando aprovação', 'Em rota de entrega/devolução', 'Entregue'];
+const STATUS_LOTE = ['Em análise', 'Concluído'];
+const STATUS_ORCAMENTO = ['Em análise', 'Aprovado', 'Entregue'];
 const STATUS_CLASSE = {
-  'Pendente': 'pendente',
-  'Aprovado': 'aprovado',
-  'Recusado': 'recusado',
   'Em análise': 'conserto',
-  'Pendente envio de orçamento': 'pendente',
-  'Aguardando aprovação': 'pendente',
-  'Em rota de entrega/devolução': 'aprovado',
+  'Concluído': 'entregue',
+  'Aprovado': 'aprovado',
   'Entregue': 'entregue'
 };
 function AbaCatalogo() {
@@ -1674,25 +1671,47 @@ function ModalLoteDetalhe({
   }
   async function gerarOrcamento() {
     const linhas = [];
-    (lote.itens || []).forEach(it => {
+    const ajustes = [];
+    (lote.itens || []).forEach((it, idx) => {
       const pendConserto = (it.qtdConsertada || 0) - (it.qtdConsertadaOrcada || 0);
       const pendGarantia = (it.qtdGarantia || 0) - (it.qtdGarantiaOrcada || 0);
       const pendSem = (it.qtdNaoConsertada || 0) - (it.qtdNaoConsertadaOrcada || 0);
-      if (pendConserto > 0) linhas.push({
-        descricao: it.pecaDescricao,
-        qtd: pendConserto,
-        valorUnit: it.valorConserto || 0
-      });
-      if (pendGarantia > 0) linhas.push({
-        descricao: `${it.pecaDescricao} (Garantia)`,
-        qtd: pendGarantia,
-        valorUnit: 0
-      });
-      if (pendSem > 0) linhas.push({
-        descricao: `${it.pecaDescricao} (Sem conserto)`,
-        qtd: pendSem,
-        valorUnit: 0
-      });
+      if (pendConserto > 0) {
+        linhas.push({
+          descricao: it.pecaDescricao,
+          qtd: pendConserto,
+          valorUnit: it.valorConserto || 0
+        });
+        ajustes.push({
+          idx,
+          categoria: 'consertada',
+          qtd: pendConserto
+        });
+      }
+      if (pendGarantia > 0) {
+        linhas.push({
+          descricao: `${it.pecaDescricao} (Garantia)`,
+          qtd: pendGarantia,
+          valorUnit: 0
+        });
+        ajustes.push({
+          idx,
+          categoria: 'garantia',
+          qtd: pendGarantia
+        });
+      }
+      if (pendSem > 0) {
+        linhas.push({
+          descricao: `${it.pecaDescricao} (Sem conserto)`,
+          qtd: pendSem,
+          valorUnit: 0
+        });
+        ajustes.push({
+          idx,
+          categoria: 'naoConsertada',
+          qtd: pendSem
+        });
+      }
     });
     if (linhas.length === 0) {
       alert('Não há peças classificadas (conserto, garantia ou sem conserto) pendentes de orçamento nesse lote.');
@@ -1710,8 +1729,9 @@ function ModalLoteDetalhe({
       itens: linhas,
       total,
       comissaoTotal,
-      status: 'Pendente',
+      status: 'Em análise',
       loteId: lote.id,
+      loteAjustes: ajustes,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
     const opBatch = db.batch();
@@ -1739,10 +1759,10 @@ function ModalLoteDetalhe({
     await opBatch.commit();
     setProcessando(false);
   }
-  async function marcarEntregue() {
+  async function marcarConcluido() {
     setProcessando(true);
     await db.collection('lotes').doc(lote.id).update({
-      status: 'Entregue'
+      status: 'Concluído'
     });
     setProcessando(false);
   }
@@ -1998,21 +2018,21 @@ function ModalLoteDetalhe({
       fontSize: 12,
       color: 'var(--texto-fraco)'
     }
-  }, "Último orçamento gerado: #", lote.orcamentoNumero, ". Acompanhe o status na aba Orçamento."), lote.status !== 'Entregue' && /*#__PURE__*/React.createElement("button", {
+  }, "Último orçamento gerado: #", lote.orcamentoNumero, ". Acompanhe o status na aba Orçamento."), lote.status !== 'Concluído' && /*#__PURE__*/React.createElement("button", {
     className: "btn verde",
     disabled: processando,
-    onClick: marcarEntregue,
+    onClick: marcarConcluido,
     style: {
       width: '100%',
       justifyContent: 'center'
     }
-  }, "Marcar como entregue"), lote.status === 'Entregue' && /*#__PURE__*/React.createElement("div", {
+  }, "Marcar como concluído"), lote.status === 'Concluído' && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
       color: 'var(--verde)',
       fontWeight: 700
     }
-  }, "✓ Entrega concluída.")), /*#__PURE__*/React.createElement("div", {
+  }, "✓ Concluído.")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -2044,6 +2064,32 @@ function AbaOrcamentos() {
     const opBatch = db.batch();
     comSnap.docs.forEach(d => opBatch.delete(d.ref));
     opBatch.delete(db.collection('orcamentos').doc(o.id));
+    if (o.loteId && o.loteAjustes && o.loteAjustes.length > 0) {
+      const loteSnap = await db.collection('lotes').doc(o.loteId).get();
+      if (loteSnap.exists) {
+        const loteData = loteSnap.data();
+        const itensAtualizados = (loteData.itens || []).map((it, idx) => {
+          const ajustesDoItem = o.loteAjustes.filter(a => a.idx === idx);
+          if (ajustesDoItem.length === 0) return it;
+          const novo = {
+            ...it
+          };
+          ajustesDoItem.forEach(a => {
+            const chave = a.categoria === 'consertada' ? 'qtdConsertadaOrcada' : a.categoria === 'garantia' ? 'qtdGarantiaOrcada' : 'qtdNaoConsertadaOrcada';
+            novo[chave] = Math.max(0, (novo[chave] || 0) - a.qtd);
+          });
+          return novo;
+        });
+        const dadosLote = {
+          itens: itensAtualizados
+        };
+        if (loteData.orcamentoId === o.id) {
+          dadosLote.orcamentoId = '';
+          dadosLote.orcamentoNumero = '';
+        }
+        opBatch.update(db.collection('lotes').doc(o.loteId), dadosLote);
+      }
+    }
     await opBatch.commit();
   }
   async function mudarStatus(o, status) {
@@ -2079,19 +2125,16 @@ function AbaOrcamentos() {
   }, /*#__PURE__*/React.createElement("td", null, o.numero), /*#__PURE__*/React.createElement("td", null, nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.total)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.comissaoTotal)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
     value: o.status,
     onChange: e => mudarStatus(o, e.target.value),
-    className: `badge ${STATUS_CLASSE[o.status] || 'pendente'}`,
+    className: `badge ${STATUS_CLASSE[o.status] || 'conserto'}`,
     style: {
       width: 'auto',
       border: 'none',
       padding: '4px 8px'
     }
-  }, /*#__PURE__*/React.createElement("option", {
-    value: "Pendente"
-  }, "Pendente"), /*#__PURE__*/React.createElement("option", {
-    value: "Aprovado"
-  }, "Aprovado"), /*#__PURE__*/React.createElement("option", {
-    value: "Recusado"
-  }, "Recusado"))), /*#__PURE__*/React.createElement("td", {
+  }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
+    key: s,
+    value: s
+  }, s)))), /*#__PURE__*/React.createElement("td", {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
@@ -2170,7 +2213,7 @@ function ModalOrcamento({
         validade,
         itens,
         total,
-        status: orcamento?.status || 'Pendente'
+        status: orcamento?.status || 'Em análise'
       };
       await db.collection('orcamentos').doc(orcamento.id).update(dados);
     } else {
@@ -2183,7 +2226,7 @@ function ModalOrcamento({
         itens,
         total,
         comissaoTotal,
-        status: 'Pendente',
+        status: 'Em análise',
         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
       };
       const ref = await db.collection('orcamentos').add(dados);
