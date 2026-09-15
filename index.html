@@ -178,6 +178,30 @@ function confirmarSenhaMaster(mensagem) {
   }
   return true;
 }
+function calcularComissoesOrcamento(total, funcionarios) {
+  const cache = {};
+  function valorDe(func, visitados) {
+    if (!func) return 0;
+    if (cache[func.id] !== undefined) return cache[func.id];
+    if (visitados.has(func.id)) return 0; // evita loop de referência
+    visitados.add(func.id);
+    const percentual = Number(func.percentualComissao) || 0;
+    let base;
+    if (func.comissaoBaseId) {
+      const funcBase = funcionarios.find(fu => fu.id === func.comissaoBaseId);
+      base = valorDe(funcBase, visitados);
+    } else {
+      base = total;
+    }
+    const valor = base * percentual / 100;
+    cache[func.id] = valor;
+    return valor;
+  }
+  return funcionarios.filter(f => f.ativo !== false && Number(f.percentualComissao) > 0).map(f => ({
+    funcionarioId: f.id,
+    valor: valorDe(f, new Set())
+  })).filter(c => c.valor > 0);
+}
 function useColecao(nome, ordenarPor) {
   const [dados, setDados] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -222,7 +246,7 @@ function TelaPrimeiroAcesso({
       login,
       senhaHash,
       cargo: 'Administrador',
-      comissaoPorPeca: 0,
+      percentualComissao: 0,
       ativo: true,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     };
@@ -973,7 +997,7 @@ function AbaCatalogo() {
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "PN"), /*#__PURE__*/React.createElement("th", null, "Descrição"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Valor conserto"), /*#__PURE__*/React.createElement("th", null, "% comissão"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(p => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "PN"), /*#__PURE__*/React.createElement("th", null, "Descrição"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Valor conserto"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(p => /*#__PURE__*/React.createElement("tr", {
     key: p.id
   }, /*#__PURE__*/React.createElement("td", null, p.fotos && p.fotos[0] ? /*#__PURE__*/React.createElement("img", {
     src: p.fotos[0],
@@ -986,7 +1010,7 @@ function AbaCatalogo() {
       justifyContent: 'center',
       color: 'var(--texto-fraco)'
     }
-  }, "—")), /*#__PURE__*/React.createElement("td", null, p.codigo || '-'), /*#__PURE__*/React.createElement("td", null, p.descricao), /*#__PURE__*/React.createElement("td", null, p.categoria || '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(p.valorConserto)), /*#__PURE__*/React.createElement("td", null, p.percentualComissao ? `${p.percentualComissao}%` : '-'), /*#__PURE__*/React.createElement("td", {
+  }, "—")), /*#__PURE__*/React.createElement("td", null, p.codigo || '-'), /*#__PURE__*/React.createElement("td", null, p.descricao), /*#__PURE__*/React.createElement("td", null, p.categoria || '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(p.valorConserto)), /*#__PURE__*/React.createElement("td", {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
@@ -1001,7 +1025,7 @@ function AbaCatalogo() {
     className: "btn perigo pequeno",
     onClick: () => excluir(p)
   }, "Excluir")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "7",
+    colSpan: "6",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
@@ -1021,7 +1045,6 @@ function ModalCatalogo({
     descricao: '',
     categoria: '',
     valorConserto: 0,
-    percentualComissao: 0,
     fotos: []
   });
   const [salvando, setSalvando] = useState(false);
@@ -1058,8 +1081,7 @@ function ModalCatalogo({
     setSalvando(true);
     const dados = {
       ...f,
-      valorConserto: Number(f.valorConserto) || 0,
-      percentualComissao: Number(f.percentualComissao) || 0
+      valorConserto: Number(f.valorConserto) || 0
     };
     if (peca) {
       await db.collection('catalogoPecas').doc(peca.id).update(dados);
@@ -1143,27 +1165,12 @@ function ModalCatalogo({
   }, "Selecione..."), CATEGORIAS_PECA.map(c => /*#__PURE__*/React.createElement("option", {
     key: c,
     value: c
-  }, c))))), /*#__PURE__*/React.createElement("div", {
-    className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Valor do conserto"), /*#__PURE__*/React.createElement("input", {
+  }, c))))), /*#__PURE__*/React.createElement("label", null, "Valor do conserto"), /*#__PURE__*/React.createElement("input", {
     type: "number",
     step: "0.01",
     value: f.valorConserto,
     onChange: e => campo('valorConserto', e.target.value)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "% de comissão"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    step: "0.01",
-    min: "0",
-    max: "100",
-    value: f.percentualComissao,
-    onChange: e => campo('percentualComissao', e.target.value)
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--texto-fraco)',
-      marginTop: 6
-    }
-  }, "A comissão do técnico é calculada sobre o valor do conserto: ", formatMoeda(f.valorConserto), " × ", f.percentualComissao || 0, "% = ", /*#__PURE__*/React.createElement("strong", null, formatMoeda((Number(f.valorConserto) || 0) * (Number(f.percentualComissao) || 0) / 100)), " por unidade consertada."), /*#__PURE__*/React.createElement("label", null, "Descrição"), /*#__PURE__*/React.createElement("input", {
+  }), /*#__PURE__*/React.createElement("label", null, "Descrição"), /*#__PURE__*/React.createElement("input", {
     value: f.descricao,
     onChange: e => campo('descricao', e.target.value),
     required: true
@@ -1338,9 +1345,11 @@ function AbaLotes({
   async function excluirLote(l) {
     if (!confirm(`Excluir a entrada de ${nomeCliente(l.clienteId)} e as comissões geradas por ela? Essa ação não pode ser desfeita.`)) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir esta entrada:')) return;
-    const comSnap = await db.collection('comissoes').where('loteId', '==', l.id).get();
     const opBatch = db.batch();
-    comSnap.docs.forEach(d => opBatch.delete(d.ref));
+    if (l.orcamentoId) {
+      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', l.orcamentoId).get();
+      comSnap.docs.forEach(d => opBatch.delete(d.ref));
+    }
     opBatch.delete(db.collection('lotes').doc(l.id));
     await opBatch.commit();
   }
@@ -1487,9 +1496,7 @@ function ModalNovoLote({
         quantidade: Number(it.quantidade),
         qtdConsertada: 0,
         qtdNaoConsertada: 0,
-        tecnicoId: '',
-        valorConserto: Number(peca?.valorConserto) || 0,
-        percentualComissao: Number(peca?.percentualComissao) || 0
+        valorConserto: Number(peca?.valorConserto) || 0
       };
     });
     await db.collection('lotes').add({
@@ -1639,19 +1646,6 @@ function ModalLoteDetalhe({
   }
   async function alterarContagem(idx, tipo, delta) {
     const item = lote.itens[idx];
-    if (tipo === 'consertada' && delta > 0 && !item.tecnicoId) {
-      alert('Selecione o técnico responsável por esse item antes de marcar peças como consertadas.');
-      return;
-    }
-    if (tipo === 'consertada' && delta < 0) {
-      // reduzir uma peça consertada pode estar desfazendo uma comissão já lançada
-      const comSnap = await db.collection('comissoes').where('loteId', '==', lote.id).get();
-      const candidatas = comSnap.docs.filter(d => d.data().funcionarioId === item.tecnicoId && d.data().pecaDescricao === item.pecaDescricao).sort((a, b) => (b.data().data?.toMillis?.() || 0) - (a.data().data?.toMillis?.() || 0));
-      if (candidatas.length > 0) {
-        if (!confirmarSenhaMaster('Essa ação vai remover uma comissão já lançada para esse técnico. Digite a senha master para confirmar:')) return;
-        await candidatas[0].ref.delete();
-      }
-    }
     const consertadaAtual = item.qtdConsertada || 0;
     const naoConsertadaAtual = item.qtdNaoConsertada || 0;
     const novoConsertada = tipo === 'consertada' ? Math.max(0, consertadaAtual + delta) : consertadaAtual;
@@ -1665,42 +1659,11 @@ function ModalLoteDetalhe({
     await db.collection('lotes').doc(lote.id).update({
       itens: itensAtualizados
     });
-    if (tipo === 'consertada' && delta > 0) {
-      const valorComissao = (Number(item.valorConserto) || 0) * (Number(item.percentualComissao) || 0) / 100;
-      if (valorComissao > 0) {
-        await db.collection('comissoes').add({
-          funcionarioId: item.tecnicoId,
-          loteId: lote.id,
-          pecaDescricao: item.pecaDescricao,
-          valor: valorComissao,
-          data: firebase.firestore.FieldValue.serverTimestamp(),
-          lancadoPor: usuario?.nome || ''
-        });
-      }
-    }
-  }
-  async function definirTecnico(idx, tecnicoId) {
-    const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
-      ...it,
-      tecnicoId
-    } : it);
-    await db.collection('lotes').doc(lote.id).update({
-      itens: itensAtualizados
-    });
   }
   async function definirValor(idx, valor) {
     const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
       ...it,
       valorConserto: Number(valor) || 0
-    } : it);
-    await db.collection('lotes').doc(lote.id).update({
-      itens: itensAtualizados
-    });
-  }
-  async function definirPercentual(idx, valor) {
-    const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
-      ...it,
-      percentualComissao: Number(valor) || 0
     } : it);
     await db.collection('lotes').doc(lote.id).update({
       itens: itensAtualizados
@@ -1725,6 +1688,8 @@ function ModalLoteDetalhe({
     }
     setProcessando(true);
     const total = itensOrcamento.reduce((s, i) => s + i.qtd * i.valorUnit, 0);
+    const comissoes = calcularComissoesOrcamento(total, funcionarios);
+    const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
     const snap = await db.collection('orcamentos').get();
     const numero = snap.size + 1;
     const ref = await db.collection('orcamentos').add({
@@ -1732,10 +1697,22 @@ function ModalLoteDetalhe({
       clienteId: lote.clienteId,
       itens: itensOrcamento,
       total,
+      comissaoTotal,
       status: 'Pendente',
       loteId: lote.id,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
+    const opBatch = db.batch();
+    comissoes.forEach(c => {
+      opBatch.set(db.collection('comissoes').doc(), {
+        funcionarioId: c.funcionarioId,
+        orcamentoId: ref.id,
+        valor: c.valor,
+        data: firebase.firestore.FieldValue.serverTimestamp(),
+        lancadoPor: usuario?.nome || ''
+      });
+    });
+    await opBatch.commit();
     await db.collection('lotes').doc(lote.id).update({
       status: 'Aguardando aprovação',
       orcamentoId: ref.id,
@@ -1754,9 +1731,11 @@ function ModalLoteDetalhe({
     if (!confirm('Excluir este lote e as comissões geradas por ele? Essa ação não pode ser desfeita.')) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir este lote:')) return;
     setProcessando(true);
-    const comSnap = await db.collection('comissoes').where('loteId', '==', lote.id).get();
     const opBatch = db.batch();
-    comSnap.docs.forEach(d => opBatch.delete(d.ref));
+    if (lote.orcamentoId) {
+      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', lote.orcamentoId).get();
+      comSnap.docs.forEach(d => opBatch.delete(d.ref));
+    }
     opBatch.delete(db.collection('lotes').doc(lote.id));
     await opBatch.commit();
     setProcessando(false);
@@ -1825,7 +1804,6 @@ function ModalLoteDetalhe({
     }
   }, (lote.itens || []).map((it, idx) => {
     const restante = it.quantidade - (it.qtdConsertada || 0) - (it.qtdNaoConsertada || 0);
-    const comissaoUnitaria = (Number(it.valorConserto) || 0) * (Number(it.percentualComissao) || 0) / 100;
     return /*#__PURE__*/React.createElement("div", {
       key: idx,
       className: "card",
@@ -1843,36 +1821,12 @@ function ModalLoteDetalhe({
         color: 'var(--texto-fraco)',
         marginBottom: 8
       }
-    }, "Quantidade: ", it.quantidade), /*#__PURE__*/React.createElement("div", {
-      className: "grid2"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Técnico responsável"), /*#__PURE__*/React.createElement("select", {
-      value: it.tecnicoId,
-      onChange: e => definirTecnico(idx, e.target.value)
-    }, /*#__PURE__*/React.createElement("option", {
-      value: ""
-    }, "Selecione..."), funcionarios.map(f => /*#__PURE__*/React.createElement("option", {
-      key: f.id,
-      value: f.id
-    }, f.nome)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Valor do conserto (un.)"), /*#__PURE__*/React.createElement("input", {
+    }, "Quantidade: ", it.quantidade), /*#__PURE__*/React.createElement("label", null, "Valor do conserto (un.)"), /*#__PURE__*/React.createElement("input", {
       type: "number",
       step: "0.01",
       defaultValue: it.valorConserto || 0,
       onBlur: e => definirValor(idx, e.target.value)
-    }))), /*#__PURE__*/React.createElement("div", {
-      className: "grid2"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "% de comissão"), /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      step: "0.01",
-      min: "0",
-      max: "100",
-      defaultValue: it.percentualComissao || 0,
-      onBlur: e => definirPercentual(idx, e.target.value)
-    })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Comissão por unidade"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontWeight: 700,
-        paddingTop: 10
-      }
-    }, formatMoeda(comissaoUnitaria)))), /*#__PURE__*/React.createElement("div", {
+    }), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         gap: 18,
@@ -1942,12 +1896,6 @@ function ModalLoteDetalhe({
       }
     }, restante))));
   })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11.5,
-      color: 'var(--texto-fraco)',
-      marginTop: 10
-    }
-  }, "Reduzir uma contagem de \"Consertadas\" pede a senha master quando já existe comissão lançada para desfazer."), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 18,
       paddingTop: 16,
@@ -2022,7 +1970,11 @@ function AbaOrcamentos() {
   async function excluir(o) {
     if (!confirm(`Excluir o orçamento #${o.numero}?`)) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir este orçamento:')) return;
-    await db.collection('orcamentos').doc(o.id).delete();
+    const comSnap = await db.collection('comissoes').where('orcamentoId', '==', o.id).get();
+    const opBatch = db.batch();
+    comSnap.docs.forEach(d => opBatch.delete(d.ref));
+    opBatch.delete(db.collection('orcamentos').doc(o.id));
+    await opBatch.commit();
   }
   async function mudarStatus(o, status) {
     await db.collection('orcamentos').doc(o.id).update({
@@ -2057,9 +2009,9 @@ function AbaOrcamentos() {
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nº"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Total"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, orcamentos.map(o => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nº"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Total"), /*#__PURE__*/React.createElement("th", null, "Comissão total"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, orcamentos.map(o => /*#__PURE__*/React.createElement("tr", {
     key: o.id
-  }, /*#__PURE__*/React.createElement("td", null, o.numero), /*#__PURE__*/React.createElement("td", null, nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.total)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
+  }, /*#__PURE__*/React.createElement("td", null, o.numero), /*#__PURE__*/React.createElement("td", null, nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.total)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.comissaoTotal)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
     value: o.status,
     onChange: e => mudarStatus(o, e.target.value),
     className: `badge ${STATUS_CLASSE[o.status] || 'pendente'}`,
@@ -2089,7 +2041,7 @@ function AbaOrcamentos() {
     className: "btn perigo pequeno",
     onClick: () => excluir(o)
   }, "Excluir")))), !carregando && orcamentos.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "6",
+    colSpan: "7",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
@@ -2108,6 +2060,7 @@ function ModalOrcamento({
   totalAtual,
   aoFechar
 }) {
+  const [funcionarios] = useColecao('funcionarios');
   const [clienteId, setClienteId] = useState(orcamento?.clienteId || '');
   const [validade, setValidade] = useState(orcamento?.validade || '');
   const [itens, setItens] = useState(orcamento?.itens || [{
@@ -2140,19 +2093,39 @@ function ModalOrcamento({
       return;
     }
     setSalvando(true);
-    const dados = {
-      clienteId,
-      validade,
-      itens,
-      total,
-      status: orcamento?.status || 'Pendente'
-    };
     if (orcamento) {
+      const dados = {
+        clienteId,
+        validade,
+        itens,
+        total,
+        status: orcamento?.status || 'Pendente'
+      };
       await db.collection('orcamentos').doc(orcamento.id).update(dados);
     } else {
-      dados.numero = totalAtual + 1;
-      dados.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('orcamentos').add(dados);
+      const comissoes = calcularComissoesOrcamento(total, funcionarios);
+      const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
+      const dados = {
+        clienteId,
+        validade,
+        itens,
+        total,
+        comissaoTotal,
+        status: 'Pendente',
+        numero: totalAtual + 1,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      const ref = await db.collection('orcamentos').add(dados);
+      const opBatch = db.batch();
+      comissoes.forEach(c => {
+        opBatch.set(db.collection('comissoes').doc(), {
+          funcionarioId: c.funcionarioId,
+          orcamentoId: ref.id,
+          valor: c.valor,
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+      await opBatch.commit();
     }
     setSalvando(false);
     aoFechar();
@@ -2261,10 +2234,15 @@ function AbaComissoes({
   funcionarios
 }) {
   const [comissoes, carregando] = useColecao('comissoes', 'data');
+  const [orcamentos] = useColecao('orcamentos');
   const [filtroFunc, setFiltroFunc] = useState('');
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
   const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
+  const numeroOrcamento = id => {
+    const o = orcamentos.find(o => o.id === id);
+    return o ? `#${o.numero}` : '-';
+  };
   const filtradas = comissoes.filter(c => {
     if (filtroFunc && c.funcionarioId !== filtroFunc) return false;
     if (!c.data) return true;
@@ -2335,7 +2313,7 @@ function AbaComissoes({
       color: 'var(--texto-fraco)',
       fontSize: 12.5
     }
-  }, "Peças consertadas"), /*#__PURE__*/React.createElement("div", {
+  }, "Lançamentos de comissão"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 26,
       fontWeight: 700,
@@ -2362,7 +2340,7 @@ function AbaComissoes({
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Peças consertadas"), /*#__PURE__*/React.createElement("th", null, "Comissão total"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(porFuncionario).map(([fid, dados]) => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamentos"), /*#__PURE__*/React.createElement("th", null, "Comissão total"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(porFuncionario).map(([fid, dados]) => /*#__PURE__*/React.createElement("tr", {
     key: fid
   }, /*#__PURE__*/React.createElement("td", null, nomeFunc(fid)), /*#__PURE__*/React.createElement("td", null, dados.qtd), /*#__PURE__*/React.createElement("td", null, formatMoeda(dados.total)))), Object.keys(porFuncionario).length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "3",
@@ -2381,9 +2359,9 @@ function AbaComissoes({
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Peça"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, filtradas.map(c => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, filtradas.map(c => /*#__PURE__*/React.createElement("tr", {
     key: c.id
-  }, /*#__PURE__*/React.createElement("td", null, formatData(c.data)), /*#__PURE__*/React.createElement("td", null, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", null, c.pecaDescricao || '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(c.valor)))), !carregando && filtradas.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+  }, /*#__PURE__*/React.createElement("td", null, formatData(c.data)), /*#__PURE__*/React.createElement("td", null, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", null, numeroOrcamento(c.orcamentoId)), /*#__PURE__*/React.createElement("td", null, formatMoeda(c.valor)))), !carregando && filtradas.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "4",
     style: {
       color: 'var(--texto-fraco)',
@@ -2400,6 +2378,7 @@ function AbaFuncionarios({
   const [funcionarios, carregando] = useColecao('funcionarios');
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(null);
+  const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
   async function excluir(f) {
     if (f.id === usuario.id) {
       alert('Você não pode excluir o próprio usuário enquanto estiver logado com ele.');
@@ -2437,9 +2416,19 @@ function AbaFuncionarios({
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nome"), /*#__PURE__*/React.createElement("th", null, "Cargo"), /*#__PURE__*/React.createElement("th", null, "Login"), /*#__PURE__*/React.createElement("th", null, "Comissão por peça"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, funcionarios.map(f => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nome"), /*#__PURE__*/React.createElement("th", null, "Cargo"), /*#__PURE__*/React.createElement("th", null, "Login"), /*#__PURE__*/React.createElement("th", null, "% comissão"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, funcionarios.map(f => /*#__PURE__*/React.createElement("tr", {
     key: f.id
-  }, /*#__PURE__*/React.createElement("td", null, f.nome), /*#__PURE__*/React.createElement("td", null, f.cargo || '-'), /*#__PURE__*/React.createElement("td", null, f.login || '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(f.comissaoPorPeca)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("td", null, f.nome), /*#__PURE__*/React.createElement("td", null, f.cargo || '-'), /*#__PURE__*/React.createElement("td", null, f.login || '-'), /*#__PURE__*/React.createElement("td", null, f.percentualComissao ? `${f.percentualComissao}%` : '-', f.comissaoBaseId && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)'
+    }
+  }, "sobre comissão de ", nomeFunc(f.comissaoBaseId)), !f.comissaoBaseId && f.percentualComissao ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)'
+    }
+  }, "sobre o orçamento") : null), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
     className: `badge ${f.ativo === false ? 'recusado' : 'aprovado'}`,
     style: {
       border: 'none'
@@ -2468,18 +2457,21 @@ function AbaFuncionarios({
     }
   }, "Nenhum funcionário cadastrado. Crie o primeiro para poder fazer login."))))), modalAberto && /*#__PURE__*/React.createElement(ModalFuncionario, {
     funcionario: editando,
+    funcionarios: funcionarios,
     aoFechar: () => setModalAberto(false)
   }));
 }
 function ModalFuncionario({
   funcionario,
+  funcionarios,
   aoFechar
 }) {
   const [f, setF] = useState(funcionario || {
     nome: '',
     cargo: '',
     login: '',
-    comissaoPorPeca: 0,
+    percentualComissao: 0,
+    comissaoBaseId: '',
     ativo: true
   });
   const [senha, setSenha] = useState('');
@@ -2499,7 +2491,7 @@ function ModalFuncionario({
     setSalvando(true);
     const dados = {
       ...f,
-      comissaoPorPeca: Number(f.comissaoPorPeca) || 0
+      percentualComissao: Number(f.percentualComissao) || 0
     };
     if (senha) dados.senhaHash = await hashSenha(senha);
     if (funcionario) {
@@ -2511,6 +2503,7 @@ function ModalFuncionario({
     setSalvando(false);
     aoFechar();
   }
+  const outrosFuncionarios = (funcionarios || []).filter(fu => fu.id !== funcionario?.id);
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && aoFechar()
@@ -2536,12 +2529,27 @@ function ModalFuncionario({
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
     value: f.login,
     onChange: e => campo('login', e.target.value)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Comissão por peça consertada (R$)"), /*#__PURE__*/React.createElement("input", {
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "% de comissão"), /*#__PURE__*/React.createElement("input", {
     type: "number",
     step: "0.01",
-    value: f.comissaoPorPeca,
-    onChange: e => campo('comissaoPorPeca', e.target.value)
-  }))), /*#__PURE__*/React.createElement("label", null, funcionario ? 'Nova senha (deixe em branco para manter a atual)' : 'Senha'), /*#__PURE__*/React.createElement("input", {
+    min: "0",
+    value: f.percentualComissao,
+    onChange: e => campo('percentualComissao', e.target.value)
+  }))), /*#__PURE__*/React.createElement("label", null, "Comissão calculada sobre"), /*#__PURE__*/React.createElement("select", {
+    value: f.comissaoBaseId,
+    onChange: e => campo('comissaoBaseId', e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Valor total do orçamento"), outrosFuncionarios.map(fu => /*#__PURE__*/React.createElement("option", {
+    key: fu.id,
+    value: fu.id
+  }, "Comissão de ", fu.nome))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "Deixe 0% se esse funcionário não recebe comissão."), /*#__PURE__*/React.createElement("label", null, funcionario ? 'Nova senha (deixe em branco para manter a atual)' : 'Senha'), /*#__PURE__*/React.createElement("input", {
     type: "password",
     value: senha,
     onChange: e => setSenha(e.target.value)
