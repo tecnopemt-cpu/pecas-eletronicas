@@ -2378,6 +2378,254 @@ function ModalOrcamento({
 }
 
 // ======================= COMISSÕES =======================
+// ======================= PERÍODO DE APURAÇÃO =======================
+const APURACAO_FATURAMENTO_MINIMO = 70000;
+const APURACAO_GARANTIA_LIMITE = 10; // % — acima disso reduz o bônus
+const APURACAO_GARANTIA_REDUCAO = 0.85; // multiplicador quando passa do limite de garantia
+const APURACAO_ATRASO_REDUCAO = 0.8; // multiplicador por atraso (acumulativo)
+
+function periodoApuracao(chave) {
+  // chave = 'YYYY-MM', mês de referência (ex: '2026-09' = 25/08 a 24/09)
+  const [ano, mes] = chave.split('-').map(Number);
+  let anoAnterior = ano,
+    mesAnterior = mes - 1;
+  if (mesAnterior === 0) {
+    mesAnterior = 12;
+    anoAnterior = ano - 1;
+  }
+  const inicio = new Date(anoAnterior, mesAnterior - 1, 25);
+  const fim = new Date(ano, mes - 1, 24);
+  return {
+    inicioStr: formatarDataInput(inicio),
+    fimStr: formatarDataInput(fim)
+  };
+}
+function multiplicadorPorVolume(qtd) {
+  if (qtd > 180) return 1.5;
+  if (qtd >= 161) return 1.2;
+  if (qtd >= 121) return 1.0;
+  return 0.7;
+}
+function faixaPorVolume(qtd) {
+  if (qtd > 180) return 'Acima de 180 (acréscimo de 150%)';
+  if (qtd >= 161) return '161–180 (acréscimo de 120%)';
+  if (qtd >= 121) return '121–160 (sem acréscimo)';
+  return '0–120 (paga 70%)';
+}
+function ModalApuracao({
+  funcionarios,
+  comissoes,
+  orcamentos,
+  aoFechar
+}) {
+  const hoje = new Date();
+  const [chave, setChave] = useState(`${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`);
+  const [registros, setRegistros] = useState([]);
+  const [carregandoRegistros, setCarregandoRegistros] = useState(true);
+  useEffect(() => {
+    setCarregandoRegistros(true);
+    const unsub = db.collection('apuracaoRegistros').where('periodoChave', '==', chave).onSnapshot(snap => {
+      setRegistros(snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })));
+      setCarregandoRegistros(false);
+    }, () => setCarregandoRegistros(false));
+    return unsub;
+  }, [chave]);
+  const {
+    inicioStr,
+    fimStr
+  } = periodoApuracao(chave);
+  const orcamentosPeriodo = orcamentos.filter(o => dentroDoIntervalo(dataDe(o.criadoEm), inicioStr, fimStr));
+  const itensPeriodo = orcamentosPeriodo.flatMap(o => o.itens || []);
+  const qtdConsertada = itensPeriodo.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const qtdGarantia = itensPeriodo.filter(i => i.tipo === 'garantia').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const percentualGarantia = qtdConsertada > 0 ? qtdGarantia / qtdConsertada * 100 : 0;
+  const faturamento = orcamentosPeriodo.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const comissoesPeriodo = comissoes.filter(c => dentroDoIntervalo(dataDe(c.data), inicioStr, fimStr));
+  const baseComPorFunc = {};
+  comissoesPeriodo.forEach(c => {
+    baseComPorFunc[c.funcionarioId] = (baseComPorFunc[c.funcionarioId] || 0) + (Number(c.valor) || 0);
+  });
+  const totalBase = Object.values(baseComPorFunc).reduce((s, v) => s + v, 0);
+  const multiplicadorVolume = multiplicadorPorVolume(qtdConsertada);
+  const travaFaturamento = faturamento <= APURACAO_FATURAMENTO_MINIMO;
+  const travaGarantia = percentualGarantia > APURACAO_GARANTIA_LIMITE;
+  const totalAjustado = travaFaturamento ? 0 : totalBase * multiplicadorVolume * (travaGarantia ? APURACAO_GARANTIA_REDUCAO : 1);
+  function registroDe(funcionarioId) {
+    return registros.find(r => r.funcionarioId === funcionarioId) || {
+      atrasos: 0,
+      faltaNaoJustificada: false
+    };
+  }
+  const linhasFuncionarios = funcionarios.filter(f => (baseComPorFunc[f.id] || 0) > 0).map(f => {
+    const base = baseComPorFunc[f.id] || 0;
+    const share = totalBase > 0 ? base / totalBase : 0;
+    const redistribuido = share * totalAjustado;
+    const reg = registroDe(f.id);
+    const valorFinal = reg.faltaNaoJustificada ? 0 : redistribuido * Math.pow(APURACAO_ATRASO_REDUCAO, Number(reg.atrasos) || 0);
+    return {
+      funcionario: f,
+      base,
+      redistribuido,
+      reg,
+      valorFinal
+    };
+  });
+  async function salvarRegistro(funcionarioId, campo, valor) {
+    const id = `${chave}_${funcionarioId}`;
+    await db.collection('apuracaoRegistros').doc(id).set({
+      periodoChave: chave,
+      funcionarioId,
+      [campo]: valor
+    }, {
+      merge: true
+    });
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 720
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Período de Apuração"), /*#__PURE__*/React.createElement("label", null, "Mês de referência"), /*#__PURE__*/React.createElement("input", {
+    type: "month",
+    value: chave,
+    onChange: e => setChave(e.target.value),
+    style: {
+      maxWidth: 180
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "Período: ", new Date(inicioStr + 'T00:00:00').toLocaleDateString('pt-BR'), " a ", new Date(fimStr + 'T00:00:00').toLocaleDateString('pt-BR')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
+      gap: 10,
+      marginTop: 16,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Peças com conserto",
+    valor: qtdConsertada
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Faixa de volume",
+    valor: faixaPorVolume(qtdConsertada)
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Faturamento",
+    valor: formatMoeda(faturamento),
+    cor: travaFaturamento ? 'var(--vermelho)' : undefined
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "% de garantia",
+    valor: `${percentualGarantia.toFixed(1)}%`,
+    cor: travaGarantia ? 'var(--vermelho)' : undefined
+  })), travaFaturamento && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--vermelho)',
+      marginBottom: 10
+    }
+  }, "⚠️ Faturamento do período é R$ ", APURACAO_FATURAMENTO_MINIMO.toLocaleString('pt-BR'), " ou menos — sem pagamento de comissão nesse período (regra 3)."), !travaFaturamento && travaGarantia && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--laranja-escuro)',
+      marginBottom: 10
+    }
+  }, "⚠️ Garantia acima de ", APURACAO_GARANTIA_LIMITE, "% — comissão total reduzida em 15% (regra 4)."), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 13.5
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Comissão base (soma normal)"), /*#__PURE__*/React.createElement("strong", null, formatMoeda(totalBase))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 13.5,
+      marginTop: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Multiplicador de volume (regra 1)"), /*#__PURE__*/React.createElement("strong", null, "×", multiplicadorVolume.toFixed(2))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 15,
+      marginTop: 10,
+      paddingTop: 10,
+      borderTop: '1px solid var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Total ajustado do período"), /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: 'var(--laranja)'
+    }
+  }, formatMoeda(totalAjustado)))), /*#__PURE__*/React.createElement("h4", {
+    style: {
+      margin: '0 0 8px'
+    }
+  }, "Por funcionário"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Redistribuído"), /*#__PURE__*/React.createElement("th", null, "Atrasos"), /*#__PURE__*/React.createElement("th", null, "Falta não just."), /*#__PURE__*/React.createElement("th", null, "Valor final"))), /*#__PURE__*/React.createElement("tbody", null, linhasFuncionarios.map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.funcionario.id
+  }, /*#__PURE__*/React.createElement("td", null, l.funcionario.nome), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.redistribuido)), /*#__PURE__*/React.createElement("td", {
+    style: {
+      width: 80
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    step: "1",
+    defaultValue: l.reg.atrasos || 0,
+    onBlur: e => salvarRegistro(l.funcionario.id, 'atrasos', Math.max(0, Number(e.target.value) || 0))
+  })), /*#__PURE__*/React.createElement("td", {
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: !!l.reg.faltaNaoJustificada,
+    onChange: e => salvarRegistro(l.funcionario.id, 'faltaNaoJustificada', e.target.checked)
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, formatMoeda(l.valorFinal))))), !carregandoRegistros && linhasFuncionarios.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "5",
+    style: {
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 16
+    }
+  }, "Nenhuma comissão lançada nesse período."))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 10
+    }
+  }, "Atraso reduz 20% por ocorrência (acumulativo). Falta não justificada zera a comissão daquele funcionário no período. Os valores de atraso/falta salvam automaticamente ao sair do campo."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
 function AbaComissoes({
   funcionarios
 }) {
@@ -2386,6 +2634,7 @@ function AbaComissoes({
   const [filtroFunc, setFiltroFunc] = useState('');
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
+  const [modalApuracaoAberto, setModalApuracaoAberto] = useState(false);
   const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
   const numeroOrcamento = id => {
     const o = orcamentos.find(o => o.id === id);
@@ -2409,11 +2658,23 @@ function AbaComissoes({
     porFuncionario[c.funcionarioId].qtd++;
     porFuncionario[c.funcionarioId].total += Number(c.valor) || 0;
   });
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
-      margin: '0 0 16px'
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 10,
+      marginBottom: 16
     }
-  }, "Análise de comissão"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: 0
+    }
+  }, "Análise de comissão"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: () => setModalApuracaoAberto(true)
+  }, "📅 Período de Apuração")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10,
@@ -2516,7 +2777,12 @@ function AbaComissoes({
       textAlign: 'center',
       padding: 20
     }
-  }, "Nenhum lançamento."))))));
+  }, "Nenhum lançamento."))))), modalApuracaoAberto && /*#__PURE__*/React.createElement(ModalApuracao, {
+    funcionarios: funcionarios,
+    comissoes: comissoes,
+    orcamentos: orcamentos,
+    aoFechar: () => setModalApuracaoAberto(false)
+  }));
 }
 
 // ======================= DASHBOARD =======================
