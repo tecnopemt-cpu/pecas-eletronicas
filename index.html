@@ -1671,25 +1671,47 @@ function ModalLoteDetalhe({
   }
   async function gerarOrcamento() {
     const linhas = [];
-    (lote.itens || []).forEach(it => {
+    const ajustes = [];
+    (lote.itens || []).forEach((it, idx) => {
       const pendConserto = (it.qtdConsertada || 0) - (it.qtdConsertadaOrcada || 0);
       const pendGarantia = (it.qtdGarantia || 0) - (it.qtdGarantiaOrcada || 0);
       const pendSem = (it.qtdNaoConsertada || 0) - (it.qtdNaoConsertadaOrcada || 0);
-      if (pendConserto > 0) linhas.push({
-        descricao: it.pecaDescricao,
-        qtd: pendConserto,
-        valorUnit: it.valorConserto || 0
-      });
-      if (pendGarantia > 0) linhas.push({
-        descricao: `${it.pecaDescricao} (Garantia)`,
-        qtd: pendGarantia,
-        valorUnit: 0
-      });
-      if (pendSem > 0) linhas.push({
-        descricao: `${it.pecaDescricao} (Sem conserto)`,
-        qtd: pendSem,
-        valorUnit: 0
-      });
+      if (pendConserto > 0) {
+        linhas.push({
+          descricao: it.pecaDescricao,
+          qtd: pendConserto,
+          valorUnit: it.valorConserto || 0
+        });
+        ajustes.push({
+          idx,
+          categoria: 'consertada',
+          qtd: pendConserto
+        });
+      }
+      if (pendGarantia > 0) {
+        linhas.push({
+          descricao: `${it.pecaDescricao} (Garantia)`,
+          qtd: pendGarantia,
+          valorUnit: 0
+        });
+        ajustes.push({
+          idx,
+          categoria: 'garantia',
+          qtd: pendGarantia
+        });
+      }
+      if (pendSem > 0) {
+        linhas.push({
+          descricao: `${it.pecaDescricao} (Sem conserto)`,
+          qtd: pendSem,
+          valorUnit: 0
+        });
+        ajustes.push({
+          idx,
+          categoria: 'naoConsertada',
+          qtd: pendSem
+        });
+      }
     });
     if (linhas.length === 0) {
       alert('Não há peças classificadas (conserto, garantia ou sem conserto) pendentes de orçamento nesse lote.');
@@ -1709,6 +1731,7 @@ function ModalLoteDetalhe({
       comissaoTotal,
       status: 'Em análise',
       loteId: lote.id,
+      loteAjustes: ajustes,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
     const opBatch = db.batch();
@@ -2041,25 +2064,32 @@ function AbaOrcamentos() {
     const opBatch = db.batch();
     comSnap.docs.forEach(d => opBatch.delete(d.ref));
     opBatch.delete(db.collection('orcamentos').doc(o.id));
-    if (o.loteId) {
+    if (o.loteId && o.loteAjustes && o.loteAjustes.length > 0) {
       const loteSnap = await db.collection('lotes').doc(o.loteId).get();
       if (loteSnap.exists) {
         const loteData = loteSnap.data();
-        // reseta a classificação do lote inteiro, como se fosse começar de novo
-        const itensAtualizados = (loteData.itens || []).map(it => ({
-          ...it,
-          qtdConsertada: 0,
-          qtdGarantia: 0,
-          qtdNaoConsertada: 0,
-          qtdConsertadaOrcada: 0,
-          qtdGarantiaOrcada: 0,
-          qtdNaoConsertadaOrcada: 0
-        }));
-        opBatch.update(db.collection('lotes').doc(o.loteId), {
-          itens: itensAtualizados,
-          orcamentoId: '',
-          orcamentoNumero: ''
+        const itensAtualizados = (loteData.itens || []).map((it, idx) => {
+          const ajustesDoItem = o.loteAjustes.filter(a => a.idx === idx);
+          if (ajustesDoItem.length === 0) return it;
+          const novo = {
+            ...it
+          };
+          ajustesDoItem.forEach(a => {
+            const chaveClassificacao = a.categoria === 'consertada' ? 'qtdConsertada' : a.categoria === 'garantia' ? 'qtdGarantia' : 'qtdNaoConsertada';
+            const chaveOrcada = a.categoria === 'consertada' ? 'qtdConsertadaOrcada' : a.categoria === 'garantia' ? 'qtdGarantiaOrcada' : 'qtdNaoConsertadaOrcada';
+            novo[chaveClassificacao] = Math.max(0, (novo[chaveClassificacao] || 0) - a.qtd);
+            novo[chaveOrcada] = Math.max(0, (novo[chaveOrcada] || 0) - a.qtd);
+          });
+          return novo;
         });
+        const dadosLote = {
+          itens: itensAtualizados
+        };
+        if (loteData.orcamentoId === o.id) {
+          dadosLote.orcamentoId = '';
+          dadosLote.orcamentoNumero = '';
+        }
+        opBatch.update(db.collection('lotes').doc(o.loteId), dadosLote);
       }
     }
     await opBatch.commit();
