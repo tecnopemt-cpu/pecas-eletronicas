@@ -202,6 +202,9 @@ function calcularComissoesOrcamento(total, funcionarios) {
     valor: valorDe(f, new Set())
   })).filter(c => c.valor > 0);
 }
+function loteTotalmenteClassificado(itens) {
+  return (itens || []).every(it => it.quantidade === (it.qtdConsertada || 0) + (it.qtdGarantia || 0) + (it.qtdNaoConsertada || 0));
+}
 function useColecao(nome, ordenarPor) {
   const [dados, setDados] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -1656,9 +1659,13 @@ function ModalLoteDetalhe({
       ...it,
       [chave]: novo
     } : it);
-    await db.collection('lotes').doc(lote.id).update({
+    const dadosLote = {
       itens: itensAtualizados
-    });
+    };
+    const completo = loteTotalmenteClassificado(itensAtualizados);
+    if (completo && lote.status !== 'Concluído') dadosLote.status = 'Concluído';
+    if (!completo && lote.status === 'Concluído') dadosLote.status = 'Em análise';
+    await db.collection('lotes').doc(lote.id).update(dadosLote);
   }
   async function definirValor(idx, valor) {
     const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
@@ -2088,6 +2095,9 @@ function AbaOrcamentos() {
         if (loteData.orcamentoId === o.id) {
           dadosLote.orcamentoId = '';
           dadosLote.orcamentoNumero = '';
+        }
+        if (loteData.status === 'Concluído' && !loteTotalmenteClassificado(itensAtualizados)) {
+          dadosLote.status = 'Em análise';
         }
         opBatch.update(db.collection('lotes').doc(o.loteId), dadosLote);
       }
