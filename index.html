@@ -2466,21 +2466,21 @@ function AbaOrcamentos() {
       borderBottom: '1px solid var(--borda)'
     }
   }, c.codigo && /*#__PURE__*/React.createElement("strong", null, c.codigo, " — "), c.descricao)))), /*#__PURE__*/React.createElement("div", {
+    className: "kanban-orcamento",
     style: {
-      display: 'flex',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
       gap: 12,
-      overflowX: 'auto',
-      paddingBottom: 10
+      alignItems: 'start'
     }
   }, STATUS_ORCAMENTO.map(status => {
     const itensDoStatus = orcamentosFiltrados.filter(o => o.status === status);
     return /*#__PURE__*/React.createElement("div", {
       key: status,
       style: {
-        flex: '0 0 260px',
-        minWidth: 260,
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        minWidth: 0
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
