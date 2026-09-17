@@ -2341,7 +2341,10 @@ function ModalOrcamento({
     valorUnit: 0
   }]);
   const [salvando, setSalvando] = useState(false);
-  const total = itens.reduce((s, i) => s + (Number(i.qtd) || 0) * (Number(i.valorUnit) || 0), 0);
+  const total = itens.reduce((s, i) => {
+    const travado = i.tipo === 'garantia' || i.tipo === 'naoConsertada';
+    return s + (Number(i.qtd) || 0) * (travado ? 0 : Number(i.valorUnit) || 0);
+  }, 0);
   function mudarItem(i, campo, valor) {
     setItens(prev => prev.map((it, idx) => idx === i ? {
       ...it,
@@ -2369,10 +2372,14 @@ function ModalOrcamento({
       return;
     }
     setSalvando(true);
-    const itensComTipo = itens.map(it => ({
-      tipo: 'consertada',
-      ...it
-    }));
+    const itensComTipo = itens.map(it => {
+      const item = {
+        tipo: 'consertada',
+        ...it
+      };
+      if (item.tipo === 'garantia' || item.tipo === 'naoConsertada') item.valorUnit = 0;
+      return item;
+    });
     if (orcamento) {
       const dados = {
         numero,
@@ -2463,46 +2470,51 @@ function ModalOrcamento({
     style: {
       marginTop: 16
     }
-  }, "Itens"), itens.map((it, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      display: 'flex',
-      gap: 6,
-      alignItems: 'flex-end',
-      marginBottom: 6
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    placeholder: "Descrição",
-    value: it.descricao,
-    onChange: e => mudarItem(i, 'descricao', e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 60
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    min: "1",
-    value: it.qtd,
-    onChange: e => mudarItem(i, 'qtd', e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 100
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    step: "0.01",
-    placeholder: "Valor un.",
-    value: it.valorUnit,
-    onChange: e => mudarItem(i, 'valorUnit', e.target.value)
-  })), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn perigo pequeno",
-    onClick: () => removerItem(i)
-  }, "×"))), /*#__PURE__*/React.createElement("button", {
+  }, "Itens"), itens.map((it, i) => {
+    const travado = it.tipo === 'garantia' || it.tipo === 'naoConsertada';
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: 'flex',
+        gap: 6,
+        alignItems: 'flex-end',
+        marginBottom: 6
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      placeholder: "Descrição",
+      value: it.descricao,
+      onChange: e => mudarItem(i, 'descricao', e.target.value)
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 60
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      min: "1",
+      value: it.qtd,
+      onChange: e => mudarItem(i, 'qtd', e.target.value)
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 100
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      step: "0.01",
+      placeholder: "Valor un.",
+      value: travado ? 0 : it.valorUnit,
+      disabled: travado,
+      title: travado ? 'Garantia e sem conserto não são cobrados' : undefined,
+      onChange: e => mudarItem(i, 'valorUnit', e.target.value)
+    })), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn perigo pequeno",
+      onClick: () => removerItem(i)
+    }, "×"));
+  }), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     onClick: addItem
