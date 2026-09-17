@@ -11,6 +11,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Peças Tecnopemt" />
@@ -100,6 +103,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Caveat:wght@700&display=swap" rel="stylesheet">
 
 <script>
 const {
@@ -237,53 +243,153 @@ function gerarCodigoAssinatura() {
 function linkAssinatura(tipo, id) {
   return `${window.location.origin}${window.location.pathname}?assinar=${tipo}&id=${id}`;
 }
-function gerarPdfEntrada(lote, cliente, assinatura) {
-  const {
-    jsPDF
-  } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFontSize(15);
-  doc.text('Tecnopemt — Recibo de Entrada de Peças', 14, 18);
-  doc.setFontSize(10);
-  doc.text(`Cliente: ${cliente?.razaoSocial || '-'}`, 14, 28);
-  doc.text(`Data de entrada: ${formatData(lote.criadoEm)}`, 14, 34);
-  let y = 46;
-  doc.setFontSize(11);
-  doc.text('Peças recebidas:', 14, y);
-  y += 8;
-  doc.setFontSize(10);
-  (lote.itens || []).forEach(it => {
-    const linhas = doc.splitTextToSize(`• ${it.pecaDescricao} — Quantidade: ${it.quantidade}`, 180);
-    doc.text(linhas, 16, y);
-    y += 6 * linhas.length;
+function carregarImagemDataUrl(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      try {
+        resolve(canvas.toDataURL('image/png'));
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = reject;
+    img.src = url;
   });
-  y += 12;
+}
+async function coletarLocalizacao() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(pos => resolve({
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude
+    }), () => resolve(null), {
+      timeout: 6000
+    });
+  });
+}
+async function coletarIp() {
+  try {
+    const r = await fetch('https://api.ipify.org?format=json');
+    const d = await r.json();
+    return d.ip || '';
+  } catch (err) {
+    return '';
+  }
+}
+async function desenharCabecalhoPdf(doc, titulo, cliente) {
+  try {
+    const logoDataUrl = await carregarImagemDataUrl('icons/icon-512.png');
+    doc.addImage(logoDataUrl, 'PNG', 14, 10, 16, 16);
+  } catch (err) {}
+  doc.setFontSize(13);
+  doc.text('Tecnopemt', 34, 16);
+  doc.setFontSize(8.5);
+  doc.setTextColor(120);
+  doc.text('Conserto de peças e equipamentos eletrônicos', 34, 21);
+  doc.setTextColor(0);
+  doc.setFontSize(14);
+  let y = 34;
+  doc.text(titulo, 14, y);
+  y += 10;
+  doc.setFontSize(10);
+  doc.text(`Cliente: ${cliente?.razaoSocial || '-'}`, 14, y);
+  y += 6;
+  if (cliente?.cnpj) {
+    doc.text(`CNPJ/CPF: ${formatCNPJ(cliente.cnpj)}`, 14, y);
+    y += 6;
+  }
+  const endTxt = [cliente?.endereco, cliente?.bairro, cliente?.cidade && cliente?.uf ? `${cliente.cidade}/${cliente.uf}` : cliente?.cidade].filter(Boolean).join(', ');
+  if (endTxt) {
+    doc.text(`Endereço: ${endTxt}`, 14, y);
+    y += 6;
+  }
+  if (cliente?.telefone) {
+    doc.text(`Telefone: ${cliente.telefone}`, 14, y);
+    y += 6;
+  }
+  return y;
+}
+function desenharRodapeAssinatura(doc, y, assinatura) {
+  if (y > 235) {
+    doc.addPage();
+    y = 20;
+  }
   doc.setFontSize(10);
   doc.text(`Assinado por: ${assinatura.nome}`, 14, y);
   y += 6;
   doc.text(`CPF: ${formatarCPF(assinatura.cpf)}`, 14, y);
   y += 6;
-  doc.text(`Assinado digitalmente em ${assinatura.dataTexto}`, 14, y);
-  y += 8;
+  doc.text(`Data/hora: ${assinatura.dataTexto}`, 14, y);
+  y += 6;
+  if (assinatura.ip) {
+    doc.text(`IP: ${assinatura.ip}`, 14, y);
+    y += 6;
+  }
+  if (assinatura.localizacao) {
+    doc.setTextColor(200, 90, 10);
+    doc.textWithLink(`Localização: ${assinatura.localizacao.lat.toFixed(5)}, ${assinatura.localizacao.lng.toFixed(5)} (ver no mapa)`, 14, y, {
+      url: `https://www.google.com/maps?q=${assinatura.localizacao.lat},${assinatura.localizacao.lng}`
+    });
+    doc.setTextColor(0);
+    y += 6;
+  }
+  y += 4;
   if (assinatura.imagem) {
     try {
-      doc.addImage(assinatura.imagem, 'PNG', 14, y, 70, 30);
+      doc.addImage(assinatura.imagem, 'PNG', 14, y, 65, 28);
     } catch (err) {}
+    y += 32;
   }
-  doc.save(`recibo-entrada-${lote.id.slice(0, 8)}.pdf`);
+  return y;
 }
-function gerarPdfEntrega(orcamento, cliente, assinatura) {
+async function gerarPdfEntrada(lote, cliente, assinatura) {
   const {
     jsPDF
   } = window.jspdf;
   const doc = new jsPDF();
-  doc.setFontSize(15);
-  doc.text('Tecnopemt — Termo de Entrega / Faturamento', 14, 18);
+  let y = await desenharCabecalhoPdf(doc, 'Recibo de Entrada de Peças (sem valores)', cliente);
+  doc.text(`Data de entrada: ${formatData(lote.criadoEm)}`, 14, y);
+  y += 10;
+  if (lote.fotos && lote.fotos[0]) {
+    try {
+      doc.addImage(lote.fotos[0], 'JPEG', 140, 34, 56, 56);
+    } catch (err) {
+      try {
+        doc.addImage(lote.fotos[0], 'PNG', 140, 34, 56, 56);
+      } catch (err2) {}
+    }
+  }
+  doc.setFontSize(11);
+  doc.text('Peças recebidas:', 14, y);
+  y += 8;
   doc.setFontSize(10);
-  doc.text(`Orçamento nº: ${orcamento.numero}`, 14, 28);
-  doc.text(`Cliente: ${cliente?.razaoSocial || '-'}`, 14, 34);
-  doc.text(`Data: ${formatData(orcamento.criadoEm)}`, 14, 40);
-  let y = 52;
+  (lote.itens || []).forEach(it => {
+    const linhas = doc.splitTextToSize(`• ${it.pecaDescricao} — Quantidade: ${it.quantidade}`, 120);
+    doc.text(linhas, 16, y);
+    y += 6 * linhas.length;
+  });
+  y += 10;
+  y = desenharRodapeAssinatura(doc, y, assinatura);
+  doc.save(`recibo-entrada-${lote.id.slice(0, 8)}.pdf`);
+}
+async function gerarPdfEntrega(orcamento, cliente, assinatura) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  let y = await desenharCabecalhoPdf(doc, 'Termo de Entrega / Faturamento', cliente);
+  doc.text(`Orçamento nº: ${orcamento.numero}`, 14, y);
+  y += 6;
+  doc.text(`Data: ${formatData(orcamento.criadoEm)}`, 14, y);
+  y += 10;
   doc.setFontSize(11);
   doc.text('Itens:', 14, y);
   y += 8;
@@ -298,18 +404,7 @@ function gerarPdfEntrega(orcamento, cliente, assinatura) {
   doc.setFontSize(12);
   doc.text(`Total: ${formatMoeda(orcamento.total)}`, 14, y);
   y += 12;
-  doc.setFontSize(10);
-  doc.text(`Assinado por: ${assinatura.nome}`, 14, y);
-  y += 6;
-  doc.text(`CPF: ${formatarCPF(assinatura.cpf)}`, 14, y);
-  y += 6;
-  doc.text(`Assinado digitalmente em ${assinatura.dataTexto}`, 14, y);
-  y += 8;
-  if (assinatura.imagem) {
-    try {
-      doc.addImage(assinatura.imagem, 'PNG', 14, y, 70, 30);
-    } catch (err) {}
-  }
+  y = desenharRodapeAssinatura(doc, y, assinatura);
   doc.save(`entrega-orcamento-${orcamento.numero}.pdf`);
 }
 function PainelAssinatura({
@@ -384,6 +479,183 @@ function PainelAssinatura({
     onClick: limpar
   }, "Limpar assinatura"));
 }
+function FormularioAssinatura({
+  tipo,
+  documento,
+  cliente,
+  colecao,
+  onConcluido
+}) {
+  const [modoAssinatura, setModoAssinatura] = useState('desenho');
+  const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [nomeAssinaturaTexto, setNomeAssinaturaTexto] = useState('');
+  const [assinaturaImg, setAssinaturaImg] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  async function gerarImagemTexto(texto) {
+    if (!texto.trim()) {
+      setAssinaturaImg('');
+      return;
+    }
+    try {
+      if (document.fonts) await document.fonts.load("44px 'Dancing Script'");
+    } catch (err) {}
+    const canvas = document.createElement('canvas');
+    canvas.width = 340;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, 340, 160);
+    ctx.fillStyle = '#453B3C';
+    ctx.font = "44px 'Dancing Script', cursive";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(texto, 170, 85);
+    setAssinaturaImg(canvas.toDataURL('image/png'));
+  }
+  async function enviar(e) {
+    e.preventDefault();
+    if (!nome.trim()) {
+      alert('Informe o nome de quem está assinando.');
+      return;
+    }
+    if (!validarCPF(cpf)) {
+      alert('CPF inválido. Confira os números digitados.');
+      return;
+    }
+    if (!assinaturaImg) {
+      alert('Desenhe ou digite a assinatura.');
+      return;
+    }
+    setEnviando(true);
+    const [localizacao, ip] = await Promise.all([coletarLocalizacao(), coletarIp()]);
+    const agora = new Date();
+    const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
+    const assinatura = {
+      nome: nome.trim(),
+      cpf: cpf.replace(/\D/g, ''),
+      imagem: assinaturaImg,
+      ip: ip || '',
+      localizacao: localizacao || null,
+      dataAssinatura: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    try {
+      await db.collection(colecao).doc(documento.id).update({
+        [campoAssinatura]: assinatura
+      });
+      const assinaturaPdf = {
+        ...assinatura,
+        dataTexto: agora.toLocaleString('pt-BR')
+      };
+      if (tipo === 'entrada') await gerarPdfEntrada(documento, cliente, assinaturaPdf);else await gerarPdfEntrega(documento, cliente, assinaturaPdf);
+      onConcluido && onConcluido();
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui salvar a assinatura. Verifique sua conexão e tente novamente.');
+    }
+    setEnviando(false);
+  }
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: enviar
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      marginBottom: 10,
+      color: 'var(--texto-fraco)'
+    }
+  }, tipo === 'entrada' ? 'Confira as peças abaixo antes de assinar:' : 'Confira os itens e valores abaixo antes de assinar:'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 150,
+      overflowY: 'auto',
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 14,
+      fontSize: 12.5
+    }
+  }, tipo === 'entrada' ? (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: 4
+    }
+  }, it.pecaDescricao, " — Qtd: ", it.quantidade)) : (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: 4
+    }
+  }, it.descricao, " — Qtd: ", it.qtd, " — ", formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0)))), tipo !== 'entrada' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 6,
+      fontWeight: 700
+    }
+  }, "Total: ", formatMoeda(documento.total))), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
+    required: true
+  }), /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
+    value: formatarCPF(cpf),
+    onChange: e => setCpf(e.target.value),
+    placeholder: "000.000.000-00",
+    maxLength: 14,
+    required: true
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 16
+    }
+  }, "Assinatura"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `btn ${modoAssinatura === 'desenho' ? '' : 'secundario'} pequeno`,
+    onClick: () => {
+      setModoAssinatura('desenho');
+      setAssinaturaImg('');
+    }
+  }, "✍️ Desenhar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `btn ${modoAssinatura === 'texto' ? '' : 'secundario'} pequeno`,
+    onClick: () => {
+      setModoAssinatura('texto');
+      setAssinaturaImg('');
+    }
+  }, "🔤 Digitar nome")), modoAssinatura === 'desenho' ? /*#__PURE__*/React.createElement(PainelAssinatura, {
+    onMudar: setAssinaturaImg
+  }) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    value: nomeAssinaturaTexto,
+    onChange: e => {
+      setNomeAssinaturaTexto(e.target.value);
+      gerarImagemTexto(e.target.value);
+    },
+    placeholder: "Digite o nome para virar a assinatura"
+  }), assinaturaImg && /*#__PURE__*/React.createElement("img", {
+    src: assinaturaImg,
+    style: {
+      width: '100%',
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      marginTop: 8,
+      background: '#fff'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)',
+      marginTop: 8
+    }
+  }, "Sua localização e IP são registrados junto com a assinatura, para validação do documento."), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      width: '100%',
+      justifyContent: 'center',
+      marginTop: 16
+    },
+    disabled: enviando
+  }, enviando ? 'Enviando...' : 'Confirmar assinatura'));
+}
 function TelaAssinatura({
   tipo,
   id
@@ -394,10 +666,6 @@ function TelaAssinatura({
   const [codigo, setCodigo] = useState('');
   const [codigoValidado, setCodigoValidado] = useState(false);
   const [erroCodigo, setErroCodigo] = useState('');
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [assinaturaImg, setAssinaturaImg] = useState('');
-  const [enviando, setEnviando] = useState(false);
   const [concluido, setConcluido] = useState(false);
   const colecao = tipo === 'entrada' ? 'lotes' : 'orcamentos';
   const campoCodigo = tipo === 'entrada' ? 'codigoAssinaturaEntrada' : 'codigoAssinaturaEntrega';
@@ -433,44 +701,6 @@ function TelaAssinatura({
     } else {
       setErroCodigo('Código incorreto. Confira o código enviado.');
     }
-  }
-  async function enviarAssinatura(e) {
-    e.preventDefault();
-    if (!nome.trim()) {
-      alert('Informe o nome de quem está assinando.');
-      return;
-    }
-    if (!validarCPF(cpf)) {
-      alert('CPF inválido. Confira os números digitados.');
-      return;
-    }
-    if (!assinaturaImg) {
-      alert('Desenhe a assinatura no campo indicado.');
-      return;
-    }
-    setEnviando(true);
-    const agora = new Date();
-    const assinatura = {
-      nome: nome.trim(),
-      cpf: cpf.replace(/\D/g, ''),
-      imagem: assinaturaImg,
-      dataAssinatura: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    try {
-      await db.collection(colecao).doc(id).update({
-        [campoAssinatura]: assinatura
-      });
-      const assinaturaPdf = {
-        ...assinatura,
-        dataTexto: agora.toLocaleString('pt-BR')
-      };
-      if (tipo === 'entrada') gerarPdfEntrada(documento, cliente, assinaturaPdf);else gerarPdfEntrega(documento, cliente, assinaturaPdf);
-      setConcluido(true);
-    } catch (err) {
-      console.error(err);
-      alert('Não consegui salvar a assinatura. Verifique sua conexão e tente novamente.');
-    }
-    setEnviando(false);
   }
   if (carregando) {
     return /*#__PURE__*/React.createElement("div", {
@@ -582,64 +812,40 @@ function TelaAssinatura({
       justifyContent: 'center',
       marginTop: 14
     }
-  }, "Continuar")) : /*#__PURE__*/React.createElement("form", {
-    onSubmit: enviarAssinatura
+  }, "Continuar")) : /*#__PURE__*/React.createElement(FormularioAssinatura, {
+    tipo: tipo,
+    documento: documento,
+    cliente: cliente,
+    colecao: colecao,
+    onConcluido: () => setConcluido(true)
+  })));
+}
+function ModalAssinarPresencial({
+  tipo,
+  documento,
+  cliente,
+  colecao,
+  aoFechar
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
   }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
     style: {
-      fontSize: 13.5,
-      marginBottom: 10,
-      color: 'var(--texto-fraco)'
+      maxWidth: 440
     }
-  }, tipo === 'entrada' ? 'Confira as peças abaixo antes de assinar:' : 'Confira os itens e valores abaixo antes de assinar:'), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h3", {
     style: {
-      maxHeight: 160,
-      overflowY: 'auto',
-      border: '1px solid var(--borda)',
-      borderRadius: 8,
-      padding: 10,
-      marginBottom: 14,
-      fontSize: 12.5
+      marginTop: 0
     }
-  }, tipo === 'entrada' ? (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      marginBottom: 4
-    }
-  }, it.pecaDescricao, " — Qtd: ", it.quantidade)) : (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      marginBottom: 4
-    }
-  }, it.descricao, " — Qtd: ", it.qtd, " — ", formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0)))), tipo !== 'entrada' && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 6,
-      fontWeight: 700
-    }
-  }, "Total: ", formatMoeda(documento.total))), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
-    value: nome,
-    onChange: e => setNome(e.target.value),
-    required: true
-  }), /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
-    value: formatarCPF(cpf),
-    onChange: e => setCpf(e.target.value),
-    placeholder: "000.000.000-00",
-    maxLength: 14,
-    required: true
-  }), /*#__PURE__*/React.createElement("label", {
-    style: {
-      marginTop: 16
-    }
-  }, "Assinatura"), /*#__PURE__*/React.createElement(PainelAssinatura, {
-    onMudar: setAssinaturaImg
-  }), /*#__PURE__*/React.createElement("button", {
-    className: "btn",
-    style: {
-      width: '100%',
-      justifyContent: 'center',
-      marginTop: 16
-    },
-    disabled: enviando
-  }, enviando ? 'Enviando...' : 'Confirmar assinatura'))));
+  }, "Assinatura presencial"), /*#__PURE__*/React.createElement(FormularioAssinatura, {
+    tipo: tipo,
+    documento: documento,
+    cliente: cliente,
+    colecao: colecao,
+    onConcluido: aoFechar
+  })));
 }
 function BlocoAssinatura({
   tipo,
@@ -648,6 +854,7 @@ function BlocoAssinatura({
   colecao
 }) {
   const [processando, setProcessando] = useState(false);
+  const [modalPresencialAberto, setModalPresencialAberto] = useState(false);
   const campoCodigo = tipo === 'entrada' ? 'codigoAssinaturaEntrada' : 'codigoAssinaturaEntrega';
   const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
   const assinatura = documento[campoAssinatura];
@@ -664,14 +871,15 @@ function BlocoAssinatura({
     if (navigator.clipboard) navigator.clipboard.writeText(texto);
     alert('Copiado!');
   }
-  function reimprimir() {
+  async function reimprimir() {
     const assinaturaPdf = {
       ...assinatura,
       dataTexto: assinatura.dataAssinatura?.toDate ? assinatura.dataAssinatura.toDate().toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR')
     };
-    if (tipo === 'entrada') gerarPdfEntrada(documento, cliente, assinaturaPdf);else gerarPdfEntrega(documento, cliente, assinaturaPdf);
+    if (tipo === 'entrada') await gerarPdfEntrada(documento, cliente, assinaturaPdf);else await gerarPdfEntrega(documento, cliente, assinaturaPdf);
   }
   if (assinatura) {
+    const mapsLink = assinatura.localizacao ? `https://www.google.com/maps?q=${assinatura.localizacao.lat},${assinatura.localizacao.lng}` : null;
     return /*#__PURE__*/React.createElement("div", {
       className: "card",
       style: {
@@ -690,7 +898,23 @@ function BlocoAssinatura({
         fontSize: 11.5,
         color: 'var(--texto-fraco)'
       }
-    }, "CPF ", formatarCPF(assinatura.cpf)), /*#__PURE__*/React.createElement("button", {
+    }, "CPF ", formatarCPF(assinatura.cpf)), assinatura.ip && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)'
+      }
+    }, "IP: ", assinatura.ip), mapsLink && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11
+      }
+    }, /*#__PURE__*/React.createElement("a", {
+      href: mapsLink,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        color: 'var(--laranja)'
+      }
+    }, "Ver localização no mapa")), /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn secundario pequeno",
       style: {
@@ -710,12 +934,23 @@ function BlocoAssinatura({
       fontWeight: 700,
       marginBottom: 6
     }
-  }, tipo === 'entrada' ? '🖊️ Assinatura de entrada' : '🖊️ Assinatura de entrega'), !codigo ? /*#__PURE__*/React.createElement("button", {
+  }, tipo === 'entrada' ? '🖊️ Assinatura de entrada' : '🖊️ Assinatura de entrega'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      flexWrap: 'wrap',
+      marginBottom: codigo ? 10 : 0
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setModalPresencialAberto(true)
+  }, "Assinar agora (presencial)"), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     disabled: processando,
     onClick: gerarLink
-  }, processando ? 'Gerando...' : 'Gerar link de assinatura') : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, codigo ? 'Gerar novo código' : 'Gerar link (cliente ausente)')), codigo && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
       color: 'var(--texto-fraco)',
@@ -758,15 +993,13 @@ function BlocoAssinatura({
     type: "button",
     className: "btn secundario pequeno",
     onClick: () => copiar(codigo)
-  }, "Copiar código")), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario pequeno",
-    style: {
-      marginTop: 8
-    },
-    disabled: processando,
-    onClick: gerarLink
-  }, "Gerar novo código")));
+  }, "Copiar código"))), modalPresencialAberto && /*#__PURE__*/React.createElement(ModalAssinarPresencial, {
+    tipo: tipo,
+    documento: documento,
+    cliente: cliente,
+    colecao: colecao,
+    aoFechar: () => setModalPresencialAberto(false)
+  }));
 }
 function useColecao(nome, ordenarPor) {
   const [dados, setDados] = useState([]);
@@ -2133,8 +2366,10 @@ function AbaLotes({
   const [loteSelecionadoId, setLoteSelecionadoId] = useState(null);
   const [filtroStatus, setFiltroStatus] = useState('');
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
+  const [loteAssinaturaId, setLoteAssinaturaId] = useState(null);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId);
+  const loteParaAssinar = lotes.find(l => l.id === loteAssinaturaId);
   const filtrados = lotes.filter(l => !filtroStatus || l.status === filtroStatus);
   async function excluirLote(l) {
     if (!confirm(`Excluir a entrada de ${nomeCliente(l.clienteId)} e as comissões geradas por ela? Essa ação não pode ser desfeita.`)) return;
@@ -2209,6 +2444,9 @@ function AbaLotes({
     className: "btn secundario pequeno",
     onClick: () => setLoteSelecionadoId(l.id)
   }, "Gerenciar"), ' ', /*#__PURE__*/React.createElement("button", {
+    className: `btn pequeno ${l.assinaturaEntrada ? 'verde' : 'secundario'}`,
+    onClick: () => setLoteAssinaturaId(l.id)
+  }, l.assinaturaEntrada ? '✓ Assinado' : '🖊️ Assinar'), ' ', /*#__PURE__*/React.createElement("button", {
     className: "btn perigo pequeno",
     onClick: () => excluirLote(l)
   }, "Excluir")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
@@ -2229,7 +2467,34 @@ function AbaLotes({
     catalogo: catalogo,
     usuario: usuario,
     aoFechar: () => setLoteSelecionadoId(null)
-  }), /*#__PURE__*/React.createElement(FotoAmpliada, {
+  }), loteParaAssinar && /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && setLoteAssinaturaId(null)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 460
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Assinatura de entrada — ", nomeCliente(loteParaAssinar.clienteId)), /*#__PURE__*/React.createElement(BlocoAssinatura, {
+    tipo: "entrada",
+    documento: loteParaAssinar,
+    cliente: clientes.find(c => c.id === loteParaAssinar.clienteId),
+    colecao: "lotes"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setLoteAssinaturaId(null)
+  }, "Fechar")))), /*#__PURE__*/React.createElement(FotoAmpliada, {
     url: fotoAmpliada,
     aoFechar: () => setFotoAmpliada(null)
   }));
@@ -3168,7 +3433,16 @@ function AbaOrcamentos() {
     }, "Editar"), /*#__PURE__*/React.createElement("button", {
       className: "btn perigo pequeno",
       onClick: () => excluir(o)
-    }, "Excluir")))), itensDoStatus.length === 0 && /*#__PURE__*/React.createElement("div", {
+    }, "Excluir")), status === 'Entregue/Faturado' && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 8
+      }
+    }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
+      tipo: "entrega",
+      documento: o,
+      cliente: clientes.find(c => c.id === o.clienteId),
+      colecao: "orcamentos"
+    })))), itensDoStatus.length === 0 && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 12,
         color: 'var(--texto-fraco)',
