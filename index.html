@@ -2466,47 +2466,115 @@ function AbaOrcamentos() {
       borderBottom: '1px solid var(--borda)'
     }
   }, c.codigo && /*#__PURE__*/React.createElement("strong", null, c.codigo, " — "), c.descricao)))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
     style: {
+      display: 'flex',
+      gap: 12,
       overflowX: 'auto',
-      padding: 0
+      paddingBottom: 10
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nº"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "N. Pedido"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Total"), /*#__PURE__*/React.createElement("th", null, "Comissão total"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, orcamentosFiltrados.map(o => /*#__PURE__*/React.createElement("tr", {
-    key: o.id
-  }, /*#__PURE__*/React.createElement("td", null, o.numero), /*#__PURE__*/React.createElement("td", null, nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("td", null, o.numeroPedidoCompras || '-'), /*#__PURE__*/React.createElement("td", null, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.total)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.comissaoTotal)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
-    value: o.status,
-    onChange: e => mudarStatus(o, e.target.value),
-    className: `badge ${STATUS_CLASSE[o.status] || 'conserto'}`,
-    style: {
-      width: 'auto',
-      border: 'none',
-      padding: '4px 8px'
-    }
-  }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
-    key: s,
-    value: s
-  }, s)))), /*#__PURE__*/React.createElement("td", {
-    style: {
-      textAlign: 'right',
-      whiteSpace: 'nowrap'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario pequeno",
-    onClick: () => {
-      setEditando(o);
-      setModalAberto(true);
-    }
-  }, "Editar"), ' ', /*#__PURE__*/React.createElement("button", {
-    className: "btn perigo pequeno",
-    onClick: () => excluir(o)
-  }, "Excluir")))), !carregando && orcamentosFiltrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "8",
-    style: {
-      color: 'var(--texto-fraco)',
-      textAlign: 'center',
-      padding: 22
-    }
-  }, orcamentos.length === 0 ? 'Nenhum orçamento cadastrado.' : 'Nenhum orçamento encontrado para essa busca.'))))), modalAberto && /*#__PURE__*/React.createElement(ModalOrcamento, {
+  }, STATUS_ORCAMENTO.map(status => {
+    const itensDoStatus = orcamentosFiltrados.filter(o => o.status === status);
+    return /*#__PURE__*/React.createElement("div", {
+      key: status,
+      style: {
+        flex: '0 0 260px',
+        minWidth: 260,
+        display: 'flex',
+        flexDirection: 'column'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '6px 2px',
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `badge ${STATUS_CLASSE[status] || 'estoque'}`
+    }, status), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: 'var(--texto-fraco)',
+        fontWeight: 700
+      }
+    }, itensDoStatus.length)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        overflowY: 'auto',
+        maxHeight: '65vh',
+        paddingRight: 2
+      }
+    }, itensDoStatus.map(o => /*#__PURE__*/React.createElement("div", {
+      key: o.id,
+      className: "card",
+      style: {
+        padding: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 14
+      }
+    }, "#", o.numero, " — ", nomeCliente(o.clienteId)), o.numeroPedidoCompras && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: 'var(--texto-fraco)',
+        marginTop: 2
+      }
+    }, "Pedido: ", o.numeroPedidoCompras), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        marginTop: 6
+      }
+    }, formatMoeda(o.total)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: 'var(--texto-fraco)'
+      }
+    }, "Comissão: ", formatMoeda(o.comissaoTotal)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)',
+        marginTop: 2
+      }
+    }, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("select", {
+      value: o.status,
+      onChange: e => mudarStatus(o, e.target.value),
+      style: {
+        marginTop: 8,
+        fontSize: 12.5,
+        padding: '6px 8px'
+      }
+    }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
+      key: s,
+      value: s
+    }, s))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 6,
+        marginTop: 8
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn secundario pequeno",
+      onClick: () => {
+        setEditando(o);
+        setModalAberto(true);
+      }
+    }, "Editar"), /*#__PURE__*/React.createElement("button", {
+      className: "btn perigo pequeno",
+      onClick: () => excluir(o)
+    }, "Excluir")))), itensDoStatus.length === 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: 'var(--texto-fraco)',
+        padding: '12px 4px',
+        textAlign: 'center'
+      }
+    }, carregando ? 'Carregando...' : 'Nenhum orçamento aqui.')));
+  })), modalAberto && /*#__PURE__*/React.createElement(ModalOrcamento, {
     orcamento: editando,
     clientes: clientes,
     totalAtual: orcamentos.length,
