@@ -610,6 +610,8 @@ function AbaClientes() {
   const [importando, setImportando] = useState(false);
   const [selecionados, setSelecionados] = useState(() => new Set());
   const [excluindoLote, setExcluindoLote] = useState(false);
+  const [atualizandoEnderecos, setAtualizandoEnderecos] = useState(false);
+  const [progressoEnderecos, setProgressoEnderecos] = useState(null);
   const inputImportRef = useRef();
   const buscaDigits = busca.replace(/\D/g, '');
   const filtrados = clientes.filter(c => (c.razaoSocial || '').toLowerCase().includes(busca.toLowerCase()) || (c.nomeFantasia || '').toLowerCase().includes(busca.toLowerCase()) || buscaDigits.length > 0 && (c.cnpj || '').includes(buscaDigits)).sort((a, b) => (a.razaoSocial || '').localeCompare(b.razaoSocial || '', 'pt-BR'));
@@ -651,6 +653,49 @@ function AbaClientes() {
     }
     setSelecionados(new Set());
     setExcluindoLote(false);
+  }
+  async function atualizarEnderecosPorCnpj() {
+    const alvos = clientes.filter(c => {
+      const digitos = (c.cnpj || '').replace(/\D/g, '');
+      return digitos.length === 14 && !c.endereco;
+    });
+    if (alvos.length === 0) {
+      alert('Nenhum cliente com CNPJ e sem endereço para atualizar.');
+      return;
+    }
+    if (!confirm(`Buscar endereço de ${alvos.length} cliente(s) automaticamente pelo CNPJ? Isso pode levar alguns minutos.`)) return;
+    setAtualizandoEnderecos(true);
+    let atualizados = 0,
+      naoEncontrados = 0;
+    for (let i = 0; i < alvos.length; i++) {
+      const c = alvos[i];
+      setProgressoEnderecos({
+        atual: i + 1,
+        total: alvos.length
+      });
+      try {
+        const numeros = c.cnpj.replace(/\D/g, '');
+        const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${numeros}`);
+        if (!resp.ok) throw new Error('não encontrado');
+        const d = await resp.json();
+        await db.collection('clientes').doc(c.id).update({
+          endereco: [d.descricao_tipo_de_logradouro, d.logradouro, d.numero].filter(Boolean).join(' ') || '',
+          bairro: d.bairro || '',
+          cidade: d.municipio || '',
+          uf: d.uf || '',
+          cep: d.cep || '',
+          telefone: c.telefone || d.ddd_telefone_1 || '',
+          email: c.email || d.email || ''
+        });
+        atualizados++;
+      } catch (err) {
+        naoEncontrados++;
+      }
+      await new Promise(r => setTimeout(r, 350));
+    }
+    setAtualizandoEnderecos(false);
+    setProgressoEnderecos(null);
+    alert(`Endereços atualizados: ${atualizados}. Não encontrados: ${naoEncontrados}.`);
   }
   async function processarImportacao(file) {
     setImportando(true);
@@ -748,7 +793,8 @@ function AbaClientes() {
   }, "Clientes"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      gap: 8
+      gap: 8,
+      flexWrap: 'wrap'
     }
   }, /*#__PURE__*/React.createElement("input", {
     type: "file",
@@ -763,6 +809,10 @@ function AbaClientes() {
     disabled: importando,
     onClick: () => inputImportRef.current.click()
   }, importando ? 'Importando...' : '📄 Importar clientes (HTML)'), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    disabled: atualizandoEnderecos,
+    onClick: atualizarEnderecosPorCnpj
+  }, atualizandoEnderecos ? `Buscando... (${progressoEnderecos?.atual || 0}/${progressoEnderecos?.total || 0})` : '📍 Atualizar endereços pelo CNPJ'), /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => {
       setEditando(null);
