@@ -492,7 +492,6 @@ function FormularioAssinatura({
   const [modoAssinatura, setModoAssinatura] = useState('desenho');
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
-  const [nomeAssinaturaTexto, setNomeAssinaturaTexto] = useState('');
   const [assinaturaImg, setAssinaturaImg] = useState('');
   const [enviando, setEnviando] = useState(false);
   async function gerarImagemTexto(texto) {
@@ -516,6 +515,9 @@ function FormularioAssinatura({
     ctx.fillText(texto, 170, 85);
     setAssinaturaImg(canvas.toDataURL('image/png'));
   }
+  useEffect(() => {
+    if (modoAssinatura === 'texto') gerarImagemTexto(nome);
+  }, [nome, modoAssinatura]);
   async function enviar(e) {
     e.preventDefault();
     if (!nome.trim()) {
@@ -621,29 +623,27 @@ function FormularioAssinatura({
   }, "✍️ Desenhar"), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: `btn ${modoAssinatura === 'texto' ? '' : 'secundario'} pequeno`,
-    onClick: () => {
-      setModoAssinatura('texto');
-      setAssinaturaImg('');
-    }
-  }, "🔤 Digitar nome")), modoAssinatura === 'desenho' ? /*#__PURE__*/React.createElement(PainelAssinatura, {
+    onClick: () => setModoAssinatura('texto')
+  }, "🔤 Usar nome digitado")), modoAssinatura === 'desenho' ? /*#__PURE__*/React.createElement(PainelAssinatura, {
     onMudar: setAssinaturaImg
-  }) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
-    value: nomeAssinaturaTexto,
-    onChange: e => {
-      setNomeAssinaturaTexto(e.target.value);
-      gerarImagemTexto(e.target.value);
-    },
-    placeholder: "Digite o nome para virar a assinatura"
-  }), assinaturaImg && /*#__PURE__*/React.createElement("img", {
+  }) : /*#__PURE__*/React.createElement("div", null, assinaturaImg ? /*#__PURE__*/React.createElement("img", {
     src: assinaturaImg,
     style: {
       width: '100%',
       border: '1px solid var(--borda)',
       borderRadius: 8,
-      marginTop: 8,
       background: '#fff'
     }
-  })), /*#__PURE__*/React.createElement("div", {
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      border: '1px dashed var(--borda)',
+      borderRadius: 8,
+      padding: 16,
+      textAlign: 'center'
+    }
+  }, "Preencha o \"Nome completo\" acima para gerar a assinatura.")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: 'var(--texto-fraco)',
