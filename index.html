@@ -2339,19 +2339,29 @@ function ModalLoteDetalhe({
 function AbaOrcamentos() {
   const [orcamentos, carregando] = useColecao('orcamentos', 'criadoEm');
   const [clientes] = useColecao('clientes');
+  const [catalogo] = useColecao('catalogoPecas');
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(null);
   const [busca, setBusca] = useState('');
+  const [buscaFocada, setBuscaFocada] = useState(false);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
-  const buscaLower = busca.toLowerCase();
+  const buscaTrim = busca.trim();
+  const buscaLower = buscaTrim.toLowerCase();
+  const buscaEhNumerica = /^\d+$/.test(buscaTrim);
   const orcamentosFiltrados = orcamentos.filter(o => {
     if (!buscaLower) return true;
+    if (buscaEhNumerica) {
+      // busca só com números: compara número do orçamento e N. pedido por igualdade exata,
+      // pra "2" não trazer junto o 12, 20, 21 etc.
+      return String(o.numero || '').toLowerCase() === buscaLower || String(o.numeroPedidoCompras || '').toLowerCase() === buscaLower;
+    }
     if (String(o.numero || '').toLowerCase().includes(buscaLower)) return true;
     if (String(o.numeroPedidoCompras || '').toLowerCase().includes(buscaLower)) return true;
     if (nomeCliente(o.clienteId).toLowerCase().includes(buscaLower)) return true;
     if ((o.itens || []).some(i => (i.descricao || '').toLowerCase().includes(buscaLower))) return true;
     return false;
   });
+  const sugestoesPecas = !buscaEhNumerica && buscaLower ? catalogo.filter(c => `${c.codigo || ''} ${c.descricao || ''}`.toLowerCase().includes(buscaLower)).slice(0, 8) : [];
   async function excluir(o) {
     if (!confirm(`Excluir o orçamento #${o.numero}?`)) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir este orçamento:')) return;
@@ -2414,15 +2424,48 @@ function AbaOrcamentos() {
       setEditando(null);
       setModalAberto(true);
     }
-  }, "+ Novo orçamento")), /*#__PURE__*/React.createElement("input", {
+  }, "+ Novo orçamento")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      maxWidth: 420,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("input", {
     placeholder: "Buscar por peça, número, N. pedido de compras ou cliente...",
     value: busca,
     onChange: e => setBusca(e.target.value),
+    onFocus: () => setBuscaFocada(true),
+    onBlur: () => setTimeout(() => setBuscaFocada(false), 150),
+    autoComplete: "off"
+  }), buscaFocada && sugestoesPecas.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 14,
-      maxWidth: 420
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      background: 'var(--painel)',
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      marginTop: 4,
+      maxHeight: 240,
+      overflowY: 'auto',
+      zIndex: 20,
+      boxShadow: '0 8px 20px rgba(69,59,60,.15)'
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  }, sugestoesPecas.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.id,
+    onMouseDown: e => e.preventDefault(),
+    onClick: () => {
+      setBusca(`${c.codigo ? c.codigo + ' — ' : ''}${c.descricao}`);
+      setBuscaFocada(false);
+    },
+    style: {
+      padding: '9px 12px',
+      cursor: 'pointer',
+      fontSize: 13.5,
+      borderBottom: '1px solid var(--borda)'
+    }
+  }, c.codigo && /*#__PURE__*/React.createElement("strong", null, c.codigo, " — "), c.descricao)))), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       overflowX: 'auto',
