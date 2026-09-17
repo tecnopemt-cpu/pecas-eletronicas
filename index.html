@@ -293,11 +293,13 @@ async function desenharCabecalhoPdf(doc, titulo, cliente) {
   doc.text('Tecnopemt', 34, 16);
   doc.setFontSize(8.5);
   doc.setTextColor(120);
-  doc.text('Conserto de peças e equipamentos eletrônicos', 34, 21);
-  doc.text('CNPJ: 41.817.517/0001-55', 34, 25.5);
+  doc.text('Tecnologia em Plataformas Elevatórias', 34, 20.5);
+  doc.text('CNPJ: 41.817.517/0001-55', 34, 25);
+  doc.text('Alameda das Tulipas, 405 — Arujá/SP — CEP 07411-415', 34, 29.5);
+  doc.text('Telefone: (11) 95640-4050', 34, 34);
   doc.setTextColor(0);
   doc.setFontSize(14);
-  let y = 36;
+  let y = 44;
   doc.text(titulo, 14, y);
   y += 10;
   doc.setFontSize(10);
