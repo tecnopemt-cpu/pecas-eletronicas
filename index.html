@@ -1040,12 +1040,17 @@ function ModalCliente({
 // ======================= CATÁLOGO DE PEÇAS =======================
 const CATEGORIAS_PECA = ['Joystick', 'Placa', 'Módulo', 'Carregador', 'Display', 'Controle', 'Outros'];
 const STATUS_LOTE = ['Em análise', 'Concluído'];
-const STATUS_ORCAMENTO = ['Em análise', 'Aprovado', 'Entregue'];
+const STATUS_ORCAMENTO = ['Pendente orçamento', 'Em Análise', 'Aprovado', 'Aprovado/Aguardando pedido', 'Entregue/Faturado', 'Teste'];
 const STATUS_CLASSE = {
   'Em análise': 'conserto',
   'Concluído': 'entregue',
   'Aprovado': 'aprovado',
-  'Entregue': 'entregue'
+  'Entregue': 'entregue',
+  'Pendente orçamento': 'pendente',
+  'Em Análise': 'conserto',
+  'Aprovado/Aguardando pedido': 'aprovado',
+  'Entregue/Faturado': 'entregue',
+  'Teste': 'estoque'
 };
 function AbaCatalogo() {
   const [catalogo, carregando] = useColecao('catalogoPecas', 'criadoEm');
@@ -1998,7 +2003,7 @@ function ModalLoteDetalhe({
       itens: linhas,
       total,
       comissaoTotal,
-      status: 'Em análise',
+      status: 'Pendente orçamento',
       loteId: lote.id,
       loteAjustes: ajustes,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
@@ -2509,7 +2514,7 @@ function ModalOrcamento({
         validade,
         itens: itensComTipo,
         total,
-        status: orcamento?.status || 'Em análise'
+        status: orcamento?.status || 'Pendente orçamento'
       };
       const comissoesNovas = calcularComissoesOrcamento(total, funcionarios);
       const comissaoTotal = comissoesNovas.reduce((s, c) => s + c.valor, 0);
@@ -2537,7 +2542,7 @@ function ModalOrcamento({
         itens: itensComTipo,
         total,
         comissaoTotal,
-        status: 'Em análise',
+        status: 'Pendente orçamento',
         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
       };
       const ref = await db.collection('orcamentos').add(dados);
