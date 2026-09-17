@@ -99,6 +99,7 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
 const {
@@ -207,6 +208,565 @@ function calcularComissoesOrcamento(total, funcionarios) {
 }
 function loteTotalmenteClassificado(itens) {
   return (itens || []).every(it => it.quantidade === (it.qtdConsertada || 0) + (it.qtdGarantia || 0) + (it.qtdNaoConsertada || 0));
+}
+
+// ======================= CPF / ASSINATURA / PDF =======================
+function validarCPF(cpf) {
+  const d = (cpf || '').replace(/\D/g, '');
+  if (d.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(d)) return false;
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += Number(d[i]) * (10 - i);
+  let resto = soma * 10 % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== Number(d[9])) return false;
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += Number(d[i]) * (11 - i);
+  resto = soma * 10 % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== Number(d[10])) return false;
+  return true;
+}
+function formatarCPF(v) {
+  const d = (v || '').replace(/\D/g, '').slice(0, 11);
+  return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+}
+function gerarCodigoAssinatura() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+function linkAssinatura(tipo, id) {
+  return `${window.location.origin}${window.location.pathname}?assinar=${tipo}&id=${id}`;
+}
+function gerarPdfEntrada(lote, cliente, assinatura) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(15);
+  doc.text('Tecnopemt — Recibo de Entrada de Peças', 14, 18);
+  doc.setFontSize(10);
+  doc.text(`Cliente: ${cliente?.razaoSocial || '-'}`, 14, 28);
+  doc.text(`Data de entrada: ${formatData(lote.criadoEm)}`, 14, 34);
+  let y = 46;
+  doc.setFontSize(11);
+  doc.text('Peças recebidas:', 14, y);
+  y += 8;
+  doc.setFontSize(10);
+  (lote.itens || []).forEach(it => {
+    const linhas = doc.splitTextToSize(`• ${it.pecaDescricao} — Quantidade: ${it.quantidade}`, 180);
+    doc.text(linhas, 16, y);
+    y += 6 * linhas.length;
+  });
+  y += 12;
+  doc.setFontSize(10);
+  doc.text(`Assinado por: ${assinatura.nome}`, 14, y);
+  y += 6;
+  doc.text(`CPF: ${formatarCPF(assinatura.cpf)}`, 14, y);
+  y += 6;
+  doc.text(`Assinado digitalmente em ${assinatura.dataTexto}`, 14, y);
+  y += 8;
+  if (assinatura.imagem) {
+    try {
+      doc.addImage(assinatura.imagem, 'PNG', 14, y, 70, 30);
+    } catch (err) {}
+  }
+  doc.save(`recibo-entrada-${lote.id.slice(0, 8)}.pdf`);
+}
+function gerarPdfEntrega(orcamento, cliente, assinatura) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(15);
+  doc.text('Tecnopemt — Termo de Entrega / Faturamento', 14, 18);
+  doc.setFontSize(10);
+  doc.text(`Orçamento nº: ${orcamento.numero}`, 14, 28);
+  doc.text(`Cliente: ${cliente?.razaoSocial || '-'}`, 14, 34);
+  doc.text(`Data: ${formatData(orcamento.criadoEm)}`, 14, 40);
+  let y = 52;
+  doc.setFontSize(11);
+  doc.text('Itens:', 14, y);
+  y += 8;
+  doc.setFontSize(10);
+  (orcamento.itens || []).forEach(it => {
+    const subtotal = (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0);
+    const linhas = doc.splitTextToSize(`• ${it.descricao} — Qtd: ${it.qtd} — Valor un.: ${formatMoeda(it.valorUnit)} — Subtotal: ${formatMoeda(subtotal)}`, 180);
+    doc.text(linhas, 16, y);
+    y += 6 * linhas.length;
+  });
+  y += 6;
+  doc.setFontSize(12);
+  doc.text(`Total: ${formatMoeda(orcamento.total)}`, 14, y);
+  y += 12;
+  doc.setFontSize(10);
+  doc.text(`Assinado por: ${assinatura.nome}`, 14, y);
+  y += 6;
+  doc.text(`CPF: ${formatarCPF(assinatura.cpf)}`, 14, y);
+  y += 6;
+  doc.text(`Assinado digitalmente em ${assinatura.dataTexto}`, 14, y);
+  y += 8;
+  if (assinatura.imagem) {
+    try {
+      doc.addImage(assinatura.imagem, 'PNG', 14, y, 70, 30);
+    } catch (err) {}
+  }
+  doc.save(`entrega-orcamento-${orcamento.numero}.pdf`);
+}
+function PainelAssinatura({
+  onMudar
+}) {
+  const canvasRef = useRef();
+  const desenhando = useRef(false);
+  const ultimo = useRef(null);
+  function pos(e) {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const ponto = e.touches ? e.touches[0] : e;
+    return {
+      x: ponto.clientX - rect.left,
+      y: ponto.clientY - rect.top
+    };
+  }
+  function iniciar(e) {
+    e.preventDefault();
+    desenhando.current = true;
+    ultimo.current = pos(e);
+  }
+  function mover(e) {
+    if (!desenhando.current) return;
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext('2d');
+    const atual = pos(e);
+    ctx.strokeStyle = '#453B3C';
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ultimo.current.x, ultimo.current.y);
+    ctx.lineTo(atual.x, atual.y);
+    ctx.stroke();
+    ultimo.current = atual;
+  }
+  function parar() {
+    if (desenhando.current) {
+      desenhando.current = false;
+      onMudar(canvasRef.current.toDataURL('image/png'));
+    }
+  }
+  function limpar() {
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    onMudar('');
+  }
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("canvas", {
+    ref: canvasRef,
+    width: 340,
+    height: 160,
+    style: {
+      width: '100%',
+      height: 160,
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      background: '#fff',
+      touchAction: 'none'
+    },
+    onMouseDown: iniciar,
+    onMouseMove: mover,
+    onMouseUp: parar,
+    onMouseLeave: parar,
+    onTouchStart: iniciar,
+    onTouchMove: mover,
+    onTouchEnd: parar
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 8
+    },
+    onClick: limpar
+  }, "Limpar assinatura"));
+}
+function TelaAssinatura({
+  tipo,
+  id
+}) {
+  const [documento, setDocumento] = useState(null);
+  const [cliente, setCliente] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [codigo, setCodigo] = useState('');
+  const [codigoValidado, setCodigoValidado] = useState(false);
+  const [erroCodigo, setErroCodigo] = useState('');
+  const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [assinaturaImg, setAssinaturaImg] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [concluido, setConcluido] = useState(false);
+  const colecao = tipo === 'entrada' ? 'lotes' : 'orcamentos';
+  const campoCodigo = tipo === 'entrada' ? 'codigoAssinaturaEntrada' : 'codigoAssinaturaEntrega';
+  const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
+  useEffect(() => {
+    (async () => {
+      try {
+        const snap = await db.collection(colecao).doc(id).get();
+        if (snap.exists) {
+          const dados = {
+            id: snap.id,
+            ...snap.data()
+          };
+          setDocumento(dados);
+          if (dados.clienteId) {
+            const cSnap = await db.collection('clientes').doc(dados.clienteId).get();
+            if (cSnap.exists) setCliente(cSnap.data());
+          }
+          if (dados[campoAssinatura]) setConcluido(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setCarregando(false);
+    })();
+  }, []);
+  function validarCodigo(e) {
+    e.preventDefault();
+    if (!documento) return;
+    if (codigo.trim() === String(documento[campoCodigo] || '')) {
+      setCodigoValidado(true);
+      setErroCodigo('');
+    } else {
+      setErroCodigo('Código incorreto. Confira o código enviado.');
+    }
+  }
+  async function enviarAssinatura(e) {
+    e.preventDefault();
+    if (!nome.trim()) {
+      alert('Informe o nome de quem está assinando.');
+      return;
+    }
+    if (!validarCPF(cpf)) {
+      alert('CPF inválido. Confira os números digitados.');
+      return;
+    }
+    if (!assinaturaImg) {
+      alert('Desenhe a assinatura no campo indicado.');
+      return;
+    }
+    setEnviando(true);
+    const agora = new Date();
+    const assinatura = {
+      nome: nome.trim(),
+      cpf: cpf.replace(/\D/g, ''),
+      imagem: assinaturaImg,
+      dataAssinatura: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    try {
+      await db.collection(colecao).doc(id).update({
+        [campoAssinatura]: assinatura
+      });
+      const assinaturaPdf = {
+        ...assinatura,
+        dataTexto: agora.toLocaleString('pt-BR')
+      };
+      if (tipo === 'entrada') gerarPdfEntrada(documento, cliente, assinaturaPdf);else gerarPdfEntrega(documento, cliente, assinaturaPdf);
+      setConcluido(true);
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui salvar a assinatura. Verifique sua conexão e tente novamente.');
+    }
+    setEnviando(false);
+  }
+  if (carregando) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, "Carregando...");
+  }
+  if (!documento) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+        textAlign: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 32,
+        marginBottom: 10
+      }
+    }, "⚠️"), /*#__PURE__*/React.createElement("div", null, "Link inválido ou documento não encontrado.")));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      padding: '30px 16px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      width: '100%',
+      maxWidth: 440
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "icons/icon-192.png",
+    alt: "Tecnopemt",
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 9
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700
+    }
+  }, "Tecnopemt"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)'
+    }
+  }, tipo === 'entrada' ? 'Assinatura de entrada de peças' : 'Assinatura de entrega / faturamento'))), concluido ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '20px 4px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 36,
+      marginBottom: 10
+    }
+  }, "✅"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Assinatura confirmada!"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)'
+    }
+  }, "O comprovante em PDF foi baixado automaticamente. Obrigado.")) : !codigoValidado ? /*#__PURE__*/React.createElement("form", {
+    onSubmit: validarCodigo
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      marginBottom: 10
+    }
+  }, "Cliente: ", /*#__PURE__*/React.createElement("strong", null, cliente?.razaoSocial || '-'), /*#__PURE__*/React.createElement("br", null), tipo === 'entrada' ? `Confirmando a entrada de ${(documento.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0)} peça(s) para análise/conserto.` : `Confirmando a entrega e o valor do orçamento #${documento.numero}: ${formatMoeda(documento.total)}.`), /*#__PURE__*/React.createElement("label", null, "Código de verificação"), /*#__PURE__*/React.createElement("input", {
+    value: codigo,
+    onChange: e => setCodigo(e.target.value),
+    placeholder: "Digite o código de 6 dígitos",
+    required: true
+  }), erroCodigo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--vermelho)',
+      fontSize: 13,
+      marginTop: 8
+    }
+  }, erroCodigo), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      width: '100%',
+      justifyContent: 'center',
+      marginTop: 14
+    }
+  }, "Continuar")) : /*#__PURE__*/React.createElement("form", {
+    onSubmit: enviarAssinatura
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      marginBottom: 10,
+      color: 'var(--texto-fraco)'
+    }
+  }, tipo === 'entrada' ? 'Confira as peças abaixo antes de assinar:' : 'Confira os itens e valores abaixo antes de assinar:'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 160,
+      overflowY: 'auto',
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 14,
+      fontSize: 12.5
+    }
+  }, tipo === 'entrada' ? (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: 4
+    }
+  }, it.pecaDescricao, " — Qtd: ", it.quantidade)) : (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: 4
+    }
+  }, it.descricao, " — Qtd: ", it.qtd, " — ", formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0)))), tipo !== 'entrada' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 6,
+      fontWeight: 700
+    }
+  }, "Total: ", formatMoeda(documento.total))), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
+    required: true
+  }), /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
+    value: formatarCPF(cpf),
+    onChange: e => setCpf(e.target.value),
+    placeholder: "000.000.000-00",
+    maxLength: 14,
+    required: true
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 16
+    }
+  }, "Assinatura"), /*#__PURE__*/React.createElement(PainelAssinatura, {
+    onMudar: setAssinaturaImg
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      width: '100%',
+      justifyContent: 'center',
+      marginTop: 16
+    },
+    disabled: enviando
+  }, enviando ? 'Enviando...' : 'Confirmar assinatura'))));
+}
+function BlocoAssinatura({
+  tipo,
+  documento,
+  cliente,
+  colecao
+}) {
+  const [processando, setProcessando] = useState(false);
+  const campoCodigo = tipo === 'entrada' ? 'codigoAssinaturaEntrada' : 'codigoAssinaturaEntrega';
+  const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
+  const assinatura = documento[campoAssinatura];
+  const codigo = documento[campoCodigo];
+  async function gerarLink() {
+    setProcessando(true);
+    const novoCodigo = gerarCodigoAssinatura();
+    await db.collection(colecao).doc(documento.id).update({
+      [campoCodigo]: novoCodigo
+    });
+    setProcessando(false);
+  }
+  function copiar(texto) {
+    if (navigator.clipboard) navigator.clipboard.writeText(texto);
+    alert('Copiado!');
+  }
+  function reimprimir() {
+    const assinaturaPdf = {
+      ...assinatura,
+      dataTexto: assinatura.dataAssinatura?.toDate ? assinatura.dataAssinatura.toDate().toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR')
+    };
+    if (tipo === 'entrada') gerarPdfEntrada(documento, cliente, assinaturaPdf);else gerarPdfEntrega(documento, cliente, assinaturaPdf);
+  }
+  if (assinatura) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        padding: 10,
+        background: 'var(--verde-bg)',
+        border: '1px solid var(--verde)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: 'var(--verde)'
+      }
+    }, "✓ ", tipo === 'entrada' ? 'Entrada assinada' : 'Entrega assinada', " por ", assinatura.nome), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: 'var(--texto-fraco)'
+      }
+    }, "CPF ", formatarCPF(assinatura.cpf)), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      style: {
+        marginTop: 8
+      },
+      onClick: reimprimir
+    }, "📄 Baixar PDF novamente"));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, tipo === 'entrada' ? '🖊️ Assinatura de entrada' : '🖊️ Assinatura de entrega'), !codigo ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: processando,
+    onClick: gerarLink
+  }, processando ? 'Gerando...' : 'Gerar link de assinatura') : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginBottom: 6
+    }
+  }, "Envie o link e o código separados pro cliente (ex: link pelo WhatsApp, código por outra mensagem):"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    readOnly: true,
+    value: linkAssinatura(tipo, documento.id),
+    style: {
+      fontSize: 12
+    },
+    onClick: e => e.target.select()
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => copiar(linkAssinatura(tipo, documento.id))
+  }, "Copiar")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13
+    }
+  }, "Código: ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      fontSize: 16,
+      letterSpacing: 1
+    }
+  }, codigo)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => copiar(codigo)
+  }, "Copiar código")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 8
+    },
+    disabled: processando,
+    onClick: gerarLink
+  }, "Gerar novo código")));
 }
 function useColecao(nome, ordenarPor) {
   const [dados, setDados] = useState([]);
@@ -461,6 +1021,15 @@ function TelaLogin({
 
 // ======================= LAYOUT =======================
 function App() {
+  const paramsUrl = new URLSearchParams(window.location.search);
+  const assinarTipo = paramsUrl.get('assinar');
+  const assinarId = paramsUrl.get('id');
+  if ((assinarTipo === 'entrada' || assinarTipo === 'entrega') && assinarId) {
+    return /*#__PURE__*/React.createElement(TelaAssinatura, {
+      tipo: assinarTipo,
+      id: assinarId
+    });
+  }
   const [funcionarios, carregandoFuncionarios] = useColecao('funcionarios');
   const [usuario, setUsuario] = useState(null);
   const [aba, setAba] = useState('dashboard');
@@ -1899,7 +2468,8 @@ function ModalLoteDetalhe({
   usuario,
   aoFechar
 }) {
-  const nomeCliente = clientes.find(c => c.id === lote.clienteId)?.razaoSocial || '-';
+  const clienteObj = clientes.find(c => c.id === lote.clienteId);
+  const nomeCliente = clienteObj?.razaoSocial || '-';
   const [processando, setProcessando] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
   async function mudarStatusManual(novoStatus) {
@@ -2276,9 +2846,15 @@ function ModalLoteDetalhe({
     style: {
       fontSize: 11.5,
       color: 'var(--texto-fraco)',
-      marginTop: 10
+      marginTop: 10,
+      marginBottom: 14
     }
-  }, "Peças de garantia e sem conserto entram no orçamento sem cobrança e sem gerar comissão. Peças que ficarem \"Em análise\" continuam no lote para um orçamento futuro."), /*#__PURE__*/React.createElement("div", {
+  }, "Peças de garantia e sem conserto entram no orçamento sem cobrança e sem gerar comissão. Peças que ficarem \"Em análise\" continuam no lote para um orçamento futuro."), /*#__PURE__*/React.createElement(BlocoAssinatura, {
+    tipo: "entrada",
+    documento: lote,
+    cliente: clienteObj,
+    colecao: "lotes"
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 18,
       paddingTop: 16,
@@ -2821,7 +3397,16 @@ function ModalOrcamento({
       fontSize: 17,
       fontWeight: 700
     }
-  }, "Total: ", formatMoeda(total)), /*#__PURE__*/React.createElement("div", {
+  }, "Total: ", formatMoeda(total)), orcamento && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
+    tipo: "entrega",
+    documento: orcamento,
+    cliente: clientes.find(c => c.id === clienteId),
+    colecao: "orcamentos"
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
