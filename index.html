@@ -1450,7 +1450,8 @@ function ModalNovoLote({
   const [fotosLote, setFotosLote] = useState([]);
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [salvando, setSalvando] = useState(false);
-  const inputFotoRef = useRef();
+  const inputCameraRef = useRef();
+  const inputGaleriaRef = useRef();
   function mudarItem(i, campo, valor) {
     setItens(prev => prev.map((it, idx) => idx === i ? {
       ...it,
@@ -1580,13 +1581,30 @@ function ModalNovoLote({
       lineHeight: '20px',
       padding: 0
     }
-  }, "×"))), fotosLote.length < 3 && /*#__PURE__*/React.createElement("button", {
+  }, "×"))), fotosLote.length < 3 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     disabled: processandoFoto,
-    onClick: () => inputFotoRef.current.click()
-  }, processandoFoto ? 'Carregando...' : '📷 Tirar foto ou escolher da galeria'), /*#__PURE__*/React.createElement("input", {
-    ref: inputFotoRef,
+    onClick: () => inputCameraRef.current.click()
+  }, processandoFoto ? 'Carregando...' : '📷 Câmera'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: processandoFoto,
+    onClick: () => inputGaleriaRef.current.click()
+  }, processandoFoto ? 'Carregando...' : '🖼️ Galeria')), /*#__PURE__*/React.createElement("input", {
+    ref: inputCameraRef,
+    type: "file",
+    accept: "image/*",
+    capture: "environment",
+    style: {
+      display: 'none'
+    },
+    onChange: e => {
+      capturarFoto(e.target.files[0]);
+      e.target.value = '';
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    ref: inputGaleriaRef,
     type: "file",
     accept: "image/*",
     style: {
