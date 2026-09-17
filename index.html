@@ -2468,34 +2468,47 @@ function AbaOrcamentos() {
   }, c.codigo && /*#__PURE__*/React.createElement("strong", null, c.codigo, " — "), c.descricao)))), /*#__PURE__*/React.createElement("div", {
     className: "kanban-orcamento",
     style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+      display: 'flex',
       gap: 12,
-      alignItems: 'start'
+      overflowX: 'auto',
+      paddingBottom: 10
     }
   }, STATUS_ORCAMENTO.map(status => {
     const itensDoStatus = orcamentosFiltrados.filter(o => o.status === status);
     return /*#__PURE__*/React.createElement("div", {
       key: status,
       style: {
+        flex: '0 0 272px',
+        minWidth: 272,
+        background: 'var(--fundo)',
+        border: '1px solid var(--borda)',
+        borderRadius: 10,
+        padding: '10px 10px 6px',
         display: 'flex',
         flexDirection: 'column',
-        minWidth: 0
+        maxHeight: '78vh'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '6px 2px',
-        marginBottom: 8
+        padding: '2px 4px',
+        marginBottom: 8,
+        flexShrink: 0
       }
     }, /*#__PURE__*/React.createElement("span", {
-      className: `badge ${STATUS_CLASSE[status] || 'estoque'}`
+      style: {
+        fontWeight: 700,
+        fontSize: 13.5
+      }
     }, status), /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 12,
+        fontSize: 11.5,
         color: 'var(--texto-fraco)',
+        background: 'var(--borda)',
+        borderRadius: 20,
+        padding: '1px 8px',
         fontWeight: 700
       }
     }, itensDoStatus.length)), /*#__PURE__*/React.createElement("div", {
@@ -2504,49 +2517,62 @@ function AbaOrcamentos() {
         flexDirection: 'column',
         gap: 8,
         overflowY: 'auto',
-        maxHeight: '65vh',
         paddingRight: 2
       }
     }, itensDoStatus.map(o => /*#__PURE__*/React.createElement("div", {
       key: o.id,
       className: "card",
       style: {
-        padding: 12
+        padding: 11,
+        boxShadow: '0 1px 2px rgba(69,59,60,.08)'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         fontWeight: 700,
-        fontSize: 14
+        fontSize: 13.5,
+        lineHeight: 1.3
       }
     }, "#", o.numero, " — ", nomeCliente(o.clienteId)), o.numeroPedidoCompras && /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 11.5,
+        fontSize: 11,
         color: 'var(--texto-fraco)',
-        marginTop: 2
+        marginTop: 3
       }
     }, "Pedido: ", o.numeroPedidoCompras), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 13,
-        marginTop: 6
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginTop: 6,
+        flexWrap: 'wrap'
       }
-    }, formatMoeda(o.total)), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 11.5,
-        color: 'var(--texto-fraco)'
+        fontSize: 13,
+        fontWeight: 700,
+        color: 'var(--laranja)'
       }
-    }, "Comissão: ", formatMoeda(o.comissaoTotal)), /*#__PURE__*/React.createElement("div", {
+    }, formatMoeda(o.total)), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 11,
-        color: 'var(--texto-fraco)',
-        marginTop: 2
+        color: 'var(--texto-fraco)'
       }
-    }, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("select", {
+    }, "💰 ", formatMoeda(o.comissaoTotal))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10.5,
+        color: 'var(--texto-fraco)',
+        marginTop: 4
+      }
+    }, "📅 ", formatData(o.criadoEm)), /*#__PURE__*/React.createElement("select", {
       value: o.status,
       onChange: e => mudarStatus(o, e.target.value),
+      className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`,
       style: {
+        width: '100%',
+        border: 'none',
+        padding: '5px 6px',
         marginTop: 8,
-        fontSize: 12.5,
-        padding: '6px 8px'
+        fontWeight: 600
       }
     }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
       key: s,
