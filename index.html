@@ -1380,69 +1380,128 @@ function SeletorCatalogo({
   onChange
 }) {
   const ordenados = useMemo(() => [...catalogo].sort((a, b) => (a.descricao || '').localeCompare(b.descricao || '', 'pt-BR')), [catalogo]);
-  const [busca, setBusca] = useState('');
-  const [aberto, setAberto] = useState(false);
-  const ref = useRef();
+  const [buscaOverlay, setBuscaOverlay] = useState('');
+  const [overlayAberto, setOverlayAberto] = useState(false);
   function rotulo(c) {
     return c ? `${c.codigo ? c.codigo + ' — ' : ''}${c.descricao}` : '';
   }
-  useEffect(() => {
-    const atual = ordenados.find(c => c.id === value);
-    setBusca(rotulo(atual));
-  }, [value, ordenados]);
-  useEffect(() => {
-    function aoClicarFora(e) {
-      if (ref.current && !ref.current.contains(e.target)) setAberto(false);
-    }
-    document.addEventListener('mousedown', aoClicarFora);
-    return () => document.removeEventListener('mousedown', aoClicarFora);
-  }, []);
-  const filtrados = ordenados.filter(c => `${c.codigo || ''} ${c.descricao || ''}`.toLowerCase().includes(busca.toLowerCase()));
-  return /*#__PURE__*/React.createElement("div", {
-    ref: ref,
+  const atual = ordenados.find(c => c.id === value);
+  const filtrados = ordenados.filter(c => `${c.codigo || ''} ${c.descricao || ''}`.toLowerCase().includes(buscaOverlay.toLowerCase()));
+  function abrir() {
+    setBuscaOverlay('');
+    setOverlayAberto(true);
+  }
+  function selecionar(c) {
+    onChange(c.id);
+    setOverlayAberto(false);
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: abrir,
     style: {
-      position: 'relative'
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: busca,
-    onChange: e => {
-      setBusca(e.target.value);
-      setAberto(true);
-      if (!e.target.value) onChange('');
-    },
-    onFocus: () => setAberto(true),
-    placeholder: "Digite o PN ou descrição...",
-    autoComplete: "off"
-  }), aberto && filtrados.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      top: '100%',
-      left: 0,
-      right: 0,
-      background: 'var(--painel)',
+      width: '100%',
+      textAlign: 'left',
+      background: 'var(--input-bg)',
       border: '1px solid var(--borda)',
       borderRadius: 8,
-      marginTop: 4,
-      maxHeight: 320,
-      overflowY: 'auto',
-      zIndex: 20,
-      boxShadow: '0 8px 20px rgba(69,59,60,.15)'
+      padding: '11px 12px',
+      fontSize: 14,
+      color: atual ? 'var(--texto)' : 'var(--texto-fraco)'
+    }
+  }, atual ? rotulo(atual) : 'Toque para selecionar a peça...'), overlayAberto && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: 'var(--fundo)',
+      zIndex: 60,
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      padding: '12px 14px',
+      paddingTop: 'max(12px, env(safe-area-inset-top))',
+      borderBottom: '1px solid var(--borda)',
+      background: 'var(--painel)'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    autoFocus: true,
+    value: buscaOverlay,
+    onChange: e => setBuscaOverlay(e.target.value),
+    placeholder: "Digite o PN ou descrição...",
+    autoComplete: "off",
+    style: {
+      flex: 1
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setOverlayAberto(false),
+    className: "btn secundario pequeno"
+  }, "Fechar")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      overflowY: 'auto'
     }
   }, filtrados.map(c => /*#__PURE__*/React.createElement("div", {
     key: c.id,
-    onMouseDown: e => e.preventDefault(),
-    onClick: () => {
-      onChange(c.id);
-      setBusca(rotulo(c));
-      setAberto(false);
-    },
+    onClick: () => selecionar(c),
     style: {
-      padding: '10px 12px',
-      cursor: 'pointer',
-      fontSize: 14,
-      borderBottom: '1px solid var(--borda)'
+      display: 'flex',
+      gap: 10,
+      alignItems: 'center',
+      padding: '12px 14px',
+      borderBottom: '1px solid var(--borda)',
+      cursor: 'pointer'
     }
-  }, c.codigo && /*#__PURE__*/React.createElement("strong", null, c.codigo, " — "), c.descricao))));
+  }, c.fotos && c.fotos[0] ? /*#__PURE__*/React.createElement("img", {
+    src: c.fotos[0],
+    style: {
+      width: 48,
+      height: 48,
+      objectFit: 'cover',
+      borderRadius: 8,
+      border: '1px solid var(--borda)',
+      flexShrink: 0
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 48,
+      height: 48,
+      borderRadius: 8,
+      border: '1px solid var(--borda)',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--texto-fraco)',
+      fontSize: 18
+    }
+  }, "—"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, c.codigo && /*#__PURE__*/React.createElement("span", null, c.codigo, " — "), c.descricao), c.categoria && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 2
+    }
+  }, c.categoria)))), filtrados.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20,
+      textAlign: 'center',
+      color: 'var(--texto-fraco)',
+      fontSize: 13
+    }
+  }, "Nenhuma peça encontrada."))));
 }
 
 // ======================= LOTES =======================
