@@ -2382,7 +2382,22 @@ function ModalOrcamento({
         total,
         status: orcamento?.status || 'Em análise'
       };
-      await db.collection('orcamentos').doc(orcamento.id).update(dados);
+      const comissoesNovas = calcularComissoesOrcamento(total, funcionarios);
+      const comissaoTotal = comissoesNovas.reduce((s, c) => s + c.valor, 0);
+      dados.comissaoTotal = comissaoTotal;
+      const comSnapAntigas = await db.collection('comissoes').where('orcamentoId', '==', orcamento.id).get();
+      const opBatch = db.batch();
+      comSnapAntigas.docs.forEach(d => opBatch.delete(d.ref));
+      comissoesNovas.forEach(c => {
+        opBatch.set(db.collection('comissoes').doc(), {
+          funcionarioId: c.funcionarioId,
+          orcamentoId: orcamento.id,
+          valor: c.valor,
+          data: orcamento.criadoEm || firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+      opBatch.update(db.collection('orcamentos').doc(orcamento.id), dados);
+      await opBatch.commit();
     } else {
       const comissoes = calcularComissoesOrcamento(total, funcionarios);
       const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
