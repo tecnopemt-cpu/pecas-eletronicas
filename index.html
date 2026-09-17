@@ -996,7 +996,15 @@ function BlocoAssinatura({
     type: "button",
     className: "btn secundario pequeno",
     onClick: () => copiar(codigo)
-  }, "Copiar código"))), modalPresencialAberto && /*#__PURE__*/React.createElement(ModalAssinarPresencial, {
+  }, "Copiar código")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 8,
+      width: '100%'
+    },
+    onClick: () => copiar(`Link para assinatura: ${linkAssinatura(tipo, documento.id)}\nCódigo de verificação: ${codigo}`)
+  }, "📋 Copiar link e código juntos")), modalPresencialAberto && /*#__PURE__*/React.createElement(ModalAssinarPresencial, {
     tipo: tipo,
     documento: documento,
     cliente: cliente,
