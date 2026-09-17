@@ -1560,11 +1560,10 @@ function ModalNovoLote({
     className: "btn secundario pequeno",
     disabled: processandoFoto,
     onClick: () => inputFotoRef.current.click()
-  }, processandoFoto ? 'Carregando...' : fotoLote ? '📷 Tirar outra foto' : '📷 Tirar foto do lote'), /*#__PURE__*/React.createElement("input", {
+  }, processandoFoto ? 'Carregando...' : fotoLote ? '📷 Trocar foto' : '📷 Tirar foto ou escolher da galeria'), /*#__PURE__*/React.createElement("input", {
     ref: inputFotoRef,
     type: "file",
     accept: "image/*",
-    capture: "environment",
     style: {
       display: 'none'
     },
