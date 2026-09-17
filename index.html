@@ -572,7 +572,8 @@ function AbaClientes() {
   const [selecionados, setSelecionados] = useState(() => new Set());
   const [excluindoLote, setExcluindoLote] = useState(false);
   const inputImportRef = useRef();
-  const filtrados = clientes.filter(c => (c.razaoSocial || '').toLowerCase().includes(busca.toLowerCase()) || (c.nomeFantasia || '').toLowerCase().includes(busca.toLowerCase()) || (c.cnpj || '').includes(busca.replace(/\D/g, '')));
+  const buscaDigits = busca.replace(/\D/g, '');
+  const filtrados = clientes.filter(c => (c.razaoSocial || '').toLowerCase().includes(busca.toLowerCase()) || (c.nomeFantasia || '').toLowerCase().includes(busca.toLowerCase()) || buscaDigits.length > 0 && (c.cnpj || '').includes(buscaDigits)).sort((a, b) => (a.razaoSocial || '').localeCompare(b.razaoSocial || '', 'pt-BR'));
   const todosFiltradosSelecionados = filtrados.length > 0 && filtrados.every(c => selecionados.has(c.id));
   function alternarSelecao(id) {
     setSelecionados(prev => {
