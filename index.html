@@ -2341,7 +2341,17 @@ function AbaOrcamentos() {
   const [clientes] = useColecao('clientes');
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(null);
+  const [busca, setBusca] = useState('');
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
+  const buscaLower = busca.toLowerCase();
+  const orcamentosFiltrados = orcamentos.filter(o => {
+    if (!buscaLower) return true;
+    if (String(o.numero || '').toLowerCase().includes(buscaLower)) return true;
+    if (String(o.numeroPedidoCompras || '').toLowerCase().includes(buscaLower)) return true;
+    if (nomeCliente(o.clienteId).toLowerCase().includes(buscaLower)) return true;
+    if ((o.itens || []).some(i => (i.descricao || '').toLowerCase().includes(buscaLower))) return true;
+    return false;
+  });
   async function excluir(o) {
     if (!confirm(`Excluir o orçamento #${o.numero}?`)) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir este orçamento:')) return;
@@ -2404,15 +2414,23 @@ function AbaOrcamentos() {
       setEditando(null);
       setModalAberto(true);
     }
-  }, "+ Novo orçamento")), /*#__PURE__*/React.createElement("div", {
+  }, "+ Novo orçamento")), /*#__PURE__*/React.createElement("input", {
+    placeholder: "Buscar por peça, número, N. pedido de compras ou cliente...",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    style: {
+      marginBottom: 14,
+      maxWidth: 420
+    }
+  }), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nº"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Total"), /*#__PURE__*/React.createElement("th", null, "Comissão total"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, orcamentos.map(o => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nº"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "N. Pedido"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Total"), /*#__PURE__*/React.createElement("th", null, "Comissão total"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, orcamentosFiltrados.map(o => /*#__PURE__*/React.createElement("tr", {
     key: o.id
-  }, /*#__PURE__*/React.createElement("td", null, o.numero), /*#__PURE__*/React.createElement("td", null, nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.total)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.comissaoTotal)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
+  }, /*#__PURE__*/React.createElement("td", null, o.numero), /*#__PURE__*/React.createElement("td", null, nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("td", null, o.numeroPedidoCompras || '-'), /*#__PURE__*/React.createElement("td", null, formatData(o.criadoEm)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.total)), /*#__PURE__*/React.createElement("td", null, formatMoeda(o.comissaoTotal)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
     value: o.status,
     onChange: e => mudarStatus(o, e.target.value),
     className: `badge ${STATUS_CLASSE[o.status] || 'conserto'}`,
@@ -2438,14 +2456,14 @@ function AbaOrcamentos() {
   }, "Editar"), ' ', /*#__PURE__*/React.createElement("button", {
     className: "btn perigo pequeno",
     onClick: () => excluir(o)
-  }, "Excluir")))), !carregando && orcamentos.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "7",
+  }, "Excluir")))), !carregando && orcamentosFiltrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "8",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
       padding: 22
     }
-  }, "Nenhum orçamento cadastrado."))))), modalAberto && /*#__PURE__*/React.createElement(ModalOrcamento, {
+  }, orcamentos.length === 0 ? 'Nenhum orçamento cadastrado.' : 'Nenhum orçamento encontrado para essa busca.'))))), modalAberto && /*#__PURE__*/React.createElement(ModalOrcamento, {
     orcamento: editando,
     clientes: clientes,
     totalAtual: orcamentos.length,
@@ -2462,6 +2480,8 @@ function ModalOrcamento({
   const [numero, setNumero] = useState(orcamento?.numero ?? totalAtual + 1);
   const [clienteId, setClienteId] = useState(orcamento?.clienteId || '');
   const [validade, setValidade] = useState(orcamento?.validade || '');
+  const [numeroPedidoCompras, setNumeroPedidoCompras] = useState(orcamento?.numeroPedidoCompras || '');
+  const [observacao, setObservacao] = useState(orcamento?.observacao || '');
   const [itens, setItens] = useState(orcamento?.itens || [{
     descricao: '',
     qtd: 1,
@@ -2512,6 +2532,8 @@ function ModalOrcamento({
         numero,
         clienteId,
         validade,
+        numeroPedidoCompras,
+        observacao,
         itens: itensComTipo,
         total,
         status: orcamento?.status || 'Pendente orçamento'
@@ -2539,6 +2561,8 @@ function ModalOrcamento({
         numero,
         clienteId,
         validade,
+        numeroPedidoCompras,
+        observacao,
         itens: itensComTipo,
         total,
         comissaoTotal,
@@ -2593,7 +2617,15 @@ function ModalOrcamento({
   }, "Selecione..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
     key: c.id,
     value: c.id
-  }, c.razaoSocial))), /*#__PURE__*/React.createElement("label", {
+  }, c.razaoSocial))), /*#__PURE__*/React.createElement("label", null, "N. Pedido de Compras"), /*#__PURE__*/React.createElement("input", {
+    value: numeroPedidoCompras,
+    onChange: e => setNumeroPedidoCompras(e.target.value),
+    placeholder: "Número do pedido de compras do cliente"
+  }), /*#__PURE__*/React.createElement("label", null, "Observação"), /*#__PURE__*/React.createElement("textarea", {
+    rows: "2",
+    value: observacao,
+    onChange: e => setObservacao(e.target.value)
+  }), /*#__PURE__*/React.createElement("label", {
     style: {
       marginTop: 16
     }
