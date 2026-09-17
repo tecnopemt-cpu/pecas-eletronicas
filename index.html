@@ -1347,7 +1347,7 @@ function SeletorCliente({
       border: '1px solid var(--borda)',
       borderRadius: 8,
       marginTop: 4,
-      maxHeight: 190,
+      maxHeight: 320,
       overflowY: 'auto',
       zIndex: 20,
       boxShadow: '0 8px 20px rgba(69,59,60,.15)'
@@ -1366,7 +1366,13 @@ function SeletorCliente({
       fontSize: 14,
       borderBottom: '1px solid var(--borda)'
     }
-  }, c.razaoSocial))));
+  }, /*#__PURE__*/React.createElement("div", null, c.razaoSocial), (c.cidade || c.uf) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 2
+    }
+  }, c.cidade, c.cidade && c.uf ? '/' : '', c.uf)))));
 }
 function SeletorCatalogo({
   catalogo,
@@ -1417,7 +1423,7 @@ function SeletorCatalogo({
       border: '1px solid var(--borda)',
       borderRadius: 8,
       marginTop: 4,
-      maxHeight: 190,
+      maxHeight: 320,
       overflowY: 'auto',
       zIndex: 20,
       boxShadow: '0 8px 20px rgba(69,59,60,.15)'
