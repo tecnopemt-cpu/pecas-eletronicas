@@ -578,56 +578,227 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
     jsPDF
   } = window.jspdf;
   const doc = new jsPDF();
-  let y = await desenharCabecalhoPdf(doc, 'Termo de Entrega / Faturamento', cliente);
-  doc.text(`Orçamento nº: ${orcamento.numero}`, 14, y);
+  const margemX = 16;
+  const larguraUtil = 210 - margemX * 2;
+  const meiaColuna = (larguraUtil - 10) / 2;
+  const colEsq = margemX;
+  const colDir = margemX + meiaColuna + 10;
+  async function novaPagina(rodapeAnterior) {
+    if (rodapeAnterior) await desenharTimbradoRodape(doc);
+    doc.addPage();
+    await desenharTimbradoCabecalho(doc);
+    let yy = 58;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8.5);
+    doc.setTextColor(150, 140, 138);
+    doc.text('Recibo de Entrega de Peças — continuação', margemX, yy);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    return yy + 8;
+  }
+  await desenharTimbradoCabecalho(doc);
+  let y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(40, 34, 33);
+  doc.text('RECIBO DE ENTREGA DE PEÇAS', margemX, y);
   y += 6;
-  doc.text(`Data: ${formatData(orcamento.criadoEm)}`, 14, y);
-  y += 10;
-  doc.setFontSize(11);
-  doc.text('Itens:', 14, y);
-  y += 8;
-  doc.setFontSize(10);
-  (orcamento.itens || []).forEach(it => {
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(130, 120, 118);
+  doc.text('Documento de confirmação da entrega das peças após a conclusão dos serviços', margemX, y);
+  y += 6;
+  doc.setDrawColor(225, 217, 215);
+  doc.setLineWidth(0.3);
+  doc.line(margemX, y, margemX + larguraUtil, y);
+  y += 7.5;
+  doc.setFontSize(9);
+  doc.setTextColor(70, 62, 61);
+  const declaracao = doc.splitTextToSize('A TECNOPEMT declara, para os devidos fins, que as peças relacionadas neste documento foram entregues ao cliente após a conclusão dos serviços correspondentes, conforme identificação do orçamento apresentado neste recibo.', larguraUtil);
+  doc.text(declaracao, margemX, y);
+  y += declaracao.length * 4.1 + 5;
+
+  // DADOS DO CLIENTE
+  desenharTituloSecaoTimbrado(doc, 'Dados do cliente', margemX, y, larguraUtil);
+  y += 7.5;
+  desenharCampoTimbrado(doc, 'Cliente', cliente?.razaoSocial, colEsq, y);
+  y += 8.5;
+  desenharCampoTimbrado(doc, 'CNPJ/CPF', cliente?.cnpj ? formatCNPJ(cliente.cnpj) : '-', colEsq, y);
+  const contato = [cliente?.telefone, cliente?.email].filter(Boolean).join(' / ');
+  desenharCampoTimbrado(doc, 'Contato', contato || '-', colDir, y);
+  y += 8.5;
+  const endTxt = [cliente?.endereco, cliente?.bairro, cliente?.cidade && cliente?.uf ? `${cliente.cidade}/${cliente.uf}` : cliente?.cidade].filter(Boolean).join(', ');
+  desenharCampoTimbrado(doc, 'Endereço', endTxt || '-', colEsq, y);
+  y += 9.5;
+
+  // IDENTIFICAÇÃO DO SERVIÇO
+  desenharTituloSecaoTimbrado(doc, 'Identificação do serviço', margemX, y, larguraUtil);
+  y += 7.5;
+  if (orcamento.numeroPedidoCompras) {
+    const terco = larguraUtil / 3;
+    desenharCampoTimbrado(doc, 'Orçamento', `#${orcamento.numero}`, margemX, y);
+    desenharCampoTimbrado(doc, 'N. Pedido de Compras', orcamento.numeroPedidoCompras, margemX + terco, y);
+    desenharCampoTimbrado(doc, 'Data da entrega', formatData(orcamento.criadoEm), margemX + terco * 2, y);
+  } else {
+    desenharCampoTimbrado(doc, 'Orçamento', `#${orcamento.numero}`, colEsq, y);
+    desenharCampoTimbrado(doc, 'Data da entrega', formatData(orcamento.criadoEm), colDir, y);
+  }
+  y += 10.5;
+
+  // PEÇAS ENTREGUES
+  desenharTituloSecaoTimbrado(doc, 'Peças entregues', margemX, y, larguraUtil);
+  y += 7.5;
+  const colCodigo = margemX,
+    colDescricao = margemX + 30,
+    colQtd = margemX + 130,
+    colValor = margemX + 148;
+  doc.setFillColor(233, 115, 7);
+  doc.rect(margemX, y - 5, larguraUtil, 7.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('CÓDIGO', colCodigo + 2, y);
+  doc.text('DESCRIÇÃO DA PEÇA', colDescricao, y);
+  doc.text('QTD.', colQtd, y);
+  doc.text('VALOR', colValor, y);
+  y += 7.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  (orcamento.itens || []).forEach((it, i) => {
     const subtotal = (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0);
-    const linhas = doc.splitTextToSize(`• ${it.descricao} — Qtd: ${it.qtd} — Valor un.: ${formatMoeda(it.valorUnit)} — Subtotal: ${formatMoeda(subtotal)}`, 180);
-    doc.text(linhas, 16, y);
-    y += 6 * linhas.length;
-  });
-  y += 6;
-  doc.setFontSize(12);
-  doc.text(`Total: ${formatMoeda(orcamento.total)}`, 14, y);
-  y += 12;
-  if (orcamento.fotoEntrega && orcamento.fotoEntrega.imagem) {
-    if (y > 190) {
-      doc.addPage();
-      y = 20;
+    const partes = (it.descricao || '').split(' — ');
+    const codigo = partes.length > 1 ? partes[0] : '-';
+    const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.descricao || '';
+    const linhasDesc = doc.splitTextToSize(descricao, colQtd - colDescricao - 4);
+    const alturaLinha = Math.max(6.5, linhasDesc.length * 4.2 + 2);
+    if (i % 2 === 1) {
+      doc.setFillColor(248, 246, 245);
+      doc.rect(margemX, y - 4.7, larguraUtil, alturaLinha, 'F');
     }
-    doc.setFontSize(11);
-    doc.text('REGISTRO FOTOGRÁFICO DAS PEÇAS FINALIZADAS', 14, y);
-    y += 8;
+    doc.setTextColor(40, 34, 33);
+    doc.text(codigo, colCodigo + 2, y);
+    doc.text(linhasDesc, colDescricao, y);
+    doc.text(String(it.qtd), colQtd, y);
+    doc.text(formatMoeda(subtotal), colValor, y);
+    y += alturaLinha;
+  });
+  doc.setDrawColor(225, 217, 215);
+  doc.line(margemX, y - 2.5, margemX + larguraUtil, y - 2.5);
+  y += 7;
+
+  // RESUMO FINANCEIRO
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(69, 59, 60);
+  doc.text('RESUMO FINANCEIRO', margemX, y);
+  doc.setDrawColor(233, 115, 7);
+  doc.setLineWidth(0.6);
+  doc.line(margemX, y + 2, margemX + 24, y + 2);
+  y += 6.5;
+  doc.setFillColor(251, 235, 219);
+  doc.rect(margemX, y - 5.5, larguraUtil, 9.5, 'F');
+  doc.setFontSize(11);
+  doc.setTextColor(40, 34, 33);
+  doc.text('VALOR TOTAL', margemX + 3, y);
+  doc.setTextColor(198, 102, 15);
+  doc.text(formatMoeda(orcamento.total), margemX + larguraUtil - 3, y, {
+    align: 'right'
+  });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+  y += 12;
+  if (y > 193) {
+    y = await novaPagina(true);
+  }
+  const yBlocoFinal = y;
+  const temFoto = orcamento.fotoEntrega && orcamento.fotoEntrega.imagem;
+
+  // REGISTRO FOTOGRÁFICO DAS PEÇAS FINALIZADAS (coluna esquerda)
+  let yFoto = yBlocoFinal;
+  if (temFoto) {
+    desenharTituloSecaoTimbrado(doc, 'Registro fotográfico', colEsq, yFoto, meiaColuna);
+    yFoto += 6.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(130, 120, 118);
+    const legFoto = doc.splitTextToSize('Registro visual das peças após a conclusão dos serviços e antes da entrega ao cliente.', meiaColuna);
+    doc.text(legFoto, colEsq, yFoto);
+    yFoto += legFoto.length * 3.8 + 4;
+    const tamanho = Math.min(58, meiaColuna);
     try {
-      doc.addImage(orcamento.fotoEntrega.imagem, 'JPEG', 14, y, 60, 60);
+      doc.addImage(orcamento.fotoEntrega.imagem, 'JPEG', colEsq, yFoto, tamanho, tamanho);
     } catch (err) {
       try {
-        doc.addImage(orcamento.fotoEntrega.imagem, 'PNG', 14, y, 60, 60);
+        doc.addImage(orcamento.fotoEntrega.imagem, 'PNG', colEsq, yFoto, tamanho, tamanho);
       } catch (err2) {}
     }
-    y += 64;
-    doc.setFontSize(9.5);
+    yFoto += tamanho + 4;
+    doc.setFontSize(7.2);
+    doc.setTextColor(150, 140, 138);
     const dataFoto = orcamento.fotoEntrega.dataRegistro?.toDate ? orcamento.fotoEntrega.dataRegistro.toDate() : new Date();
-    doc.text(`Registro realizado em: ${dataFoto.toLocaleDateString('pt-BR')} às ${dataFoto.toLocaleTimeString('pt-BR', {
+    const dataFotoTxt = `${dataFoto.toLocaleDateString('pt-BR')} às ${dataFoto.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit'
-    })}`, 14, y);
-    y += 5;
+    })}`;
+    doc.text(`Registro fotográfico realizado em: ${dataFotoTxt}`, colEsq, yFoto);
+    yFoto += 3.8;
     if (orcamento.fotoEntrega.registradoPor) {
-      doc.text(`Registrado por: ${orcamento.fotoEntrega.registradoPor}`, 14, y);
-      y += 5;
+      doc.text(`Registrado por: ${orcamento.fotoEntrega.registradoPor}`, colEsq, yFoto);
+      yFoto += 3.8;
     }
-    y += 6;
   }
-  y = desenharRodapeAssinatura(doc, y, assinatura);
-  doc.save(`entrega-orcamento-${orcamento.numero}.pdf`);
+
+  // CONFIRMAÇÃO DA ENTREGA (coluna direita)
+  let yConf = yBlocoFinal;
+  desenharTituloSecaoTimbrado(doc, 'Confirmação da entrega', colDir, yConf, meiaColuna);
+  yConf += 7.5;
+  desenharCampoTimbrado(doc, 'Responsável pelo recebimento', assinatura.nome, colDir, yConf);
+  yConf += 8.5;
+  desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), colDir, yConf);
+  yConf += 8.5;
+  desenharCampoTimbrado(doc, 'Data e hora da assinatura', assinatura.dataTexto, colDir, yConf);
+  yConf += 5.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(150, 140, 138);
+  doc.text('ASSINATURA DO RESPONSÁVEL', colDir, yConf);
+  yConf += 4.5;
+  if (assinatura.imagem) {
+    try {
+      doc.addImage(assinatura.imagem, 'PNG', colDir, yConf, 55, 24);
+    } catch (err) {}
+    doc.setDrawColor(200, 190, 188);
+    doc.setLineWidth(0.3);
+    doc.line(colDir, yConf + 25, colDir + 55, yConf + 25);
+    yConf += 29;
+  } else {
+    yConf += 6;
+  }
+  y = Math.max(yFoto, yConf) + 4;
+
+  // DADOS DO REGISTRO — discreto (sem repetir data/hora, já apresentada na confirmação)
+  if (y > 260) {
+    y = await novaPagina(true);
+  }
+  if (assinatura.ip || assinatura.localizacao) {
+    doc.setFontSize(7.5);
+    doc.setTextColor(160, 150, 148);
+    if (assinatura.ip) {
+      doc.text(`IP: ${assinatura.ip}`, margemX, y);
+      y += 4;
+    }
+    if (assinatura.localizacao) {
+      doc.setTextColor(190, 130, 60);
+      doc.textWithLink(`Localização: ${assinatura.localizacao.lat.toFixed(5)}, ${assinatura.localizacao.lng.toFixed(5)} (ver no mapa)`, margemX, y, {
+        url: `https://www.google.com/maps?q=${assinatura.localizacao.lat},${assinatura.localizacao.lng}`
+      });
+      doc.setTextColor(0, 0, 0);
+    }
+  }
+  await desenharTimbradoRodape(doc);
+  const dataArquivo = orcamento.criadoEm ? formatData(orcamento.criadoEm).replace(/\//g, '-') : '';
+  const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
+  doc.save(`Recibo de Entrega de Peças - ${nomeCliente} - Orc${orcamento.numero}${dataArquivo ? ' - ' + dataArquivo : ''}.pdf`);
 }
 function PainelAssinatura({
   onMudar
