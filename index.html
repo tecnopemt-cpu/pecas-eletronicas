@@ -926,36 +926,40 @@ function RegistroFotograficoEntrega({
   }
   return /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 12
+      marginBottom: 12,
+      padding: 10,
+      background: 'var(--fundo)',
+      border: '1px solid var(--borda)',
+      borderRadius: 8
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
       fontWeight: 700,
-      marginBottom: 4
+      marginBottom: 6
     }
-  }, "Registro fotográfico"), !foto ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "📷 Registro fotográfico"), !foto ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: 'var(--texto-fraco)',
-      marginBottom: 8
+      marginBottom: 10
     }
   }, "Registre uma foto das peças finalizadas antes de realizar a assinatura."), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     disabled: processando,
     onClick: () => inputRef.current.click()
-  }, processando ? 'Carregando...' : '📷 Registrar foto')) : /*#__PURE__*/React.createElement("div", {
+  }, processando ? 'Carregando...' : 'Registrar foto')) : /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10,
-      alignItems: 'center'
+      alignItems: 'flex-start'
     }
   }, /*#__PURE__*/React.createElement("img", {
     src: foto.imagem,
     style: {
-      width: 56,
-      height: 56,
+      width: 60,
+      height: 60,
       objectFit: 'cover',
       borderRadius: 8,
       border: '1px solid var(--borda)',
@@ -964,17 +968,26 @@ function RegistroFotograficoEntrega({
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
-      color: 'var(--texto-fraco)'
+      color: 'var(--texto-fraco)',
+      lineHeight: 1.6
     }
-  }, "Foto registrada em: ", formatDataHora(foto.dataRegistro), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("div", null, "Registrada em: ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: 'var(--texto)'
+    }
+  }, formatDataHora(foto.dataRegistro))), foto.registradoPor && /*#__PURE__*/React.createElement("div", null, "Registrada por: ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: 'var(--texto)'
+    }
+  }, foto.registradoPor)), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     style: {
-      marginTop: 6
+      marginTop: 8
     },
     disabled: processando,
     onClick: () => inputRef.current.click()
-  }, processando ? 'Carregando...' : 'Tirar outra foto')))), /*#__PURE__*/React.createElement("input", {
+  }, processando ? 'Carregando...' : 'Tirar outra foto'))), /*#__PURE__*/React.createElement("input", {
     ref: inputRef,
     type: "file",
     accept: "image/*",
@@ -1045,7 +1058,15 @@ function BlocoAssinatura({
         fontSize: 11.5,
         color: 'var(--texto-fraco)'
       }
-    }, "CPF ", formatarCPF(assinatura.cpf)), assinatura.ip && /*#__PURE__*/React.createElement("div", {
+    }, "CPF ", formatarCPF(assinatura.cpf)), documento.fotoEntrega && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)',
+        marginTop: 4,
+        paddingTop: 4,
+        borderTop: '1px solid rgba(69,59,60,.12)'
+      }
+    }, "📷 Foto registrada por ", documento.fotoEntrega.registradoPor || '-', " em ", formatDataHora(documento.fotoEntrega.dataRegistro)), assinatura.ip && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: 'var(--texto-fraco)'
@@ -1084,13 +1105,7 @@ function BlocoAssinatura({
   }, tipo === 'entrada' ? '🖊️ Assinatura de entrada' : '🖊️ Assinatura de entrega'), tipo === 'entrega' && /*#__PURE__*/React.createElement(RegistroFotograficoEntrega, {
     documento: documento,
     usuario: usuario
-  }), fotoObrigatoriaFaltando && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--vermelho)',
-      marginBottom: 10
-    }
-  }, "Registre a foto das peças finalizadas para liberar a assinatura."), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 6,
