@@ -398,67 +398,88 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
   const doc = new jsPDF();
   const margemX = 16;
   const larguraUtil = 210 - margemX * 2;
+  const meiaColuna = (larguraUtil - 10) / 2;
+  const colEsq = margemX;
+  const colDir = margemX + meiaColuna + 10;
+  async function novaPagina(rodapeAnterior) {
+    if (rodapeAnterior) await desenharTimbradoRodape(doc);
+    doc.addPage();
+    await desenharTimbradoCabecalho(doc);
+    let yy = 58;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8.5);
+    doc.setTextColor(150, 140, 138);
+    doc.text('Recibo de Entrada de Peças — continuação', margemX, yy);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    return yy + 8;
+  }
   await desenharTimbradoCabecalho(doc);
-  let y = 62;
+  let y = 58;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setTextColor(40, 34, 33);
   doc.text('RECIBO DE ENTRADA DE PEÇAS', margemX, y);
-  y += 6.5;
+  y += 6;
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9.5);
+  doc.setFontSize(9);
   doc.setTextColor(130, 120, 118);
   doc.text('Documento de recebimento de peças para manutenção / serviço técnico', margemX, y);
-  y += 8;
+  y += 6.5;
   doc.setDrawColor(225, 217, 215);
   doc.setLineWidth(0.3);
   doc.line(margemX, y, margemX + larguraUtil, y);
-  y += 9;
-  doc.setFontSize(9.3);
+  y += 8;
+  doc.setFontSize(9);
   doc.setTextColor(70, 62, 61);
   const declaracao = doc.splitTextToSize('A TECNOPEMT declara, para os devidos fins, que recebeu as peças relacionadas neste documento para realização dos serviços técnicos correspondentes, conforme registro de entrada realizado na data indicada.', larguraUtil);
   doc.text(declaracao, margemX, y);
-  y += declaracao.length * 4.6 + 8;
+  y += declaracao.length * 4.3 + 6;
+
+  // DADOS DO CLIENTE — layout compacto em colunas
   desenharTituloSecaoTimbrado(doc, 'Dados do cliente', margemX, y, larguraUtil);
-  y += 8;
-  desenharCampoTimbrado(doc, 'Cliente', cliente?.razaoSocial, margemX, y);
-  y += 11;
-  desenharCampoTimbrado(doc, 'CNPJ/CPF', cliente?.cnpj ? formatCNPJ(cliente.cnpj) : '-', margemX, y);
-  y += 11;
+  y += 7.5;
+  desenharCampoTimbrado(doc, 'Cliente', cliente?.razaoSocial, colEsq, y);
+  y += 8.5;
+  desenharCampoTimbrado(doc, 'CNPJ/CPF', cliente?.cnpj ? formatCNPJ(cliente.cnpj) : '-', colEsq, y);
+  desenharCampoTimbrado(doc, 'Telefone', cliente?.telefone || '-', colDir, y);
+  y += 8.5;
   const endTxt = [cliente?.endereco, cliente?.bairro, cliente?.cidade && cliente?.uf ? `${cliente.cidade}/${cliente.uf}` : cliente?.cidade].filter(Boolean).join(', ');
-  desenharCampoTimbrado(doc, 'Endereço', endTxt || '-', margemX, y);
+  desenharCampoTimbrado(doc, 'Endereço', endTxt || '-', colEsq, y);
   y += 11;
-  desenharCampoTimbrado(doc, 'Telefone', cliente?.telefone || '-', margemX, y);
-  y += 14;
+
+  // DADOS DA ENTRADA
   desenharTituloSecaoTimbrado(doc, 'Dados da entrada', margemX, y, larguraUtil);
-  y += 8;
-  desenharCampoTimbrado(doc, 'Data de entrada', formatData(lote.criadoEm), margemX, y);
-  y += 16;
+  y += 7.5;
+  desenharCampoTimbrado(doc, 'Data de entrada', formatData(lote.criadoEm), colEsq, y);
+  y += 13;
+
+  // PEÇAS RECEBIDAS
   desenharTituloSecaoTimbrado(doc, 'Peças recebidas', margemX, y, larguraUtil);
-  y += 8;
+  y += 7.5;
   const colCodigo = margemX,
     colDescricao = margemX + 38,
     colQtd = margemX + larguraUtil - 24;
   doc.setFillColor(233, 115, 7);
-  doc.rect(margemX, y - 5, larguraUtil, 8, 'F');
+  doc.rect(margemX, y - 5, larguraUtil, 7.5, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
+  doc.setFontSize(8.8);
   doc.setTextColor(255, 255, 255);
   doc.text('CÓDIGO', colCodigo + 2, y);
   doc.text('DESCRIÇÃO DA PEÇA', colDescricao, y);
   doc.text('QTD.', colQtd, y);
-  y += 8;
+  y += 7.5;
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9.3);
+  doc.setFontSize(9);
   (lote.itens || []).forEach((it, i) => {
     const partes = (it.pecaDescricao || '').split(' — ');
     const codigo = partes.length > 1 ? partes[0] : '-';
     const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.pecaDescricao || '';
     const linhasDesc = doc.splitTextToSize(descricao, colQtd - colDescricao - 4);
-    const alturaLinha = Math.max(7, linhasDesc.length * 4.6 + 2);
+    const alturaLinha = Math.max(6.5, linhasDesc.length * 4.2 + 2);
     if (i % 2 === 1) {
       doc.setFillColor(248, 246, 245);
-      doc.rect(margemX, y - 5, larguraUtil, alturaLinha, 'F');
+      doc.rect(margemX, y - 4.7, larguraUtil, alturaLinha, 'F');
     }
     doc.setTextColor(40, 34, 33);
     doc.text(codigo, colCodigo + 2, y);
@@ -467,71 +488,79 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
     y += alturaLinha;
   });
   doc.setDrawColor(225, 217, 215);
-  doc.line(margemX, y - 3, margemX + larguraUtil, y - 3);
-  y += 10;
-  if (lote.fotos && lote.fotos.length > 0) {
-    if (y > 205) {
-      await desenharTimbradoRodape(doc);
-      doc.addPage();
-      await desenharTimbradoCabecalho(doc);
-      y = 62;
-    }
-    desenharTituloSecaoTimbrado(doc, 'Registro fotográfico da entrada', margemX, y, larguraUtil);
-    y += 6;
-    doc.setFontSize(9);
+  doc.line(margemX, y - 2.5, margemX + larguraUtil, y - 2.5);
+  y += 9;
+
+  // Se o que falta (foto + confirmação, lado a lado) não couber com folga, quebra a página aqui
+  if (y > 188) {
+    y = await novaPagina(true);
+  }
+  const yBlocoFinal = y;
+  const temFoto = lote.fotos && lote.fotos.length > 0;
+
+  // REGISTRO FOTOGRÁFICO (coluna esquerda)
+  let yFoto = yBlocoFinal;
+  if (temFoto) {
+    desenharTituloSecaoTimbrado(doc, 'Registro fotográfico', colEsq, yFoto, meiaColuna);
+    yFoto += 6.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
     doc.setTextColor(130, 120, 118);
-    doc.text('Registro visual das peças recebidas no momento da entrada.', margemX, y);
-    y += 6;
+    const legFoto = doc.splitTextToSize('Registro visual das peças recebidas no momento da entrada.', meiaColuna);
+    doc.text(legFoto, colEsq, yFoto);
+    yFoto += legFoto.length * 3.8 + 4;
     const fotos = lote.fotos.slice(0, 3);
-    const gap = 6;
-    const tamanho = fotos.length === 1 ? 75 : (larguraUtil - gap * (fotos.length - 1)) / fotos.length;
-    const totalLargura = tamanho * fotos.length + gap * (fotos.length - 1);
-    let fotoX = margemX + (larguraUtil - totalLargura) / 2;
+    const gap = 4;
+    const tamanho = fotos.length === 1 ? Math.min(58, meiaColuna) : (meiaColuna - gap * (fotos.length - 1)) / fotos.length;
+    let fotoX = colEsq;
     fotos.forEach(foto => {
       try {
-        doc.addImage(foto, 'JPEG', fotoX, y, tamanho, tamanho);
+        doc.addImage(foto, 'JPEG', fotoX, yFoto, tamanho, tamanho);
       } catch (err) {
         try {
-          doc.addImage(foto, 'PNG', fotoX, y, tamanho, tamanho);
+          doc.addImage(foto, 'PNG', fotoX, yFoto, tamanho, tamanho);
         } catch (err2) {}
       }
       fotoX += tamanho + gap;
     });
-    y += tamanho + 10;
+    yFoto += tamanho + 6;
   }
-  if (y > 195) {
-    await desenharTimbradoRodape(doc);
-    doc.addPage();
-    await desenharTimbradoCabecalho(doc);
-    y = 62;
-  }
-  desenharTituloSecaoTimbrado(doc, 'Confirmação do recebimento', margemX, y, larguraUtil);
-  y += 8;
-  desenharCampoTimbrado(doc, 'Responsável pelo recebimento', assinatura.nome, margemX, y);
-  y += 11;
-  desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), margemX, y);
-  y += 11;
-  desenharCampoTimbrado(doc, 'Data e hora da assinatura', assinatura.dataTexto, margemX, y);
-  y += 6;
+
+  // CONFIRMAÇÃO DO RECEBIMENTO (coluna direita)
+  let yConf = yBlocoFinal;
+  desenharTituloSecaoTimbrado(doc, 'Confirmação do recebimento', colDir, yConf, meiaColuna);
+  yConf += 7.5;
+  desenharCampoTimbrado(doc, 'Responsável pelo recebimento', assinatura.nome, colDir, yConf);
+  yConf += 8.5;
+  desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), colDir, yConf);
+  yConf += 8.5;
+  desenharCampoTimbrado(doc, 'Data e hora da assinatura', assinatura.dataTexto, colDir, yConf);
+  yConf += 5.5;
   if (assinatura.imagem) {
     try {
-      doc.addImage(assinatura.imagem, 'PNG', margemX, y, 60, 26);
+      doc.addImage(assinatura.imagem, 'PNG', colDir, yConf, 55, 24);
     } catch (err) {}
     doc.setDrawColor(200, 190, 188);
     doc.setLineWidth(0.3);
-    doc.line(margemX, y + 27, margemX + 60, y + 27);
+    doc.line(colDir, yConf + 25, colDir + 55, yConf + 25);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7.2);
     doc.setTextColor(150, 140, 138);
-    doc.text('Assinatura do responsável', margemX, y + 31);
-    y += 38;
+    doc.text('Assinatura do responsável', colDir, yConf + 29);
+    yConf += 35;
   } else {
-    y += 10;
+    yConf += 8;
   }
-  doc.setFontSize(7.8);
+  y = Math.max(yFoto, yConf) + 4;
+
+  // DADOS DO REGISTRO — discreto
+  if (y > 258) {
+    y = await novaPagina(true);
+  }
+  doc.setFontSize(7.5);
   doc.setTextColor(160, 150, 148);
   doc.text(`Data/hora: ${assinatura.dataTexto}   •   IP: ${assinatura.ip || '-'}`, margemX, y);
-  y += 4.2;
+  y += 4;
   if (assinatura.localizacao) {
     doc.setTextColor(190, 130, 60);
     doc.textWithLink(`Localização do registro: ${assinatura.localizacao.lat.toFixed(5)}, ${assinatura.localizacao.lng.toFixed(5)} (ver no mapa)`, margemX, y, {
