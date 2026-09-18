@@ -1534,12 +1534,21 @@ function App() {
     nome: 'Equipe',
     icone: '👤'
   }];
+  const modoPainelCheio = aba === 'orcamentos';
   return /*#__PURE__*/React.createElement("div", {
-    style: {
+    style: modoPainelCheio ? {
+      height: '100dvh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    } : {
       minHeight: '100vh'
     }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "topo-app"
+    className: "topo-app",
+    style: {
+      flexShrink: 0
+    }
   }, /*#__PURE__*/React.createElement("img", {
     src: "icons/icon-192.png",
     alt: "Tecnopemt"
@@ -1570,7 +1579,17 @@ function App() {
       color: '#fff'
     }
   }, "Sair")), /*#__PURE__*/React.createElement("div", {
-    className: "conteudo-app"
+    className: "conteudo-app",
+    style: modoPainelCheio ? {
+      maxWidth: 'none',
+      margin: 0,
+      padding: '14px 16px 0',
+      flex: 1,
+      minHeight: 0,
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
+    } : undefined
   }, aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, null), aba === 'lotes' && /*#__PURE__*/React.createElement(AbaLotes, {
     usuario: usuario,
     funcionarios: funcionarios
@@ -1581,7 +1600,12 @@ function App() {
   }), aba === 'funcionarios' && /*#__PURE__*/React.createElement(AbaFuncionarios, {
     usuario: usuario
   })), /*#__PURE__*/React.createElement("div", {
-    className: "nav-inferior"
+    className: "nav-inferior",
+    style: modoPainelCheio ? {
+      position: 'static',
+      boxShadow: 'none',
+      flexShrink: 0
+    } : undefined
   }, abas.map(a => /*#__PURE__*/React.createElement("button", {
     key: a.id,
     onClick: () => setAba(a.id),
@@ -2030,7 +2054,7 @@ function ModalCliente({
 // ======================= CATÁLOGO DE PEÇAS =======================
 const CATEGORIAS_PECA = ['Joystick', 'Placa', 'Módulo', 'Carregador', 'Display', 'Controle', 'Outros'];
 const STATUS_LOTE = ['Em análise', 'Concluído'];
-const STATUS_ORCAMENTO = ['Pendente orçamento', 'Em Análise', 'Aprovado', 'Aprovado/Aguardando pedido', 'Entregue/Faturado', 'Teste'];
+const STATUS_ORCAMENTO = ['Pendente orçamento', 'Teste', 'Em Análise', 'Aprovado', 'Aprovado/Aguardando pedido', 'Entregue/Faturado'];
 const STATUS_CLASSE = {
   'Em análise': 'conserto',
   'Concluído': 'entregue',
@@ -3440,12 +3464,21 @@ function AbaOrcamentos({
       status
     });
   }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16
+      marginBottom: 14,
+      flexShrink: 0,
+      flexWrap: 'wrap',
+      gap: 10
     }
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -3460,8 +3493,9 @@ function AbaOrcamentos({
   }, "+ Novo orçamento")), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'relative',
-      maxWidth: 420,
-      marginBottom: 14
+      maxWidth: 520,
+      marginBottom: 14,
+      flexShrink: 0
     }
   }, /*#__PURE__*/React.createElement("input", {
     placeholder: "Buscar por peça, número, N. pedido de compras ou cliente...",
@@ -3502,24 +3536,27 @@ function AbaOrcamentos({
     className: "kanban-orcamento",
     style: {
       display: 'flex',
-      gap: 12,
+      gap: 14,
       overflowX: 'auto',
-      paddingBottom: 10
+      overflowY: 'hidden',
+      flex: 1,
+      minHeight: 0,
+      paddingBottom: 12
     }
   }, STATUS_ORCAMENTO.map(status => {
     const itensDoStatus = orcamentosFiltrados.filter(o => o.status === status);
     return /*#__PURE__*/React.createElement("div", {
       key: status,
       style: {
-        flex: '0 0 272px',
-        minWidth: 272,
+        flex: '0 0 310px',
+        minWidth: 310,
+        height: '100%',
         background: 'var(--fundo)',
         border: '1px solid var(--borda)',
         borderRadius: 10,
-        padding: '10px 10px 6px',
+        padding: '11px 11px 8px',
         display: 'flex',
-        flexDirection: 'column',
-        maxHeight: '78vh'
+        flexDirection: 'column'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -3527,74 +3564,76 @@ function AbaOrcamentos({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '2px 4px',
-        marginBottom: 8,
+        marginBottom: 10,
         flexShrink: 0
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
         fontWeight: 700,
-        fontSize: 13.5
+        fontSize: 14.5
       }
     }, status), /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 11.5,
+        fontSize: 12,
         color: 'var(--texto-fraco)',
         background: 'var(--borda)',
         borderRadius: 20,
-        padding: '1px 8px',
+        padding: '1px 9px',
         fontWeight: 700
       }
     }, itensDoStatus.length)), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
+        gap: 9,
         overflowY: 'auto',
-        paddingRight: 2
+        flex: 1,
+        minHeight: 0,
+        paddingRight: 3
       }
     }, itensDoStatus.map(o => /*#__PURE__*/React.createElement("div", {
       key: o.id,
       className: "card",
       style: {
-        padding: 11,
+        padding: 13,
         boxShadow: '0 1px 2px rgba(69,59,60,.08)'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         fontWeight: 700,
-        fontSize: 13.5,
+        fontSize: 14.5,
         lineHeight: 1.3
       }
     }, "#", o.numero, " — ", nomeCliente(o.clienteId)), o.numeroPedidoCompras && /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 11,
+        fontSize: 12,
         color: 'var(--texto-fraco)',
-        marginTop: 3
+        marginTop: 4
       }
     }, "Pedido: ", o.numeroPedidoCompras), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
-        marginTop: 6,
+        gap: 9,
+        marginTop: 8,
         flexWrap: 'wrap'
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: 700,
         color: 'var(--laranja)'
       }
     }, formatMoeda(o.total)), /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 11,
+        fontSize: 11.5,
         color: 'var(--texto-fraco)'
       }
     }, "💰 ", formatMoeda(o.comissaoTotal))), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 10.5,
+        fontSize: 11,
         color: 'var(--texto-fraco)',
-        marginTop: 4
+        marginTop: 5
       }
     }, "📅 ", formatData(o.criadoEm)), /*#__PURE__*/React.createElement("select", {
       value: o.status,
@@ -3603,8 +3642,8 @@ function AbaOrcamentos({
       style: {
         width: '100%',
         border: 'none',
-        padding: '5px 6px',
-        marginTop: 8,
+        padding: '6px 7px',
+        marginTop: 9,
         fontWeight: 600
       }
     }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
@@ -3614,7 +3653,7 @@ function AbaOrcamentos({
       style: {
         display: 'flex',
         gap: 6,
-        marginTop: 8
+        marginTop: 9
       }
     }, /*#__PURE__*/React.createElement("button", {
       className: "btn secundario pequeno",
@@ -3627,7 +3666,7 @@ function AbaOrcamentos({
       onClick: () => excluir(o)
     }, "Excluir")), status === 'Entregue/Faturado' && /*#__PURE__*/React.createElement("div", {
       style: {
-        marginTop: 8
+        marginTop: 9
       }
     }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
       tipo: "entrega",
