@@ -420,6 +420,35 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   doc.setFontSize(12);
   doc.text(`Total: ${formatMoeda(orcamento.total)}`, 14, y);
   y += 12;
+  if (orcamento.fotoEntrega && orcamento.fotoEntrega.imagem) {
+    if (y > 190) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(11);
+    doc.text('REGISTRO FOTOGRÁFICO DAS PEÇAS FINALIZADAS', 14, y);
+    y += 8;
+    try {
+      doc.addImage(orcamento.fotoEntrega.imagem, 'JPEG', 14, y, 60, 60);
+    } catch (err) {
+      try {
+        doc.addImage(orcamento.fotoEntrega.imagem, 'PNG', 14, y, 60, 60);
+      } catch (err2) {}
+    }
+    y += 64;
+    doc.setFontSize(9.5);
+    const dataFoto = orcamento.fotoEntrega.dataRegistro?.toDate ? orcamento.fotoEntrega.dataRegistro.toDate() : new Date();
+    doc.text(`Registro realizado em: ${dataFoto.toLocaleDateString('pt-BR')} às ${dataFoto.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })}`, 14, y);
+    y += 5;
+    if (orcamento.fotoEntrega.registradoPor) {
+      doc.text(`Registrado por: ${orcamento.fotoEntrega.registradoPor}`, 14, y);
+      y += 5;
+    }
+    y += 6;
+  }
   y = desenharRodapeAssinatura(doc, y, assinatura);
   doc.save(`entrega-orcamento-${orcamento.numero}.pdf`);
 }
@@ -863,19 +892,121 @@ function ModalAssinarPresencial({
     onConcluido: aoFechar
   })));
 }
+function formatDataHora(v) {
+  if (!v) return '-';
+  const d = v.toDate ? v.toDate() : new Date(v);
+  return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })}`;
+}
+function RegistroFotograficoEntrega({
+  documento,
+  usuario
+}) {
+  const [processando, setProcessando] = useState(false);
+  const inputRef = useRef();
+  const foto = documento.fotoEntrega;
+  async function capturarFoto(file) {
+    if (!file) return;
+    setProcessando(true);
+    try {
+      const dataUrl = await resizeImagem(file);
+      await db.collection('orcamentos').doc(documento.id).update({
+        fotoEntrega: {
+          imagem: dataUrl,
+          registradoPor: usuario?.nome || '',
+          dataRegistro: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      });
+    } catch (err) {
+      alert('Não consegui processar essa foto.');
+    }
+    setProcessando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      marginBottom: 4
+    }
+  }, "Registro fotográfico"), !foto ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginBottom: 8
+    }
+  }, "Registre uma foto das peças finalizadas antes de realizar a assinatura."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: processando,
+    onClick: () => inputRef.current.click()
+  }, processando ? 'Carregando...' : '📷 Registrar foto')) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: foto.imagem,
+    style: {
+      width: 56,
+      height: 56,
+      objectFit: 'cover',
+      borderRadius: 8,
+      border: '1px solid var(--borda)',
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Foto registrada em: ", formatDataHora(foto.dataRegistro), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 6
+    },
+    disabled: processando,
+    onClick: () => inputRef.current.click()
+  }, processando ? 'Carregando...' : 'Tirar outra foto')))), /*#__PURE__*/React.createElement("input", {
+    ref: inputRef,
+    type: "file",
+    accept: "image/*",
+    capture: "environment",
+    style: {
+      display: 'none'
+    },
+    onChange: e => {
+      capturarFoto(e.target.files[0]);
+      e.target.value = '';
+    }
+  }));
+}
 function BlocoAssinatura({
   tipo,
   documento,
   cliente,
-  colecao
+  colecao,
+  usuario
 }) {
   const [processando, setProcessando] = useState(false);
   const [modalPresencialAberto, setModalPresencialAberto] = useState(false);
   const campoCodigo = tipo === 'entrada' ? 'codigoAssinaturaEntrada' : 'codigoAssinaturaEntrega';
   const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
   const assinatura = documento[campoAssinatura];
+  const fotoObrigatoriaFaltando = tipo === 'entrega' && !documento.fotoEntrega;
   const codigo = documento[campoCodigo];
   async function gerarLink() {
+    if (fotoObrigatoriaFaltando) {
+      alert('Registre a foto das peças finalizadas para liberar a assinatura.');
+      return;
+    }
     setProcessando(true);
     const novoCodigo = gerarCodigoAssinatura();
     await db.collection(colecao).doc(documento.id).update({
@@ -950,7 +1081,16 @@ function BlocoAssinatura({
       fontWeight: 700,
       marginBottom: 6
     }
-  }, tipo === 'entrada' ? '🖊️ Assinatura de entrada' : '🖊️ Assinatura de entrega'), /*#__PURE__*/React.createElement("div", {
+  }, tipo === 'entrada' ? '🖊️ Assinatura de entrada' : '🖊️ Assinatura de entrega'), tipo === 'entrega' && /*#__PURE__*/React.createElement(RegistroFotograficoEntrega, {
+    documento: documento,
+    usuario: usuario
+  }), fotoObrigatoriaFaltando && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--vermelho)',
+      marginBottom: 10
+    }
+  }, "Registre a foto das peças finalizadas para liberar a assinatura."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 6,
@@ -960,11 +1100,18 @@ function BlocoAssinatura({
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
-    onClick: () => setModalPresencialAberto(true)
+    disabled: fotoObrigatoriaFaltando,
+    onClick: () => {
+      if (fotoObrigatoriaFaltando) {
+        alert('Registre a foto das peças finalizadas para liberar a assinatura.');
+        return;
+      }
+      setModalPresencialAberto(true);
+    }
   }, "Assinar agora (presencial)"), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
-    disabled: processando,
+    disabled: processando || fotoObrigatoriaFaltando,
     onClick: gerarLink
   }, codigo ? 'Gerar novo código' : 'Gerar link (cliente ausente)')), codigo && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1412,7 +1559,9 @@ function App() {
   }, aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, null), aba === 'lotes' && /*#__PURE__*/React.createElement(AbaLotes, {
     usuario: usuario,
     funcionarios: funcionarios
-  }), aba === 'catalogo' && /*#__PURE__*/React.createElement(AbaCatalogo, null), aba === 'clientes' && /*#__PURE__*/React.createElement(AbaClientes, null), aba === 'orcamentos' && /*#__PURE__*/React.createElement(AbaOrcamentos, null), aba === 'comissoes' && /*#__PURE__*/React.createElement(AbaComissoes, {
+  }), aba === 'catalogo' && /*#__PURE__*/React.createElement(AbaCatalogo, null), aba === 'clientes' && /*#__PURE__*/React.createElement(AbaClientes, null), aba === 'orcamentos' && /*#__PURE__*/React.createElement(AbaOrcamentos, {
+    usuario: usuario
+  }), aba === 'comissoes' && /*#__PURE__*/React.createElement(AbaComissoes, {
     funcionarios: funcionarios
   }), aba === 'funcionarios' && /*#__PURE__*/React.createElement(AbaFuncionarios, {
     usuario: usuario
@@ -2507,7 +2656,8 @@ function AbaLotes({
     tipo: "entrada",
     documento: loteParaAssinar,
     cliente: clientes.find(c => c.id === loteParaAssinar.clienteId),
-    colecao: "lotes"
+    colecao: "lotes",
+    usuario: usuario
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -3142,7 +3292,8 @@ function ModalLoteDetalhe({
     tipo: "entrada",
     documento: lote,
     cliente: clienteObj,
-    colecao: "lotes"
+    colecao: "lotes",
+    usuario: usuario
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 18,
@@ -3201,7 +3352,9 @@ function ModalLoteDetalhe({
 }
 
 // ======================= ORÇAMENTOS =======================
-function AbaOrcamentos() {
+function AbaOrcamentos({
+  usuario
+}) {
   const [orcamentos, carregando] = useColecao('orcamentos', 'criadoEm');
   const [clientes] = useColecao('clientes');
   const [catalogo] = useColecao('catalogoPecas');
@@ -3465,7 +3618,8 @@ function AbaOrcamentos() {
       tipo: "entrega",
       documento: o,
       cliente: clientes.find(c => c.id === o.clienteId),
-      colecao: "orcamentos"
+      colecao: "orcamentos",
+      usuario: usuario
     })))), itensDoStatus.length === 0 && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 12,
@@ -3478,6 +3632,7 @@ function AbaOrcamentos() {
     orcamento: editando,
     clientes: clientes,
     totalAtual: orcamentos.length,
+    usuario: usuario,
     aoFechar: () => setModalAberto(false)
   }));
 }
@@ -3485,6 +3640,7 @@ function ModalOrcamento({
   orcamento,
   clientes,
   totalAtual,
+  usuario,
   aoFechar
 }) {
   const [funcionarios] = useColecao('funcionarios');
@@ -3703,7 +3859,8 @@ function ModalOrcamento({
     tipo: "entrega",
     documento: orcamento,
     cliente: clientes.find(c => c.id === clienteId),
-    colecao: "orcamentos"
+    colecao: "orcamentos",
+    usuario: usuario
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
