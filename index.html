@@ -285,21 +285,24 @@ async function coletarIp() {
   }
 }
 async function desenharCabecalhoPdf(doc, titulo, cliente) {
+  let yLogo = 12;
   try {
-    const logoDataUrl = await carregarImagemDataUrl('icons/icon-512.png');
-    doc.addImage(logoDataUrl, 'PNG', 14, 10, 16, 16);
-  } catch (err) {}
-  doc.setFontSize(13);
-  doc.text('Tecnopemt', 34, 16);
+    const logoDataUrl = await carregarImagemDataUrl('icons/logo-tecnopemt.png');
+    const larguraLogo = 62;
+    const alturaLogo = larguraLogo / 2.294;
+    doc.addImage(logoDataUrl, 'PNG', 14, yLogo, larguraLogo, alturaLogo);
+    yLogo += alturaLogo + 4;
+  } catch (err) {
+    yLogo = 18;
+  }
   doc.setFontSize(8.5);
   doc.setTextColor(120);
-  doc.text('Tecnologia em Plataformas Elevatórias', 34, 20.5);
-  doc.text('CNPJ: 41.817.517/0001-55', 34, 25);
-  doc.text('Alameda das Tulipas, 405 — Arujá/SP — CEP 07411-415', 34, 29.5);
-  doc.text('Telefone: (11) 95640-4050', 34, 34);
+  const linhaEmpresa = doc.splitTextToSize('CNPJ: 41.817.517/0001-55  •  Alameda das Tulipas, 405 — Arujá/SP — CEP 07411-415  •  Tel: (11) 95640-4050', 180);
+  doc.text(linhaEmpresa, 14, yLogo);
+  yLogo += 4.5 * linhaEmpresa.length + 5.5;
   doc.setTextColor(0);
   doc.setFontSize(14);
-  let y = 44;
+  let y = yLogo;
   doc.text(titulo, 14, y);
   y += 10;
   doc.setFontSize(10);
@@ -361,25 +364,35 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
   let y = await desenharCabecalhoPdf(doc, 'Recibo de Entrada de Peças (sem valores)', cliente);
   doc.text(`Data de entrada: ${formatData(lote.criadoEm)}`, 14, y);
   y += 10;
-  if (lote.fotos && lote.fotos[0]) {
-    try {
-      doc.addImage(lote.fotos[0], 'JPEG', 140, 34, 56, 56);
-    } catch (err) {
-      try {
-        doc.addImage(lote.fotos[0], 'PNG', 140, 34, 56, 56);
-      } catch (err2) {}
-    }
-  }
   doc.setFontSize(11);
   doc.text('Peças recebidas:', 14, y);
   y += 8;
   doc.setFontSize(10);
   (lote.itens || []).forEach(it => {
-    const linhas = doc.splitTextToSize(`• ${it.pecaDescricao} — Quantidade: ${it.quantidade}`, 120);
+    const linhas = doc.splitTextToSize(`• ${it.pecaDescricao} — Quantidade: ${it.quantidade}`, 180);
     doc.text(linhas, 16, y);
     y += 6 * linhas.length;
   });
   y += 10;
+  if (lote.fotos && lote.fotos[0]) {
+    if (y > 190) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(9.5);
+    doc.setTextColor(120);
+    doc.text('Foto do lote na entrada:', 14, y);
+    y += 5;
+    doc.setTextColor(0);
+    try {
+      doc.addImage(lote.fotos[0], 'JPEG', 14, y, 60, 60);
+    } catch (err) {
+      try {
+        doc.addImage(lote.fotos[0], 'PNG', 14, y, 60, 60);
+      } catch (err2) {}
+    }
+    y += 66;
+  }
   y = desenharRodapeAssinatura(doc, y, assinatura);
   doc.save(`recibo-entrada-${lote.id.slice(0, 8)}.pdf`);
 }
