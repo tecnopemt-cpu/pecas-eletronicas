@@ -439,6 +439,33 @@ function desenharCampoTimbrado(doc, label, valor, x, y) {
   doc.setFont('helvetica', 'normal');
   doc.text(valor || '-', x, y + 4.8);
 }
+
+// Config central dos 3 tipos de documento com assinatura: entrada (no lote),
+// entrega (recibo final, com foto obrigatória) e teste (recibo de entrega para teste,
+// sem foto obrigatória, sem valores, nunca conta como entrega definitiva).
+const TIPOS_ASSINATURA = {
+  entrada: {
+    colecao: 'lotes',
+    campoCodigo: 'codigoAssinaturaEntrada',
+    campoAssinatura: 'assinaturaEntrada',
+    tituloBloco: '🖊️ Assinatura de entrada',
+    tituloTela: 'Assinatura de entrada de peças'
+  },
+  entrega: {
+    colecao: 'orcamentos',
+    campoCodigo: 'codigoAssinaturaEntrega',
+    campoAssinatura: 'assinaturaEntrega',
+    tituloBloco: '🖊️ Assinatura de entrega',
+    tituloTela: 'Assinatura de entrega / faturamento'
+  },
+  teste: {
+    colecao: 'orcamentos',
+    campoCodigo: 'codigoAssinaturaTeste',
+    campoAssinatura: 'assinaturaTeste',
+    tituloBloco: '🖊️ Assinatura — recibo de teste',
+    tituloTela: 'Assinatura — recibo de entrega para teste'
+  }
+};
 async function gerarPdfEntrada(lote, cliente, assinatura) {
   const {
     jsPDF
@@ -763,6 +790,230 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
   doc.save(`Recibo de Entrega de Peças - ${nomeCliente} - Orc${orcamento.numero}${dataArquivo ? ' - ' + dataArquivo : ''}.pdf`);
 }
+async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const margemX = 16;
+  const larguraUtil = 210 - margemX * 2;
+  async function novaPagina() {
+    await desenharTimbradoRodape(doc);
+    doc.addPage();
+    await desenharTimbradoCabecalho(doc);
+    let yy = 58;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(150, 140, 138);
+    doc.text('Recibo de Entrega de Peças em Teste — continuação', margemX, yy);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    return yy + 8;
+  }
+  await desenharTimbradoCabecalho(doc);
+  let y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text('RECIBO DE ENTREGA DE PEÇAS EM TESTE', margemX, y);
+  y += 9;
+
+  // Aviso importante — única caixa de destaque do documento, de propósito:
+  // o conteúdo exige clareza (não é entrega definitiva nem faturamento).
+  doc.setFillColor(253, 243, 231);
+  doc.setDrawColor(233, 115, 7);
+  doc.setLineWidth(0.4);
+  const avisoTexto = doc.splitTextToSize('PEÇAS ENTREGUES PARA TESTE — As peças relacionadas neste documento foram entregues para fins de teste e avaliação. A entrega para teste não caracteriza, por si só, a conclusão do conserto ou o faturamento definitivo das peças.', larguraUtil - 10);
+  const alturaAviso = avisoTexto.length * 4.2 + 8;
+  doc.roundedRect(margemX, y, larguraUtil, alturaAviso, 2, 2, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(150, 80, 10);
+  doc.text(avisoTexto, margemX + 5, y + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+  y += alturaAviso + 10;
+
+  // DADOS DO CLIENTE
+  desenharTituloSecaoTimbrado(doc, 'Dados do cliente', margemX, y);
+  y += 7;
+  desenharCampoTimbrado(doc, 'Cliente', cliente?.razaoSocial, margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'CNPJ/CPF', cliente?.cnpj ? formatCNPJ(cliente.cnpj) : '-', margemX, y);
+  y += 8;
+  const endTxt = [cliente?.endereco, cliente?.bairro, cliente?.cidade && cliente?.uf ? `${cliente.cidade}/${cliente.uf}` : cliente?.cidade].filter(Boolean).join(', ');
+  desenharCampoTimbrado(doc, 'Endereço', endTxt || '-', margemX, y);
+  y += 11;
+
+  // DADOS DO DOCUMENTO
+  desenharTituloSecaoTimbrado(doc, 'Dados do documento', margemX, y);
+  y += 7;
+  const metade = larguraUtil / 2;
+  desenharCampoTimbrado(doc, 'Número do orçamento', `#${orcamento.numero}`, margemX, y);
+  desenharCampoTimbrado(doc, 'Data da entrega', formatData(orcamento.criadoEm), margemX + metade, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'Responsável pela entrega', orcamento.entreguePorTeste || '-', margemX, y);
+  y += 11;
+
+  // PEÇAS ENVIADAS PARA TESTE
+  desenharTituloSecaoTimbrado(doc, 'Peças enviadas para teste', margemX, y);
+  y += 8;
+  const colQtd = margemX,
+    colPeca = margemX + 16,
+    colId = margemX + larguraUtil - 34;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(90, 82, 80);
+  doc.text('QTD.', colQtd, y);
+  doc.text('PEÇA / DESCRIÇÃO', colPeca, y);
+  doc.text('IDENTIFICAÇÃO', colId, y);
+  y += 3;
+  doc.setDrawColor(69, 59, 60);
+  doc.setLineWidth(0.4);
+  doc.line(margemX, y, margemX + larguraUtil, y);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(40, 34, 33);
+  (orcamento.itens || []).forEach(it => {
+    const partes = (it.descricao || '').split(' — ');
+    const codigo = partes.length > 1 ? partes[0] : '-';
+    const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.descricao || '';
+    const linhasDesc = doc.splitTextToSize(descricao, colId - colPeca - 4);
+    doc.text(String(it.qtd), colQtd, y);
+    doc.text(linhasDesc, colPeca, y);
+    doc.text(codigo, colId, y);
+    y += Math.max(6.5, linhasDesc.length * 4.2 + 1.5);
+  });
+  doc.setDrawColor(225, 217, 215);
+  doc.setLineWidth(0.3);
+  doc.line(margemX, y - 2, margemX + larguraUtil, y - 2);
+  y += 12;
+  if (y > 195) {
+    y = await novaPagina();
+  }
+
+  // CONFIRMAÇÃO — Entregue por / Recebido por / assinatura
+  desenharTituloSecaoTimbrado(doc, 'Confirmação da entrega para teste', margemX, y);
+  y += 7;
+  desenharCampoTimbrado(doc, 'Entregue por (Tecnopemt)', orcamento.entreguePorTeste || '-', margemX, y);
+  y += 11;
+  desenharCampoTimbrado(doc, 'Recebido por', assinatura.nome, margemX, y);
+  desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), margemX + metade, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, margemX, y);
+  y += 7;
+  if (assinatura.imagem) {
+    try {
+      doc.addImage(assinatura.imagem, 'PNG', margemX, y, 52, 22);
+    } catch (err) {}
+    doc.setDrawColor(200, 190, 188);
+    doc.setLineWidth(0.3);
+    doc.line(margemX, y + 23, margemX + 52, y + 23);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 140, 138);
+    doc.text('Assinatura', margemX, y + 27);
+    y += 32;
+  }
+  if (y > 270) {
+    y = await novaPagina();
+  }
+  await desenharTimbradoRodape(doc);
+  const dataArquivo = orcamento.criadoEm ? formatData(orcamento.criadoEm).replace(/\//g, '-') : '';
+  const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
+  doc.save(`Recibo de Entrega para Teste - ${nomeCliente} - Orc${orcamento.numero}${dataArquivo ? ' - ' + dataArquivo : ''}.pdf`);
+}
+async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const margemX = 16;
+  const larguraUtil = 210 - margemX * 2;
+  await desenharTimbradoCabecalho(doc);
+  let y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text(`ORÇAMENTO #${orcamento.numero}`, margemX, y);
+  y += 10;
+  desenharTituloSecaoTimbrado(doc, 'Dados do cliente', margemX, y);
+  y += 7;
+  desenharCampoTimbrado(doc, 'Cliente', cliente?.razaoSocial, margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'CNPJ/CPF', cliente?.cnpj ? formatCNPJ(cliente.cnpj) : '-', margemX, y);
+  y += 11;
+  desenharTituloSecaoTimbrado(doc, 'Identificação', margemX, y);
+  y += 7;
+  const metade = larguraUtil / 2;
+  desenharCampoTimbrado(doc, 'Status', orcamento.status || '-', margemX, y);
+  desenharCampoTimbrado(doc, 'Data', formatData(orcamento.criadoEm), margemX + metade, y);
+  y += 8;
+  if (orcamento.numeroPedidoCompras) {
+    desenharCampoTimbrado(doc, 'N. Pedido de Compras', orcamento.numeroPedidoCompras, margemX, y);
+    y += 8;
+  }
+  y += 3;
+  if (orcamento.status === 'Teste') {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(190, 130, 60);
+    doc.text('⚠ Orçamento em teste — valores e comissão ainda não confirmados.', margemX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    y += 9;
+  }
+  desenharTituloSecaoTimbrado(doc, 'Itens', margemX, y);
+  y += 8;
+  const colDescricao = margemX,
+    colQtd = margemX + larguraUtil - 52,
+    colValor = margemX + larguraUtil - 24;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(90, 82, 80);
+  doc.text('DESCRIÇÃO', colDescricao, y);
+  doc.text('QTD.', colQtd, y);
+  doc.text('VALOR', colValor, y);
+  y += 3;
+  doc.setDrawColor(69, 59, 60);
+  doc.setLineWidth(0.4);
+  doc.line(margemX, y, margemX + larguraUtil, y);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(40, 34, 33);
+  (orcamento.itens || []).forEach(it => {
+    const subtotal = (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0);
+    const linhas = doc.splitTextToSize(it.descricao || '', colQtd - colDescricao - 4);
+    doc.text(linhas, colDescricao, y);
+    doc.text(String(it.qtd), colQtd, y);
+    doc.text(formatMoeda(subtotal), colValor, y);
+    y += Math.max(6.5, linhas.length * 4.2 + 1.5);
+  });
+  doc.setDrawColor(69, 59, 60);
+  doc.setLineWidth(0.3);
+  doc.line(margemX, y - 1.5, margemX + larguraUtil, y - 1.5);
+  y += 6;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.text('TOTAL', colDescricao, y);
+  doc.text(formatMoeda(orcamento.total), margemX + larguraUtil, y, {
+    align: 'right'
+  });
+  doc.setFont('helvetica', 'normal');
+  y += 11;
+  if (orcamento.observacao) {
+    desenharTituloSecaoTimbrado(doc, 'Observação', margemX, y);
+    y += 7;
+    doc.setFontSize(9.5);
+    doc.setTextColor(70, 62, 61);
+    const linhasObs = doc.splitTextToSize(orcamento.observacao, larguraUtil);
+    doc.text(linhasObs, margemX, y);
+  }
+  await desenharTimbradoRodape(doc);
+  const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
+  doc.save(`Orcamento ${orcamento.numero} - ${nomeCliente}.pdf`);
+}
 function PainelAssinatura({
   onMudar
 }) {
@@ -847,6 +1098,7 @@ function FormularioAssinatura({
   const [cpf, setCpf] = useState('');
   const [assinaturaImg, setAssinaturaImg] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const semValores = tipo !== 'entrega';
   async function gerarImagemTexto(texto) {
     if (!texto.trim()) {
       setAssinaturaImg('');
@@ -888,7 +1140,7 @@ function FormularioAssinatura({
     setEnviando(true);
     const [localizacao, ip] = await Promise.all([coletarLocalizacao(), coletarIp()]);
     const agora = new Date();
-    const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
+    const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
     const assinatura = {
       nome: nome.trim(),
       cpf: cpf.replace(/\D/g, ''),
@@ -905,7 +1157,7 @@ function FormularioAssinatura({
         ...assinatura,
         dataTexto: agora.toLocaleString('pt-BR')
       };
-      if (tipo === 'entrada') await gerarPdfEntrada(documento, cliente, assinaturaPdf);else await gerarPdfEntrega(documento, cliente, assinaturaPdf);
+      if (tipo === 'entrada') await gerarPdfEntrada(documento, cliente, assinaturaPdf);else if (tipo === 'teste') await gerarPdfEntregaTeste(documento, cliente, assinaturaPdf);else await gerarPdfEntrega(documento, cliente, assinaturaPdf);
       onConcluido && onConcluido();
     } catch (err) {
       console.error(err);
@@ -921,7 +1173,7 @@ function FormularioAssinatura({
       marginBottom: 10,
       color: 'var(--texto-fraco)'
     }
-  }, tipo === 'entrada' ? 'Confira as peças abaixo antes de assinar:' : 'Confira os itens e valores abaixo antes de assinar:'), /*#__PURE__*/React.createElement("div", {
+  }, semValores ? 'Confira as peças abaixo antes de assinar:' : 'Confira os itens e valores abaixo antes de assinar:'), /*#__PURE__*/React.createElement("div", {
     style: {
       maxHeight: 150,
       overflowY: 'auto',
@@ -936,17 +1188,29 @@ function FormularioAssinatura({
     style: {
       marginBottom: 4
     }
-  }, it.pecaDescricao, " — Qtd: ", it.quantidade)) : (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+  }, it.pecaDescricao, " — Qtd: ", it.quantidade)) : tipo === 'teste' ? (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
       marginBottom: 4
     }
-  }, it.descricao, " — Qtd: ", it.qtd, " — ", formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0)))), tipo !== 'entrada' && /*#__PURE__*/React.createElement("div", {
+  }, it.descricao, " — Qtd: ", it.qtd)) : (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: 4
+    }
+  }, it.descricao, " — Qtd: ", it.qtd, " — ", formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0)))), !semValores && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 6,
       fontWeight: 700
     }
-  }, "Total: ", formatMoeda(documento.total))), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+  }, "Total: ", formatMoeda(documento.total)), tipo === 'teste' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontSize: 11.5,
+      color: 'var(--laranja-escuro)',
+      fontWeight: 600
+    }
+  }, "⚠️ Entrega para teste — não representa conclusão do conserto nem faturamento.")), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
     value: nome,
     onChange: e => setNome(e.target.value),
     required: true
@@ -1023,9 +1287,9 @@ function TelaAssinatura({
   const [codigoValidado, setCodigoValidado] = useState(false);
   const [erroCodigo, setErroCodigo] = useState('');
   const [concluido, setConcluido] = useState(false);
-  const colecao = tipo === 'entrada' ? 'lotes' : 'orcamentos';
-  const campoCodigo = tipo === 'entrada' ? 'codigoAssinaturaEntrada' : 'codigoAssinaturaEntrega';
-  const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
+  const colecao = TIPOS_ASSINATURA[tipo].colecao;
+  const campoCodigo = TIPOS_ASSINATURA[tipo].campoCodigo;
+  const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
   useEffect(() => {
     (async () => {
       try {
@@ -1123,7 +1387,7 @@ function TelaAssinatura({
       fontSize: 12,
       color: 'var(--texto-fraco)'
     }
-  }, tipo === 'entrada' ? 'Assinatura de entrada de peças' : 'Assinatura de entrega / faturamento'))), concluido ? /*#__PURE__*/React.createElement("div", {
+  }, TIPOS_ASSINATURA[tipo].tituloTela))), concluido ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: '20px 4px'
@@ -1150,7 +1414,7 @@ function TelaAssinatura({
       fontSize: 13.5,
       marginBottom: 10
     }
-  }, "Cliente: ", /*#__PURE__*/React.createElement("strong", null, cliente?.razaoSocial || '-'), /*#__PURE__*/React.createElement("br", null), tipo === 'entrada' ? `Confirmando a entrada de ${(documento.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0)} peça(s) para análise/conserto.` : `Confirmando a entrega e o valor do orçamento #${documento.numero}: ${formatMoeda(documento.total)}.`), /*#__PURE__*/React.createElement("label", null, "Código de verificação"), /*#__PURE__*/React.createElement("input", {
+  }, "Cliente: ", /*#__PURE__*/React.createElement("strong", null, cliente?.razaoSocial || '-'), /*#__PURE__*/React.createElement("br", null), tipo === 'entrada' ? `Confirmando a entrada de ${(documento.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0)} peça(s) para análise/conserto.` : tipo === 'teste' ? `Confirmando a entrega de ${(documento.itens || []).reduce((s, i) => s + (Number(i.qtd) || 0), 0)} peça(s) para teste — não é entrega definitiva nem faturamento.` : `Confirmando a entrega e o valor do orçamento #${documento.numero}: ${formatMoeda(documento.total)}.`), /*#__PURE__*/React.createElement("label", null, "Código de verificação"), /*#__PURE__*/React.createElement("input", {
     value: codigo,
     onChange: e => setCodigo(e.target.value),
     placeholder: "Digite o código de 6 dígitos",
@@ -1321,17 +1585,25 @@ function BlocoAssinatura({
 }) {
   const [processando, setProcessando] = useState(false);
   const [modalPresencialAberto, setModalPresencialAberto] = useState(false);
-  const campoCodigo = tipo === 'entrada' ? 'codigoAssinaturaEntrada' : 'codigoAssinaturaEntrega';
-  const campoAssinatura = tipo === 'entrada' ? 'assinaturaEntrada' : 'assinaturaEntrega';
+  const campoCodigo = TIPOS_ASSINATURA[tipo].campoCodigo;
+  const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
   const assinatura = documento[campoAssinatura];
   const fotoObrigatoriaFaltando = tipo === 'entrega' && !documento.fotoEntrega;
   const codigo = documento[campoCodigo];
+  async function registrarEntreguePor() {
+    if (tipo === 'teste' && !documento.entreguePorTeste && usuario?.nome) {
+      await db.collection(colecao).doc(documento.id).update({
+        entreguePorTeste: usuario.nome
+      });
+    }
+  }
   async function gerarLink() {
     if (fotoObrigatoriaFaltando) {
       alert('Registre a foto das peças finalizadas para liberar a assinatura.');
       return;
     }
     setProcessando(true);
+    await registrarEntreguePor();
     const novoCodigo = gerarCodigoAssinatura();
     await db.collection(colecao).doc(documento.id).update({
       [campoCodigo]: novoCodigo
@@ -1347,10 +1619,11 @@ function BlocoAssinatura({
       ...assinatura,
       dataTexto: assinatura.dataAssinatura?.toDate ? assinatura.dataAssinatura.toDate().toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR')
     };
-    if (tipo === 'entrada') await gerarPdfEntrada(documento, cliente, assinaturaPdf);else await gerarPdfEntrega(documento, cliente, assinaturaPdf);
+    if (tipo === 'entrada') await gerarPdfEntrada(documento, cliente, assinaturaPdf);else if (tipo === 'teste') await gerarPdfEntregaTeste(documento, cliente, assinaturaPdf);else await gerarPdfEntrega(documento, cliente, assinaturaPdf);
   }
   if (assinatura) {
     const mapsLink = assinatura.localizacao ? `https://www.google.com/maps?q=${assinatura.localizacao.lat},${assinatura.localizacao.lng}` : null;
+    const rotuloAssinado = tipo === 'entrada' ? 'Entrada assinada' : tipo === 'teste' ? 'Recibo de teste assinado' : 'Entrega assinada';
     return /*#__PURE__*/React.createElement("div", {
       className: "card",
       style: {
@@ -1364,12 +1637,12 @@ function BlocoAssinatura({
         fontWeight: 700,
         color: 'var(--verde)'
       }
-    }, "✓ ", tipo === 'entrada' ? 'Entrada assinada' : 'Entrega assinada', " por ", assinatura.nome), /*#__PURE__*/React.createElement("div", {
+    }, "✓ ", rotuloAssinado, " por ", assinatura.nome), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11.5,
         color: 'var(--texto-fraco)'
       }
-    }, "CPF ", formatarCPF(assinatura.cpf)), documento.fotoEntrega && /*#__PURE__*/React.createElement("div", {
+    }, "CPF ", formatarCPF(assinatura.cpf)), tipo === 'entrega' && documento.fotoEntrega && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: 'var(--texto-fraco)',
@@ -1413,7 +1686,7 @@ function BlocoAssinatura({
       fontWeight: 700,
       marginBottom: 6
     }
-  }, tipo === 'entrada' ? '🖊️ Assinatura de entrada' : '🖊️ Assinatura de entrega'), tipo === 'entrega' && /*#__PURE__*/React.createElement(RegistroFotograficoEntrega, {
+  }, TIPOS_ASSINATURA[tipo].tituloBloco), tipo === 'entrega' && /*#__PURE__*/React.createElement(RegistroFotograficoEntrega, {
     documento: documento,
     usuario: usuario
   }), /*#__PURE__*/React.createElement("div", {
@@ -1427,11 +1700,12 @@ function BlocoAssinatura({
     type: "button",
     className: "btn secundario pequeno",
     disabled: fotoObrigatoriaFaltando,
-    onClick: () => {
+    onClick: async () => {
       if (fotoObrigatoriaFaltando) {
         alert('Registre a foto das peças finalizadas para liberar a assinatura.');
         return;
       }
+      await registrarEntreguePor();
       setModalPresencialAberto(true);
     }
   }, "Assinar agora (presencial)"), /*#__PURE__*/React.createElement("button", {
@@ -1754,7 +2028,7 @@ function App() {
   const paramsUrl = new URLSearchParams(window.location.search);
   const assinarTipo = paramsUrl.get('assinar');
   const assinarId = paramsUrl.get('id');
-  if ((assinarTipo === 'entrada' || assinarTipo === 'entrega') && assinarId) {
+  if ((assinarTipo === 'entrada' || assinarTipo === 'entrega' || assinarTipo === 'teste') && assinarId) {
     return /*#__PURE__*/React.createElement(TelaAssinatura, {
       tipo: assinarTipo,
       id: assinarId
@@ -3770,6 +4044,235 @@ function ModalConfirmarTeste({
     onClick: aoFechar
   }, "Cancelar"))));
 }
+function ModalCopiarOrcamento({
+  orcamento,
+  funcionarios,
+  aoFechar
+}) {
+  const [selecionados, setSelecionados] = useState(() => new Set((orcamento.itens || []).map((_, i) => i)));
+  const [processando, setProcessando] = useState(false);
+  function alternar(i) {
+    setSelecionados(prev => {
+      const novo = new Set(prev);
+      if (novo.has(i)) novo.delete(i);else novo.add(i);
+      return novo;
+    });
+  }
+  function totalDe(itens) {
+    return itens.reduce((s, it) => {
+      const travado = it.tipo === 'garantia' || it.tipo === 'naoConsertada';
+      return s + (Number(it.qtd) || 0) * (travado ? 0 : Number(it.valorUnit) || 0);
+    }, 0);
+  }
+  async function criarCopia() {
+    const itensNovos = (orcamento.itens || []).filter((_, i) => selecionados.has(i));
+    if (itensNovos.length === 0) {
+      alert('Selecione ao menos uma peça para copiar.');
+      return;
+    }
+    setProcessando(true);
+    try {
+      const itensRestantes = (orcamento.itens || []).filter((_, i) => !selecionados.has(i));
+      const totalNovo = totalDe(itensNovos);
+      const totalRestante = totalDe(itensRestantes);
+      const comissoesNovas = calcularComissoesOrcamento(totalNovo, funcionarios);
+      const comissaoTotalNovo = comissoesNovas.reduce((s, c) => s + c.valor, 0);
+      const snap = await db.collection('orcamentos').get();
+      const novoNumero = snap.size + 1;
+      const refNovo = await db.collection('orcamentos').add({
+        numero: novoNumero,
+        clienteId: orcamento.clienteId,
+        validade: orcamento.validade || '',
+        numeroPedidoCompras: orcamento.numeroPedidoCompras || '',
+        observacao: orcamento.observacao || '',
+        itens: itensNovos,
+        total: totalNovo,
+        comissaoTotal: comissaoTotalNovo,
+        status: 'Pendente orçamento',
+        loteId: orcamento.loteId || null,
+        historico: [{
+          data: new Date().toISOString(),
+          texto: `Orçamento criado a partir da separação de peças do orçamento #${orcamento.numero}.`
+        }],
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      if (comissoesNovas.length > 0) {
+        const opBatch = db.batch();
+        comissoesNovas.forEach(c => {
+          opBatch.set(db.collection('comissoes').doc(), {
+            funcionarioId: c.funcionarioId,
+            orcamentoId: refNovo.id,
+            valor: c.valor,
+            data: firebase.firestore.FieldValue.serverTimestamp(),
+            lancadoPor: 'Cópia de orçamento'
+          });
+        });
+        await opBatch.commit();
+      }
+      const nomesTransferidos = itensNovos.map(it => it.descricao).join(', ');
+      await db.collection('orcamentos').doc(orcamento.id).update({
+        itens: itensRestantes,
+        total: totalRestante,
+        comissaoTotal: calcularComissoesOrcamento(totalRestante, funcionarios).reduce((s, c) => s + c.valor, 0),
+        historico: [...(orcamento.historico || []), {
+          data: new Date().toISOString(),
+          texto: `Peça(s) "${nomesTransferidos}" separada(s) e enviada(s) para o orçamento #${novoNumero}.`
+        }]
+      });
+      aoFechar();
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui criar a cópia. Tente novamente.');
+    }
+    setProcessando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 480
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Copiar orçamento #", orcamento.numero), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)',
+      marginBottom: 10
+    }
+  }, "Selecione as peças que irão para o novo orçamento. Elas saem do #", orcamento.numero, " e passam a pertencer só à cópia."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+      maxHeight: 280,
+      overflowY: 'auto',
+      marginBottom: 14
+    }
+  }, (orcamento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("label", {
+    key: i,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      fontSize: 13.5,
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      padding: '8px 10px',
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: selecionados.has(i),
+    onChange: () => alternar(i),
+    style: {
+      width: 'auto'
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, it.descricao, " — Qtd: ", it.qtd), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--texto-fraco)'
+    }
+  }, formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0))))), (orcamento.itens || []).length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Este orçamento não tem itens.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: processando,
+    onClick: criarCopia
+  }, processando ? 'Criando...' : 'Criar cópia'))));
+}
+function ModalMenuOrcamento({
+  orcamento,
+  cliente,
+  aoExcluir,
+  aoCopiar,
+  aoFechar
+}) {
+  const [imprimindo, setImprimindo] = useState(false);
+  async function imprimir() {
+    setImprimindo(true);
+    try {
+      await gerarPdfOrcamentoImpressao(orcamento, cliente);
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui gerar o PDF.');
+    }
+    setImprimindo(false);
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 340
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Orçamento #", orcamento.numero), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    style: {
+      justifyContent: 'flex-start'
+    },
+    onClick: aoCopiar
+  }, "📄 Copiar orçamento"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    style: {
+      justifyContent: 'flex-start'
+    },
+    disabled: imprimindo,
+    onClick: imprimir
+  }, imprimindo ? 'Gerando...' : '🖨️ Imprimir'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    style: {
+      justifyContent: 'flex-start'
+    },
+    onClick: aoExcluir
+  }, "🗑️ Excluir")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
 function AbaOrcamentos({
   usuario
 }) {
@@ -3781,6 +4284,9 @@ function AbaOrcamentos({
   const [busca, setBusca] = useState('');
   const [buscaFocada, setBuscaFocada] = useState(false);
   const [testeParaConfirmar, setTesteParaConfirmar] = useState(null);
+  const [funcionarios] = useColecao('funcionarios');
+  const [menuOrcamento, setMenuOrcamento] = useState(null);
+  const [orcamentoParaCopiar, setOrcamentoParaCopiar] = useState(null);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const buscaTrim = busca.trim();
   const buscaLower = buscaTrim.toLowerCase();
@@ -3977,10 +4483,21 @@ function AbaOrcamentos({
       }
     }, itensDoStatus.map(o => /*#__PURE__*/React.createElement("div", {
       key: o.id,
-      className: "card",
+      className: "card clicavel",
       style: {
         padding: 13,
         boxShadow: '0 1px 2px rgba(69,59,60,.08)'
+      },
+      onClick: () => {
+        setEditando(o);
+        setModalAberto(true);
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 6
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -3988,7 +4505,25 @@ function AbaOrcamentos({
         fontSize: 14.5,
         lineHeight: 1.3
       }
-    }, "#", o.numero, " — ", nomeCliente(o.clienteId)), o.numeroPedidoCompras && /*#__PURE__*/React.createElement("div", {
+    }, "#", o.numero, " — ", nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: e => {
+        e.stopPropagation();
+        setMenuOrcamento(o);
+      },
+      style: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        fontSize: 18,
+        lineHeight: 1,
+        padding: '2px 6px',
+        color: 'var(--texto-fraco)',
+        flexShrink: 0,
+        borderRadius: 6
+      },
+      title: "Mais ações"
+    }, "⋮")), o.numeroPedidoCompras && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 12,
         color: 'var(--texto-fraco)',
@@ -4019,7 +4554,9 @@ function AbaOrcamentos({
         color: 'var(--texto-fraco)',
         marginTop: 5
       }
-    }, "📅 ", formatData(o.criadoEm)), /*#__PURE__*/React.createElement("select", {
+    }, "📅 ", formatData(o.criadoEm)), /*#__PURE__*/React.createElement("div", {
+      onClick: e => e.stopPropagation()
+    }, /*#__PURE__*/React.createElement("select", {
       value: o.status,
       onChange: e => mudarStatus(o, e.target.value),
       className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`,
@@ -4033,7 +4570,8 @@ function AbaOrcamentos({
     }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
       key: s,
       value: s
-    }, s))), status === 'Teste' && /*#__PURE__*/React.createElement("div", {
+    }, s)))), status === 'Teste' && /*#__PURE__*/React.createElement("div", {
+      onClick: e => e.stopPropagation(),
       style: {
         marginTop: 9,
         padding: 9,
@@ -4097,22 +4635,18 @@ function AbaOrcamentos({
         marginTop: 7
       },
       onClick: () => setTesteParaConfirmar(o)
-    }, "Confirmar resultado do teste"))), /*#__PURE__*/React.createElement("div", {
+    }, "Confirmar resultado do teste")), /*#__PURE__*/React.createElement("div", {
       style: {
-        display: 'flex',
-        gap: 6,
         marginTop: 9
       }
-    }, /*#__PURE__*/React.createElement("button", {
-      className: "btn secundario pequeno",
-      onClick: () => {
-        setEditando(o);
-        setModalAberto(true);
-      }
-    }, "Editar"), /*#__PURE__*/React.createElement("button", {
-      className: "btn perigo pequeno",
-      onClick: () => excluir(o)
-    }, "Excluir")), status === 'Entregue/Faturado' && /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
+      tipo: "teste",
+      documento: o,
+      cliente: clientes.find(c => c.id === o.clienteId),
+      colecao: "orcamentos",
+      usuario: usuario
+    }))), status === 'Entregue/Faturado' && /*#__PURE__*/React.createElement("div", {
+      onClick: e => e.stopPropagation(),
       style: {
         marginTop: 9
       }
@@ -4139,6 +4673,23 @@ function AbaOrcamentos({
   }), testeParaConfirmar && /*#__PURE__*/React.createElement(ModalConfirmarTeste, {
     orcamento: testeParaConfirmar,
     aoFechar: () => setTesteParaConfirmar(null)
+  }), menuOrcamento && /*#__PURE__*/React.createElement(ModalMenuOrcamento, {
+    orcamento: menuOrcamento,
+    cliente: clientes.find(c => c.id === menuOrcamento.clienteId),
+    aoExcluir: () => {
+      const o = menuOrcamento;
+      setMenuOrcamento(null);
+      excluir(o);
+    },
+    aoCopiar: () => {
+      setOrcamentoParaCopiar(menuOrcamento);
+      setMenuOrcamento(null);
+    },
+    aoFechar: () => setMenuOrcamento(null)
+  }), orcamentoParaCopiar && /*#__PURE__*/React.createElement(ModalCopiarOrcamento, {
+    orcamento: orcamentoParaCopiar,
+    funcionarios: funcionarios,
+    aoFechar: () => setOrcamentoParaCopiar(null)
   }));
 }
 function ModalOrcamento({
@@ -4366,7 +4917,24 @@ function ModalOrcamento({
     cliente: clientes.find(c => c.id === clienteId),
     colecao: "orcamentos",
     usuario: usuario
-  })), /*#__PURE__*/React.createElement("div", {
+  })), orcamento && orcamento.historico && orcamento.historico.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("label", null, "Histórico"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, orcamento.historico.map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: i < orcamento.historico.length - 1 ? 6 : 0
+    }
+  }, new Date(h.data).toLocaleDateString('pt-BR'), " — ", h.texto)))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
