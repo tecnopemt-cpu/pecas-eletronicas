@@ -42,23 +42,35 @@
   html,body{margin:0;overscroll-behavior-y:none;}
   body{font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--fundo);color:var(--texto);}
   button{font-family:inherit;cursor:pointer;}
-  input,select,textarea{font-family:inherit;background:var(--input-bg);border:1px solid var(--borda);color:var(--texto);border-radius:8px;padding:11px 12px;font-size:16px;width:100%;}
+  input,select,textarea{font-family:inherit;background:var(--input-bg);border:1px solid var(--borda);color:var(--texto);border-radius:8px;padding:11px 12px;font-size:16px;width:100%;transition:border-color .15s ease, box-shadow .15s ease;}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--laranja);border-color:var(--laranja);}
+  @media (hover:hover){
+    input:hover:not(:disabled):not(:focus),select:hover:not(:disabled):not(:focus),textarea:hover:not(:disabled):not(:focus){border-color:#c9bab8;}
+  }
   label{font-size:12.5px;color:var(--texto-fraco);display:block;margin-bottom:4px;margin-top:10px;font-weight:600;}
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   th{text-align:left;color:var(--texto-fraco);font-weight:600;padding:10px;border-bottom:1px solid var(--borda);white-space:nowrap;}
   td{padding:11px 10px;border-bottom:1px solid var(--borda);vertical-align:middle;}
-  tr:hover td{background:#FAF8F7;}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--laranja);color:#fff;border:none;padding:11px 16px;border-radius:8px;font-size:14px;font-weight:700;min-height:42px;}
-  .btn:hover{background:var(--laranja-escuro);}
+  tbody tr{transition:background-color .12s ease;}
+  @media (hover:hover){ tr:hover td{background:#FAF8F7;} }
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--laranja);color:#fff;border:none;padding:11px 16px;border-radius:8px;font-size:14px;font-weight:700;min-height:42px;transition:background-color .15s ease, box-shadow .15s ease, transform .08s ease;}
+  @media (hover:hover){
+    .btn:hover:not(:disabled){background:var(--laranja-escuro);box-shadow:0 2px 8px rgba(198,102,15,.28);}
+    .btn.secundario:hover:not(:disabled){background:var(--borda);box-shadow:0 1px 4px rgba(69,59,60,.1);}
+    .btn.perigo:hover:not(:disabled){background:#f5d4cf;box-shadow:0 1px 4px rgba(192,57,43,.18);}
+    .btn.verde:hover:not(:disabled){background:#d9f0e2;box-shadow:0 1px 4px rgba(47,142,87,.18);}
+  }
+  .btn:active:not(:disabled){transform:translateY(1px);box-shadow:none;}
   .btn.secundario{background:var(--fundo);color:var(--texto);border:1px solid var(--borda);}
-  .btn.secundario:hover{background:var(--borda);}
   .btn.perigo{background:var(--vermelho-bg);color:var(--vermelho);}
-  .btn.perigo:hover{background:#f5d4cf;}
   .btn.verde{background:var(--verde-bg);color:var(--verde);}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
   .btn.pequeno{padding:7px 11px;font-size:12.5px;min-height:34px;}
-  .card{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:18px;}
+  .card{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:18px;transition:box-shadow .15s ease, border-color .15s ease;}
+  .card.clicavel{cursor:pointer;}
+  @media (hover:hover){ .card.clicavel:hover{box-shadow:0 4px 14px rgba(69,59,60,.12);border-color:#d8c9c7;} }
+  .foto-clicavel{cursor:pointer;transition:opacity .15s ease, box-shadow .15s ease;}
+  @media (hover:hover){ .foto-clicavel:hover{opacity:.82;box-shadow:0 0 0 2px rgba(233,115,7,.3);} }
   .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
   .badge.estoque{background:var(--fundo);color:var(--dark-soft);border:1px solid var(--borda);}
   .badge.conserto{background:var(--laranja-bg);color:var(--laranja-escuro);}
@@ -80,10 +92,20 @@
   .topo-app .titulo{font-weight:700;font-size:15px;line-height:1.15;}
   .topo-app .subtitulo{font-size:11.5px;color:#D8C9C7;}
   .nav-inferior{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--borda);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 10px rgba(69,59,60,.06);}
-  .nav-inferior button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;padding:9px 2px 8px;color:var(--texto-fraco);font-size:10.5px;font-weight:600;}
+  .nav-inferior button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;padding:9px 2px 8px;color:var(--texto-fraco);font-size:10.5px;font-weight:600;border-radius:8px;transition:background-color .15s ease, color .15s ease;}
   .nav-inferior button .icone{font-size:19px;line-height:1;}
   .nav-inferior button.ativo{color:var(--laranja);}
+  @media (hover:hover){
+    .nav-inferior button:not(.ativo):hover{background:var(--fundo);color:var(--laranja-escuro);}
+  }
   .conteudo-app{max-width:1000px;margin:0 auto;padding:18px 16px calc(var(--nav-h) + 24px);}
+
+  /* ---- Telas em modo painel de tela cheia (Orçamento, Cadastro de Peças, Entrada de Peças, Clientes) ---- */
+  .painel-tela{display:flex;flex-direction:column;height:100%;}
+  .painel-cabecalho{flex-shrink:0;}
+  .painel-tabela{flex:1;min-height:0;overflow:auto;padding:0;}
+  .painel-tabela table{width:100%;}
+  .painel-tabela thead th{position:sticky;top:0;background:var(--card);z-index:5;box-shadow:0 1px 0 var(--borda);}
 
   @media (max-width:640px){
     .grid2{grid-template-columns:1fr;}
@@ -1796,7 +1818,7 @@ function App() {
     nome: 'Equipe',
     icone: '👤'
   }];
-  const modoPainelCheio = aba === 'orcamentos';
+  const modoPainelCheio = ['orcamentos', 'catalogo', 'lotes', 'clientes'].includes(aba);
   return /*#__PURE__*/React.createElement("div", {
     style: modoPainelCheio ? {
       height: '100dvh',
@@ -2053,12 +2075,16 @@ function AbaClientes() {
     setImportando(false);
     if (inputImportRef.current) inputImportRef.current.value = '';
   }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "painel-tela"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "painel-cabecalho"
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16,
+      marginBottom: 14,
       flexWrap: 'wrap',
       gap: 10
     }
@@ -2113,12 +2139,8 @@ function AbaClientes() {
     className: "btn perigo",
     disabled: excluindoLote,
     onClick: excluirSelecionados
-  }, excluindoLote ? 'Excluindo...' : `🗑️ Excluir selecionados (${selecionados.size})`)), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      overflowX: 'auto',
-      padding: 0
-    }
+  }, excluindoLote ? 'Excluindo...' : `🗑️ Excluir selecionados (${selecionados.size})`))), /*#__PURE__*/React.createElement("div", {
+    className: "card painel-tabela"
   }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
     style: {
       width: 34
@@ -2339,12 +2361,16 @@ function AbaCatalogo() {
     if (!confirmarSenhaMaster('Digite a senha master para excluir esta peça:')) return;
     await db.collection('catalogoPecas').doc(p.id).delete();
   }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "painel-tela"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "painel-cabecalho"
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16,
+      marginBottom: 14,
       flexWrap: 'wrap',
       gap: 10
     }
@@ -2366,12 +2392,8 @@ function AbaCatalogo() {
       marginBottom: 14,
       maxWidth: 320
     }
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      overflowX: 'auto',
-      padding: 0
-    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card painel-tabela"
   }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "PN"), /*#__PURE__*/React.createElement("th", null, "Descrição"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Valor conserto"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(p => /*#__PURE__*/React.createElement("tr", {
     key: p.id
   }, /*#__PURE__*/React.createElement("td", null, p.fotos && p.fotos[0] ? /*#__PURE__*/React.createElement("img", {
@@ -2856,12 +2878,16 @@ function AbaLotes({
     opBatch.delete(db.collection('lotes').doc(l.id));
     await opBatch.commit();
   }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "painel-tela"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "painel-cabecalho"
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16,
+      marginBottom: 14,
       flexWrap: 'wrap',
       gap: 10
     }
@@ -2884,20 +2910,13 @@ function AbaLotes({
   }, "Todos os status"), STATUS_LOTE.map(s => /*#__PURE__*/React.createElement("option", {
     key: s,
     value: s
-  }, s))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      overflowX: 'auto',
-      padding: 0
-    }
+  }, s)))), /*#__PURE__*/React.createElement("div", {
+    className: "card painel-tabela"
   }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id
   }, /*#__PURE__*/React.createElement("td", null, l.fotos && l.fotos[0] ? /*#__PURE__*/React.createElement("img", {
     src: l.fotos[0],
-    className: "foto-thumb",
-    style: {
-      cursor: 'pointer'
-    },
+    className: "foto-thumb foto-clicavel",
     onClick: () => setFotoAmpliada(l.fotos[0])
   }) : /*#__PURE__*/React.createElement("div", {
     className: "foto-thumb",
@@ -3396,13 +3415,13 @@ function ModalLoteDetalhe({
   }, lote.fotos.map((foto, i) => /*#__PURE__*/React.createElement("img", {
     key: i,
     src: foto,
+    className: "foto-clicavel",
     style: {
       width: 56,
       height: 56,
       objectFit: 'cover',
       borderRadius: 8,
-      border: '1px solid var(--borda)',
-      cursor: 'pointer'
+      border: '1px solid var(--borda)'
     },
     onClick: () => setFotoAmpliada(foto)
   }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
