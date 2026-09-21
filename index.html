@@ -71,6 +71,9 @@
   @media (hover:hover){ .card.clicavel:hover{box-shadow:0 4px 14px rgba(69,59,60,.12);border-color:#d8c9c7;} }
   .foto-clicavel{cursor:pointer;transition:opacity .15s ease, box-shadow .15s ease;}
   @media (hover:hover){ .foto-clicavel:hover{opacity:.82;box-shadow:0 0 0 2px rgba(233,115,7,.3);} }
+  .linha-clicavel{cursor:pointer;}
+  .btn-menu-pontos{background:none;border:none;cursor:pointer;font-size:18px;line-height:1;padding:5px 9px;color:var(--texto-fraco);border-radius:6px;transition:background-color .15s ease,color .15s ease;}
+  @media (hover:hover){ .btn-menu-pontos:hover{background:var(--fundo);color:var(--texto);} }
   .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
   .badge.estoque{background:var(--fundo);color:var(--dark-soft);border:1px solid var(--borda);}
   .badge.conserto{background:var(--laranja-bg);color:var(--laranja-escuro);}
@@ -965,6 +968,215 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   const dataArquivo = orcamento.criadoEm ? formatData(orcamento.criadoEm).replace(/\//g, '-') : '';
   const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
   doc.save(`Recibo de Entrega para Teste - ${nomeCliente} - Orc${orcamento.numero}${dataArquivo ? ' - ' + dataArquivo : ''}.pdf`);
+}
+async function gerarPdfPecaImpressao(peca) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const margemX = 16;
+  const larguraUtil = 210 - margemX * 2;
+  await desenharTimbradoCabecalho(doc);
+  let y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text('FICHA DA PEÇA', margemX, y);
+  y += 10;
+  desenharTituloSecaoTimbrado(doc, 'Dados da peça', margemX, y);
+  y += 7;
+  desenharCampoTimbrado(doc, 'Código (PN)', peca.codigo || '-', margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'Descrição', peca.descricao || '-', margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'Categoria', peca.categoria || '-', margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'Valor do conserto', formatMoeda(peca.valorConserto), margemX, y);
+  y += 12;
+  if (peca.fotos && peca.fotos[0]) {
+    desenharTituloSecaoTimbrado(doc, 'Foto', margemX, y);
+    y += 7;
+    try {
+      doc.addImage(peca.fotos[0], 'JPEG', margemX, y, 55, 55);
+    } catch (err) {
+      try {
+        doc.addImage(peca.fotos[0], 'PNG', margemX, y, 55, 55);
+      } catch (err2) {}
+    }
+  }
+  await desenharTimbradoRodape(doc);
+  const nomePeca = (peca.codigo || peca.descricao || 'Peca').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
+  doc.save(`Ficha da Peça - ${nomePeca}.pdf`);
+}
+async function gerarPdfClienteImpressao(cliente) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const margemX = 16;
+  await desenharTimbradoCabecalho(doc);
+  let y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text('FICHA DO CLIENTE', margemX, y);
+  y += 10;
+  desenharTituloSecaoTimbrado(doc, 'Dados cadastrais', margemX, y);
+  y += 7;
+  desenharCampoTimbrado(doc, 'Razão social', cliente.razaoSocial || '-', margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'Nome fantasia', cliente.nomeFantasia || '-', margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'CNPJ/CPF', cliente.cnpj ? formatCNPJ(cliente.cnpj) : '-', margemX, y);
+  y += 8;
+  if (cliente.ie) {
+    desenharCampoTimbrado(doc, 'Inscrição estadual', cliente.ie, margemX, y);
+    y += 8;
+  }
+  const endTxt = [cliente.endereco, cliente.bairro, cliente.cidade && cliente.uf ? `${cliente.cidade}/${cliente.uf}` : cliente.cidade, cliente.cep].filter(Boolean).join(', ');
+  desenharCampoTimbrado(doc, 'Endereço', endTxt || '-', margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'Telefone', cliente.telefone || '-', margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'E-mail', cliente.email || '-', margemX, y);
+  await desenharTimbradoRodape(doc);
+  const nomeCliente = (cliente.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
+  doc.save(`Ficha do Cliente - ${nomeCliente}.pdf`);
+}
+async function gerarPdfLoteImpressao(lote, cliente) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const margemX = 16;
+  const larguraUtil = 210 - margemX * 2;
+  await desenharTimbradoCabecalho(doc);
+  let y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text('ENTRADA DE PEÇAS', margemX, y);
+  y += 10;
+  desenharTituloSecaoTimbrado(doc, 'Dados do cliente', margemX, y);
+  y += 7;
+  desenharCampoTimbrado(doc, 'Cliente', cliente?.razaoSocial, margemX, y);
+  y += 8;
+  desenharCampoTimbrado(doc, 'CNPJ/CPF', cliente?.cnpj ? formatCNPJ(cliente.cnpj) : '-', margemX, y);
+  y += 11;
+  desenharTituloSecaoTimbrado(doc, 'Dados da entrada', margemX, y);
+  y += 7;
+  const metade = larguraUtil / 2;
+  desenharCampoTimbrado(doc, 'Data de entrada', formatData(lote.criadoEm), margemX, y);
+  desenharCampoTimbrado(doc, 'Status', lote.status || '-', margemX + metade, y);
+  y += 12;
+  desenharTituloSecaoTimbrado(doc, 'Peças', margemX, y);
+  y += 8;
+  const colDescricao = margemX,
+    colQtd = margemX + larguraUtil - 70,
+    colClass = margemX + larguraUtil - 52;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(90, 82, 80);
+  doc.text('DESCRIÇÃO', colDescricao, y);
+  doc.text('QTD.', colQtd, y);
+  doc.text('CLASSIFICAÇÃO', colClass, y);
+  y += 3;
+  doc.setDrawColor(69, 59, 60);
+  doc.setLineWidth(0.4);
+  doc.line(margemX, y, margemX + larguraUtil, y);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(40, 34, 33);
+  (lote.itens || []).forEach(it => {
+    const linhas = doc.splitTextToSize(it.pecaDescricao || '', colQtd - colDescricao - 4);
+    const classificacao = `${it.qtdConsertada || 0}C / ${it.qtdGarantia || 0}G / ${it.qtdTeste || 0}T / ${it.qtdNaoConsertada || 0}S`;
+    doc.text(linhas, colDescricao, y);
+    doc.text(String(it.quantidade), colQtd, y);
+    doc.text(classificacao, colClass, y);
+    y += Math.max(6.5, linhas.length * 4.2 + 1.5);
+  });
+  if (lote.fotos && lote.fotos[0]) {
+    y += 8;
+    if (y > 210) {
+      await desenharTimbradoRodape(doc);
+      doc.addPage();
+      await desenharTimbradoCabecalho(doc);
+      y = 58;
+    }
+    desenharTituloSecaoTimbrado(doc, 'Foto da entrada', margemX, y);
+    y += 7;
+    try {
+      doc.addImage(lote.fotos[0], 'JPEG', margemX, y, 55, 55);
+    } catch (err) {
+      try {
+        doc.addImage(lote.fotos[0], 'PNG', margemX, y, 55, 55);
+      } catch (err2) {}
+    }
+  }
+  await desenharTimbradoRodape(doc);
+  const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
+  doc.save(`Entrada de Peças - ${nomeCliente}.pdf`);
+}
+function ModalMenuAcoes({
+  titulo,
+  onCopiar,
+  onImprimir,
+  onExcluir,
+  imprimindo,
+  aoFechar
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 340
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, titulo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    style: {
+      justifyContent: 'flex-start'
+    },
+    onClick: onCopiar
+  }, "📄 Copiar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    style: {
+      justifyContent: 'flex-start'
+    },
+    disabled: imprimindo,
+    onClick: onImprimir
+  }, imprimindo ? 'Gerando...' : '🖨️ Imprimir'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    style: {
+      justifyContent: 'flex-start'
+    },
+    onClick: onExcluir
+  }, "🗑️ Excluir")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
 }
 async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
   const {
@@ -2304,6 +2516,8 @@ function AbaClientes() {
   const [excluindoLote, setExcluindoLote] = useState(false);
   const [atualizandoEnderecos, setAtualizandoEnderecos] = useState(false);
   const [progressoEnderecos, setProgressoEnderecos] = useState(null);
+  const [menuCliente, setMenuCliente] = useState(null);
+  const [imprimindo, setImprimindo] = useState(false);
   const inputImportRef = useRef();
   const buscaDigits = busca.replace(/\D/g, '');
   const filtrados = clientes.filter(c => (c.razaoSocial || '').toLowerCase().includes(busca.toLowerCase()) || (c.nomeFantasia || '').toLowerCase().includes(busca.toLowerCase()) || buscaDigits.length > 0 && (c.cnpj || '').includes(buscaDigits)).sort((a, b) => (a.razaoSocial || '').localeCompare(b.razaoSocial || '', 'pt-BR'));
@@ -2331,6 +2545,34 @@ function AbaClientes() {
     if (!confirm(`Excluir o cliente "${c.razaoSocial || c.nomeFantasia}"?`)) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir este cliente:')) return;
     await db.collection('clientes').doc(c.id).delete();
+  }
+  async function copiar(c) {
+    setMenuCliente(null);
+    const {
+      id,
+      criadoEm,
+      ...dados
+    } = c;
+    const ref = await db.collection('clientes').add({
+      ...dados,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setEditando({
+      id: ref.id,
+      ...dados
+    });
+    setModalAberto(true);
+  }
+  async function imprimir(c) {
+    setImprimindo(true);
+    try {
+      await gerarPdfClienteImpressao(c);
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui gerar o PDF.');
+    }
+    setImprimindo(false);
+    setMenuCliente(null);
   }
   async function excluirSelecionados() {
     if (selecionados.size === 0) return;
@@ -2544,8 +2786,15 @@ function AbaClientes() {
     checked: todosFiltradosSelecionados,
     onChange: alternarSelecionarTodos
   })), /*#__PURE__*/React.createElement("th", null, "Razão social"), /*#__PURE__*/React.createElement("th", null, "Fantasia"), /*#__PURE__*/React.createElement("th", null, "CNPJ/CPF"), /*#__PURE__*/React.createElement("th", null, "Telefone"), /*#__PURE__*/React.createElement("th", null, "Cidade/UF"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(c => /*#__PURE__*/React.createElement("tr", {
-    key: c.id
-  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+    key: c.id,
+    className: "linha-clicavel",
+    onClick: () => {
+      setEditando(c);
+      setModalAberto(true);
+    }
+  }, /*#__PURE__*/React.createElement("td", {
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("input", {
     type: "checkbox",
     checked: selecionados.has(c.id),
     onChange: () => alternarSelecao(c.id)
@@ -2553,17 +2802,14 @@ function AbaClientes() {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
-    }
+    },
+    onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario pequeno",
-    onClick: () => {
-      setEditando(c);
-      setModalAberto(true);
-    }
-  }, "Editar"), ' ', /*#__PURE__*/React.createElement("button", {
-    className: "btn perigo pequeno",
-    onClick: () => excluir(c)
-  }, "Excluir")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    type: "button",
+    className: "btn-menu-pontos",
+    onClick: () => setMenuCliente(c),
+    title: "Mais ações"
+  }, "⋮")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "7",
     style: {
       color: 'var(--texto-fraco)',
@@ -2573,6 +2819,17 @@ function AbaClientes() {
   }, "Nenhum cliente encontrado."))))), modalAberto && /*#__PURE__*/React.createElement(ModalCliente, {
     cliente: editando,
     aoFechar: () => setModalAberto(false)
+  }), menuCliente && /*#__PURE__*/React.createElement(ModalMenuAcoes, {
+    titulo: menuCliente.razaoSocial || 'Cliente',
+    imprimindo: imprimindo,
+    onCopiar: () => copiar(menuCliente),
+    onImprimir: () => imprimir(menuCliente),
+    onExcluir: () => {
+      const c = menuCliente;
+      setMenuCliente(null);
+      excluir(c);
+    },
+    aoFechar: () => setMenuCliente(null)
   }));
 }
 function ModalCliente({
@@ -2749,11 +3006,41 @@ function AbaCatalogo() {
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(null);
   const [busca, setBusca] = useState('');
+  const [menuPeca, setMenuPeca] = useState(null);
+  const [imprimindo, setImprimindo] = useState(false);
   const filtrados = catalogo.filter(p => (p.codigo || '').toLowerCase().includes(busca.toLowerCase()) || (p.descricao || '').toLowerCase().includes(busca.toLowerCase()));
   async function excluir(p) {
     if (!confirm(`Excluir "${p.descricao}" do cadastro?`)) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir esta peça:')) return;
     await db.collection('catalogoPecas').doc(p.id).delete();
+  }
+  async function copiar(p) {
+    setMenuPeca(null);
+    const {
+      id,
+      criadoEm,
+      ...dados
+    } = p;
+    const ref = await db.collection('catalogoPecas').add({
+      ...dados,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setEditando({
+      id: ref.id,
+      ...dados
+    });
+    setModalAberto(true);
+  }
+  async function imprimir(p) {
+    setImprimindo(true);
+    try {
+      await gerarPdfPecaImpressao(p);
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui gerar o PDF.');
+    }
+    setImprimindo(false);
+    setMenuPeca(null);
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "painel-tela"
@@ -2789,7 +3076,12 @@ function AbaCatalogo() {
   })), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
   }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "PN"), /*#__PURE__*/React.createElement("th", null, "Descrição"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Valor conserto"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(p => /*#__PURE__*/React.createElement("tr", {
-    key: p.id
+    key: p.id,
+    className: "linha-clicavel",
+    onClick: () => {
+      setEditando(p);
+      setModalAberto(true);
+    }
   }, /*#__PURE__*/React.createElement("td", null, p.fotos && p.fotos[0] ? /*#__PURE__*/React.createElement("img", {
     src: p.fotos[0],
     className: "foto-thumb"
@@ -2805,17 +3097,14 @@ function AbaCatalogo() {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
-    }
+    },
+    onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario pequeno",
-    onClick: () => {
-      setEditando(p);
-      setModalAberto(true);
-    }
-  }, "Editar"), ' ', /*#__PURE__*/React.createElement("button", {
-    className: "btn perigo pequeno",
-    onClick: () => excluir(p)
-  }, "Excluir")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    type: "button",
+    className: "btn-menu-pontos",
+    onClick: () => setMenuPeca(p),
+    title: "Mais ações"
+  }, "⋮")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "6",
     style: {
       color: 'var(--texto-fraco)',
@@ -2825,6 +3114,17 @@ function AbaCatalogo() {
   }, "Nenhuma peça cadastrada ainda."))))), modalAberto && /*#__PURE__*/React.createElement(ModalCatalogo, {
     peca: editando,
     aoFechar: () => setModalAberto(false)
+  }), menuPeca && /*#__PURE__*/React.createElement(ModalMenuAcoes, {
+    titulo: menuPeca.descricao || 'Peça',
+    imprimindo: imprimindo,
+    onCopiar: () => copiar(menuPeca),
+    onImprimir: () => imprimir(menuPeca),
+    onExcluir: () => {
+      const p = menuPeca;
+      setMenuPeca(null);
+      excluir(p);
+    },
+    aoFechar: () => setMenuPeca(null)
   }));
 }
 function ModalCatalogo({
@@ -3257,6 +3557,9 @@ function AbaLotes({
   const [filtroStatus, setFiltroStatus] = useState('');
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
   const [loteAssinaturaId, setLoteAssinaturaId] = useState(null);
+  const [menuLote, setMenuLote] = useState(null);
+  const [loteParaCopiar, setLoteParaCopiar] = useState(null);
+  const [imprimindo, setImprimindo] = useState(false);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId);
   const loteParaAssinar = lotes.find(l => l.id === loteAssinaturaId);
@@ -3271,6 +3574,17 @@ function AbaLotes({
     }
     opBatch.delete(db.collection('lotes').doc(l.id));
     await opBatch.commit();
+  }
+  async function imprimirLote(l) {
+    setImprimindo(true);
+    try {
+      await gerarPdfLoteImpressao(l, clientes.find(c => c.id === l.clienteId));
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui gerar o PDF.');
+    }
+    setImprimindo(false);
+    setMenuLote(null);
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "painel-tela"
@@ -3307,8 +3621,12 @@ function AbaLotes({
   }, s)))), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
   }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
-    key: l.id
-  }, /*#__PURE__*/React.createElement("td", null, l.fotos && l.fotos[0] ? /*#__PURE__*/React.createElement("img", {
+    key: l.id,
+    className: "linha-clicavel",
+    onClick: () => setLoteSelecionadoId(l.id)
+  }, /*#__PURE__*/React.createElement("td", {
+    onClick: e => e.stopPropagation()
+  }, l.fotos && l.fotos[0] ? /*#__PURE__*/React.createElement("img", {
     src: l.fotos[0],
     className: "foto-thumb foto-clicavel",
     onClick: () => setFotoAmpliada(l.fotos[0])
@@ -3326,17 +3644,17 @@ function AbaLotes({
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
-    }
+    },
+    onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario pequeno",
-    onClick: () => setLoteSelecionadoId(l.id)
-  }, "Gerenciar"), ' ', /*#__PURE__*/React.createElement("button", {
     className: `btn pequeno ${l.assinaturaEntrada ? 'verde' : 'secundario'}`,
     onClick: () => setLoteAssinaturaId(l.id)
   }, l.assinaturaEntrada ? '✓ Assinado' : '🖊️ Assinar'), ' ', /*#__PURE__*/React.createElement("button", {
-    className: "btn perigo pequeno",
-    onClick: () => excluirLote(l)
-  }, "Excluir")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    type: "button",
+    className: "btn-menu-pontos",
+    onClick: () => setMenuLote(l),
+    title: "Mais ações"
+  }, "⋮")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "6",
     style: {
       color: 'var(--texto-fraco)',
@@ -3347,6 +3665,11 @@ function AbaLotes({
     clientes: clientes,
     catalogo: catalogo,
     aoFechar: () => setModalNovoAberto(false)
+  }), loteParaCopiar && /*#__PURE__*/React.createElement(ModalNovoLote, {
+    clientes: clientes,
+    catalogo: catalogo,
+    origemCopia: loteParaCopiar,
+    aoFechar: () => setLoteParaCopiar(null)
   }), loteSelecionado && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
     lote: loteSelecionado,
     clientes: clientes,
@@ -3382,7 +3705,21 @@ function AbaLotes({
     type: "button",
     className: "btn secundario",
     onClick: () => setLoteAssinaturaId(null)
-  }, "Fechar")))), /*#__PURE__*/React.createElement(FotoAmpliada, {
+  }, "Fechar")))), menuLote && /*#__PURE__*/React.createElement(ModalMenuAcoes, {
+    titulo: nomeCliente(menuLote.clienteId),
+    imprimindo: imprimindo,
+    onCopiar: () => {
+      setLoteParaCopiar(menuLote);
+      setMenuLote(null);
+    },
+    onImprimir: () => imprimirLote(menuLote),
+    onExcluir: () => {
+      const l = menuLote;
+      setMenuLote(null);
+      excluirLote(l);
+    },
+    aoFechar: () => setMenuLote(null)
+  }), /*#__PURE__*/React.createElement(FotoAmpliada, {
     url: fotoAmpliada,
     aoFechar: () => setFotoAmpliada(null)
   }));
@@ -3390,10 +3727,14 @@ function AbaLotes({
 function ModalNovoLote({
   clientes,
   catalogo,
+  origemCopia,
   aoFechar
 }) {
-  const [clienteId, setClienteId] = useState('');
-  const [itens, setItens] = useState([{
+  const [clienteId, setClienteId] = useState(origemCopia?.clienteId || '');
+  const [itens, setItens] = useState(origemCopia?.itens?.length ? origemCopia.itens.map(it => ({
+    pecaCatalogoId: it.pecaCatalogoId,
+    quantidade: it.quantidade
+  })) : [{
     pecaCatalogoId: '',
     quantidade: 1
   }]);
@@ -3486,7 +3827,7 @@ function ModalNovoLote({
     style: {
       marginTop: 0
     }
-  }, "Nova entrada de peças"), /*#__PURE__*/React.createElement("label", null, "Cliente"), /*#__PURE__*/React.createElement(SeletorCliente, {
+  }, origemCopia ? 'Copiar entrada — nova entrada de peças' : 'Nova entrada de peças'), /*#__PURE__*/React.createElement("label", null, "Cliente"), /*#__PURE__*/React.createElement(SeletorCliente, {
     clientes: clientes,
     value: clienteId,
     onChange: setClienteId
