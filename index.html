@@ -242,26 +242,20 @@ function loteTotalmenteClassificado(itens) {
 // o cartão seja movido depois). Fora da coluna Teste, segue como sempre funcionou.
 function comissaoElegivel(orcamento) {
   if (!orcamento) return true;
-  if (orcamento.resultadoTeste === 'reprovado') return false;
-  if (orcamento.status === 'Teste' && orcamento.resultadoTeste !== 'aprovado') return false;
-  return true;
+  return orcamento.status === 'Entregue/Faturado';
 }
 function statusComissaoOrcamento(orcamento) {
   if (!orcamento) return {
     rotulo: '—',
     cor: 'var(--texto-fraco)'
   };
-  if (orcamento.resultadoTeste === 'reprovado') return {
-    rotulo: '🔴 Reprovada no teste',
-    cor: 'var(--vermelho)'
-  };
-  if (orcamento.status === 'Teste' && orcamento.resultadoTeste !== 'aprovado') return {
-    rotulo: '🟡 Aguardando teste',
-    cor: 'var(--laranja-escuro)'
-  };
-  return {
+  if (orcamento.status === 'Entregue/Faturado') return {
     rotulo: '🟢 Liberada',
     cor: 'var(--verde)'
+  };
+  return {
+    rotulo: '🟡 Aguardando entrega',
+    cor: 'var(--laranja-escuro)'
   };
 }
 
@@ -823,7 +817,7 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   doc.setFillColor(253, 243, 231);
   doc.setDrawColor(233, 115, 7);
   doc.setLineWidth(0.4);
-  const avisoTexto = doc.splitTextToSize('PEÇAS ENTREGUES PARA TESTE — As peças relacionadas neste documento foram entregues para fins de teste e avaliação. A entrega para teste não caracteriza, por si só, a conclusão do conserto ou o faturamento definitivo das peças.', larguraUtil - 10);
+  const avisoTexto = doc.splitTextToSize('PEÇAS ENTREGUES PARA TESTE', larguraUtil - 10);
   const alturaAviso = avisoTexto.length * 4.2 + 8;
   doc.roundedRect(margemX, y, larguraUtil, alturaAviso, 2, 2, 'FD');
   doc.setFont('helvetica', 'bold');
@@ -850,7 +844,7 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   y += 7;
   const metade = larguraUtil / 2;
   desenharCampoTimbrado(doc, 'Número do orçamento', `#${orcamento.numero}`, margemX, y);
-  desenharCampoTimbrado(doc, 'Data da entrega', formatData(orcamento.criadoEm), margemX + metade, y);
+  desenharCampoTimbrado(doc, 'Data/horário da entrega', assinatura.dataTexto, margemX + metade, y);
   y += 8;
   desenharCampoTimbrado(doc, 'Responsável pela entrega', orcamento.entreguePorTeste || '-', margemX, y);
   y += 11;
@@ -893,6 +887,33 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
     y = await novaPagina();
   }
 
+  // REGISTRO FOTOGRÁFICO
+  if (orcamento.fotoTeste && orcamento.fotoTeste.imagem) {
+    desenharTituloSecaoTimbrado(doc, 'Registro fotográfico', margemX, y);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(130, 120, 118);
+    doc.text('Registro visual da peça entregue para teste.', margemX, y);
+    y += 6;
+    const tamanho = 55;
+    try {
+      doc.addImage(orcamento.fotoTeste.imagem, 'JPEG', margemX, y, tamanho, tamanho);
+    } catch (err) {
+      try {
+        doc.addImage(orcamento.fotoTeste.imagem, 'PNG', margemX, y, tamanho, tamanho);
+      } catch (err2) {}
+    }
+    y += tamanho + 4;
+    doc.setFontSize(7);
+    doc.setTextColor(150, 140, 138);
+    doc.text(`Registrada por ${orcamento.fotoTeste.registradoPor || '-'} em ${formatDataHora(orcamento.fotoTeste.dataRegistro)}`, margemX, y);
+    y += 10;
+  }
+  if (y > 195) {
+    y = await novaPagina();
+  }
+
   // CONFIRMAÇÃO — Entregue por / Recebido por / assinatura
   desenharTituloSecaoTimbrado(doc, 'Confirmação da entrega para teste', margemX, y);
   y += 7;
@@ -900,9 +921,7 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   y += 11;
   desenharCampoTimbrado(doc, 'Recebido por', assinatura.nome, margemX, y);
   desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), margemX + metade, y);
-  y += 8;
-  desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, margemX, y);
-  y += 7;
+  y += 11;
   if (assinatura.imagem) {
     try {
       doc.addImage(assinatura.imagem, 'PNG', margemX, y, 52, 22);
@@ -954,15 +973,6 @@ async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
     y += 8;
   }
   y += 3;
-  if (orcamento.status === 'Teste') {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(190, 130, 60);
-    doc.text('⚠ Orçamento em teste — valores e comissão ainda não confirmados.', margemX, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    y += 9;
-  }
   desenharTituloSecaoTimbrado(doc, 'Itens', margemX, y);
   y += 8;
   const colDescricao = margemX,
@@ -1150,9 +1160,16 @@ function FormularioAssinatura({
       dataAssinatura: firebase.firestore.FieldValue.serverTimestamp()
     };
     try {
-      await db.collection(colecao).doc(documento.id).update({
+      const dadosSalvar = {
         [campoAssinatura]: assinatura
-      });
+      };
+      if (tipo === 'teste') {
+        dadosSalvar.historico = [...(documento.historico || []), {
+          data: new Date().toISOString(),
+          texto: `✍️ Recebimento assinado por ${nome.trim()} — ${agora.toLocaleString('pt-BR')}`
+        }];
+      }
+      await db.collection(colecao).doc(documento.id).update(dadosSalvar);
       const assinaturaPdf = {
         ...assinatura,
         dataTexto: agora.toLocaleString('pt-BR')
@@ -1475,25 +1492,35 @@ function formatDataHora(v) {
     minute: '2-digit'
   })}`;
 }
-function RegistroFotograficoEntrega({
+function RegistroFotografico({
   documento,
-  usuario
+  usuario,
+  campo,
+  titulo,
+  legenda
 }) {
   const [processando, setProcessando] = useState(false);
   const inputRef = useRef();
-  const foto = documento.fotoEntrega;
+  const foto = documento[campo];
   async function capturarFoto(file) {
     if (!file) return;
     setProcessando(true);
     try {
       const dataUrl = await resizeImagem(file);
-      await db.collection('orcamentos').doc(documento.id).update({
-        fotoEntrega: {
+      const dados = {
+        [campo]: {
           imagem: dataUrl,
           registradoPor: usuario?.nome || '',
           dataRegistro: firebase.firestore.FieldValue.serverTimestamp()
         }
-      });
+      };
+      if (campo === 'fotoTeste') {
+        dados.historico = [...(documento.historico || []), {
+          data: new Date().toISOString(),
+          texto: `📷 Foto da entrega registrada por ${usuario?.nome || '-'} — ${new Date().toLocaleString('pt-BR')}`
+        }];
+      }
+      await db.collection('orcamentos').doc(documento.id).update(dados);
     } catch (err) {
       alert('Não consegui processar essa foto.');
     }
@@ -1513,13 +1540,13 @@ function RegistroFotograficoEntrega({
       fontWeight: 700,
       marginBottom: 6
     }
-  }, "📷 Registro fotográfico"), !foto ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "📷 ", titulo), !foto ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: 'var(--texto-fraco)',
       marginBottom: 10
     }
-  }, "Registre uma foto das peças finalizadas antes de realizar a assinatura."), /*#__PURE__*/React.createElement("button", {
+  }, legenda), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     disabled: processando,
@@ -1546,7 +1573,7 @@ function RegistroFotograficoEntrega({
       color: 'var(--texto-fraco)',
       lineHeight: 1.6
     }
-  }, /*#__PURE__*/React.createElement("div", null, "Registrada em: ", /*#__PURE__*/React.createElement("strong", {
+  }, /*#__PURE__*/React.createElement("div", null, "✓ Registrada em: ", /*#__PURE__*/React.createElement("strong", {
     style: {
       color: 'var(--texto)'
     }
@@ -1588,7 +1615,8 @@ function BlocoAssinatura({
   const campoCodigo = TIPOS_ASSINATURA[tipo].campoCodigo;
   const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
   const assinatura = documento[campoAssinatura];
-  const fotoObrigatoriaFaltando = tipo === 'entrega' && !documento.fotoEntrega;
+  const campoFoto = tipo === 'entrega' ? 'fotoEntrega' : tipo === 'teste' ? 'fotoTeste' : null;
+  const fotoObrigatoriaFaltando = !!campoFoto && !documento[campoFoto];
   const codigo = documento[campoCodigo];
   async function registrarEntreguePor() {
     if (tipo === 'teste' && !documento.entreguePorTeste && usuario?.nome) {
@@ -1599,7 +1627,7 @@ function BlocoAssinatura({
   }
   async function gerarLink() {
     if (fotoObrigatoriaFaltando) {
-      alert('Registre a foto das peças finalizadas para liberar a assinatura.');
+      alert(tipo === 'teste' ? 'Registre a foto das peças antes de concluir a entrega para teste.' : 'Registre a foto das peças finalizadas para liberar a assinatura.');
       return;
     }
     setProcessando(true);
@@ -1642,7 +1670,7 @@ function BlocoAssinatura({
         fontSize: 11.5,
         color: 'var(--texto-fraco)'
       }
-    }, "CPF ", formatarCPF(assinatura.cpf)), tipo === 'entrega' && documento.fotoEntrega && /*#__PURE__*/React.createElement("div", {
+    }, "CPF ", formatarCPF(assinatura.cpf)), campoFoto && documento[campoFoto] && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: 'var(--texto-fraco)',
@@ -1650,7 +1678,7 @@ function BlocoAssinatura({
         paddingTop: 4,
         borderTop: '1px solid rgba(69,59,60,.12)'
       }
-    }, "📷 Foto registrada por ", documento.fotoEntrega.registradoPor || '-', " em ", formatDataHora(documento.fotoEntrega.dataRegistro)), assinatura.ip && /*#__PURE__*/React.createElement("div", {
+    }, "📷 Foto registrada por ", documento[campoFoto].registradoPor || '-', " em ", formatDataHora(documento[campoFoto].dataRegistro)), assinatura.ip && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: 'var(--texto-fraco)'
@@ -1686,9 +1714,12 @@ function BlocoAssinatura({
       fontWeight: 700,
       marginBottom: 6
     }
-  }, TIPOS_ASSINATURA[tipo].tituloBloco), tipo === 'entrega' && /*#__PURE__*/React.createElement(RegistroFotograficoEntrega, {
+  }, TIPOS_ASSINATURA[tipo].tituloBloco), campoFoto && /*#__PURE__*/React.createElement(RegistroFotografico, {
     documento: documento,
-    usuario: usuario
+    usuario: usuario,
+    campo: campoFoto,
+    titulo: tipo === 'entrega' ? 'Registro fotográfico' : 'Registrar foto das peças',
+    legenda: tipo === 'entrega' ? 'Registre uma foto das peças finalizadas antes de realizar a assinatura.' : 'Registre a foto das peças antes de concluir a entrega para teste.'
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -1702,7 +1733,7 @@ function BlocoAssinatura({
     disabled: fotoObrigatoriaFaltando,
     onClick: async () => {
       if (fotoObrigatoriaFaltando) {
-        alert('Registre a foto das peças finalizadas para liberar a assinatura.');
+        alert(tipo === 'teste' ? 'Registre a foto das peças antes de concluir a entrega para teste.' : 'Registre a foto das peças finalizadas para liberar a assinatura.');
         return;
       }
       await registrarEntreguePor();
@@ -4584,13 +4615,7 @@ function AbaOrcamentos({
         fontWeight: 700,
         color: 'var(--verde)'
       }
-    }, "🟢 Teste aprovado — comissão liberada"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: 'var(--texto-fraco)',
-        marginTop: 3
-      }
-    }, "Faturamento só entra quando chegar em Entregue/Faturado."), /*#__PURE__*/React.createElement("button", {
+    }, "🟢 Teste aprovado — peça consertada"), /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn secundario pequeno",
       style: {
