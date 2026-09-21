@@ -1665,7 +1665,13 @@ function BlocoAssinatura({
         fontWeight: 700,
         color: 'var(--verde)'
       }
-    }, "✓ ", rotuloAssinado, " por ", assinatura.nome), /*#__PURE__*/React.createElement("div", {
+    }, "✓ ", rotuloAssinado, " por ", assinatura.nome), tipo === 'entrega' && assinatura.origemTeste && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)',
+        marginTop: 2
+      }
+    }, "Reaproveitada da entrega para teste — a peça já havia sido entregue fisicamente."), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11.5,
         color: 'var(--texto-fraco)'
@@ -4382,6 +4388,22 @@ function AbaOrcamentos({
     };
     if (status === 'Teste' && !o.resultadoTeste) {
       dados.resultadoTeste = 'pendente';
+    }
+    // Se a peça já foi entregue fisicamente durante o teste (com foto e assinatura),
+    // essa mesma entrega vale como a entrega definitiva — não pedir de novo ao chegar aqui.
+    if (status === 'Entregue/Faturado' && o.assinaturaTeste && !o.assinaturaEntrega) {
+      dados.assinaturaEntrega = {
+        ...o.assinaturaTeste,
+        origemTeste: true
+      };
+      if (o.fotoTeste) dados.fotoEntrega = {
+        ...o.fotoTeste,
+        origemTeste: true
+      };
+      dados.historico = [...(o.historico || []), {
+        data: new Date().toISOString(),
+        texto: `✅ Entrega considerada concluída reaproveitando a foto e a assinatura da entrega para teste (${o.assinaturaTeste.nome}).`
+      }];
     }
     await db.collection('orcamentos').doc(o.id).update(dados);
   }
