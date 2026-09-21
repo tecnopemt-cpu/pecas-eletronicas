@@ -237,6 +237,33 @@ function calcularComissoesOrcamento(total, funcionarios) {
 function loteTotalmenteClassificado(itens) {
   return (itens || []).every(it => it.quantidade === (it.qtdConsertada || 0) + (it.qtdGarantia || 0) + (it.qtdNaoConsertada || 0));
 }
+// Elegibilidade de comissão: uma peça em Teste só libera comissão quando o teste
+// for confirmado como aprovado; se for reprovado, nunca gera comissão (mesmo que
+// o cartão seja movido depois). Fora da coluna Teste, segue como sempre funcionou.
+function comissaoElegivel(orcamento) {
+  if (!orcamento) return true;
+  if (orcamento.resultadoTeste === 'reprovado') return false;
+  if (orcamento.status === 'Teste' && orcamento.resultadoTeste !== 'aprovado') return false;
+  return true;
+}
+function statusComissaoOrcamento(orcamento) {
+  if (!orcamento) return {
+    rotulo: '—',
+    cor: 'var(--texto-fraco)'
+  };
+  if (orcamento.resultadoTeste === 'reprovado') return {
+    rotulo: '🔴 Reprovada no teste',
+    cor: 'var(--vermelho)'
+  };
+  if (orcamento.status === 'Teste' && orcamento.resultadoTeste !== 'aprovado') return {
+    rotulo: '🟡 Aguardando teste',
+    cor: 'var(--laranja-escuro)'
+  };
+  return {
+    rotulo: '🟢 Liberada',
+    cor: 'var(--verde)'
+  };
+}
 
 // ======================= CPF / ASSINATURA / PDF =======================
 function validarCPF(cpf) {
@@ -3672,6 +3699,77 @@ function ModalLoteDetalhe({
 }
 
 // ======================= ORÇAMENTOS =======================
+function ModalConfirmarTeste({
+  orcamento,
+  aoFechar
+}) {
+  const [processando, setProcessando] = useState(false);
+  async function confirmar(resultado) {
+    setProcessando(true);
+    try {
+      await db.collection('orcamentos').doc(orcamento.id).update({
+        resultadoTeste: resultado
+      });
+      aoFechar();
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui salvar o resultado do teste. Tente novamente.');
+    }
+    setProcessando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 420
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Resultado do teste — #", orcamento.numero), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 0
+    }
+  }, "Confirme se a peça foi efetivamente consertada. Isso libera (ou não) a comissão desse orçamento — o faturamento continua só acontecendo quando ele chegar em Entregue/Faturado."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn verde",
+    disabled: processando,
+    style: {
+      justifyContent: 'flex-start'
+    },
+    onClick: () => confirmar('aprovado')
+  }, "🟢 Consertada / Teste aprovado"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    disabled: processando,
+    style: {
+      justifyContent: 'flex-start'
+    },
+    onClick: () => confirmar('reprovado')
+  }, "🔴 Não consertada / Teste reprovado")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 18
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"))));
+}
 function AbaOrcamentos({
   usuario
 }) {
@@ -3682,6 +3780,7 @@ function AbaOrcamentos({
   const [editando, setEditando] = useState(null);
   const [busca, setBusca] = useState('');
   const [buscaFocada, setBuscaFocada] = useState(false);
+  const [testeParaConfirmar, setTesteParaConfirmar] = useState(null);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const buscaTrim = busca.trim();
   const buscaLower = buscaTrim.toLowerCase();
@@ -3741,9 +3840,13 @@ function AbaOrcamentos({
     await opBatch.commit();
   }
   async function mudarStatus(o, status) {
-    await db.collection('orcamentos').doc(o.id).update({
+    const dados = {
       status
-    });
+    };
+    if (status === 'Teste' && !o.resultadoTeste) {
+      dados.resultadoTeste = 'pendente';
+    }
+    await db.collection('orcamentos').doc(o.id).update(dados);
   }
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3910,7 +4013,7 @@ function AbaOrcamentos({
         fontSize: 11.5,
         color: 'var(--texto-fraco)'
       }
-    }, "💰 ", formatMoeda(o.comissaoTotal))), /*#__PURE__*/React.createElement("div", {
+    }, "💰 ", formatMoeda(comissaoElegivel(o) ? o.comissaoTotal : 0))), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: 'var(--texto-fraco)',
@@ -3930,7 +4033,71 @@ function AbaOrcamentos({
     }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
       key: s,
       value: s
-    }, s))), /*#__PURE__*/React.createElement("div", {
+    }, s))), status === 'Teste' && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 9,
+        padding: 9,
+        borderRadius: 8,
+        background: o.resultadoTeste === 'reprovado' ? 'var(--vermelho-bg)' : o.resultadoTeste === 'aprovado' ? 'var(--verde-bg)' : 'var(--laranja-bg)'
+      }
+    }, o.resultadoTeste === 'aprovado' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: 'var(--verde)'
+      }
+    }, "🟢 Teste aprovado — comissão liberada"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)',
+        marginTop: 3
+      }
+    }, "Faturamento só entra quando chegar em Entregue/Faturado."), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      style: {
+        marginTop: 7
+      },
+      onClick: () => setTesteParaConfirmar(o)
+    }, "Alterar resultado")) : o.resultadoTeste === 'reprovado' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: 'var(--vermelho)'
+      }
+    }, "🔴 Teste reprovado — peça não consertada"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)',
+        marginTop: 3
+      }
+    }, "Faturamento: R$ 0,00 · Comissão: R$ 0,00"), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      style: {
+        marginTop: 7
+      },
+      onClick: () => setTesteParaConfirmar(o)
+    }, "Alterar resultado")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: 'var(--laranja-escuro)'
+      }
+    }, "⚠️ TESTE PENDENTE"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)',
+        marginTop: 3
+      }
+    }, "Confirmar resultado do teste antes de contabilizar faturamento e comissão."), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn pequeno",
+      style: {
+        marginTop: 7
+      },
+      onClick: () => setTesteParaConfirmar(o)
+    }, "Confirmar resultado do teste"))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         gap: 6,
@@ -3969,6 +4136,9 @@ function AbaOrcamentos({
     totalAtual: orcamentos.length,
     usuario: usuario,
     aoFechar: () => setModalAberto(false)
+  }), testeParaConfirmar && /*#__PURE__*/React.createElement(ModalConfirmarTeste, {
+    orcamento: testeParaConfirmar,
+    aoFechar: () => setTesteParaConfirmar(null)
   }));
 }
 function ModalOrcamento({
@@ -4277,8 +4447,14 @@ function ModalApuracao({
   const qtdConsertada = itensPeriodo.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
   const qtdGarantia = itensPeriodo.filter(i => i.tipo === 'garantia').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
   const percentualGarantia = qtdConsertada > 0 ? qtdGarantia / qtdConsertada * 100 : 0;
-  const faturamento = orcamentosPeriodo.reduce((s, o) => s + (Number(o.total) || 0), 0);
-  const comissoesPeriodo = comissoes.filter(c => dentroDoIntervalo(dataDe(c.data), inicioStr, fimStr));
+  // Faturamento realizado: só conta o que já chegou em Entregue/Faturado — um orçamento
+  // em Teste, Aprovado etc. tem valor, mas ainda não é faturamento de verdade.
+  const faturamento = orcamentosPeriodo.filter(o => o.status === 'Entregue/Faturado').reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const orcamentoPorId = {};
+  orcamentos.forEach(o => {
+    orcamentoPorId[o.id] = o;
+  });
+  const comissoesPeriodo = comissoes.filter(c => dentroDoIntervalo(dataDe(c.data), inicioStr, fimStr)).filter(c => comissaoElegivel(orcamentoPorId[c.orcamentoId]));
   const baseComPorFunc = {};
   comissoesPeriodo.forEach(c => {
     baseComPorFunc[c.funcionarioId] = (baseComPorFunc[c.funcionarioId] || 0) + (Number(c.valor) || 0);
@@ -4475,8 +4651,9 @@ function AbaComissoes({
   const [ate, setAte] = useState('');
   const [modalApuracaoAberto, setModalApuracaoAberto] = useState(false);
   const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
+  const orcamentoDe = id => orcamentos.find(o => o.id === id);
   const numeroOrcamento = id => {
-    const o = orcamentos.find(o => o.id === id);
+    const o = orcamentoDe(id);
     return o ? `#${o.numero}` : '-';
   };
   const filtradas = comissoes.filter(c => {
@@ -4487,9 +4664,13 @@ function AbaComissoes({
     if (ate && d > new Date(ate + 'T23:59:59')) return false;
     return true;
   });
-  const totalGeral = filtradas.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+
+  // Comissões de orçamentos em Teste (aguardando confirmação) ou reprovados no teste
+  // ficam listadas para transparência, mas não entram nos totais até serem liberadas.
+  const elegiveis = filtradas.filter(c => comissaoElegivel(orcamentoDe(c.orcamentoId)));
+  const totalGeral = elegiveis.reduce((s, c) => s + (Number(c.valor) || 0), 0);
   const porFuncionario = {};
-  filtradas.forEach(c => {
+  elegiveis.forEach(c => {
     porFuncionario[c.funcionarioId] = porFuncionario[c.funcionarioId] || {
       qtd: 0,
       total: 0
@@ -4607,10 +4788,19 @@ function AbaComissoes({
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, filtradas.map(c => /*#__PURE__*/React.createElement("tr", {
-    key: c.id
-  }, /*#__PURE__*/React.createElement("td", null, formatData(c.data)), /*#__PURE__*/React.createElement("td", null, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", null, numeroOrcamento(c.orcamentoId)), /*#__PURE__*/React.createElement("td", null, formatMoeda(c.valor)))), !carregando && filtradas.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "4",
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, filtradas.map(c => {
+    const st = statusComissaoOrcamento(orcamentoDe(c.orcamentoId));
+    return /*#__PURE__*/React.createElement("tr", {
+      key: c.id
+    }, /*#__PURE__*/React.createElement("td", null, formatData(c.data)), /*#__PURE__*/React.createElement("td", null, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", null, numeroOrcamento(c.orcamentoId)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: st.cor
+      }
+    }, st.rotulo)), /*#__PURE__*/React.createElement("td", null, formatMoeda(c.valor)));
+  }), !carregando && filtradas.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "5",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
@@ -4798,7 +4988,11 @@ function AbaDashboard() {
   const percentualGarantia = totalConsertadas > 0 ? totalGarantia / totalConsertadas * 100 : 0;
   const dias = diasNoIntervalo(dataInicioPrincipal, dataFimPrincipal);
   const mediaConsertadasDia = totalConsertadas / dias;
-  const totalComissaoMes = comissoesDoMes.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+  const orcamentoPorIdDash = {};
+  orcamentos.forEach(o => {
+    orcamentoPorIdDash[o.id] = o;
+  });
+  const totalComissaoMes = comissoesDoMes.filter(c => comissaoElegivel(orcamentoPorIdDash[c.orcamentoId])).reduce((s, c) => s + (Number(c.valor) || 0), 0);
   const mediaComissaoDia = totalComissaoMes / dias;
   const porCategoriaConsertada = agruparPorCategoria(itensDoMes, 'consertada');
   const porCategoriaGarantia = agruparPorCategoria(itensDoMes, 'garantia');
