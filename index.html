@@ -237,6 +237,72 @@ function confirmarSenhaMaster(mensagem) {
   }
   return true;
 }
+
+// ======================= PERFIS E PERMISSÕES =======================
+const MODULOS_PERMISSAO = ['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios'];
+const NOME_MODULO = {
+  dashboard: 'Painel',
+  lotes: 'Entrada de Peças',
+  catalogo: 'Cadastro de Peças',
+  clientes: 'Clientes',
+  orcamentos: 'Orçamentos',
+  comissoes: 'Comissão',
+  funcionarios: 'Equipe'
+};
+function nivelAcesso(usuario, modulo) {
+  if (!usuario) return 'sem_acesso';
+  if (usuario.perfil === 'master') return 'editar';
+  // usuário legado (cadastrado antes desse sistema de permissões) sem o campo definido:
+  // não restringe, pra não trancar ninguém que já usava o sistema livremente.
+  if (!usuario.permissoes) return 'editar';
+  return usuario.permissoes[modulo] || 'sem_acesso';
+}
+function podeVisualizar(usuario, modulo) {
+  return nivelAcesso(usuario, modulo) !== 'sem_acesso';
+}
+function podeEditar(usuario, modulo) {
+  return nivelAcesso(usuario, modulo) === 'editar';
+}
+function colunaPermitida(usuario, coluna) {
+  if (!usuario) return false;
+  if (usuario.perfil === 'master') return true;
+  if (!usuario.colunasOrcamento) return true; // sem restrição configurada = todas liberadas
+  return usuario.colunasOrcamento.includes(coluna);
+}
+function comissaoEscopoDe(usuario) {
+  if (!usuario) return 'propria';
+  if (usuario.perfil === 'master') return 'administrar';
+  return usuario.comissaoEscopo || 'administrar'; // legado sem campo: mantém a visão total que já tinha
+}
+function ehMaster(usuario) {
+  return usuario?.perfil === 'master';
+}
+function ehAdministrador(usuario) {
+  return usuario?.perfil === 'administrador' || usuario?.perfil === 'master';
+}
+function statusRotulo(status) {
+  return {
+    ativo: '🟢 Ativo',
+    bloqueado: '🔴 Bloqueado',
+    inativo: '⚪ Inativo',
+    pendente: '🟡 Pendente de aprovação',
+    recusado: '🔴 Cadastro recusado'
+  }[status] || '🟢 Ativo';
+}
+function gerarSenhaTemporaria() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+async function registrarHistorico(funcionarioId, texto) {
+  await db.collection('funcionarios').doc(funcionarioId).update({
+    historico: firebase.firestore.FieldValue.arrayUnion({
+      data: new Date().toISOString(),
+      texto
+    })
+  });
+}
 function calcularComissoesOrcamento(total, funcionarios) {
   const cache = {};
   function valorDe(func, visitados) {
@@ -2192,7 +2258,8 @@ function TelaPrimeiroAcesso({
 }
 function TelaLogin({
   funcionarios,
-  aoLogar
+  aoLogar,
+  setTelaAtual
 }) {
   const [funcId, setFuncId] = useState('');
   const [senha, setSenha] = useState('');
@@ -2213,7 +2280,24 @@ function TelaLogin({
       setErro('Senha incorreta.');
       return;
     }
-    if (f.ativo === false) {
+    if (f.status) {
+      if (f.status === 'bloqueado') {
+        setErro('Seu acesso está bloqueado. Entre em contato com um administrador.');
+        return;
+      }
+      if (f.status === 'pendente') {
+        setErro('Seu cadastro ainda está aguardando aprovação do administrador.');
+        return;
+      }
+      if (f.status === 'inativo') {
+        setErro('Este acesso foi desativado. Entre em contato com um administrador.');
+        return;
+      }
+      if (f.status === 'recusado') {
+        setErro('Seu cadastro não foi aprovado. Entre em contato com um administrador.');
+        return;
+      }
+    } else if (f.ativo === false) {
       setErro('Usuário inativo. Fale com o administrador.');
       return;
     }
@@ -2262,7 +2346,7 @@ function TelaLogin({
     required: true
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "Selecione..."), funcionarios.filter(f => f.ativo !== false).map(f => /*#__PURE__*/React.createElement("option", {
+  }, "Selecione..."), funcionarios.filter(f => f.status ? f.status === 'ativo' : f.ativo !== false).map(f => /*#__PURE__*/React.createElement("option", {
     key: f.id,
     value: f.id
   }, f.nome))), /*#__PURE__*/React.createElement("label", null, "Senha"), /*#__PURE__*/React.createElement("input", {
@@ -2286,6 +2370,15 @@ function TelaLogin({
     disabled: entrando
   }, entrando ? 'Entrando...' : 'Entrar'), /*#__PURE__*/React.createElement("button", {
     type: "button",
+    onClick: () => setTelaAtual('criarConta'),
+    className: "btn secundario pequeno",
+    style: {
+      width: '100%',
+      justifyContent: 'center',
+      marginTop: 10
+    }
+  }, "Ainda não tenho cadastro — Criar minha conta"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: atualizarApp,
     className: "btn secundario pequeno",
     style: {
@@ -2294,6 +2387,213 @@ function TelaLogin({
       marginTop: 10
     }
   }, "🔄 Buscar versão mais recente")));
+}
+function TelaCriarConta({
+  aoVoltar
+}) {
+  const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [login, setLogin] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState('');
+  const [enviado, setEnviado] = useState(false);
+  function formatarCpfCampo(v) {
+    const d = v.replace(/\D/g, '').slice(0, 11);
+    return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4').replace(/^(\d{3})(\d{3})(\d{0,3})$/, '$1.$2.$3').replace(/^(\d{3})(\d{0,3})$/, '$1.$2');
+  }
+  function formatarTelefoneCampo(v) {
+    const d = v.replace(/\D/g, '').slice(0, 11);
+    if (d.length <= 10) return d.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3').trim();
+    return d.replace(/^(\d{2})(\d{5})(\d{0,4})$/, '($1) $2-$3').trim();
+  }
+  async function enviar(e) {
+    e.preventDefault();
+    setErro('');
+    if (!validarCPF(cpf)) {
+      setErro('CPF inválido. Confira os números digitados.');
+      return;
+    }
+    if (senha.length < 6) {
+      setErro('Use uma senha com pelo menos 6 caracteres.');
+      return;
+    }
+    if (senha !== confirmarSenha) {
+      setErro('As senhas não coincidem.');
+      return;
+    }
+    setEnviando(true);
+    try {
+      const senhaHash = await hashSenha(senha);
+      const permissoesVazias = {};
+      MODULOS_PERMISSAO.forEach(m => {
+        permissoesVazias[m] = 'sem_acesso';
+      });
+      await db.collection('funcionarios').add({
+        nome: nome.trim(),
+        cpf: cpf.replace(/\D/g, ''),
+        dataNascimento,
+        telefone,
+        login: login.trim(),
+        senhaHash,
+        cargo: '',
+        percentualComissao: 0,
+        comissaoBaseId: '',
+        perfil: 'funcionario',
+        status: 'pendente',
+        permissoes: permissoesVazias,
+        colunasOrcamento: null,
+        comissaoEscopo: 'propria',
+        historico: [{
+          data: new Date().toISOString(),
+          texto: 'Cadastro solicitado pelo próprio usuário — aguardando aprovação.'
+        }],
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setEnviado(true);
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui enviar seu cadastro. Tente novamente.');
+    }
+    setEnviando(false);
+  }
+  if (enviado) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        width: 340,
+        textAlign: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 36,
+        marginBottom: 10
+      }
+    }, "🟡"), /*#__PURE__*/React.createElement("h2", {
+      style: {
+        margin: '0 0 6px'
+      }
+    }, "Cadastro enviado"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: 'var(--texto-fraco)',
+        fontSize: 13.5,
+        marginBottom: 16
+      }
+    }, "Seu cadastro foi enviado para análise do administrador. Você poderá entrar assim que ele for aprovado."), /*#__PURE__*/React.createElement("button", {
+      className: "btn",
+      style: {
+        width: '100%',
+        justifyContent: 'center'
+      },
+      onClick: aoVoltar
+    }, "Voltar para o início")));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("form", {
+    onSubmit: enviar,
+    className: "card",
+    style: {
+      width: 380
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "icons/icon-192.png",
+    alt: "Tecnopemt",
+    style: {
+      width: 48,
+      height: 48,
+      borderRadius: 12
+    }
+  }), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: '8px 0 2px'
+    }
+  }, "Criar minha conta"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--texto-fraco)',
+      fontSize: 13
+    }
+  }, "Preencha seus dados para solicitar acesso ao Controle de Peças.")), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
+    required: true
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de nascimento"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataNascimento,
+    onChange: e => setDataNascimento(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
+    value: cpf,
+    onChange: e => setCpf(formatarCpfCampo(e.target.value)),
+    placeholder: "000.000.000-00",
+    required: true
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Telefone"), /*#__PURE__*/React.createElement("input", {
+    value: telefone,
+    onChange: e => setTelefone(formatarTelefoneCampo(e.target.value)),
+    placeholder: "(00) 00000-0000"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
+    value: login,
+    onChange: e => setLogin(e.target.value),
+    required: true
+  }))), /*#__PURE__*/React.createElement("label", null, "Senha"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: senha,
+    onChange: e => setSenha(e.target.value),
+    required: true
+  }), /*#__PURE__*/React.createElement("label", null, "Confirmar senha"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: confirmarSenha,
+    onChange: e => setConfirmarSenha(e.target.value),
+    required: true
+  }), erro && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--vermelho)',
+      fontSize: 13,
+      marginTop: 10
+    }
+  }, erro), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      width: '100%',
+      justifyContent: 'center',
+      marginTop: 16
+    },
+    disabled: enviando
+  }, enviando ? 'Enviando...' : 'Enviar cadastro'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      width: '100%',
+      justifyContent: 'center',
+      marginTop: 10
+    },
+    onClick: aoVoltar
+  }, "Voltar")));
 }
 
 // ======================= LAYOUT =======================
@@ -2314,6 +2614,8 @@ function App() {
   const [sidebarRecolhida, setSidebarRecolhida] = useState(false);
   const [sidebarMobileAberta, setSidebarMobileAberta] = useState(false);
   const [ehMobile, setEhMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width:900px)').matches);
+  const [telaAtual, setTelaAtual] = useState('login');
+  const [modalMinhaSenhaAberto, setModalMinhaSenhaAberto] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width:900px)');
     function aoMudar(e) {
@@ -2364,6 +2666,54 @@ function App() {
       }
     })();
   }, [usuario]);
+  useEffect(() => {
+    if (!usuario) return;
+    (async () => {
+      try {
+        const configRef = db.collection('config').doc('migracaoPermissoes');
+        const configSnap = await configRef.get();
+        if (configSnap.exists) return;
+        const snap = await db.collection('funcionarios').get();
+        const jaTemMaster = snap.docs.some(d => d.data().perfil === 'master');
+        const opBatch = db.batch();
+        let temMaster = jaTemMaster;
+        snap.docs.forEach(doc => {
+          const d = doc.data();
+          if (d.perfil) return; // já migrado, não mexe
+          const permissoesTotais = {};
+          MODULOS_PERMISSAO.forEach(m => {
+            permissoesTotais[m] = 'editar';
+          });
+          const nomeNorm = (d.nome || '').trim().toLowerCase();
+          let perfil = 'funcionario';
+          if (!temMaster && nomeNorm.includes('walter')) {
+            perfil = 'master';
+            temMaster = true;
+          } else if (nomeNorm.includes('raiany')) {
+            perfil = 'administrador';
+          }
+          opBatch.update(doc.ref, {
+            perfil,
+            status: d.ativo === false ? 'inativo' : 'ativo',
+            permissoes: permissoesTotais,
+            colunasOrcamento: null,
+            comissaoEscopo: 'administrar',
+            historico: firebase.firestore.FieldValue.arrayUnion({
+              data: new Date().toISOString(),
+              texto: 'Migração automática: nova estrutura de permissões criada, acesso total preservado como já era antes.'
+            })
+          });
+        });
+        opBatch.set(configRef, {
+          feito: true,
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await opBatch.commit();
+      } catch (err) {
+        console.error('migração de permissões', err);
+      }
+    })();
+  }, [usuario]);
   function sair() {
     localStorage.removeItem('pecas_sessao');
     setUsuario(null);
@@ -2379,11 +2729,15 @@ function App() {
   if (!usuario && funcionarios.length === 0) return /*#__PURE__*/React.createElement(TelaPrimeiroAcesso, {
     aoLogar: setUsuario
   });
+  if (!usuario && telaAtual === 'criarConta') return /*#__PURE__*/React.createElement(TelaCriarConta, {
+    aoVoltar: () => setTelaAtual('login')
+  });
   if (!usuario) return /*#__PURE__*/React.createElement(TelaLogin, {
     funcionarios: funcionarios,
-    aoLogar: setUsuario
+    aoLogar: setUsuario,
+    setTelaAtual: setTelaAtual
   });
-  const abas = [{
+  const abasTodas = [{
     id: 'dashboard',
     nome: 'Painel',
     icone: '📊'
@@ -2412,6 +2766,7 @@ function App() {
     nome: 'Equipe',
     icone: '👤'
   }];
+  const abas = abasTodas.filter(a => podeVisualizar(usuario, a.id));
   return /*#__PURE__*/React.createElement("div", {
     className: "app-shell"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2447,6 +2802,14 @@ function App() {
   }, a.nome)))), /*#__PURE__*/React.createElement("div", {
     className: "sidebar-rodape"
   }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalMinhaSenhaAberto(true),
+    className: "sidebar-item",
+    title: "Minha senha"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "icone"
+  }, "🔑"), /*#__PURE__*/React.createElement("span", {
+    className: "label"
+  }, "Minha senha")), /*#__PURE__*/React.createElement("button", {
     onClick: sair,
     className: "sidebar-item",
     title: "Sair"
@@ -2493,20 +2856,60 @@ function App() {
     className: "cargo"
   }, usuario.cargo)))), /*#__PURE__*/React.createElement("div", {
     className: "conteudo-principal"
-  }, aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, null), aba === 'lotes' && /*#__PURE__*/React.createElement(AbaLotes, {
+  }, !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      textAlign: 'center',
+      color: 'var(--texto-fraco)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 40,
+      marginBottom: 10
+    }
+  }, "🔒"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 16,
+      color: 'var(--texto)'
+    }
+  }, "Acesso não autorizado"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      marginTop: 4
+    }
+  }, "Você não tem permissão para acessar este módulo. Fale com um administrador.")) : /*#__PURE__*/React.createElement(React.Fragment, null, aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, {
     usuario: usuario,
     funcionarios: funcionarios
-  }), aba === 'catalogo' && /*#__PURE__*/React.createElement(AbaCatalogo, null), aba === 'clientes' && /*#__PURE__*/React.createElement(AbaClientes, null), aba === 'orcamentos' && /*#__PURE__*/React.createElement(AbaOrcamentos, {
+  }), aba === 'lotes' && /*#__PURE__*/React.createElement(AbaLotes, {
+    usuario: usuario,
+    funcionarios: funcionarios
+  }), aba === 'catalogo' && /*#__PURE__*/React.createElement(AbaCatalogo, {
+    usuario: usuario
+  }), aba === 'clientes' && /*#__PURE__*/React.createElement(AbaClientes, {
+    usuario: usuario
+  }), aba === 'orcamentos' && /*#__PURE__*/React.createElement(AbaOrcamentos, {
     usuario: usuario
   }), aba === 'comissoes' && /*#__PURE__*/React.createElement(AbaComissoes, {
+    usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'funcionarios' && /*#__PURE__*/React.createElement(AbaFuncionarios, {
-    usuario: usuario
-  }))));
+    usuario: usuario,
+    funcionarios: funcionarios
+  })))), modalMinhaSenhaAberto && /*#__PURE__*/React.createElement(ModalMinhaSenha, {
+    usuario: usuario,
+    aoFechar: () => setModalMinhaSenhaAberto(false)
+  }));
 }
 
 // ======================= CLIENTES =======================
-function AbaClientes() {
+function AbaClientes({
+  usuario
+}) {
   const [clientes, carregando] = useColecao('clientes');
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -2728,7 +3131,7 @@ function AbaClientes() {
     style: {
       margin: 0
     }
-  }, "Clientes"), /*#__PURE__*/React.createElement("div", {
+  }, "Clientes"), podeEditar(usuario, 'clientes') && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -2771,7 +3174,7 @@ function AbaClientes() {
     style: {
       maxWidth: 360
     }
-  }), selecionados.size > 0 && /*#__PURE__*/React.createElement("button", {
+  }), podeEditar(usuario, 'clientes') && selecionados.size > 0 && /*#__PURE__*/React.createElement("button", {
     className: "btn perigo",
     disabled: excluindoLote,
     onClick: excluirSelecionados
@@ -2804,7 +3207,7 @@ function AbaClientes() {
       whiteSpace: 'nowrap'
     },
     onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement("button", {
+  }, podeEditar(usuario, 'clientes') && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-menu-pontos",
     onClick: () => setMenuCliente(c),
@@ -2818,6 +3221,7 @@ function AbaClientes() {
     }
   }, "Nenhum cliente encontrado."))))), modalAberto && /*#__PURE__*/React.createElement(ModalCliente, {
     cliente: editando,
+    usuario: usuario,
     aoFechar: () => setModalAberto(false)
   }), menuCliente && /*#__PURE__*/React.createElement(ModalMenuAcoes, {
     titulo: menuCliente.razaoSocial || 'Cliente',
@@ -2834,6 +3238,7 @@ function AbaClientes() {
 }
 function ModalCliente({
   cliente,
+  usuario,
   aoFechar
 }) {
   const [f, setF] = useState(cliente || {
@@ -2980,7 +3385,7 @@ function ModalCliente({
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
-  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+  }, podeEditar(usuario, 'clientes') ? 'Cancelar' : 'Fechar'), podeEditar(usuario, 'clientes') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     disabled: salvando
   }, salvando ? 'Salvando...' : 'Salvar'))));
@@ -3001,7 +3406,9 @@ const STATUS_CLASSE = {
   'Entregue/Faturado': 'entregue',
   'Teste': 'estoque'
 };
-function AbaCatalogo() {
+function AbaCatalogo({
+  usuario
+}) {
   const [catalogo, carregando] = useColecao('catalogoPecas', 'criadoEm');
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -3059,7 +3466,7 @@ function AbaCatalogo() {
     style: {
       margin: 0
     }
-  }, "Cadastro de peças"), /*#__PURE__*/React.createElement("button", {
+  }, "Cadastro de peças"), podeEditar(usuario, 'catalogo') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => {
       setEditando(null);
@@ -3099,7 +3506,7 @@ function AbaCatalogo() {
       whiteSpace: 'nowrap'
     },
     onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement("button", {
+  }, podeEditar(usuario, 'catalogo') && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-menu-pontos",
     onClick: () => setMenuPeca(p),
@@ -3113,6 +3520,7 @@ function AbaCatalogo() {
     }
   }, "Nenhuma peça cadastrada ainda."))))), modalAberto && /*#__PURE__*/React.createElement(ModalCatalogo, {
     peca: editando,
+    usuario: usuario,
     aoFechar: () => setModalAberto(false)
   }), menuPeca && /*#__PURE__*/React.createElement(ModalMenuAcoes, {
     titulo: menuPeca.descricao || 'Peça',
@@ -3129,6 +3537,7 @@ function AbaCatalogo() {
 }
 function ModalCatalogo({
   peca,
+  usuario,
   aoFechar
 }) {
   const [f, setF] = useState(peca || {
@@ -3293,7 +3702,7 @@ function ModalCatalogo({
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
-  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+  }, podeEditar(usuario, 'catalogo') ? 'Cancelar' : 'Fechar'), podeEditar(usuario, 'catalogo') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     disabled: salvando
   }, salvando ? 'Salvando...' : 'Salvar'))));
@@ -3603,7 +4012,7 @@ function AbaLotes({
     style: {
       margin: 0
     }
-  }, "Entrada de peças"), /*#__PURE__*/React.createElement("button", {
+  }, "Entrada de peças"), podeEditar(usuario, 'lotes') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => setModalNovoAberto(true)
   }, "+ Dar entrada")), /*#__PURE__*/React.createElement("select", {
@@ -3646,10 +4055,12 @@ function AbaLotes({
       whiteSpace: 'nowrap'
     },
     onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement("button", {
+  }, podeEditar(usuario, 'lotes') ? /*#__PURE__*/React.createElement("button", {
     className: `btn pequeno ${l.assinaturaEntrada ? 'verde' : 'secundario'}`,
     onClick: () => setLoteAssinaturaId(l.id)
-  }, l.assinaturaEntrada ? '✓ Assinado' : '🖊️ Assinar'), ' ', /*#__PURE__*/React.createElement("button", {
+  }, l.assinaturaEntrada ? '✓ Assinado' : '🖊️ Assinar') : l.assinaturaEntrada && /*#__PURE__*/React.createElement("span", {
+    className: "badge aprovado"
+  }, "✓ Assinado"), ' ', podeEditar(usuario, 'lotes') && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-menu-pontos",
     onClick: () => setMenuLote(l),
@@ -3967,6 +4378,7 @@ function ModalLoteDetalhe({
   const clienteObj = clientes.find(c => c.id === lote.clienteId);
   const nomeCliente = clienteObj?.razaoSocial || '-';
   const [processando, setProcessando] = useState(false);
+  const somenteLeitura = !podeEditar(usuario, 'lotes');
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
   async function mudarStatusManual(novoStatus) {
     await db.collection('lotes').doc(lote.id).update({
@@ -4189,6 +4601,7 @@ function ModalLoteDetalhe({
   }, "Entrada em ", formatData(lote.criadoEm)))), /*#__PURE__*/React.createElement("select", {
     value: lote.status,
     onChange: e => mudarStatusManual(e.target.value),
+    disabled: somenteLeitura,
     className: `badge ${STATUS_CLASSE[lote.status] || 'estoque'}`,
     style: {
       width: 'auto',
@@ -4252,7 +4665,8 @@ function ModalLoteDetalhe({
       type: "number",
       step: "0.01",
       defaultValue: it.valorConserto || 0,
-      onBlur: e => definirValor(idx, e.target.value)
+      onBlur: e => definirValor(idx, e.target.value),
+      disabled: somenteLeitura
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -4274,7 +4688,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'consertada', -1),
-      disabled: (it.qtdConsertada || 0) <= (it.qtdConsertadaOrcada || 0)
+      disabled: somenteLeitura || (it.qtdConsertada || 0) <= (it.qtdConsertadaOrcada || 0)
     }, "－"), /*#__PURE__*/React.createElement("span", {
       style: {
         minWidth: 20,
@@ -4285,7 +4699,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'consertada', 1),
-      disabled: restante <= 0
+      disabled: somenteLeitura || restante <= 0
     }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
@@ -4300,7 +4714,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'garantia', -1),
-      disabled: (it.qtdGarantia || 0) <= (it.qtdGarantiaOrcada || 0)
+      disabled: somenteLeitura || (it.qtdGarantia || 0) <= (it.qtdGarantiaOrcada || 0)
     }, "－"), /*#__PURE__*/React.createElement("span", {
       style: {
         minWidth: 20,
@@ -4311,7 +4725,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'garantia', 1),
-      disabled: restante <= 0
+      disabled: somenteLeitura || restante <= 0
     }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
@@ -4326,7 +4740,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'teste', -1),
-      disabled: (it.qtdTeste || 0) <= (it.qtdTesteOrcada || 0)
+      disabled: somenteLeitura || (it.qtdTeste || 0) <= (it.qtdTesteOrcada || 0)
     }, "－"), /*#__PURE__*/React.createElement("span", {
       style: {
         minWidth: 20,
@@ -4337,7 +4751,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'teste', 1),
-      disabled: restante <= 0
+      disabled: somenteLeitura || restante <= 0
     }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
@@ -4352,7 +4766,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'naoConsertada', -1),
-      disabled: (it.qtdNaoConsertada || 0) <= (it.qtdNaoConsertadaOrcada || 0)
+      disabled: somenteLeitura || (it.qtdNaoConsertada || 0) <= (it.qtdNaoConsertadaOrcada || 0)
     }, "－"), /*#__PURE__*/React.createElement("span", {
       style: {
         minWidth: 20,
@@ -4363,7 +4777,7 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'naoConsertada', 1),
-      disabled: restante <= 0
+      disabled: somenteLeitura || restante <= 0
     }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
@@ -4404,7 +4818,7 @@ function ModalLoteDetalhe({
     }
   }, /*#__PURE__*/React.createElement("button", {
     className: "btn",
-    disabled: !temPendenteDeOrcamento || processando,
+    disabled: !temPendenteDeOrcamento || processando || somenteLeitura,
     onClick: gerarOrcamento,
     style: {
       width: '100%',
@@ -4417,7 +4831,7 @@ function ModalLoteDetalhe({
     }
   }, "Último orçamento gerado: #", lote.orcamentoNumero, ". Acompanhe o status na aba Orçamento."), lote.status !== 'Concluído' && /*#__PURE__*/React.createElement("button", {
     className: "btn verde",
-    disabled: processando,
+    disabled: processando || somenteLeitura,
     onClick: marcarConcluido,
     style: {
       width: '100%',
@@ -4435,7 +4849,7 @@ function ModalLoteDetalhe({
       justifyContent: 'space-between',
       marginTop: 16
     }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, !somenteLeitura && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn perigo",
     disabled: processando,
@@ -4868,7 +5282,7 @@ function AbaOrcamentos({
     style: {
       margin: 0
     }
-  }, "Orçamentos"), /*#__PURE__*/React.createElement("button", {
+  }, "Orçamentos"), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => {
       setEditando(null);
@@ -4927,7 +5341,7 @@ function AbaOrcamentos({
       minHeight: 0,
       paddingBottom: 12
     }
-  }, STATUS_ORCAMENTO.map(status => {
+  }, STATUS_ORCAMENTO.filter(status => colunaPermitida(usuario, status)).map(status => {
     const itensDoStatus = orcamentosFiltrados.filter(o => o.status === status);
     return /*#__PURE__*/React.createElement("div", {
       key: status,
@@ -4999,7 +5413,7 @@ function AbaOrcamentos({
         fontSize: 14.5,
         lineHeight: 1.3
       }
-    }, "#", o.numero, " — ", nomeCliente(o.clienteId)), /*#__PURE__*/React.createElement("button", {
+    }, "#", o.numero, " — ", nomeCliente(o.clienteId)), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: e => {
         e.stopPropagation();
@@ -5048,7 +5462,7 @@ function AbaOrcamentos({
         color: 'var(--texto-fraco)',
         marginTop: 5
       }
-    }, "📅 ", formatData(o.criadoEm)), /*#__PURE__*/React.createElement("div", {
+    }, "📅 ", formatData(o.criadoEm)), podeEditar(usuario, 'orcamentos') ? /*#__PURE__*/React.createElement("div", {
       onClick: e => e.stopPropagation()
     }, /*#__PURE__*/React.createElement("select", {
       value: o.status,
@@ -5064,7 +5478,13 @@ function AbaOrcamentos({
     }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
       key: s,
       value: s
-    }, s)))), status === 'Teste' && /*#__PURE__*/React.createElement("div", {
+    }, s)))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 9
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`
+    }, o.status)), status === 'Teste' && /*#__PURE__*/React.createElement("div", {
       onClick: e => e.stopPropagation(),
       style: {
         marginTop: 9,
@@ -5433,7 +5853,7 @@ function ModalOrcamento({
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
-  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+  }, podeEditar(usuario, 'orcamentos') ? 'Cancelar' : 'Fechar'), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     disabled: salvando
   }, salvando ? 'Salvando...' : 'Salvar'))));
@@ -5698,11 +6118,13 @@ function ModalApuracao({
   }, "Fechar"))));
 }
 function AbaComissoes({
+  usuario,
   funcionarios
 }) {
   const [comissoes, carregando] = useColecao('comissoes', 'data');
   const [orcamentos] = useColecao('orcamentos');
-  const [filtroFunc, setFiltroFunc] = useState('');
+  const escopo = comissaoEscopoDe(usuario);
+  const [filtroFunc, setFiltroFunc] = useState(escopo === 'propria' ? usuario.id : '');
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
   const [modalApuracaoAberto, setModalApuracaoAberto] = useState(false);
@@ -5712,8 +6134,9 @@ function AbaComissoes({
     const o = orcamentoDe(id);
     return o ? `#${o.numero}` : '-';
   };
+  const filtroFuncEfetivo = escopo === 'propria' ? usuario.id : filtroFunc;
   const filtradas = comissoes.filter(c => {
-    if (filtroFunc && c.funcionarioId !== filtroFunc) return false;
+    if (filtroFuncEfetivo && c.funcionarioId !== filtroFuncEfetivo) return false;
     if (!c.data) return true;
     const d = c.data.toDate ? c.data.toDate() : new Date(c.data);
     if (de && d < new Date(de)) return false;
@@ -5747,7 +6170,7 @@ function AbaComissoes({
     style: {
       margin: 0
     }
-  }, "Análise de comissão"), /*#__PURE__*/React.createElement("button", {
+  }, escopo === 'propria' ? 'Minha Comissão' : 'Análise de comissão'), escopo === 'administrar' && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => setModalApuracaoAberto(true)
   }, "📅 Período de Apuração")), /*#__PURE__*/React.createElement("div", {
@@ -5757,7 +6180,7 @@ function AbaComissoes({
       marginBottom: 16,
       flexWrap: 'wrap'
     }
-  }, /*#__PURE__*/React.createElement("select", {
+  }, escopo !== 'propria' && /*#__PURE__*/React.createElement("select", {
     value: filtroFunc,
     onChange: e => setFiltroFunc(e.target.value),
     style: {
@@ -6023,7 +6446,10 @@ function GraficoComparativo({
     }, d.label));
   }));
 }
-function AbaDashboard() {
+function AbaDashboard({
+  usuario,
+  funcionarios
+}) {
   const [lotes] = useColecao('lotes');
   const [orcamentos] = useColecao('orcamentos');
   const [comissoes] = useColecao('comissoes');
@@ -6053,6 +6479,28 @@ function AbaDashboard() {
   const porCategoriaConsertada = agruparPorCategoria(itensDoMes, 'consertada');
   const porCategoriaGarantia = agruparPorCategoria(itensDoMes, 'garantia');
   const porCategoriaSemConserto = agruparPorCategoria(itensDoMes, 'naoConsertada');
+  const aniversariantesHoje = [];
+  const proximosAniversarios = [];
+  (funcionarios || []).forEach(f => {
+    if (!f.dataNascimento) return;
+    const partes = f.dataNascimento.split('-'); // <input type="date"> = AAAA-MM-DD
+    if (partes.length !== 3) return;
+    const mes = Number(partes[1]),
+      dia = Number(partes[2]);
+    if (!mes || !dia) return;
+    if (mes === hoje.getMonth() + 1 && dia === hoje.getDate()) {
+      aniversariantesHoje.push(f);
+    } else {
+      let proximaData = new Date(hoje.getFullYear(), mes - 1, dia);
+      if (proximaData < hoje) proximaData = new Date(hoje.getFullYear() + 1, mes - 1, dia);
+      proximosAniversarios.push({
+        nome: f.nome,
+        dataTexto: `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}`,
+        ordenacao: proximaData
+      });
+    }
+  });
+  proximosAniversarios.sort((a, b) => a.ordenacao - b.ordenacao);
   const diasArray = [];
   if (dataInicio && dataFim) {
     let cursor = new Date(dataInicio + 'T00:00:00');
@@ -6115,7 +6563,47 @@ function AbaDashboard() {
     type: "date",
     value: dataFimPrincipal,
     onChange: e => setDataFimPrincipal(e.target.value)
-  })))), /*#__PURE__*/React.createElement("div", {
+  })))), (aniversariantesHoje.length > 0 || proximosAniversarios.length > 0) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))',
+      gap: 12,
+      marginBottom: 20
+    }
+  }, aniversariantesHoje.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      background: 'var(--laranja-bg)',
+      borderColor: 'var(--laranja)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginBottom: 6
+    }
+  }, "🎉 Aniversariantes de hoje"), aniversariantesHoje.map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.id,
+    style: {
+      fontSize: 13,
+      marginTop: 2
+    }
+  }, "🎂 Hoje é aniversário de ", f.nome, "!"))), proximosAniversarios.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginBottom: 6
+    }
+  }, "🎂 Próximos aniversários"), proximosAniversarios.slice(0, 5).map((a, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontSize: 13,
+      marginTop: 2,
+      color: 'var(--texto-fraco)'
+    }
+  }, "🎂 ", a.nome, " — ", a.dataTexto)))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
@@ -6259,108 +6747,183 @@ function AbaDashboard() {
 
 // ======================= FUNCIONÁRIOS =======================
 function AbaFuncionarios({
-  usuario
+  usuario,
+  funcionarios
 }) {
-  const [funcionarios, carregando] = useColecao('funcionarios');
   const [modalAberto, setModalAberto] = useState(false);
-  const [editando, setEditando] = useState(null);
-  const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
-  async function excluir(f) {
-    if (f.id === usuario.id) {
-      alert('Você não pode excluir o próprio usuário enquanto estiver logado com ele.');
-      return;
-    }
-    if (!confirm(`Excluir o funcionário "${f.nome}"?`)) return;
-    if (!confirmarSenhaMaster('Digite a senha master para excluir este funcionário:')) return;
-    await db.collection('funcionarios').doc(f.id).delete();
+  const [detalheId, setDetalheId] = useState(null);
+  const [filtroStatus, setFiltroStatus] = useState('');
+  const [busca, setBusca] = useState('');
+  const pendentes = funcionarios.filter(f => f.status === 'pendente');
+  const ativos = funcionarios.filter(f => f.status === 'ativo' || !f.status && f.ativo !== false);
+  const bloqueados = funcionarios.filter(f => f.status === 'bloqueado');
+  const administradores = funcionarios.filter(f => f.perfil === 'administrador' || f.perfil === 'master');
+  const filtrados = funcionarios.filter(f => {
+    if (filtroStatus === 'pendentes' && f.status !== 'pendente') return false;
+    if (filtroStatus === 'bloqueados' && f.status !== 'bloqueado') return false;
+    if (filtroStatus === 'administradores' && !(f.perfil === 'administrador' || f.perfil === 'master')) return false;
+    if (filtroStatus === 'ativos' && !(f.status === 'ativo' || !f.status && f.ativo !== false)) return false;
+    const b = busca.toLowerCase();
+    if (busca && ![f.nome, f.login, f.telefone, f.cpf].some(v => (v || '').toLowerCase().includes(b))) return false;
+    return true;
+  });
+  const detalhe = funcionarios.find(f => f.id === detalheId);
+  function badgeStatus(status) {
+    if (status === 'bloqueado' || status === 'recusado') return 'recusado';
+    if (status === 'pendente') return 'pendente';
+    if (status === 'inativo') return 'estoque';
+    return 'aprovado';
   }
-  async function alternarAtivo(f) {
-    await db.collection('funcionarios').doc(f.id).update({
-      ativo: f.ativo === false
-    });
-  }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "painel-tela"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "painel-cabecalho"
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16
+      marginBottom: 14,
+      flexWrap: 'wrap',
+      gap: 10
     }
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
       margin: 0
     }
-  }, "Funcionários"), /*#__PURE__*/React.createElement("button", {
+  }, "Equipe"), podeEditar(usuario, 'funcionarios') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
-    onClick: () => {
-      setEditando(null);
-      setModalAberto(true);
-    }
+    onClick: () => setModalAberto(true)
   }, "+ Novo funcionário")), /*#__PURE__*/React.createElement("div", {
-    className: "card",
     style: {
-      overflowX: 'auto',
-      padding: 0
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
+      gap: 10,
+      marginBottom: 14
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nome"), /*#__PURE__*/React.createElement("th", null, "Cargo"), /*#__PURE__*/React.createElement("th", null, "Login"), /*#__PURE__*/React.createElement("th", null, "% comissão"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, funcionarios.map(f => /*#__PURE__*/React.createElement("tr", {
-    key: f.id
-  }, /*#__PURE__*/React.createElement("td", null, f.nome), /*#__PURE__*/React.createElement("td", null, f.cargo || '-'), /*#__PURE__*/React.createElement("td", null, f.login || '-'), /*#__PURE__*/React.createElement("td", null, f.percentualComissao ? `${f.percentualComissao}%` : '-', f.comissaoBaseId && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card clicavel",
     style: {
-      fontSize: 11,
-      color: 'var(--texto-fraco)'
-    }
-  }, "sobre comissão de ", nomeFunc(f.comissaoBaseId)), !f.comissaoBaseId && f.percentualComissao ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: 'var(--texto-fraco)'
-    }
-  }, "sobre o orçamento") : null), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
-    className: `badge ${f.ativo === false ? 'recusado' : 'aprovado'}`,
-    style: {
-      border: 'none'
+      padding: 12
     },
-    onClick: () => alternarAtivo(f)
-  }, f.ativo === false ? 'Inativo' : 'Ativo')), /*#__PURE__*/React.createElement("td", {
+    onClick: () => setFiltroStatus(filtroStatus === 'ativos' ? '' : 'ativos')
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
-      textAlign: 'right',
-      whiteSpace: 'nowrap'
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
     }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario pequeno",
-    onClick: () => {
-      setEditando(f);
-      setModalAberto(true);
-    }
-  }, "Editar"), ' ', /*#__PURE__*/React.createElement("button", {
-    className: "btn perigo pequeno",
-    onClick: () => excluir(f)
-  }, "Excluir")))), !carregando && funcionarios.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "6",
+  }, "Ativos"), /*#__PURE__*/React.createElement("div", {
     style: {
-      color: 'var(--texto-fraco)',
+      fontSize: 22,
+      fontWeight: 700,
+      color: 'var(--verde)'
+    }
+  }, ativos.length)), /*#__PURE__*/React.createElement("div", {
+    className: "card clicavel",
+    style: {
+      padding: 12
+    },
+    onClick: () => setFiltroStatus(filtroStatus === 'pendentes' ? '' : 'pendentes')
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Pendentes de aprovação"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      fontWeight: 700,
+      color: 'var(--laranja-escuro)'
+    }
+  }, pendentes.length)), /*#__PURE__*/React.createElement("div", {
+    className: "card clicavel",
+    style: {
+      padding: 12
+    },
+    onClick: () => setFiltroStatus(filtroStatus === 'bloqueados' ? '' : 'bloqueados')
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Bloqueados"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      fontWeight: 700,
+      color: 'var(--vermelho)'
+    }
+  }, bloqueados.length)), /*#__PURE__*/React.createElement("div", {
+    className: "card clicavel",
+    style: {
+      padding: 12
+    },
+    onClick: () => setFiltroStatus(filtroStatus === 'administradores' ? '' : 'administradores')
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Administradores"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      fontWeight: 700
+    }
+  }, administradores.length))), /*#__PURE__*/React.createElement("input", {
+    placeholder: "Buscar por nome, CPF, login ou telefone...",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    style: {
+      maxWidth: 340,
+      marginBottom: 14
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card painel-tabela"
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Login"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Perfil"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(f => /*#__PURE__*/React.createElement("tr", {
+    key: f.id,
+    className: "linha-clicavel",
+    onClick: () => setDetalheId(f.id)
+  }, /*#__PURE__*/React.createElement("td", null, f.nome), /*#__PURE__*/React.createElement("td", null, f.login || '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+    className: `badge ${badgeStatus(f.status)}`
+  }, statusRotulo(f.status || 'ativo'))), /*#__PURE__*/React.createElement("td", null, f.perfil === 'master' ? 'Administrador Master' : f.perfil === 'administrador' ? 'Administrador' : 'Funcionário'), /*#__PURE__*/React.createElement("td", {
+    style: {
+      textAlign: 'right'
+    }
+  }))), filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "5",
+    style: {
       textAlign: 'center',
+      color: 'var(--texto-fraco)',
       padding: 22
     }
-  }, "Nenhum funcionário cadastrado. Crie o primeiro para poder fazer login."))))), modalAberto && /*#__PURE__*/React.createElement(ModalFuncionario, {
-    funcionario: editando,
-    funcionarios: funcionarios,
+  }, "Nenhum funcionário encontrado."))))), modalAberto && /*#__PURE__*/React.createElement(ModalNovoFuncionarioAdmin, {
+    usuario: usuario,
     aoFechar: () => setModalAberto(false)
+  }), detalhe && /*#__PURE__*/React.createElement(ModalFuncionarioDetalhe, {
+    funcionario: detalhe,
+    usuarioLogado: usuario,
+    aoFechar: () => setDetalheId(null)
   }));
 }
-function ModalFuncionario({
+function AbaDadosPessoaisFuncionario({
   funcionario,
-  funcionarios,
-  aoFechar
+  podeEditar
 }) {
-  const [f, setF] = useState(funcionario || {
-    nome: '',
-    cargo: '',
-    login: '',
-    percentualComissao: 0,
-    comissaoBaseId: '',
-    ativo: true
+  const [f, setF] = useState({
+    nome: funcionario.nome || '',
+    cpf: funcionario.cpf || '',
+    dataNascimento: funcionario.dataNascimento || '',
+    telefone: funcionario.telefone || '',
+    cep: funcionario.cep || '',
+    endereco: funcionario.endereco || '',
+    numero: funcionario.numero || '',
+    complemento: funcionario.complemento || '',
+    bairro: funcionario.bairro || '',
+    cidade: funcionario.cidade || '',
+    uf: funcionario.uf || '',
+    login: funcionario.login || '',
+    cargo: funcionario.cargo || '',
+    percentualComissao: funcionario.percentualComissao || 0
   });
-  const [senha, setSenha] = useState('');
   const [salvando, setSalvando] = useState(false);
   function campo(k, v) {
     setF(prev => ({
@@ -6368,28 +6931,725 @@ function ModalFuncionario({
       [k]: v
     }));
   }
+  async function salvar() {
+    setSalvando(true);
+    await db.collection('funcionarios').doc(funcionario.id).update({
+      ...f,
+      percentualComissao: Number(f.percentualComissao) || 0
+    });
+    setSalvando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+    value: f.nome,
+    onChange: e => campo('nome', e.target.value),
+    disabled: !podeEditar
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
+    value: f.cpf,
+    onChange: e => campo('cpf', e.target.value),
+    disabled: !podeEditar
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de nascimento"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.dataNascimento,
+    onChange: e => campo('dataNascimento', e.target.value),
+    disabled: !podeEditar
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Telefone"), /*#__PURE__*/React.createElement("input", {
+    value: f.telefone,
+    onChange: e => campo('telefone', e.target.value),
+    disabled: !podeEditar
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cargo"), /*#__PURE__*/React.createElement("input", {
+    value: f.cargo,
+    onChange: e => campo('cargo', e.target.value),
+    disabled: !podeEditar
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
+    value: f.login,
+    onChange: e => campo('login', e.target.value),
+    disabled: !podeEditar
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CEP"), /*#__PURE__*/React.createElement("input", {
+    value: f.cep,
+    onChange: e => campo('cep', e.target.value),
+    disabled: !podeEditar
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Endereço"), /*#__PURE__*/React.createElement("input", {
+    value: f.endereco,
+    onChange: e => campo('endereco', e.target.value),
+    disabled: !podeEditar
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Número"), /*#__PURE__*/React.createElement("input", {
+    value: f.numero,
+    onChange: e => campo('numero', e.target.value),
+    disabled: !podeEditar
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Complemento"), /*#__PURE__*/React.createElement("input", {
+    value: f.complemento,
+    onChange: e => campo('complemento', e.target.value),
+    disabled: !podeEditar
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Bairro"), /*#__PURE__*/React.createElement("input", {
+    value: f.bairro,
+    onChange: e => campo('bairro', e.target.value),
+    disabled: !podeEditar
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cidade/UF"), /*#__PURE__*/React.createElement("input", {
+    value: f.cidade,
+    onChange: e => campo('cidade', e.target.value),
+    disabled: !podeEditar
+  }))), /*#__PURE__*/React.createElement("label", null, "% de comissão"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    step: "0.01",
+    value: f.percentualComissao,
+    onChange: e => campo('percentualComissao', e.target.value),
+    disabled: !podeEditar
+  }), podeEditar && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 12
+    },
+    disabled: salvando,
+    onClick: salvar
+  }, salvando ? 'Salvando...' : 'Salvar dados'));
+}
+function AbaAcessoFuncionario({
+  funcionario,
+  alvoEhMaster,
+  souMaster,
+  onBloquear,
+  onDesbloquear,
+  onInativar,
+  onPromover,
+  onRebaixar,
+  onRedefinirSenha,
+  processando
+}) {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Status:"), " ", statusRotulo(funcionario.status || 'ativo')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, "Perfil:"), " ", funcionario.perfil === 'master' ? 'Administrador Master' : funcionario.perfil === 'administrador' ? 'Administrador' : 'Funcionário'), funcionario.criadoEm && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, "Cadastrado em:"), " ", formatData(funcionario.criadoEm))), alvoEhMaster ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      fontStyle: 'italic'
+    }
+  }, "O Administrador Master não pode ser bloqueado, inativado ou ter o perfil alterado por ninguém pelo sistema.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, funcionario.status === 'bloqueado' ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn verde",
+    disabled: processando,
+    onClick: onDesbloquear,
+    style: {
+      justifyContent: 'flex-start'
+    }
+  }, "🟢 Desbloquear acesso") : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    disabled: processando,
+    onClick: onBloquear,
+    style: {
+      justifyContent: 'flex-start'
+    }
+  }, "🔴 Bloquear acesso"), funcionario.status !== 'inativo' && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: processando,
+    onClick: onInativar,
+    style: {
+      justifyContent: 'flex-start'
+    }
+  }, "⚪ Inativar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: onRedefinirSenha,
+    style: {
+      justifyContent: 'flex-start'
+    }
+  }, "🔑 Redefinir senha"), souMaster && (funcionario.perfil === 'administrador' ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: processando,
+    onClick: onRebaixar,
+    style: {
+      justifyContent: 'flex-start'
+    }
+  }, "Remover privilégios de administrador") : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: processando,
+    onClick: onPromover,
+    style: {
+      justifyContent: 'flex-start'
+    }
+  }, "⭐ Promover a Administrador"))));
+}
+function AbaPermissoesFuncionario({
+  funcionario,
+  usuarioLogado,
+  podeEditar: podeEditarPermissoes
+}) {
+  const [permissoes, setPermissoes] = useState(() => {
+    const base = {};
+    MODULOS_PERMISSAO.forEach(m => {
+      base[m] = funcionario.permissoes?.[m] || 'sem_acesso';
+    });
+    return base;
+  });
+  const [colunas, setColunas] = useState(funcionario.colunasOrcamento || STATUS_ORCAMENTO.slice());
+  const [escopoComissao, setEscopoComissao] = useState(funcionario.comissaoEscopo || 'propria');
+  const [salvando, setSalvando] = useState(false);
+  function alternarColuna(c) {
+    setColunas(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
+  }
+  async function salvar() {
+    setSalvando(true);
+    const antesPermissoes = funcionario.permissoes || {};
+    await db.collection('funcionarios').doc(funcionario.id).update({
+      permissoes,
+      colunasOrcamento: colunas,
+      comissaoEscopo: escopoComissao
+    });
+    const mudancas = MODULOS_PERMISSAO.filter(m => (antesPermissoes[m] || 'sem_acesso') !== permissoes[m]).map(m => `${NOME_MODULO[m]}: ${antesPermissoes[m] || 'sem_acesso'} → ${permissoes[m]}`);
+    if (mudancas.length > 0) {
+      await registrarHistorico(funcionario.id, `${usuarioLogado.nome} alterou as permissões (${mudancas.join(', ')}) em ${new Date().toLocaleString('pt-BR')}.`);
+    }
+    setSalvando(false);
+  }
+  const NIVEIS = [['sem_acesso', 'Sem acesso'], ['visualizar', 'Somente visualizar'], ['editar', 'Visualizar e editar']];
+  return /*#__PURE__*/React.createElement("div", null, MODULOS_PERMISSAO.map(m => /*#__PURE__*/React.createElement("div", {
+    key: m,
+    style: {
+      marginBottom: 14,
+      paddingBottom: 14,
+      borderBottom: '1px solid var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginBottom: 6
+    }
+  }, NOME_MODULO[m]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 14,
+      flexWrap: 'wrap'
+    }
+  }, NIVEIS.map(([valor, rotulo]) => /*#__PURE__*/React.createElement("label", {
+    key: valor,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      fontSize: 13,
+      cursor: podeEditarPermissoes ? 'pointer' : 'default'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "radio",
+    name: `nivel-${m}`,
+    checked: permissoes[m] === valor,
+    disabled: !podeEditarPermissoes,
+    onChange: () => setPermissoes(prev => ({
+      ...prev,
+      [m]: valor
+    })),
+    style: {
+      width: 'auto'
+    }
+  }), rotulo))), m === 'orcamentos' && permissoes.orcamentos !== 'sem_acesso' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginBottom: 6
+    }
+  }, "Colunas de orçamento visíveis:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 10
+    }
+  }, STATUS_ORCAMENTO.map(c => /*#__PURE__*/React.createElement("label", {
+    key: c,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+      fontSize: 12.5
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: colunas.includes(c),
+    disabled: !podeEditarPermissoes,
+    onChange: () => alternarColuna(c),
+    style: {
+      width: 'auto'
+    }
+  }), c)))), m === 'comissoes' && permissoes.comissoes !== 'sem_acesso' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginBottom: 6
+    }
+  }, "Escopo das informações de comissão:"), /*#__PURE__*/React.createElement("select", {
+    value: escopoComissao,
+    onChange: e => setEscopoComissao(e.target.value),
+    disabled: !podeEditarPermissoes,
+    style: {
+      maxWidth: 320
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "propria"
+  }, "Acessar somente a própria comissão"), /*#__PURE__*/React.createElement("option", {
+    value: "outros"
+  }, "Visualizar comissão de outros funcionários também"), /*#__PURE__*/React.createElement("option", {
+    value: "administrar"
+  }, "Administrar comissões (acesso completo)"))))), podeEditarPermissoes ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: salvar
+  }, salvando ? 'Salvando...' : 'Salvar permissões') : /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      fontStyle: 'italic'
+    }
+  }, "Só o Administrador Master pode alterar permissões."));
+}
+function ModalFuncionarioDetalhe({
+  funcionario,
+  usuarioLogado,
+  aoFechar
+}) {
+  const [aba, setAba] = useState('dados');
+  const [processando, setProcessando] = useState(false);
+  const [modalSenhaAberto, setModalSenhaAberto] = useState(false);
+  const [modalAprovarAberto, setModalAprovarAberto] = useState(false);
+  const alvoEhMaster = funcionario.perfil === 'master';
+  const souMaster = ehMaster(usuarioLogado);
+  const souAdmin = ehAdministrador(usuarioLogado);
+  async function mudarStatus(novoStatus, textoHistorico) {
+    if (alvoEhMaster) {
+      alert('Não é possível alterar o Administrador Master.');
+      return;
+    }
+    setProcessando(true);
+    await db.collection('funcionarios').doc(funcionario.id).update({
+      status: novoStatus
+    });
+    await registrarHistorico(funcionario.id, `${usuarioLogado.nome} ${textoHistorico} em ${new Date().toLocaleString('pt-BR')}.`);
+    setProcessando(false);
+  }
+  async function promover() {
+    if (!souMaster) {
+      alert('Só o Administrador Master pode promover a Administrador.');
+      return;
+    }
+    setProcessando(true);
+    await db.collection('funcionarios').doc(funcionario.id).update({
+      perfil: 'administrador'
+    });
+    await registrarHistorico(funcionario.id, `Administrador criado por ${usuarioLogado.nome} em ${new Date().toLocaleString('pt-BR')}.`);
+    setProcessando(false);
+  }
+  async function rebaixar() {
+    if (!souMaster) {
+      alert('Só o Administrador Master pode alterar o perfil de um administrador.');
+      return;
+    }
+    setProcessando(true);
+    await db.collection('funcionarios').doc(funcionario.id).update({
+      perfil: 'funcionario'
+    });
+    await registrarHistorico(funcionario.id, `${usuarioLogado.nome} removeu os privilégios de administrador de ${funcionario.nome} em ${new Date().toLocaleString('pt-BR')}.`);
+    setProcessando(false);
+  }
+  async function inativar() {
+    if (!confirm(`Inativar o acesso de "${funcionario.nome}"? O histórico dele é preservado.`)) return;
+    await mudarStatus('inativo', 'inativou o acesso de ' + funcionario.nome);
+  }
+  async function bloquear() {
+    if (!confirm(`Bloquear o acesso de "${funcionario.nome}"?`)) return;
+    await mudarStatus('bloqueado', 'bloqueou o acesso de ' + funcionario.nome);
+  }
+  async function desbloquear() {
+    await mudarStatus('ativo', 'desbloqueou o acesso de ' + funcionario.nome);
+  }
+  async function recusar() {
+    if (!confirm(`Recusar o cadastro de "${funcionario.nome}"?`)) return;
+    await mudarStatus('recusado', 'recusou o cadastro de ' + funcionario.nome);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 640
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0
+    }
+  }, funcionario.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 2
+    }
+  }, statusRotulo(funcionario.status || 'ativo'), " · ", funcionario.perfil === 'master' ? 'Administrador Master' : funcionario.perfil === 'administrador' ? 'Administrador' : 'Funcionário')), funcionario.status === 'pendente' && souAdmin && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginTop: 14,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn verde",
+    disabled: processando,
+    onClick: () => setModalAprovarAberto(true)
+  }, "Aprovar cadastro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    disabled: processando,
+    onClick: recusar
+  }, "Recusar cadastro")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 4,
+      marginTop: 16,
+      borderBottom: '1px solid var(--borda)',
+      overflowX: 'auto'
+    }
+  }, [['dados', 'Dados pessoais'], ['acesso', 'Acesso'], ['permissoes', 'Permissões'], ['historico', 'Histórico']].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    type: "button",
+    onClick: () => setAba(id),
+    style: {
+      background: 'none',
+      border: 'none',
+      borderBottom: aba === id ? '2px solid var(--laranja)' : '2px solid transparent',
+      padding: '8px 10px',
+      fontSize: 13,
+      fontWeight: 600,
+      color: aba === id ? 'var(--laranja-escuro)' : 'var(--texto-fraco)',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap'
+    }
+  }, label))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      maxHeight: 400,
+      overflowY: 'auto'
+    }
+  }, aba === 'dados' && /*#__PURE__*/React.createElement(AbaDadosPessoaisFuncionario, {
+    funcionario: funcionario,
+    podeEditar: souAdmin && !alvoEhMaster
+  }), aba === 'acesso' && /*#__PURE__*/React.createElement(AbaAcessoFuncionario, {
+    funcionario: funcionario,
+    alvoEhMaster: alvoEhMaster,
+    souMaster: souMaster,
+    onBloquear: bloquear,
+    onDesbloquear: desbloquear,
+    onInativar: inativar,
+    onPromover: promover,
+    onRebaixar: rebaixar,
+    onRedefinirSenha: () => setModalSenhaAberto(true),
+    processando: processando
+  }), aba === 'permissoes' && /*#__PURE__*/React.createElement(AbaPermissoesFuncionario, {
+    funcionario: funcionario,
+    usuarioLogado: usuarioLogado,
+    podeEditar: souMaster && !alvoEhMaster
+  }), aba === 'historico' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, (funcionario.historico || []).slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      borderBottom: '1px solid var(--borda)',
+      paddingBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", null, h.texto), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      marginTop: 2
+    }
+  }, new Date(h.data).toLocaleString('pt-BR')))), (!funcionario.historico || funcionario.historico.length === 0) && /*#__PURE__*/React.createElement("div", null, "Nenhuma alteração registrada ainda."))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 18
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))), modalSenhaAberto && /*#__PURE__*/React.createElement(ModalRedefinirSenha, {
+    funcionario: funcionario,
+    usuarioLogado: usuarioLogado,
+    aoFechar: () => setModalSenhaAberto(false)
+  }), modalAprovarAberto && /*#__PURE__*/React.createElement(ModalAprovarCadastro, {
+    funcionario: funcionario,
+    usuarioLogado: usuarioLogado,
+    aoFechar: () => setModalAprovarAberto(false)
+  }));
+}
+function ModalRedefinirSenha({
+  funcionario,
+  usuarioLogado,
+  aoFechar
+}) {
+  const [novaSenha, setNovaSenha] = useState('');
+  const [gerando, setGerando] = useState(false);
+  const [feito, setFeito] = useState(false);
+  async function gerar() {
+    setGerando(true);
+    const senha = gerarSenhaTemporaria();
+    const hash = await hashSenha(senha);
+    await db.collection('funcionarios').doc(funcionario.id).update({
+      senhaHash: hash
+    });
+    await registrarHistorico(funcionario.id, `${usuarioLogado.nome} redefiniu o acesso de ${funcionario.nome} em ${new Date().toLocaleString('pt-BR')}.`);
+    setNovaSenha(senha);
+    setFeito(true);
+    setGerando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 380
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Redefinir senha — ", funcionario.nome), !feito ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)',
+      marginBottom: 14
+    }
+  }, "Isso cria uma senha temporária nova para ", funcionario.nome, ". A senha atual dele para de funcionar. Você não vê a senha atual dele — só gera uma nova."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: gerando,
+    onClick: gerar
+  }, gerando ? 'Gerando...' : 'Gerar nova senha')) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      marginBottom: 10
+    }
+  }, "Senha temporária gerada — repasse para ", funcionario.nome, " com segurança:"), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: 'center',
+      fontSize: 22,
+      fontWeight: 700,
+      letterSpacing: 2,
+      padding: 14,
+      marginBottom: 10
+    }
+  }, novaSenha), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Recomende que ele troque essa senha assim que entrar (em \"🔑 Minha senha\").")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+function ModalAprovarCadastro({
+  funcionario,
+  usuarioLogado,
+  aoFechar
+}) {
+  const [perfil, setPerfil] = useState('funcionario');
+  const [permissoes, setPermissoes] = useState(() => {
+    const base = {};
+    MODULOS_PERMISSAO.forEach(m => {
+      base[m] = 'sem_acesso';
+    });
+    return base;
+  });
+  const [processando, setProcessando] = useState(false);
+  const NIVEIS = [['sem_acesso', 'Sem acesso'], ['visualizar', 'Visualizar'], ['editar', 'Editar']];
+  async function aprovar() {
+    setProcessando(true);
+    await db.collection('funcionarios').doc(funcionario.id).update({
+      status: 'ativo',
+      perfil,
+      permissoes,
+      colunasOrcamento: STATUS_ORCAMENTO.slice(),
+      comissaoEscopo: 'propria'
+    });
+    await registrarHistorico(funcionario.id, `${usuarioLogado.nome} aprovou o cadastro de ${funcionario.nome} em ${new Date().toLocaleString('pt-BR')}.`);
+    setProcessando(false);
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 480
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Aprovar cadastro — ", funcionario.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)',
+      marginBottom: 14
+    }
+  }, "Antes de aprovar, defina o perfil e os módulos que ", funcionario.nome, " poderá acessar."), /*#__PURE__*/React.createElement("label", null, "Perfil"), /*#__PURE__*/React.createElement("select", {
+    value: perfil,
+    onChange: e => setPerfil(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "funcionario"
+  }, "Funcionário"), /*#__PURE__*/React.createElement("option", {
+    value: "administrador"
+  }, "Administrador")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12
+    }
+  }, MODULOS_PERMISSAO.map(m => /*#__PURE__*/React.createElement("div", {
+    key: m,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '7px 0',
+      borderBottom: '1px solid var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13
+    }
+  }, NOME_MODULO[m]), /*#__PURE__*/React.createElement("select", {
+    value: permissoes[m],
+    onChange: e => setPermissoes(prev => ({
+      ...prev,
+      [m]: e.target.value
+    })),
+    style: {
+      width: 'auto',
+      fontSize: 12.5,
+      padding: '5px 8px'
+    }
+  }, NIVEIS.map(([v, r]) => /*#__PURE__*/React.createElement("option", {
+    key: v,
+    value: v
+  }, r)))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn verde",
+    disabled: processando,
+    onClick: aprovar
+  }, processando ? 'Aprovando...' : 'Aprovar cadastro'))));
+}
+function ModalNovoFuncionarioAdmin({
+  usuario,
+  aoFechar
+}) {
+  const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+  const [login, setLogin] = useState('');
+  const [senha, setSenha] = useState('');
+  const [cargo, setCargo] = useState('');
+  const [salvando, setSalvando] = useState(false);
   async function salvar(e) {
     e.preventDefault();
-    if (!funcionario && !senha) {
-      alert('Defina uma senha para o novo funcionário.');
+    if (senha.length < 6) {
+      alert('Use uma senha com pelo menos 6 caracteres.');
       return;
     }
     setSalvando(true);
-    const dados = {
-      ...f,
-      percentualComissao: Number(f.percentualComissao) || 0
-    };
-    if (senha) dados.senhaHash = await hashSenha(senha);
-    if (funcionario) {
-      await db.collection('funcionarios').doc(funcionario.id).update(dados);
-    } else {
-      dados.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('funcionarios').add(dados);
-    }
+    const senhaHash = await hashSenha(senha);
+    const permissoesVazias = {};
+    MODULOS_PERMISSAO.forEach(m => {
+      permissoesVazias[m] = 'sem_acesso';
+    });
+    await db.collection('funcionarios').add({
+      nome,
+      cpf: cpf.replace(/\D/g, ''),
+      dataNascimento,
+      login,
+      senhaHash,
+      cargo,
+      percentualComissao: 0,
+      comissaoBaseId: '',
+      perfil: 'funcionario',
+      status: 'ativo',
+      permissoes: permissoesVazias,
+      colunasOrcamento: null,
+      comissaoEscopo: 'propria',
+      historico: [{
+        data: new Date().toISOString(),
+        texto: `Cadastro criado por ${usuario.nome} em ${new Date().toLocaleString('pt-BR')}.`
+      }],
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
     setSalvando(false);
     aoFechar();
   }
-  const outrosFuncionarios = (funcionarios || []).filter(fu => fu.id !== funcionario?.id);
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && aoFechar()
@@ -6400,45 +7660,39 @@ function ModalFuncionario({
     style: {
       marginTop: 0
     }
-  }, funcionario ? 'Editar funcionário' : 'Novo funcionário'), /*#__PURE__*/React.createElement("div", {
-    className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Nome"), /*#__PURE__*/React.createElement("input", {
-    value: f.nome,
-    onChange: e => campo('nome', e.target.value),
+  }, "Novo funcionário"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      marginBottom: 10
+    }
+  }, "Ele nasce sem acesso a nenhum módulo — abra o cadastro depois pra liberar o que for preciso."), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
     required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cargo"), /*#__PURE__*/React.createElement("input", {
-    value: f.cargo,
-    onChange: e => campo('cargo', e.target.value),
-    placeholder: "Ex: Técnico, Administrador..."
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
+    value: cpf,
+    onChange: e => setCpf(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de nascimento"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataNascimento,
+    onChange: e => setDataNascimento(e.target.value)
   }))), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
-    value: f.login,
-    onChange: e => campo('login', e.target.value)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "% de comissão"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    step: "0.01",
-    min: "0",
-    value: f.percentualComissao,
-    onChange: e => campo('percentualComissao', e.target.value)
-  }))), /*#__PURE__*/React.createElement("label", null, "Comissão calculada sobre"), /*#__PURE__*/React.createElement("select", {
-    value: f.comissaoBaseId,
-    onChange: e => campo('comissaoBaseId', e.target.value)
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Valor total do orçamento"), outrosFuncionarios.map(fu => /*#__PURE__*/React.createElement("option", {
-    key: fu.id,
-    value: fu.id
-  }, "Comissão de ", fu.nome))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11.5,
-      color: 'var(--texto-fraco)',
-      marginTop: 6
-    }
-  }, "Deixe 0% se esse funcionário não recebe comissão."), /*#__PURE__*/React.createElement("label", null, funcionario ? 'Nova senha (deixe em branco para manter a atual)' : 'Senha'), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cargo"), /*#__PURE__*/React.createElement("input", {
+    value: cargo,
+    onChange: e => setCargo(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
+    value: login,
+    onChange: e => setLogin(e.target.value),
+    required: true
+  }))), /*#__PURE__*/React.createElement("label", null, "Senha"), /*#__PURE__*/React.createElement("input", {
     type: "password",
     value: senha,
-    onChange: e => setSenha(e.target.value)
+    onChange: e => setSenha(e.target.value),
+    required: true
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -6453,7 +7707,96 @@ function ModalFuncionario({
   }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
     className: "btn",
     disabled: salvando
-  }, salvando ? 'Salvando...' : 'Salvar'))));
+  }, salvando ? 'Salvando...' : 'Salvar funcionário'))));
+}
+function ModalMinhaSenha({
+  usuario,
+  aoFechar
+}) {
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [erro, setErro] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const [feito, setFeito] = useState(false);
+  async function salvar(e) {
+    e.preventDefault();
+    setErro('');
+    const hashAtual = await hashSenha(senhaAtual);
+    if (hashAtual !== usuario.senhaHash) {
+      setErro('Senha atual incorreta.');
+      return;
+    }
+    if (novaSenha.length < 6) {
+      setErro('Use uma nova senha com pelo menos 6 caracteres.');
+      return;
+    }
+    if (novaSenha !== confirmarSenha) {
+      setErro('As senhas não coincidem.');
+      return;
+    }
+    setSalvando(true);
+    const novoHash = await hashSenha(novaSenha);
+    await db.collection('funcionarios').doc(usuario.id).update({
+      senhaHash: novoHash
+    });
+    setSalvando(false);
+    setFeito(true);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("form", {
+    className: "modal",
+    style: {
+      maxWidth: 360
+    },
+    onSubmit: salvar
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Alterar minha senha"), feito ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: 'var(--verde)'
+    }
+  }, "✓ Senha alterada com sucesso.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Senha atual"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: senhaAtual,
+    onChange: e => setSenhaAtual(e.target.value),
+    required: true
+  }), /*#__PURE__*/React.createElement("label", null, "Nova senha"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: novaSenha,
+    onChange: e => setNovaSenha(e.target.value),
+    required: true
+  }), /*#__PURE__*/React.createElement("label", null, "Confirmar nova senha"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: confirmarSenha,
+    onChange: e => setConfirmarSenha(e.target.value),
+    required: true
+  }), erro && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--vermelho)',
+      fontSize: 13,
+      marginTop: 8
+    }
+  }, erro)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, feito ? 'Fechar' : 'Cancelar'), !feito && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: salvando
+  }, salvando ? 'Salvando...' : 'Salvar nova senha'))));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
 
