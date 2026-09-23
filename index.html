@@ -72,6 +72,8 @@
   .foto-clicavel{cursor:pointer;transition:opacity .15s ease, box-shadow .15s ease;}
   @media (hover:hover){ .foto-clicavel:hover{opacity:.82;box-shadow:0 0 0 2px rgba(233,115,7,.3);} }
   .linha-clicavel{cursor:pointer;}
+  .avisos-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;}
+  @media (max-width:960px){ .avisos-grid{grid-template-columns:1fr;} }
   .btn-menu-pontos{background:none;border:none;cursor:pointer;font-size:18px;line-height:1;padding:5px 9px;color:var(--texto-fraco);border-radius:6px;transition:background-color .15s ease,color .15s ease;}
   @media (hover:hover){ .btn-menu-pontos:hover{background:var(--fundo);color:var(--texto);} }
   .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
@@ -6815,6 +6817,170 @@ function statusComputadoAviso(aviso, agora) {
   if (fim && fim < agora) return 'encerrado';
   return 'ativo';
 }
+function corCategoria(cat) {
+  cat = cat || '';
+  if (cat.includes('Comunicado')) return {
+    bg: '#DCEEFB',
+    cor: '#1B5FA8'
+  };
+  if (cat.includes('Evento')) return {
+    bg: '#EDE3FB',
+    cor: '#6B3FA0'
+  };
+  if (cat.includes('Importante')) return {
+    bg: '#FBE3E3',
+    cor: '#C0392B'
+  };
+  if (cat.includes('Comemoração')) return {
+    bg: '#FBE9D6',
+    cor: '#B8651C'
+  };
+  if (cat.includes('Empresa')) return {
+    bg: '#E3F2E9',
+    cor: '#2E8E57'
+  };
+  if (cat.includes('Treinamento')) return {
+    bg: '#E3ECFB',
+    cor: '#2E5FA0'
+  };
+  if (cat.includes('Manutenção')) return {
+    bg: '#F2E3FB',
+    cor: '#7A3FA0'
+  };
+  if (cat.includes('Feriado')) return {
+    bg: '#FBF3D6',
+    cor: '#A0821C'
+  };
+  return {
+    bg: 'var(--fundo)',
+    cor: 'var(--texto-fraco)'
+  };
+}
+function EtiquetaCategoria({
+  categoria,
+  fundoEscuro
+}) {
+  const cor = corCategoria(categoria);
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-block',
+      fontSize: 10.5,
+      fontWeight: 700,
+      padding: '3px 9px',
+      borderRadius: 20,
+      background: fundoEscuro ? 'rgba(255,255,255,.16)' : cor.bg,
+      color: fundoEscuro ? '#fff' : cor.cor
+    }
+  }, categoria);
+}
+function AvatarIniciais({
+  nome,
+  tamanho
+}) {
+  tamanho = tamanho || 40;
+  const iniciais = (nome || '').trim().split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: tamanho,
+      height: tamanho,
+      borderRadius: '50%',
+      background: 'var(--laranja)',
+      color: '#fff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: 700,
+      fontSize: tamanho * 0.38,
+      flexShrink: 0
+    }
+  }, iniciais || '?');
+}
+function extrairIdYoutube(url) {
+  const m = (url || '').match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/);
+  return m ? m[1] : null;
+}
+function PlayerVideoAviso({
+  url,
+  altura
+}) {
+  const [tocando, setTocando] = useState(false);
+  const idYoutube = extrairIdYoutube(url);
+  if (!tocando) {
+    return /*#__PURE__*/React.createElement("div", {
+      onClick: () => setTocando(true),
+      style: {
+        position: 'relative',
+        cursor: 'pointer',
+        borderRadius: 10,
+        overflow: 'hidden',
+        background: '#12233E',
+        aspectRatio: altura ? undefined : '16/9',
+        height: altura,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, idYoutube && /*#__PURE__*/React.createElement("img", {
+      src: `https://img.youtube.com/vi/${idYoutube}/hqdefault.jpg`,
+      style: {
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        opacity: .55
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'relative',
+        width: 56,
+        height: 56,
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,.92)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 22,
+        boxShadow: '0 2px 10px rgba(0,0,0,.3)'
+      }
+    }, "▶️"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        bottom: 10,
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        color: '#fff',
+        fontSize: 11.5,
+        fontWeight: 700
+      }
+    }, "Reproduzir vídeo"));
+  }
+  if (idYoutube) {
+    return /*#__PURE__*/React.createElement("iframe", {
+      src: `https://www.youtube.com/embed/${idYoutube}?autoplay=1`,
+      style: {
+        width: '100%',
+        aspectRatio: '16/9',
+        border: 'none',
+        borderRadius: 10
+      },
+      allow: "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture",
+      allowFullScreen: true,
+      title: "Vídeo do aviso"
+    });
+  }
+  return /*#__PURE__*/React.createElement("video", {
+    src: url,
+    controls: true,
+    autoPlay: true,
+    muted: true,
+    style: {
+      width: '100%',
+      borderRadius: 10
+    }
+  });
+}
 function AbaAvisos({
   usuario,
   funcionarios
@@ -6824,11 +6990,12 @@ function AbaAvisos({
   const [editando, setEditando] = useState(null);
   const [modalGerenciarAberto, setModalGerenciarAberto] = useState(false);
   const [avisoAberto, setAvisoAberto] = useState(null);
+  const [fotoAmpliada, setFotoAmpliada] = useState(null);
   const podeGerenciarAvisos = ehAdministrador(usuario);
   const agora = new Date();
   const avisosAtivos = avisos.filter(a => statusComputadoAviso(a, agora) === 'ativo');
-  const avisosDestaque = avisosAtivos.filter(a => a.destaque);
-  const avisosNormais = avisosAtivos.filter(a => !a.destaque);
+  const destaque = avisosAtivos.find(a => a.destaque) || null;
+  const avisosNormais = avisosAtivos.filter(a => a.id !== destaque?.id);
   useEffect(() => {
     if (avisosAtivos.length === 0) return;
     const vistos = usuario.avisosVistos || [];
@@ -6846,50 +7013,81 @@ function AbaAvisos({
   const hora = agora.getHours();
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
   const emojiSaudacao = hora < 12 ? '☀️' : hora < 18 ? '🌤️' : '🌙';
-  const frasesComplementares = ['Que seu dia seja produtivo!', 'Tenha um excelente dia!', 'Confira os avisos importantes de hoje.', 'Vamos fazer o dia valer a pena!', 'Um ótimo dia de trabalho pra você!'];
+  const frasesComplementares = ['Que seu dia seja produtivo!', 'Vamos fazer o dia valer a pena!', 'Juntos, chegamos mais longe!', 'Tenha um excelente dia!', 'Confira os avisos importantes de hoje.'];
   const fraseComplementar = frasesComplementares[agora.getDate() % frasesComplementares.length];
   const mensagensDoDia = ['Grandes resultados são construídos com pequenos avanços todos os dias.', 'Trabalho em equipe transforma metas em conquistas.', 'Organização hoje é tempo economizado amanhã.', 'Qualidade não é um acidente — é o resultado de esforço constante.', 'Segurança em primeiro lugar, sempre.', 'Cada aprendizado de hoje é um diferencial para amanhã.', 'Comprometimento é a base de todo bom trabalho.', 'Colaborar é multiplicar resultados.', 'Produtividade nasce do foco no que realmente importa.', 'Pequenas melhorias diárias geram grandes transformações.'];
   const diaDoAno = Math.floor((agora - new Date(agora.getFullYear(), 0, 0)) / 86400000);
   const mensagemDoDia = mensagensDoDia[diaDoAno % mensagensDoDia.length];
   const primeiroNome = (usuario.nome || '').trim().split(' ')[0];
+  function formatarDataAviso(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR');
+  }
   return /*#__PURE__*/React.createElement("div", {
+    className: "avisos-grid",
     style: {
-      maxWidth: 900
+      maxWidth: 1180
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 18
+      minWidth: 0
     }
-  }, /*#__PURE__*/React.createElement("h2", {
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
-      margin: 0
+      display: 'flex',
+      gap: 16,
+      flexWrap: 'wrap',
+      marginBottom: 18,
+      alignItems: 'stretch'
     }
-  }, saudacao, ", ", primeiroNome, "! ", emojiSaudacao), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: '1 1 240px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 34,
+      lineHeight: 1
+    }
+  }, emojiSaudacao), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: '6px 0 2px'
+    }
+  }, saudacao, ", ", primeiroNome, "!"), /*#__PURE__*/React.createElement("div", {
     style: {
       color: 'var(--texto-fraco)',
-      fontSize: 14,
-      marginTop: 4
+      fontSize: 14
     }
   }, fraseComplementar)), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
-      marginBottom: 20,
-      background: 'var(--laranja-bg)',
-      border: '1px solid var(--laranja)'
+      flex: '2 1 320px',
+      background: 'linear-gradient(120deg, var(--dark), #1B3A5C)',
+      color: '#fff',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
+      border: 'none'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      fontSize: 26,
+      flexShrink: 0
+    }
+  }, "💡"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontWeight: 700,
       fontSize: 12.5,
-      marginBottom: 4,
-      color: 'var(--laranja-escuro)'
+      opacity: .85
     }
   }, "✨ MENSAGEM DO DIA"), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 14,
-      fontStyle: 'italic'
+      fontSize: 13.5,
+      fontStyle: 'italic',
+      marginTop: 4
     }
-  }, "\"", mensagemDoDia, "\"")), podeGerenciarAvisos && /*#__PURE__*/React.createElement("div", {
+  }, "\"", mensagemDoDia, "\"")))), podeGerenciarAvisos && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -6905,65 +7103,102 @@ function AbaAvisos({
   }, "➕ Novo aviso"), /*#__PURE__*/React.createElement("button", {
     className: "btn secundario",
     onClick: () => setModalGerenciarAberto(true)
-  }, "⚙️ Gerenciar avisos")), avisosDestaque.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "⚙️ Gerenciar avisos")), destaque && /*#__PURE__*/React.createElement("div", {
+    className: "card",
     style: {
-      marginBottom: 20
+      padding: 0,
+      overflow: 'hidden',
+      marginBottom: 22,
+      display: 'flex',
+      flexWrap: 'wrap'
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, (destaque.video || destaque.imagem) && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontWeight: 700,
-      fontSize: 14,
-      marginBottom: 10
+      flex: '1 1 300px',
+      background: '#12233E',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: destaque.video ? 0 : 10
     }
-  }, "⭐ Avisos em destaque"), avisosDestaque.map(a => /*#__PURE__*/React.createElement("div", {
-    key: a.id,
-    className: "card clicavel",
+  }, destaque.video ? /*#__PURE__*/React.createElement(PlayerVideoAviso, {
+    url: destaque.video,
+    altura: 260
+  }) : /*#__PURE__*/React.createElement("img", {
+    src: destaque.imagem,
+    className: "foto-clicavel",
+    onClick: () => setFotoAmpliada(destaque.imagem),
     style: {
-      marginBottom: 10,
-      border: '2px solid var(--laranja)'
-    },
-    onClick: () => setAvisoAberto(a)
-  }, /*#__PURE__*/React.createElement("div", {
+      maxWidth: '100%',
+      maxHeight: 300,
+      width: 'auto',
+      height: 'auto',
+      objectFit: 'contain',
+      borderRadius: 6
+    }
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
+      flex: '1 1 260px',
+      padding: 24,
+      background: 'linear-gradient(135deg, var(--dark), #1B3A5C)',
+      color: '#fff',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-block',
+      background: 'var(--laranja)',
+      color: '#fff',
       fontSize: 11,
-      color: 'var(--laranja-escuro)',
-      fontWeight: 700
-    }
-  }, a.categoria), /*#__PURE__*/React.createElement("div", {
-    style: {
       fontWeight: 700,
-      fontSize: 16,
-      marginTop: 4
+      padding: '4px 10px',
+      borderRadius: 20,
+      marginBottom: 10,
+      width: 'fit-content'
     }
-  }, a.titulo), /*#__PURE__*/React.createElement("div", {
+  }, "⭐ AVISO EM DESTAQUE"), /*#__PURE__*/React.createElement("h2", {
     style: {
-      fontSize: 13,
-      color: 'var(--texto-fraco)',
-      marginTop: 6,
+      margin: '0 0 8px',
+      fontSize: 22
+    }
+  }, destaque.titulo), destaque.dataInicio && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      opacity: .85,
+      marginBottom: 8
+    }
+  }, "📅 ", formatarDataAviso(destaque.dataInicio), destaque.dataFim ? ` a ${formatarDataAviso(destaque.dataFim)}` : ''), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      opacity: .92,
+      lineHeight: 1.5,
       overflow: 'hidden',
       display: '-webkit-box',
-      WebkitLineClamp: 2,
+      WebkitLineClamp: 3,
       WebkitBoxOrient: 'vertical'
     }
-  }, a.descricao), /*#__PURE__*/React.createElement("button", {
+  }, destaque.descricao), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     style: {
-      marginTop: 10
+      marginTop: 14,
+      width: 'fit-content',
+      background: 'rgba(255,255,255,.14)',
+      border: '1px solid rgba(255,255,255,.3)',
+      color: '#fff'
     },
-    onClick: e => {
-      e.stopPropagation();
-      setAvisoAberto(a);
-    }
-  }, "Ver aviso")))), /*#__PURE__*/React.createElement("div", {
+    onClick: () => setAvisoAberto(destaque)
+  }, "Ver mais →"))), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 20
+      marginBottom: 22
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontWeight: 700,
-      fontSize: 14,
-      marginBottom: 10
+      fontSize: 15,
+      marginBottom: 12
     }
   }, "📢 Avisos recentes"), avisosNormais.length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6973,87 +7208,186 @@ function AbaAvisos({
   }, "Nenhum aviso novo no momento.") : /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))',
-      gap: 12
+      gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))',
+      gap: 14
     }
   }, avisosNormais.map(a => /*#__PURE__*/React.createElement("div", {
     key: a.id,
-    className: "card clicavel",
-    onClick: () => setAvisoAberto(a)
-  }, a.imagem && /*#__PURE__*/React.createElement("img", {
-    src: a.imagem,
+    className: "card",
     style: {
-      width: '100%',
-      height: 110,
-      objectFit: 'cover',
-      borderRadius: 8,
+      padding: 14,
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: 8
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(EtiquetaCategoria, {
+    categoria: a.categoria
+  }), a.dataInicio && /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 10.5,
-      color: 'var(--texto-fraco)',
-      fontWeight: 600
+      fontSize: 11,
+      color: 'var(--texto-fraco)'
     }
-  }, a.categoria), /*#__PURE__*/React.createElement("div", {
+  }, formatarDataAviso(a.dataInicio))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontWeight: 700,
-      fontSize: 13.5,
-      marginTop: 3
+      fontSize: 14.5,
+      marginBottom: 4
     }
   }, a.titulo), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
+      fontSize: 12.5,
       color: 'var(--texto-fraco)',
-      marginTop: 4,
+      marginBottom: 10,
       overflow: 'hidden',
       display: '-webkit-box',
       WebkitLineClamp: 2,
       WebkitBoxOrient: 'vertical'
     }
-  }, a.descricao))))), (aniversariantesHoje.length > 0 || proximosAniversarios.length > 0) && /*#__PURE__*/React.createElement("div", {
-    className: "card",
+  }, a.descricao), a.imagem ? /*#__PURE__*/React.createElement("img", {
+    src: a.imagem,
+    className: "foto-clicavel",
+    onClick: () => setFotoAmpliada(a.imagem),
     style: {
-      marginBottom: 20
+      width: '100%',
+      height: 'auto',
+      maxHeight: 200,
+      objectFit: 'contain',
+      borderRadius: 8,
+      marginBottom: 10,
+      background: 'var(--fundo)'
     }
+  }) : a.video ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement(PlayerVideoAviso, {
+    url: a.video
+  })) : null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 'auto',
+      width: 'fit-content'
+    },
+    onClick: () => setAvisoAberto(a)
+  }, "Ver mais →")))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16
+    }
+  }, (aniversariantesHoje.length > 0 || proximosAniversarios.length > 0) && /*#__PURE__*/React.createElement("div", {
+    className: "card"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontWeight: 700,
       fontSize: 14,
-      marginBottom: 8
+      marginBottom: 2
     }
   }, "🎂 Aniversariantes"), aniversariantesHoje.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: proximosAniversarios.length > 0 ? 10 : 0
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginBottom: 10
+    }
+  }, "Hoje é dia de celebrar!"), aniversariantesHoje.map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.id,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      padding: '8px 0',
+      borderBottom: '1px solid var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement(AvatarIniciais, {
+    nome: f.nome,
+    tamanho: 38
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13
+    }
+  }, f.nome), f.cargo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)'
+    }
+  }, f.cargo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--laranja-escuro)',
+      fontWeight: 700,
+      marginTop: 1
+    }
+  }, "Parabéns! 🎉")))), proximosAniversarios.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: aniversariantesHoje.length > 0 ? 10 : 0
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
       color: 'var(--texto-fraco)',
       fontWeight: 700,
-      marginBottom: 3
+      marginBottom: 6
     }
-  }, "HOJE"), aniversariantesHoje.map(f => /*#__PURE__*/React.createElement("div", {
-    key: f.id,
-    style: {
-      fontSize: 13.5,
-      marginTop: 2
-    }
-  }, "🎂 ", f.nome))), proximosAniversarios.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11.5,
-      color: 'var(--texto-fraco)',
-      fontWeight: 700,
-      marginBottom: 3
-    }
-  }, "PRÓXIMOS"), proximosAniversarios.slice(0, 6).map((a, i) => /*#__PURE__*/React.createElement("div", {
+  }, "PRÓXIMOS ANIVERSÁRIOS"), proximosAniversarios.slice(0, 5).map((a, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
-      fontSize: 13,
-      marginTop: 2,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 9,
+      padding: '6px 0'
+    }
+  }, /*#__PURE__*/React.createElement(AvatarIniciais, {
+    nome: a.nome,
+    tamanho: 30
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      fontWeight: 600
+    }
+  }, a.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10.5,
       color: 'var(--texto-fraco)'
     }
-  }, "🎂 ", a.nome, " — ", a.dataTexto)))), avisoAberto && /*#__PURE__*/React.createElement(ModalVerAviso, {
+  }, a.dataTexto)))))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      background: 'var(--dark)',
+      color: '#fff',
+      textAlign: 'center',
+      padding: 22
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "icons/logo-tecnopemt.png",
+    alt: "Tecnopemt",
+    style: {
+      maxWidth: 150,
+      marginBottom: 10
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      fontWeight: 600,
+      opacity: .85
+    }
+  }, "Qualidade e segurança em cada movimento."))), avisoAberto && /*#__PURE__*/React.createElement(ModalVerAviso, {
     aviso: avisoAberto,
     aoFechar: () => setAvisoAberto(null)
   }), modalNovoAberto && /*#__PURE__*/React.createElement(ModalNovoAviso, {
@@ -7070,69 +7404,58 @@ function AbaAvisos({
       setModalNovoAberto(true);
     },
     aoFechar: () => setModalGerenciarAberto(false)
+  }), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: fotoAmpliada,
+    aoFechar: () => setFotoAmpliada(null)
   }));
 }
 function ModalVerAviso({
   aviso,
   aoFechar
 }) {
-  function renderVideo(url) {
-    if (!url) return null;
-    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
-    if (ytMatch) {
-      return /*#__PURE__*/React.createElement("iframe", {
-        src: `https://www.youtube.com/embed/${ytMatch[1]}`,
-        style: {
-          width: '100%',
-          aspectRatio: '16/9',
-          border: 'none',
-          borderRadius: 8
-        },
-        allow: "accelerometer; encrypted-media; gyroscope; picture-in-picture",
-        allowFullScreen: true
-      });
-    }
-    return /*#__PURE__*/React.createElement("video", {
-      src: url,
-      controls: true,
-      muted: true,
-      style: {
-        width: '100%',
-        borderRadius: 8
-      }
-    });
-  }
+  const [fotoAmpliada, setFotoAmpliada] = useState(null);
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && aoFechar()
   }, /*#__PURE__*/React.createElement("div", {
     className: "modal",
     style: {
-      maxWidth: 560
+      maxWidth: 600
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(EtiquetaCategoria, {
+    categoria: aviso.categoria
+  }), aviso.destaque && /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 11.5,
+      marginLeft: 6,
+      fontSize: 11,
       color: 'var(--laranja-escuro)',
       fontWeight: 700
     }
-  }, aviso.categoria, aviso.destaque ? ' · ⭐ Destaque' : ''), /*#__PURE__*/React.createElement("h3", {
+  }, "⭐ Destaque"), /*#__PURE__*/React.createElement("h3", {
     style: {
-      marginTop: 6,
+      marginTop: 8,
       marginBottom: 10
     }
   }, aviso.titulo), aviso.imagem && /*#__PURE__*/React.createElement("img", {
     src: aviso.imagem,
+    className: "foto-clicavel",
+    onClick: () => setFotoAmpliada(aviso.imagem),
     style: {
       width: '100%',
+      height: 'auto',
+      maxHeight: 420,
+      objectFit: 'contain',
       borderRadius: 8,
-      marginBottom: 12
+      marginBottom: 14,
+      background: 'var(--fundo)'
     }
   }), aviso.video && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 12
+      marginBottom: 14
     }
-  }, renderVideo(aviso.video)), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(PlayerVideoAviso, {
+    url: aviso.video
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14,
       whiteSpace: 'pre-wrap',
@@ -7148,7 +7471,10 @@ function ModalVerAviso({
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
-  }, "Fechar"))));
+  }, "Fechar"))), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: fotoAmpliada,
+    aoFechar: () => setFotoAmpliada(null)
+  }));
 }
 function ModalNovoAviso({
   aviso,
