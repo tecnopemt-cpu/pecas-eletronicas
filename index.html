@@ -2288,16 +2288,18 @@ function TelaLogin({
   aoLogar,
   setTelaAtual
 }) {
-  const [funcId, setFuncId] = useState('');
+  const [loginDigitado, setLoginDigitado] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState('');
   const [entrando, setEntrando] = useState(false);
   async function entrar(e) {
     e.preventDefault();
     setErro('');
-    const f = funcionarios.find(x => x.id === funcId);
+    const loginBusca = loginDigitado.trim().toLowerCase();
+    const f = funcionarios.find(x => (x.login || '').trim().toLowerCase() === loginBusca);
     if (!f) {
-      setErro('Selecione seu nome.');
+      setErro('Login não encontrado.');
       return;
     }
     setEntrando(true);
@@ -2367,21 +2369,40 @@ function TelaLogin({
       color: 'var(--texto-fraco)',
       fontSize: 13
     }
-  }, "Entrada, saída e conserto de eletrônicos")), /*#__PURE__*/React.createElement("label", null, "Funcionário"), /*#__PURE__*/React.createElement("select", {
-    value: funcId,
-    onChange: e => setFuncId(e.target.value),
+  }, "Entrada, saída e conserto de eletrônicos")), /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
+    value: loginDigitado,
+    onChange: e => setLoginDigitado(e.target.value),
+    placeholder: "Digite seu login",
     required: true
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Selecione..."), funcionarios.filter(f => f.status ? f.status === 'ativo' : f.ativo !== false).map(f => /*#__PURE__*/React.createElement("option", {
-    key: f.id,
-    value: f.id
-  }, f.nome))), /*#__PURE__*/React.createElement("label", null, "Senha"), /*#__PURE__*/React.createElement("input", {
-    type: "password",
+  }), /*#__PURE__*/React.createElement("label", null, "Senha"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: mostrarSenha ? 'text' : 'password',
     value: senha,
     onChange: e => setSenha(e.target.value),
-    required: true
-  }), erro && /*#__PURE__*/React.createElement("div", {
+    placeholder: "Digite sua senha",
+    required: true,
+    style: {
+      paddingRight: 42
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setMostrarSenha(v => !v),
+    title: mostrarSenha ? 'Ocultar senha' : 'Mostrar senha',
+    style: {
+      position: 'absolute',
+      right: 6,
+      top: 0,
+      bottom: 0,
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: 16,
+      padding: '0 8px'
+    }
+  }, mostrarSenha ? '🙈' : '👁️')), erro && /*#__PURE__*/React.createElement("div", {
     style: {
       color: 'var(--vermelho)',
       fontSize: 13,
@@ -2416,6 +2437,7 @@ function TelaLogin({
   }, "🔄 Buscar versão mais recente")));
 }
 function TelaCriarConta({
+  funcionarios,
   aoVoltar
 }) {
   const [nome, setNome] = useState('');
@@ -2472,8 +2494,21 @@ function TelaCriarConta({
       setErro('As senhas não coincidem.');
       return;
     }
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    const MENSAGEM_CPF_DUPLICADO = 'Você já possui um cadastro no sistema. Não é possível criar uma nova conta com este CPF. Utilize seu login e senha para acessar o sistema ou procure um administrador caso tenha problemas com seu acesso.';
+    if ((funcionarios || []).some(f => (f.cpf || '') === cpfLimpo)) {
+      setErro(MENSAGEM_CPF_DUPLICADO);
+      return;
+    }
     setEnviando(true);
     try {
+      // checagem no servidor também, pra pegar cadastros simultâneos que o dado local ainda não viu
+      const checagem = await db.collection('funcionarios').where('cpf', '==', cpfLimpo).limit(1).get();
+      if (!checagem.empty) {
+        setErro(MENSAGEM_CPF_DUPLICADO);
+        setEnviando(false);
+        return;
+      }
       const senhaHash = await hashSenha(senha);
       const permissoesVazias = {};
       MODULOS_PERMISSAO.forEach(m => {
@@ -2481,7 +2516,7 @@ function TelaCriarConta({
       });
       await db.collection('funcionarios').add({
         nome: nome.trim(),
-        cpf: cpf.replace(/\D/g, ''),
+        cpf: cpfLimpo,
         dataNascimento,
         telefone,
         login: login.trim(),
@@ -2833,6 +2868,7 @@ function App() {
     aoLogar: setUsuario
   });
   if (!usuario && telaAtual === 'criarConta') return /*#__PURE__*/React.createElement(TelaCriarConta, {
+    funcionarios: funcionarios,
     aoVoltar: () => setTelaAtual('login')
   });
   if (!usuario) return /*#__PURE__*/React.createElement(TelaLogin, {
@@ -7777,7 +7813,16 @@ function ModalNovoFuncionarioAdmin({
       setErro('As senhas não coincidem.');
       return;
     }
+    const cpfLimpo = cpf.replace(/\D/g, '');
     setSalvando(true);
+    if (cpfLimpo) {
+      const checagem = await db.collection('funcionarios').where('cpf', '==', cpfLimpo).limit(1).get();
+      if (!checagem.empty) {
+        setErro('Já existe um cadastro com este CPF no sistema.');
+        setSalvando(false);
+        return;
+      }
+    }
     const senhaHash = await hashSenha(senha);
     const permissoesVazias = {};
     MODULOS_PERMISSAO.forEach(m => {
@@ -7785,7 +7830,7 @@ function ModalNovoFuncionarioAdmin({
     });
     await db.collection('funcionarios').add({
       nome,
-      cpf: cpf.replace(/\D/g, ''),
+      cpf: cpfLimpo,
       dataNascimento,
       telefone,
       login,
