@@ -2746,6 +2746,7 @@ function App() {
     });
   }
   const [funcionarios, carregandoFuncionarios] = useColecao('funcionarios');
+  const [avisosGlobais] = useColecao('avisos');
   const [usuario, setUsuario] = useState(null);
   const [aba, setAba] = useState('dashboard');
   const [carregado, setCarregado] = useState(false);
@@ -2782,12 +2783,7 @@ function App() {
   }, [funcionarios]);
   useEffect(() => {
     if (usuario && !abaInicialDefinida) {
-      if (podeVisualizar(usuario, 'lotes')) {
-        setAba('lotes');
-      } else {
-        const primeiroAcessivel = MODULOS_PERMISSAO.find(m => podeVisualizar(usuario, m));
-        if (primeiroAcessivel) setAba(primeiroAcessivel);
-      }
+      setAba('avisos');
       setAbaInicialDefinida(true);
     }
     if (!usuario && abaInicialDefinida) setAbaInicialDefinida(false);
@@ -2919,7 +2915,13 @@ function App() {
     nome: 'Equipe',
     icone: '👤'
   }];
-  const abas = abasTodas.filter(a => podeVisualizar(usuario, a.id));
+  // Avisos é acessível a todo funcionário ativo, independente das permissões por módulo —
+  // por isso fica fora do filtro de permissão e sempre em primeiro na navegação.
+  const abas = [{
+    id: 'avisos',
+    nome: 'Avisos',
+    icone: '📢'
+  }, ...abasTodas.filter(a => podeVisualizar(usuario, a.id))];
   const {
     hoje: aniversariantesHoje,
     proximos: todosProximosAniversarios
@@ -2945,6 +2947,8 @@ function App() {
       notificacoesAniversarioVistas: firebase.firestore.FieldValue.arrayUnion(...novasChaves)
     });
   }
+  const avisosVistosUsuario = usuario.avisosVistos || [];
+  const avisosNaoVistosCount = (avisosGlobais || []).filter(a => statusComputadoAviso(a) === 'ativo' && !avisosVistosUsuario.includes(a.id)).length;
   return /*#__PURE__*/React.createElement("div", {
     className: "app-shell"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2972,12 +2976,26 @@ function App() {
     key: a.id,
     onClick: () => irPara(a.id),
     className: `sidebar-item ${aba === a.id ? 'ativo' : ''}`,
-    title: a.nome
+    title: a.nome,
+    style: {
+      position: 'relative'
+    }
   }, /*#__PURE__*/React.createElement("span", {
     className: "icone"
   }, a.icone), /*#__PURE__*/React.createElement("span", {
     className: "label"
-  }, a.nome)))), /*#__PURE__*/React.createElement("div", {
+  }, a.nome), a.id === 'avisos' && avisosNaoVistosCount > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: 'auto',
+      background: 'var(--vermelho)',
+      color: '#fff',
+      fontSize: 10.5,
+      fontWeight: 700,
+      borderRadius: 20,
+      padding: '1px 6px',
+      flexShrink: 0
+    }
+  }, avisosNaoVistosCount)))), /*#__PURE__*/React.createElement("div", {
     className: "sidebar-rodape"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setModalMinhaSenhaAberto(true),
@@ -3107,7 +3125,7 @@ function App() {
     className: "cargo"
   }, usuario.cargo)))), /*#__PURE__*/React.createElement("div", {
     className: "conteudo-principal"
-  }, !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
+  }, aba !== 'avisos' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -3133,7 +3151,10 @@ function App() {
       fontSize: 13.5,
       marginTop: 4
     }
-  }, "Você não tem permissão para acessar este módulo. Fale com um administrador.")) : /*#__PURE__*/React.createElement(React.Fragment, null, aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, {
+  }, "Você não tem permissão para acessar este módulo. Fale com um administrador.")) : /*#__PURE__*/React.createElement(React.Fragment, null, aba === 'avisos' && /*#__PURE__*/React.createElement(AbaAvisos, {
+    usuario: usuario,
+    funcionarios: funcionarios
+  }), aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, {
     usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'lotes' && /*#__PURE__*/React.createElement(AbaLotes, {
@@ -6783,6 +6804,716 @@ function GraficoComparativo({
       fill: "var(--texto-fraco)"
     }, d.label));
   }));
+}
+const CATEGORIAS_AVISO = ['📢 Comunicado', '📅 Evento', '🎉 Comemoração', '⚠️ Importante', '🏢 Empresa', '📚 Treinamento', '🔧 Manutenção', '🗓️ Feriado/Recesso', '📌 Geral'];
+function statusComputadoAviso(aviso, agora) {
+  agora = agora || new Date();
+  if (aviso.status === 'rascunho') return 'rascunho';
+  const inicio = aviso.dataInicio ? new Date(aviso.dataInicio) : null;
+  const fim = aviso.dataFim ? new Date(aviso.dataFim) : null;
+  if (inicio && inicio > agora) return 'agendado';
+  if (fim && fim < agora) return 'encerrado';
+  return 'ativo';
+}
+function AbaAvisos({
+  usuario,
+  funcionarios
+}) {
+  const [avisos] = useColecao('avisos', 'dataInicio');
+  const [modalNovoAberto, setModalNovoAberto] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [modalGerenciarAberto, setModalGerenciarAberto] = useState(false);
+  const [avisoAberto, setAvisoAberto] = useState(null);
+  const podeGerenciarAvisos = ehAdministrador(usuario);
+  const agora = new Date();
+  const avisosAtivos = avisos.filter(a => statusComputadoAviso(a, agora) === 'ativo');
+  const avisosDestaque = avisosAtivos.filter(a => a.destaque);
+  const avisosNormais = avisosAtivos.filter(a => !a.destaque);
+  useEffect(() => {
+    if (avisosAtivos.length === 0) return;
+    const vistos = usuario.avisosVistos || [];
+    const novos = avisosAtivos.map(a => a.id).filter(id => !vistos.includes(id));
+    if (novos.length > 0) {
+      db.collection('funcionarios').doc(usuario.id).update({
+        avisosVistos: firebase.firestore.FieldValue.arrayUnion(...novos)
+      });
+    }
+  }, [avisos.length]);
+  const {
+    hoje: aniversariantesHoje,
+    proximos: proximosAniversarios
+  } = calcularAniversariantes(funcionarios);
+  const hora = agora.getHours();
+  const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  const emojiSaudacao = hora < 12 ? '☀️' : hora < 18 ? '🌤️' : '🌙';
+  const frasesComplementares = ['Que seu dia seja produtivo!', 'Tenha um excelente dia!', 'Confira os avisos importantes de hoje.', 'Vamos fazer o dia valer a pena!', 'Um ótimo dia de trabalho pra você!'];
+  const fraseComplementar = frasesComplementares[agora.getDate() % frasesComplementares.length];
+  const mensagensDoDia = ['Grandes resultados são construídos com pequenos avanços todos os dias.', 'Trabalho em equipe transforma metas em conquistas.', 'Organização hoje é tempo economizado amanhã.', 'Qualidade não é um acidente — é o resultado de esforço constante.', 'Segurança em primeiro lugar, sempre.', 'Cada aprendizado de hoje é um diferencial para amanhã.', 'Comprometimento é a base de todo bom trabalho.', 'Colaborar é multiplicar resultados.', 'Produtividade nasce do foco no que realmente importa.', 'Pequenas melhorias diárias geram grandes transformações.'];
+  const diaDoAno = Math.floor((agora - new Date(agora.getFullYear(), 0, 0)) / 86400000);
+  const mensagemDoDia = mensagensDoDia[diaDoAno % mensagensDoDia.length];
+  const primeiroNome = (usuario.nome || '').trim().split(' ')[0];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: 0
+    }
+  }, saudacao, ", ", primeiroNome, "! ", emojiSaudacao), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--texto-fraco)',
+      fontSize: 14,
+      marginTop: 4
+    }
+  }, fraseComplementar)), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 20,
+      background: 'var(--laranja-bg)',
+      border: '1px solid var(--laranja)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 12.5,
+      marginBottom: 4,
+      color: 'var(--laranja-escuro)'
+    }
+  }, "✨ MENSAGEM DO DIA"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontStyle: 'italic'
+    }
+  }, "\"", mensagemDoDia, "\"")), podeGerenciarAvisos && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 20,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: () => {
+      setEditando(null);
+      setModalNovoAberto(true);
+    }
+  }, "➕ Novo aviso"), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => setModalGerenciarAberto(true)
+  }, "⚙️ Gerenciar avisos")), avisosDestaque.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      marginBottom: 10
+    }
+  }, "⭐ Avisos em destaque"), avisosDestaque.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.id,
+    className: "card clicavel",
+    style: {
+      marginBottom: 10,
+      border: '2px solid var(--laranja)'
+    },
+    onClick: () => setAvisoAberto(a)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--laranja-escuro)',
+      fontWeight: 700
+    }
+  }, a.categoria), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 16,
+      marginTop: 4
+    }
+  }, a.titulo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)',
+      marginTop: 6,
+      overflow: 'hidden',
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical'
+    }
+  }, a.descricao), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 10
+    },
+    onClick: e => {
+      e.stopPropagation();
+      setAvisoAberto(a);
+    }
+  }, "Ver aviso")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      marginBottom: 10
+    }
+  }, "📢 Avisos recentes"), avisosNormais.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Nenhum aviso novo no momento.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))',
+      gap: 12
+    }
+  }, avisosNormais.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.id,
+    className: "card clicavel",
+    onClick: () => setAvisoAberto(a)
+  }, a.imagem && /*#__PURE__*/React.createElement("img", {
+    src: a.imagem,
+    style: {
+      width: '100%',
+      height: 110,
+      objectFit: 'cover',
+      borderRadius: 8,
+      marginBottom: 8
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10.5,
+      color: 'var(--texto-fraco)',
+      fontWeight: 600
+    }
+  }, a.categoria), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginTop: 3
+    }
+  }, a.titulo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 4,
+      overflow: 'hidden',
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical'
+    }
+  }, a.descricao))))), (aniversariantesHoje.length > 0 || proximosAniversarios.length > 0) && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      marginBottom: 8
+    }
+  }, "🎂 Aniversariantes"), aniversariantesHoje.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: proximosAniversarios.length > 0 ? 10 : 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      fontWeight: 700,
+      marginBottom: 3
+    }
+  }, "HOJE"), aniversariantesHoje.map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.id,
+    style: {
+      fontSize: 13.5,
+      marginTop: 2
+    }
+  }, "🎂 ", f.nome))), proximosAniversarios.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      fontWeight: 700,
+      marginBottom: 3
+    }
+  }, "PRÓXIMOS"), proximosAniversarios.slice(0, 6).map((a, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontSize: 13,
+      marginTop: 2,
+      color: 'var(--texto-fraco)'
+    }
+  }, "🎂 ", a.nome, " — ", a.dataTexto)))), avisoAberto && /*#__PURE__*/React.createElement(ModalVerAviso, {
+    aviso: avisoAberto,
+    aoFechar: () => setAvisoAberto(null)
+  }), modalNovoAberto && /*#__PURE__*/React.createElement(ModalNovoAviso, {
+    aviso: editando,
+    usuario: usuario,
+    aoFechar: () => setModalNovoAberto(false)
+  }), modalGerenciarAberto && /*#__PURE__*/React.createElement(ModalGerenciarAvisos, {
+    avisos: avisos,
+    funcionarios: funcionarios,
+    usuario: usuario,
+    aoEditar: a => {
+      setEditando(a);
+      setModalGerenciarAberto(false);
+      setModalNovoAberto(true);
+    },
+    aoFechar: () => setModalGerenciarAberto(false)
+  }));
+}
+function ModalVerAviso({
+  aviso,
+  aoFechar
+}) {
+  function renderVideo(url) {
+    if (!url) return null;
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+    if (ytMatch) {
+      return /*#__PURE__*/React.createElement("iframe", {
+        src: `https://www.youtube.com/embed/${ytMatch[1]}`,
+        style: {
+          width: '100%',
+          aspectRatio: '16/9',
+          border: 'none',
+          borderRadius: 8
+        },
+        allow: "accelerometer; encrypted-media; gyroscope; picture-in-picture",
+        allowFullScreen: true
+      });
+    }
+    return /*#__PURE__*/React.createElement("video", {
+      src: url,
+      controls: true,
+      muted: true,
+      style: {
+        width: '100%',
+        borderRadius: 8
+      }
+    });
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 560
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--laranja-escuro)',
+      fontWeight: 700
+    }
+  }, aviso.categoria, aviso.destaque ? ' · ⭐ Destaque' : ''), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 6,
+      marginBottom: 10
+    }
+  }, aviso.titulo), aviso.imagem && /*#__PURE__*/React.createElement("img", {
+    src: aviso.imagem,
+    style: {
+      width: '100%',
+      borderRadius: 8,
+      marginBottom: 12
+    }
+  }), aviso.video && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, renderVideo(aviso.video)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      whiteSpace: 'pre-wrap',
+      lineHeight: 1.6
+    }
+  }, aviso.descricao), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 18
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+function ModalNovoAviso({
+  aviso,
+  usuario,
+  aoFechar
+}) {
+  const [titulo, setTitulo] = useState(aviso?.titulo || '');
+  const [descricao, setDescricao] = useState(aviso?.descricao || '');
+  const [imagem, setImagem] = useState(aviso?.imagem || '');
+  const [video, setVideo] = useState(aviso?.video || '');
+  const [categoria, setCategoria] = useState(aviso?.categoria || CATEGORIAS_AVISO[0]);
+  const [destaque, setDestaque] = useState(aviso?.destaque || false);
+  const [publicarAgora, setPublicarAgora] = useState(!aviso || !aviso.dataInicio);
+  const [dataInicio, setDataInicio] = useState(aviso?.dataInicio ? aviso.dataInicio.slice(0, 16) : '');
+  const [dataFim, setDataFim] = useState(aviso?.dataFim ? aviso.dataFim.slice(0, 16) : '');
+  const [processando, setProcessando] = useState(false);
+  const [processandoImagem, setProcessandoImagem] = useState(false);
+  const inputImagemRef = useRef();
+  async function selecionarImagem(file) {
+    if (!file) return;
+    setProcessandoImagem(true);
+    try {
+      setImagem(await resizeImagem(file));
+    } catch (err) {
+      alert('Não consegui processar essa imagem.');
+    }
+    setProcessandoImagem(false);
+  }
+  function formatarLocal(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  async function salvar(status) {
+    if (!titulo.trim()) {
+      alert('Informe o título do aviso.');
+      return;
+    }
+    setProcessando(true);
+    const dados = {
+      titulo: titulo.trim(),
+      descricao: descricao.trim(),
+      imagem,
+      video: video.trim(),
+      categoria,
+      destaque,
+      dataInicio: status === 'rascunho' ? dataInicio || null : publicarAgora ? formatarLocal(new Date()) : dataInicio || formatarLocal(new Date()),
+      dataFim: dataFim || null,
+      status: status
+    };
+    try {
+      if (aviso?.id) {
+        await db.collection('avisos').doc(aviso.id).update(dados);
+      } else {
+        await db.collection('avisos').add({
+          ...dados,
+          criadoPor: usuario.nome,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      aoFechar();
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui salvar o aviso.');
+    }
+    setProcessando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("form", {
+    className: "modal",
+    style: {
+      maxWidth: 520
+    },
+    onSubmit: e => e.preventDefault()
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, aviso ? 'Editar aviso' : 'Novo aviso'), /*#__PURE__*/React.createElement("label", null, "Título do aviso"), /*#__PURE__*/React.createElement("input", {
+    value: titulo,
+    onChange: e => setTitulo(e.target.value),
+    required: true
+  }), /*#__PURE__*/React.createElement("label", null, "Descrição/conteúdo"), /*#__PURE__*/React.createElement("textarea", {
+    rows: "4",
+    value: descricao,
+    onChange: e => setDescricao(e.target.value)
+  }), /*#__PURE__*/React.createElement("label", null, "Imagem"), /*#__PURE__*/React.createElement("input", {
+    ref: inputImagemRef,
+    type: "file",
+    accept: "image/*",
+    style: {
+      display: 'none'
+    },
+    onChange: e => selecionarImagem(e.target.files[0])
+  }), imagem ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: imagem,
+    style: {
+      width: 70,
+      height: 70,
+      objectFit: 'cover',
+      borderRadius: 8,
+      border: '1px solid var(--borda)'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setImagem('')
+  }, "Remover imagem")) : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: processandoImagem,
+    onClick: () => inputImagemRef.current.click()
+  }, processandoImagem ? 'Carregando...' : '🖼️ Escolher imagem'), /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 12
+    }
+  }, "Vídeo (link do YouTube ou URL direta de um arquivo de vídeo)"), /*#__PURE__*/React.createElement("input", {
+    value: video,
+    onChange: e => setVideo(e.target.value),
+    placeholder: "https://..."
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Categoria"), /*#__PURE__*/React.createElement("select", {
+    value: categoria,
+    onChange: e => setCategoria(e.target.value)
+  }, CATEGORIAS_AVISO.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "\xA0"), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 11,
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: destaque,
+    onChange: e => setDestaque(e.target.checked),
+    style: {
+      width: 'auto'
+    }
+  }), "⭐ Aviso em destaque"))), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 12,
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: publicarAgora,
+    onChange: e => setPublicarAgora(e.target.checked),
+    style: {
+      width: 'auto'
+    }
+  }), "Publicar agora (usar a data/hora atual como início)"), !publicarAgora && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Data/hora de início"), /*#__PURE__*/React.createElement("input", {
+    type: "datetime-local",
+    value: dataInicio,
+    onChange: e => setDataInicio(e.target.value)
+  })), /*#__PURE__*/React.createElement("label", null, "Data/hora de encerramento (opcional)"), /*#__PURE__*/React.createElement("input", {
+    type: "datetime-local",
+    value: dataFim,
+    onChange: e => setDataFim(e.target.value)
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end',
+      marginTop: 18,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: processando,
+    onClick: () => salvar('rascunho')
+  }, "Salvar como rascunho"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: processando,
+    onClick: () => salvar('publicado')
+  }, processando ? 'Salvando...' : publicarAgora ? 'Publicar agora' : 'Agendar publicação'))));
+}
+function ModalGerenciarAvisos({
+  avisos,
+  funcionarios,
+  usuario,
+  aoEditar,
+  aoFechar
+}) {
+  const [abaGerenciar, setAbaGerenciar] = useState('ativos');
+  const agora = new Date();
+  async function excluir(a) {
+    if (!confirm(`Excluir o aviso "${a.titulo}"? Essa ação não pode ser desfeita.`)) return;
+    await db.collection('avisos').doc(a.id).delete();
+  }
+  async function duplicar(a) {
+    const {
+      id,
+      criadoEm,
+      ...dados
+    } = a;
+    await db.collection('avisos').add({
+      ...dados,
+      titulo: `${a.titulo} (cópia)`,
+      status: 'rascunho',
+      criadoPor: usuario.nome,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+  async function desativar(a) {
+    await db.collection('avisos').doc(a.id).update({
+      dataFim: new Date().toISOString().slice(0, 16)
+    });
+  }
+  const listas = {
+    ativos: avisos.filter(a => statusComputadoAviso(a, agora) === 'ativo'),
+    agendados: avisos.filter(a => statusComputadoAviso(a, agora) === 'agendado'),
+    encerrados: avisos.filter(a => statusComputadoAviso(a, agora) === 'encerrado'),
+    rascunhos: avisos.filter(a => statusComputadoAviso(a, agora) === 'rascunho')
+  };
+  const {
+    hoje: aniversariantesHoje,
+    proximos: proximosAniversarios
+  } = calcularAniversariantes(funcionarios);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 640
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Gerenciar avisos"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 4,
+      borderBottom: '1px solid var(--borda)',
+      overflowX: 'auto',
+      marginBottom: 14
+    }
+  }, [['ativos', 'Ativos'], ['agendados', 'Agendados'], ['encerrados', 'Encerrados'], ['aniversarios', 'Aniversários'], ['rascunhos', 'Rascunhos']].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    type: "button",
+    onClick: () => setAbaGerenciar(id),
+    style: {
+      background: 'none',
+      border: 'none',
+      borderBottom: abaGerenciar === id ? '2px solid var(--laranja)' : '2px solid transparent',
+      padding: '8px 10px',
+      fontSize: 12.5,
+      fontWeight: 600,
+      color: abaGerenciar === id ? 'var(--laranja-escuro)' : 'var(--texto-fraco)',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap'
+    }
+  }, label))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 380,
+      overflowY: 'auto'
+    }
+  }, abaGerenciar === 'aniversarios' ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, aniversariantesHoje.map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.id,
+    style: {
+      fontSize: 13
+    }
+  }, "🎂 ", f.nome, " — hoje")), proximosAniversarios.map((a, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)'
+    }
+  }, "🎂 ", a.nome, " — ", a.dataTexto)), aniversariantesHoje.length === 0 && proximosAniversarios.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Nenhum aniversário nos próximos dias.")) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, (listas[abaGerenciar] || []).map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.id,
+    className: "card",
+    style: {
+      padding: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5
+    }
+  }, a.destaque ? '⭐ ' : '', a.titulo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)',
+      marginTop: 2
+    }
+  }, a.categoria, " · por ", a.criadoPor || '-'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      marginTop: 8,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => aoEditar(a)
+  }, "Editar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => duplicar(a)
+  }, "Duplicar"), abaGerenciar === 'ativos' && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => desativar(a)
+  }, "Desativar agora"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: () => excluir(a)
+  }, "Excluir")))), (listas[abaGerenciar] || []).length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 20
+    }
+  }, "Nada por aqui."))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
 }
 function AbaDashboard({
   usuario,
