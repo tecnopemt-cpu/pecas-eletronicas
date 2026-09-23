@@ -280,6 +280,33 @@ function ehMaster(usuario) {
 function ehAdministrador(usuario) {
   return usuario?.perfil === 'administrador' || usuario?.perfil === 'master';
 }
+// Quem pode administrar (bloquear/desbloquear/inativar/redefinir senha/editar permissões/editar dados) de outra conta:
+// o Master pode gerenciar qualquer um (menos ele mesmo por essas ações — dados pessoais são exceção à parte);
+// um Administrador só gerencia contas de perfil "funcionario" (nunca outro admin, nunca o Master).
+function podeGerenciarFuncionario(usuarioLogado, alvo) {
+  if (!usuarioLogado || !alvo) return false;
+  if (alvo.perfil === 'master') return false;
+  if (ehMaster(usuarioLogado)) return true;
+  if (ehAdministrador(usuarioLogado) && alvo.perfil !== 'administrador') return true;
+  return false;
+}
+async function buscarEnderecoPorCep(cep) {
+  const numeros = (cep || '').replace(/\D/g, '');
+  if (numeros.length !== 8) return null;
+  try {
+    const resp = await fetch(`https://viacep.com.br/ws/${numeros}/json/`);
+    const d = await resp.json();
+    if (d.erro) return null;
+    return {
+      endereco: d.logradouro || '',
+      bairro: d.bairro || '',
+      cidade: d.localidade || '',
+      uf: d.uf || ''
+    };
+  } catch (err) {
+    return null;
+  }
+}
 function statusRotulo(status) {
   return {
     ativo: '🟢 Ativo',
@@ -2395,6 +2422,14 @@ function TelaCriarConta({
   const [cpf, setCpf] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [cep, setCep] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [uf, setUf] = useState('');
+  const [buscandoCep, setBuscandoCep] = useState(false);
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -2409,6 +2444,18 @@ function TelaCriarConta({
     const d = v.replace(/\D/g, '').slice(0, 11);
     if (d.length <= 10) return d.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3').trim();
     return d.replace(/^(\d{2})(\d{5})(\d{0,4})$/, '($1) $2-$3').trim();
+  }
+  async function aoSairDoCep() {
+    if ((cep || '').replace(/\D/g, '').length !== 8) return;
+    setBuscandoCep(true);
+    const end = await buscarEnderecoPorCep(cep);
+    if (end) {
+      setEndereco(end.endereco || '');
+      setBairro(end.bairro || '');
+      setCidade(end.cidade || '');
+      setUf(end.uf || '');
+    }
+    setBuscandoCep(false);
   }
   async function enviar(e) {
     e.preventDefault();
@@ -2439,6 +2486,13 @@ function TelaCriarConta({
         telefone,
         login: login.trim(),
         senhaHash,
+        cep,
+        endereco,
+        numero,
+        complemento,
+        bairro,
+        cidade,
+        uf,
         cargo: '',
         percentualComissao: 0,
         comissaoBaseId: '',
@@ -2511,7 +2565,7 @@ function TelaCriarConta({
     onSubmit: enviar,
     className: "card",
     style: {
-      width: 380
+      width: 420
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2535,7 +2589,13 @@ function TelaCriarConta({
       color: 'var(--texto-fraco)',
       fontSize: 13
     }
-  }, "Preencha seus dados para solicitar acesso ao Controle de Peças.")), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+  }, "Preencha seus dados para solicitar acesso ao Controle de Peças.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      marginTop: 6
+    }
+  }, "Dados pessoais"), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
     value: nome,
     onChange: e => setNome(e.target.value),
     required: true
@@ -2550,17 +2610,60 @@ function TelaCriarConta({
     onChange: e => setCpf(formatarCpfCampo(e.target.value)),
     placeholder: "000.000.000-00",
     required: true
-  }))), /*#__PURE__*/React.createElement("div", {
-    className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Telefone"), /*#__PURE__*/React.createElement("input", {
+  }))), /*#__PURE__*/React.createElement("label", null, "Telefone"), /*#__PURE__*/React.createElement("input", {
     value: telefone,
     onChange: e => setTelefone(formatarTelefoneCampo(e.target.value)),
     placeholder: "(00) 00000-0000"
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      marginTop: 16
+    }
+  }, "Endereço"), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CEP", buscandoCep && ' (buscando...)'), /*#__PURE__*/React.createElement("input", {
+    value: cep,
+    onChange: e => setCep(e.target.value),
+    onBlur: aoSairDoCep,
+    placeholder: "00000-000"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Logradouro/Rua"), /*#__PURE__*/React.createElement("input", {
+    value: endereco,
+    onChange: e => setEndereco(e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Número"), /*#__PURE__*/React.createElement("input", {
+    value: numero,
+    onChange: e => setNumero(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Complemento"), /*#__PURE__*/React.createElement("input", {
+    value: complemento,
+    onChange: e => setComplemento(e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Bairro"), /*#__PURE__*/React.createElement("input", {
+    value: bairro,
+    onChange: e => setBairro(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cidade"), /*#__PURE__*/React.createElement("input", {
+    value: cidade,
+    onChange: e => setCidade(e.target.value)
+  }))), /*#__PURE__*/React.createElement("label", null, "Estado/UF"), /*#__PURE__*/React.createElement("input", {
+    value: uf,
+    onChange: e => setUf(e.target.value.toUpperCase()),
+    maxLength: 2,
+    style: {
+      maxWidth: 80
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      marginTop: 16
+    }
+  }, "Dados de acesso"), /*#__PURE__*/React.createElement("label", null, "Login"), /*#__PURE__*/React.createElement("input", {
     value: login,
     onChange: e => setLogin(e.target.value),
     required: true
-  }))), /*#__PURE__*/React.createElement("label", null, "Senha"), /*#__PURE__*/React.createElement("input", {
+  }), /*#__PURE__*/React.createElement("label", null, "Senha"), /*#__PURE__*/React.createElement("input", {
     type: "password",
     value: senha,
     onChange: e => setSenha(e.target.value),
@@ -6925,11 +7028,25 @@ function AbaDadosPessoaisFuncionario({
     percentualComissao: funcionario.percentualComissao || 0
   });
   const [salvando, setSalvando] = useState(false);
+  const [buscandoCep, setBuscandoCep] = useState(false);
   function campo(k, v) {
     setF(prev => ({
       ...prev,
       [k]: v
     }));
+  }
+  async function aoSairDoCep() {
+    if ((f.cep || '').replace(/\D/g, '').length !== 8) return;
+    setBuscandoCep(true);
+    const end = await buscarEnderecoPorCep(f.cep);
+    if (end) setF(prev => ({
+      ...prev,
+      endereco: end.endereco || prev.endereco,
+      bairro: end.bairro || prev.bairro,
+      cidade: end.cidade || prev.cidade,
+      uf: end.uf || prev.uf
+    }));
+    setBuscandoCep(false);
   }
   async function salvar() {
     setSalvando(true);
@@ -6972,9 +7089,10 @@ function AbaDadosPessoaisFuncionario({
     disabled: !podeEditar
   }))), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CEP"), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CEP", buscandoCep && ' (buscando...)'), /*#__PURE__*/React.createElement("input", {
     value: f.cep,
     onChange: e => campo('cep', e.target.value),
+    onBlur: aoSairDoCep,
     disabled: !podeEditar
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Endereço"), /*#__PURE__*/React.createElement("input", {
     value: f.endereco,
@@ -7020,6 +7138,7 @@ function AbaAcessoFuncionario({
   funcionario,
   alvoEhMaster,
   souMaster,
+  podeGerenciar,
   onBloquear,
   onDesbloquear,
   onInativar,
@@ -7047,7 +7166,13 @@ function AbaAcessoFuncionario({
       color: 'var(--texto-fraco)',
       fontStyle: 'italic'
     }
-  }, "O Administrador Master não pode ser bloqueado, inativado ou ter o perfil alterado por ninguém pelo sistema.") : /*#__PURE__*/React.createElement("div", {
+  }, "O Administrador Master não pode ser bloqueado, inativado ou ter o perfil alterado por ninguém pelo sistema.") : !podeGerenciar ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      fontStyle: 'italic'
+    }
+  }, "Você não tem permissão para gerenciar o acesso desta conta.") : /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -7241,7 +7366,7 @@ function AbaPermissoesFuncionario({
       color: 'var(--texto-fraco)',
       fontStyle: 'italic'
     }
-  }, "Só o Administrador Master pode alterar permissões."));
+  }, "Você não tem permissão para alterar as permissões desta conta."));
 }
 function ModalFuncionarioDetalhe({
   funcionario,
@@ -7255,9 +7380,11 @@ function ModalFuncionarioDetalhe({
   const alvoEhMaster = funcionario.perfil === 'master';
   const souMaster = ehMaster(usuarioLogado);
   const souAdmin = ehAdministrador(usuarioLogado);
+  const ehVoceMesmo = funcionario.id === usuarioLogado.id;
+  const podeGerenciar = podeGerenciarFuncionario(usuarioLogado, funcionario);
   async function mudarStatus(novoStatus, textoHistorico) {
-    if (alvoEhMaster) {
-      alert('Não é possível alterar o Administrador Master.');
+    if (!podeGerenciar) {
+      alert('Você não tem permissão para alterar esta conta.');
       return;
     }
     setProcessando(true);
@@ -7372,11 +7499,12 @@ function ModalFuncionarioDetalhe({
     }
   }, aba === 'dados' && /*#__PURE__*/React.createElement(AbaDadosPessoaisFuncionario, {
     funcionario: funcionario,
-    podeEditar: souAdmin && !alvoEhMaster
+    podeEditar: ehVoceMesmo || podeGerenciar
   }), aba === 'acesso' && /*#__PURE__*/React.createElement(AbaAcessoFuncionario, {
     funcionario: funcionario,
     alvoEhMaster: alvoEhMaster,
     souMaster: souMaster,
+    podeGerenciar: podeGerenciar,
     onBloquear: bloquear,
     onDesbloquear: desbloquear,
     onInativar: inativar,
@@ -7387,7 +7515,7 @@ function ModalFuncionarioDetalhe({
   }), aba === 'permissoes' && /*#__PURE__*/React.createElement(AbaPermissoesFuncionario, {
     funcionario: funcionario,
     usuarioLogado: usuarioLogado,
-    podeEditar: souMaster && !alvoEhMaster
+    podeEditar: podeGerenciar
   }), aba === 'historico' && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
@@ -7611,14 +7739,42 @@ function ModalNovoFuncionarioAdmin({
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [cep, setCep] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [uf, setUf] = useState('');
+  const [buscandoCep, setBuscandoCep] = useState(false);
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [cargo, setCargo] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  async function aoSairDoCep() {
+    if ((cep || '').replace(/\D/g, '').length !== 8) return;
+    setBuscandoCep(true);
+    const end = await buscarEnderecoPorCep(cep);
+    if (end) {
+      setEndereco(end.endereco || '');
+      setBairro(end.bairro || '');
+      setCidade(end.cidade || '');
+      setUf(end.uf || '');
+    }
+    setBuscandoCep(false);
+  }
   async function salvar(e) {
     e.preventDefault();
+    setErro('');
     if (senha.length < 6) {
-      alert('Use uma senha com pelo menos 6 caracteres.');
+      setErro('Use uma senha com pelo menos 6 caracteres.');
+      return;
+    }
+    if (senha !== confirmarSenha) {
+      setErro('As senhas não coincidem.');
       return;
     }
     setSalvando(true);
@@ -7631,8 +7787,16 @@ function ModalNovoFuncionarioAdmin({
       nome,
       cpf: cpf.replace(/\D/g, ''),
       dataNascimento,
+      telefone,
       login,
       senhaHash,
+      cep,
+      endereco,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      uf,
       cargo,
       percentualComissao: 0,
       comissaoBaseId: '',
@@ -7655,6 +7819,9 @@ function ModalNovoFuncionarioAdmin({
     onClick: e => e.target === e.currentTarget && aoFechar()
   }, /*#__PURE__*/React.createElement("form", {
     className: "modal",
+    style: {
+      maxWidth: 480
+    },
     onSubmit: salvar
   }, /*#__PURE__*/React.createElement("h3", {
     style: {
@@ -7666,7 +7833,12 @@ function ModalNovoFuncionarioAdmin({
       color: 'var(--texto-fraco)',
       marginBottom: 10
     }
-  }, "Ele nasce sem acesso a nenhum módulo — abra o cadastro depois pra liberar o que for preciso."), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+  }, "Ele nasce sem acesso a nenhum módulo — abra o cadastro depois pra liberar o que for preciso."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13
+    }
+  }, "Dados pessoais"), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
     value: nome,
     onChange: e => setNome(e.target.value),
     required: true
@@ -7679,7 +7851,56 @@ function ModalNovoFuncionarioAdmin({
     type: "date",
     value: dataNascimento,
     onChange: e => setDataNascimento(e.target.value)
+  }))), /*#__PURE__*/React.createElement("label", null, "Telefone"), /*#__PURE__*/React.createElement("input", {
+    value: telefone,
+    onChange: e => setTelefone(e.target.value),
+    placeholder: "(00) 00000-0000"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      marginTop: 16
+    }
+  }, "Endereço"), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "CEP", buscandoCep && ' (buscando...)'), /*#__PURE__*/React.createElement("input", {
+    value: cep,
+    onChange: e => setCep(e.target.value),
+    onBlur: aoSairDoCep,
+    placeholder: "00000-000"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Logradouro/Rua"), /*#__PURE__*/React.createElement("input", {
+    value: endereco,
+    onChange: e => setEndereco(e.target.value)
   }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Número"), /*#__PURE__*/React.createElement("input", {
+    value: numero,
+    onChange: e => setNumero(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Complemento"), /*#__PURE__*/React.createElement("input", {
+    value: complemento,
+    onChange: e => setComplemento(e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Bairro"), /*#__PURE__*/React.createElement("input", {
+    value: bairro,
+    onChange: e => setBairro(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cidade"), /*#__PURE__*/React.createElement("input", {
+    value: cidade,
+    onChange: e => setCidade(e.target.value)
+  }))), /*#__PURE__*/React.createElement("label", null, "Estado/UF"), /*#__PURE__*/React.createElement("input", {
+    value: uf,
+    onChange: e => setUf(e.target.value.toUpperCase()),
+    maxLength: 2,
+    style: {
+      maxWidth: 80
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      marginTop: 16
+    }
+  }, "Dados de acesso"), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cargo"), /*#__PURE__*/React.createElement("input", {
     value: cargo,
@@ -7693,7 +7914,18 @@ function ModalNovoFuncionarioAdmin({
     value: senha,
     onChange: e => setSenha(e.target.value),
     required: true
-  }), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("label", null, "Confirmar senha"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: confirmarSenha,
+    onChange: e => setConfirmarSenha(e.target.value),
+    required: true
+  }), erro && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--vermelho)',
+      fontSize: 13,
+      marginTop: 10
+    }
+  }, erro), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
