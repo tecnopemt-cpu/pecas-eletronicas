@@ -7874,10 +7874,6 @@ function AbaDashboard({
   const porCategoriaConsertada = agruparPorCategoria(itensDoMes, 'consertada');
   const porCategoriaGarantia = agruparPorCategoria(itensDoMes, 'garantia');
   const porCategoriaSemConserto = agruparPorCategoria(itensDoMes, 'naoConsertada');
-  const {
-    hoje: aniversariantesHoje,
-    proximos: proximosAniversarios
-  } = calcularAniversariantes(funcionarios, hoje);
   const diasArray = [];
   if (dataInicio && dataFim) {
     let cursor = new Date(dataInicio + 'T00:00:00');
@@ -7940,47 +7936,7 @@ function AbaDashboard({
     type: "date",
     value: dataFimPrincipal,
     onChange: e => setDataFimPrincipal(e.target.value)
-  })))), (aniversariantesHoje.length > 0 || proximosAniversarios.length > 0) && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))',
-      gap: 12,
-      marginBottom: 20
-    }
-  }, aniversariantesHoje.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      background: 'var(--laranja-bg)',
-      borderColor: 'var(--laranja)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 13.5,
-      marginBottom: 6
-    }
-  }, "🎉 Aniversariantes de hoje"), aniversariantesHoje.map(f => /*#__PURE__*/React.createElement("div", {
-    key: f.id,
-    style: {
-      fontSize: 13,
-      marginTop: 2
-    }
-  }, "🎂 Hoje é aniversário de ", f.nome, "!"))), proximosAniversarios.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 13.5,
-      marginBottom: 6
-    }
-  }, "🎂 Próximos aniversários"), proximosAniversarios.slice(0, 5).map((a, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      fontSize: 13,
-      marginTop: 2,
-      color: 'var(--texto-fraco)'
-    }
-  }, "🎂 ", a.nome, " — ", a.dataTexto)))), /*#__PURE__*/React.createElement("div", {
+  })))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
