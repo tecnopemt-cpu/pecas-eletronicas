@@ -72,6 +72,8 @@
   .foto-clicavel{cursor:pointer;transition:opacity .15s ease, box-shadow .15s ease;}
   @media (hover:hover){ .foto-clicavel:hover{opacity:.82;box-shadow:0 0 0 2px rgba(233,115,7,.3);} }
   .linha-clicavel{cursor:pointer;}
+  .nome-cliente-clicavel{text-decoration:none;}
+  @media (hover:hover){ .nome-cliente-clicavel:hover{text-decoration:underline;color:var(--laranja-escuro);} }
   .avisos-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;}
   @media (max-width:960px){ .avisos-grid{grid-template-columns:1fr;} }
   .btn-menu-pontos{background:none;border:none;cursor:pointer;font-size:18px;line-height:1;padding:5px 9px;color:var(--texto-fraco);border-radius:6px;transition:background-color .15s ease,color .15s ease;}
@@ -4138,13 +4140,90 @@ function SeletorCliente({
       fontSize: 14,
       borderBottom: '1px solid var(--borda)'
     }
-  }, /*#__PURE__*/React.createElement("div", null, c.razaoSocial), (c.cidade || c.uf) && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", null, c.razaoSocial), (c.cidade || c.uf || c.cnpj) && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
       color: 'var(--texto-fraco)',
       marginTop: 2
     }
-  }, c.cidade, c.cidade && c.uf ? '/' : '', c.uf)))));
+  }, c.cidade, c.cidade && c.uf ? '/' : '', c.uf, (c.cidade || c.uf) && c.cnpj ? ' — ' : '', c.cnpj ? formatCNPJ(c.cnpj) : '')))));
+}
+function clienteLinhaResumo(cliente) {
+  if (!cliente) return '';
+  const cidadeUf = [cliente.cidade, cliente.uf].filter(Boolean).join('/');
+  const cnpjFmt = cliente.cnpj ? formatCNPJ(cliente.cnpj) : '';
+  return [cidadeUf, cnpjFmt].filter(Boolean).join(' — ');
+}
+function ClienteResumo({
+  cliente,
+  aoClicar,
+  tamanho
+}) {
+  if (!cliente) return null;
+  const complemento = clienteLinhaResumo(cliente);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    onClick: aoClicar,
+    className: aoClicar ? 'nome-cliente-clicavel' : '',
+    style: {
+      fontWeight: 700,
+      fontSize: tamanho || 14.5,
+      cursor: aoClicar ? 'pointer' : 'default'
+    }
+  }, cliente.razaoSocial), complemento && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 1
+    }
+  }, complemento));
+}
+function ModalDetalheCliente({
+  cliente,
+  aoFechar
+}) {
+  if (!cliente) return null;
+  const campos = [['Razão Social / Nome', cliente.razaoSocial], ['Nome Fantasia', cliente.nomeFantasia], ['CNPJ', cliente.cnpj ? formatCNPJ(cliente.cnpj) : ''], ['Inscrição Estadual', cliente.ie], ['Telefone', cliente.telefone], ['E-mail', cliente.email], ['Endereço', cliente.endereco], ['Bairro', cliente.bairro], ['Cidade', cliente.cidade], ['UF', cliente.uf], ['CEP', cliente.cep]].filter(([, v]) => v);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 420
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, cliente.razaoSocial), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, campos.map(([rotulo, valor]) => /*#__PURE__*/React.createElement("div", {
+    key: rotulo
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)',
+      fontWeight: 700
+    }
+  }, rotulo.toUpperCase()), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5
+    }
+  }, valor)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 18
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
 }
 function SeletorCatalogo({
   catalogo,
@@ -4844,6 +4923,7 @@ function ModalLoteDetalhe({
   const [todosOrcamentos] = useColecao('orcamentos');
   const orcamentosVinculados = todosOrcamentos.filter(o => o.loteId === lote.id);
   const [orcamentoParaVer, setOrcamentoParaVer] = useState(null);
+  const [clienteParaVer, setClienteParaVer] = useState(null);
   async function mudarStatusManual(novoStatus) {
     await db.collection('lotes').doc(lote.id).update({
       status: novoStatus
@@ -5089,14 +5169,15 @@ function ModalLoteDetalhe({
       border: '1px solid var(--borda)'
     },
     onClick: () => setFotoAmpliada(foto)
-  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      margin: 0
-    }
-  }, nomeCliente), /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(ClienteResumo, {
+    cliente: clienteObj,
+    aoClicar: () => setClienteParaVer(clienteObj),
+    tamanho: 17
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
-      color: 'var(--texto-fraco)'
+      color: 'var(--texto-fraco)',
+      marginTop: 2
     }
   }, "Entrada em ", formatData(lote.criadoEm)))), /*#__PURE__*/React.createElement("select", {
     value: lote.status,
@@ -5440,6 +5521,9 @@ function ModalLoteDetalhe({
     totalAtual: 0,
     usuario: usuario,
     aoFechar: () => setOrcamentoParaVer(null)
+  }), clienteParaVer && /*#__PURE__*/React.createElement(ModalDetalheCliente, {
+    cliente: clienteParaVer,
+    aoFechar: () => setClienteParaVer(null)
   }));
 }
 
@@ -5768,6 +5852,7 @@ function AbaOrcamentos({
   const [orcamentoParaCopiar, setOrcamentoParaCopiar] = useState(null);
   const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
   const [resultadoArquivado, setResultadoArquivado] = useState(null);
+  const [clienteParaVer, setClienteParaVer] = useState(null);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const buscaTrim = busca.trim();
   const buscaLower = buscaTrim.toLowerCase();
@@ -6043,182 +6128,205 @@ function AbaOrcamentos({
         minHeight: 0,
         paddingRight: 3
       }
-    }, itensDoStatus.map(o => /*#__PURE__*/React.createElement("div", {
-      key: o.id,
-      className: "card clicavel",
-      style: {
-        padding: 13,
-        boxShadow: '0 1px 2px rgba(69,59,60,.08)'
-      },
-      onClick: () => {
-        setEditando(o);
-        setModalAberto(true);
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 6
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontWeight: 700,
-        fontSize: 14.5,
-        lineHeight: 1.3
-      }
-    }, "#", o.numero, " — ", nomeCliente(o.clienteId)), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      onClick: e => {
-        e.stopPropagation();
-        setMenuOrcamento(o);
-      },
-      style: {
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        fontSize: 18,
-        lineHeight: 1,
-        padding: '2px 6px',
-        color: 'var(--texto-fraco)',
-        flexShrink: 0,
-        borderRadius: 6
-      },
-      title: "Mais ações"
-    }, "⋮")), o.numeroPedidoCompras && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        color: 'var(--texto-fraco)',
-        marginTop: 4
-      }
-    }, "Pedido: ", o.numeroPedidoCompras), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 9,
-        marginTop: 8,
-        flexWrap: 'wrap'
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 14,
-        fontWeight: 700,
-        color: 'var(--laranja)'
-      }
-    }, formatMoeda(o.total)), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 11.5,
-        color: 'var(--texto-fraco)'
-      }
-    }, "💰 ", formatMoeda(comissaoElegivel(o) ? o.comissaoTotal : 0))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: 'var(--texto-fraco)',
-        marginTop: 5
-      }
-    }, "📅 ", formatData(o.criadoEm)), podeEditar(usuario, 'orcamentos') ? /*#__PURE__*/React.createElement("div", {
-      onClick: e => e.stopPropagation()
-    }, /*#__PURE__*/React.createElement("select", {
-      value: o.status,
-      onChange: e => mudarStatus(o, e.target.value),
-      className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`,
-      style: {
-        width: '100%',
-        border: 'none',
-        padding: '6px 7px',
-        marginTop: 9,
-        fontWeight: 600
-      }
-    }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
-      key: s,
-      value: s
-    }, s)))) : /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 9
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`
-    }, o.status)), status === 'Teste' && /*#__PURE__*/React.createElement("div", {
-      onClick: e => e.stopPropagation(),
-      style: {
-        marginTop: 9,
-        padding: 9,
-        borderRadius: 8,
-        background: o.resultadoTeste === 'reprovado' ? 'var(--vermelho-bg)' : o.resultadoTeste === 'aprovado' ? 'var(--verde-bg)' : 'var(--laranja-bg)'
-      }
-    }, o.resultadoTeste === 'aprovado' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        fontWeight: 700,
-        color: 'var(--verde)'
-      }
-    }, "🟢 Teste aprovado — peça consertada"), /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "btn secundario pequeno",
-      style: {
-        marginTop: 7
-      },
-      onClick: () => setTesteParaConfirmar(o)
-    }, "Alterar resultado")) : o.resultadoTeste === 'reprovado' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        fontWeight: 700,
-        color: 'var(--vermelho)'
-      }
-    }, "🔴 Teste reprovado — peça não consertada"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: 'var(--texto-fraco)',
-        marginTop: 3
-      }
-    }, "Faturamento: R$ 0,00 · Comissão: R$ 0,00"), /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "btn secundario pequeno",
-      style: {
-        marginTop: 7
-      },
-      onClick: () => setTesteParaConfirmar(o)
-    }, "Alterar resultado")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        fontWeight: 700,
-        color: 'var(--laranja-escuro)'
-      }
-    }, "⚠️ TESTE PENDENTE"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: 'var(--texto-fraco)',
-        marginTop: 3
-      }
-    }, "Confirmar resultado do teste antes de contabilizar faturamento e comissão."), /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "btn pequeno",
-      style: {
-        marginTop: 7
-      },
-      onClick: () => setTesteParaConfirmar(o)
-    }, "Confirmar resultado do teste")), /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 9
-      }
-    }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
-      tipo: "teste",
-      documento: o,
-      cliente: clientes.find(c => c.id === o.clienteId),
-      colecao: "orcamentos",
-      usuario: usuario
-    }))), status === 'Entregue/Faturado' && /*#__PURE__*/React.createElement("div", {
-      onClick: e => e.stopPropagation(),
-      style: {
-        marginTop: 9
-      }
-    }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
-      tipo: "entrega",
-      documento: o,
-      cliente: clientes.find(c => c.id === o.clienteId),
-      colecao: "orcamentos",
-      usuario: usuario
-    })))), itensDoStatus.length === 0 && /*#__PURE__*/React.createElement("div", {
+    }, itensDoStatus.map(o => {
+      const clienteDoOrcamento = clientes.find(c => c.id === o.clienteId);
+      const linhaCliente = clienteLinhaResumo(clienteDoOrcamento);
+      return /*#__PURE__*/React.createElement("div", {
+        key: o.id,
+        className: "card clicavel",
+        style: {
+          padding: 13,
+          boxShadow: '0 1px 2px rgba(69,59,60,.08)'
+        },
+        onClick: () => {
+          setEditando(o);
+          setModalAberto(true);
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 6
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          minWidth: 0
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontWeight: 700,
+          fontSize: 14.5,
+          lineHeight: 1.3
+        }
+      }, "#", o.numero, " — ", /*#__PURE__*/React.createElement("span", {
+        className: "nome-cliente-clicavel",
+        style: {
+          cursor: 'pointer'
+        },
+        onClick: e => {
+          e.stopPropagation();
+          setClienteParaVer(clienteDoOrcamento);
+        }
+      }, nomeCliente(o.clienteId))), linhaCliente && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: 'var(--texto-fraco)',
+          marginTop: 1
+        }
+      }, linhaCliente)), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        onClick: e => {
+          e.stopPropagation();
+          setMenuOrcamento(o);
+        },
+        style: {
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: 18,
+          lineHeight: 1,
+          padding: '2px 6px',
+          color: 'var(--texto-fraco)',
+          flexShrink: 0,
+          borderRadius: 6
+        },
+        title: "Mais ações"
+      }, "⋮")), o.numeroPedidoCompras && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          color: 'var(--texto-fraco)',
+          marginTop: 4
+        }
+      }, "Pedido: ", o.numeroPedidoCompras), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 9,
+          marginTop: 8,
+          flexWrap: 'wrap'
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          color: 'var(--laranja)'
+        }
+      }, formatMoeda(o.total)), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 11.5,
+          color: 'var(--texto-fraco)'
+        }
+      }, "💰 ", formatMoeda(comissaoElegivel(o) ? o.comissaoTotal : 0))), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: 'var(--texto-fraco)',
+          marginTop: 5
+        }
+      }, "📅 ", formatData(o.criadoEm)), podeEditar(usuario, 'orcamentos') ? /*#__PURE__*/React.createElement("div", {
+        onClick: e => e.stopPropagation()
+      }, /*#__PURE__*/React.createElement("select", {
+        value: o.status,
+        onChange: e => mudarStatus(o, e.target.value),
+        className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`,
+        style: {
+          width: '100%',
+          border: 'none',
+          padding: '6px 7px',
+          marginTop: 9,
+          fontWeight: 600
+        }
+      }, STATUS_ORCAMENTO.map(s => /*#__PURE__*/React.createElement("option", {
+        key: s,
+        value: s
+      }, s)))) : /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 9
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`
+      }, o.status)), status === 'Teste' && /*#__PURE__*/React.createElement("div", {
+        onClick: e => e.stopPropagation(),
+        style: {
+          marginTop: 9,
+          padding: 9,
+          borderRadius: 8,
+          background: o.resultadoTeste === 'reprovado' ? 'var(--vermelho-bg)' : o.resultadoTeste === 'aprovado' ? 'var(--verde-bg)' : 'var(--laranja-bg)'
+        }
+      }, o.resultadoTeste === 'aprovado' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          fontWeight: 700,
+          color: 'var(--verde)'
+        }
+      }, "🟢 Teste aprovado — peça consertada"), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn secundario pequeno",
+        style: {
+          marginTop: 7
+        },
+        onClick: () => setTesteParaConfirmar(o)
+      }, "Alterar resultado")) : o.resultadoTeste === 'reprovado' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          fontWeight: 700,
+          color: 'var(--vermelho)'
+        }
+      }, "🔴 Teste reprovado — peça não consertada"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: 'var(--texto-fraco)',
+          marginTop: 3
+        }
+      }, "Faturamento: R$ 0,00 · Comissão: R$ 0,00"), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn secundario pequeno",
+        style: {
+          marginTop: 7
+        },
+        onClick: () => setTesteParaConfirmar(o)
+      }, "Alterar resultado")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          fontWeight: 700,
+          color: 'var(--laranja-escuro)'
+        }
+      }, "⚠️ TESTE PENDENTE"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: 'var(--texto-fraco)',
+          marginTop: 3
+        }
+      }, "Confirmar resultado do teste antes de contabilizar faturamento e comissão."), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn pequeno",
+        style: {
+          marginTop: 7
+        },
+        onClick: () => setTesteParaConfirmar(o)
+      }, "Confirmar resultado do teste")), /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 9
+        }
+      }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
+        tipo: "teste",
+        documento: o,
+        cliente: clientes.find(c => c.id === o.clienteId),
+        colecao: "orcamentos",
+        usuario: usuario
+      }))), status === 'Entregue/Faturado' && /*#__PURE__*/React.createElement("div", {
+        onClick: e => e.stopPropagation(),
+        style: {
+          marginTop: 9
+        }
+      }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
+        tipo: "entrega",
+        documento: o,
+        cliente: clientes.find(c => c.id === o.clienteId),
+        colecao: "orcamentos",
+        usuario: usuario
+      })));
+    }), itensDoStatus.length === 0 && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 12,
         color: 'var(--texto-fraco)',
@@ -6270,6 +6378,9 @@ function AbaOrcamentos({
     catalogo: catalogo,
     tipoInicial: "orcamentos",
     aoFechar: () => setModalArquivadosAberto(false)
+  }), clienteParaVer && /*#__PURE__*/React.createElement(ModalDetalheCliente, {
+    cliente: clienteParaVer,
+    aoFechar: () => setClienteParaVer(null)
   }));
 }
 function ModalOrcamento({
@@ -6284,6 +6395,7 @@ function ModalOrcamento({
   const [catalogoOrigem] = useColecao('catalogoPecas');
   const loteOrigem = orcamento?.loteId ? todosLotes.find(l => l.id === orcamento.loteId) : null;
   const [loteParaVer, setLoteParaVer] = useState(false);
+  const [clienteParaVer, setClienteParaVer] = useState(null);
   const [numero, setNumero] = useState(orcamento?.numero ?? totalAtual + 1);
   const [clienteId, setClienteId] = useState(orcamento?.clienteId || '');
   const [validade, setValidade] = useState(orcamento?.validade || '');
@@ -6484,7 +6596,22 @@ function ModalOrcamento({
   }, "Selecione..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
     key: c.id,
     value: c.id
-  }, c.razaoSocial))), /*#__PURE__*/React.createElement("label", null, "N. Pedido de Compras"), /*#__PURE__*/React.createElement("input", {
+  }, c.razaoSocial))), (() => {
+    const c = clientes.find(cl => cl.id === clienteId);
+    const linha = clienteLinhaResumo(c);
+    return linha ? /*#__PURE__*/React.createElement("div", {
+      className: "nome-cliente-clicavel",
+      style: {
+        fontSize: 11.5,
+        color: 'var(--texto-fraco)',
+        marginTop: -8,
+        marginBottom: 14,
+        cursor: 'pointer',
+        width: 'fit-content'
+      },
+      onClick: () => setClienteParaVer(c)
+    }, linha, " · ver cadastro completo") : null;
+  })(), /*#__PURE__*/React.createElement("label", null, "N. Pedido de Compras"), /*#__PURE__*/React.createElement("input", {
     value: numeroPedidoCompras,
     onChange: e => setNumeroPedidoCompras(e.target.value),
     placeholder: "Número do pedido de compras do cliente"
@@ -6617,6 +6744,9 @@ function ModalOrcamento({
     catalogo: catalogoOrigem,
     usuario: usuario,
     aoFechar: () => setLoteParaVer(false)
+  }), clienteParaVer && /*#__PURE__*/React.createElement(ModalDetalheCliente, {
+    cliente: clienteParaVer,
+    aoFechar: () => setClienteParaVer(null)
   }));
 }
 function ModalArquivados({
