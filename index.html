@@ -4297,14 +4297,26 @@ function AbaLotes({
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId);
   const loteParaAssinar = lotes.find(l => l.id === loteAssinaturaId);
-  const filtrados = lotes.filter(l => !filtroStatus || l.status === filtroStatus);
+  const [busca, setBusca] = useState('');
+  const filtrados = lotes.filter(l => {
+    if (filtroStatus && l.status !== filtroStatus) return false;
+    if (busca) {
+      const b = busca.trim().toLowerCase();
+      const bateNumero = l.numero && String(l.numero) === b.replace(/\D/g, '');
+      const bateCliente = nomeCliente(l.clienteId).toLowerCase().includes(b);
+      if (!bateNumero && !bateCliente) return false;
+    }
+    return true;
+  });
   async function excluirLote(l) {
-    if (!confirm(`Excluir a entrada de ${nomeCliente(l.clienteId)} e as comissões geradas por ela? Essa ação não pode ser desfeita.`)) return;
+    if (!confirm(`Excluir a entrada de ${nomeCliente(l.clienteId)} e todos os orçamentos/comissões gerados por ela? Essa ação não pode ser desfeita.`)) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir esta entrada:')) return;
     const opBatch = db.batch();
-    if (l.orcamentoId) {
-      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', l.orcamentoId).get();
+    const orcamentosSnap = await db.collection('orcamentos').where('loteId', '==', l.id).get();
+    for (const orcDoc of orcamentosSnap.docs) {
+      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', orcDoc.id).get();
       comSnap.docs.forEach(d => opBatch.delete(d.ref));
+      opBatch.delete(orcDoc.ref);
     }
     opBatch.delete(db.collection('lotes').doc(l.id));
     await opBatch.commit();
@@ -4340,21 +4352,34 @@ function AbaLotes({
   }, "Entrada de peças"), podeEditar(usuario, 'lotes') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => setModalNovoAberto(true)
-  }, "+ Dar entrada")), /*#__PURE__*/React.createElement("select", {
+  }, "+ Dar entrada")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      flexWrap: 'wrap',
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    placeholder: "Buscar por número da entrada ou cliente...",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    style: {
+      maxWidth: 320
+    }
+  }), /*#__PURE__*/React.createElement("select", {
     value: filtroStatus,
     onChange: e => setFiltroStatus(e.target.value),
     style: {
-      maxWidth: 260,
-      marginBottom: 14
+      maxWidth: 220
     }
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
   }, "Todos os status"), STATUS_LOTE.map(s => /*#__PURE__*/React.createElement("option", {
     key: s,
     value: s
-  }, s)))), /*#__PURE__*/React.createElement("div", {
+  }, s))))), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id,
     className: "linha-clicavel",
     onClick: () => setLoteSelecionadoId(l.id)
@@ -4372,7 +4397,7 @@ function AbaLotes({
       justifyContent: 'center',
       color: 'var(--texto-fraco)'
     }
-  }, "—")), /*#__PURE__*/React.createElement("td", null, nomeCliente(l.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+  }, "—")), /*#__PURE__*/React.createElement("td", null, l.numero ? `#${l.numero}` : '-'), /*#__PURE__*/React.createElement("td", null, nomeCliente(l.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
     className: `badge ${STATUS_CLASSE[l.status] || 'estoque'}`
   }, l.status)), /*#__PURE__*/React.createElement("td", {
     style: {
@@ -4391,7 +4416,7 @@ function AbaLotes({
     onClick: () => setMenuLote(l),
     title: "Mais ações"
   }, "⋮")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "6",
+    colSpan: "7",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
@@ -4523,6 +4548,8 @@ function ModalNovoLote({
       return;
     }
     setSalvando(true);
+    const snapLotes = await db.collection('lotes').get();
+    const numero = snapLotes.size + 1;
     const itensLote = itensValidos.map(it => {
       const peca = catalogo.find(c => c.id === it.pecaCatalogoId);
       return {
@@ -4541,6 +4568,7 @@ function ModalNovoLote({
       };
     });
     await db.collection('lotes').add({
+      numero,
       clienteId,
       itens: itensLote,
       fotos: fotosLote,
@@ -4705,6 +4733,9 @@ function ModalLoteDetalhe({
   const [processando, setProcessando] = useState(false);
   const somenteLeitura = !podeEditar(usuario, 'lotes');
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
+  const [todosOrcamentos] = useColecao('orcamentos');
+  const orcamentosVinculados = todosOrcamentos.filter(o => o.loteId === lote.id);
+  const [orcamentoParaVer, setOrcamentoParaVer] = useState(null);
   async function mudarStatusManual(novoStatus) {
     await db.collection('lotes').doc(lote.id).update({
       status: novoStatus
@@ -4845,9 +4876,7 @@ function ModalLoteDetalhe({
       qtdNaoConsertadaOrcada: it.qtdNaoConsertada || 0
     }));
     opBatch.update(db.collection('lotes').doc(lote.id), {
-      itens: itensAtualizados,
-      orcamentoId: ref.id,
-      orcamentoNumero: numero
+      itens: itensAtualizados
     });
     await opBatch.commit();
     setProcessando(false);
@@ -5149,12 +5178,7 @@ function ModalLoteDetalhe({
       width: '100%',
       justifyContent: 'center'
     }
-  }, temPendenteDeOrcamento ? 'Gerar orçamento das peças classificadas' : 'Nada novo para orçar'), lote.orcamentoNumero && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--texto-fraco)'
-    }
-  }, "Último orçamento gerado: #", lote.orcamentoNumero, ". Acompanhe o status na aba Orçamento."), lote.status !== 'Concluído' && /*#__PURE__*/React.createElement("button", {
+  }, temPendenteDeOrcamento ? 'Gerar orçamento das peças classificadas' : 'Nada novo para orçar'), lote.status !== 'Concluído' && /*#__PURE__*/React.createElement("button", {
     className: "btn verde",
     disabled: processando || somenteLeitura,
     onClick: marcarConcluido,
@@ -5168,7 +5192,62 @@ function ModalLoteDetalhe({
       color: 'var(--verde)',
       fontWeight: 700
     }
-  }, "✓ Concluído.")), /*#__PURE__*/React.createElement("div", {
+  }, "✓ Concluído.")), orcamentosVinculados.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      paddingTop: 16,
+      borderTop: '1px solid var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginBottom: 10
+    }
+  }, "📄 Orçamentos vinculados (", orcamentosVinculados.length, ")"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, orcamentosVinculados.map(o => {
+    const qtdPecas = (o.loteAjustes || []).reduce((s, a) => s + (a.qtd || 0), 0);
+    const categorias = [...new Set((o.loteAjustes || []).map(a => a.categoria))];
+    const rotuloCategorias = categorias.map(c => c === 'consertada' ? '🔧 Conserto' : c === 'garantia' ? '🟡 Garantia' : c === 'teste' ? '🧪 Teste' : '⚪ Sem conserto').join(' · ');
+    return /*#__PURE__*/React.createElement("div", {
+      key: o.id,
+      className: "card",
+      style: {
+        padding: 10,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 10,
+        flexWrap: 'wrap'
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 13
+      }
+    }, "Orçamento #", o.numero), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: 'var(--texto-fraco)',
+        marginTop: 2
+      }
+    }, rotuloCategorias || 'sem itens classificados', " · ", qtdPecas, " peça(s)"), /*#__PURE__*/React.createElement("span", {
+      className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`,
+      style: {
+        marginTop: 4,
+        display: 'inline-block'
+      }
+    }, o.status)), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => setOrcamentoParaVer(o)
+    }, "Ver orçamento"));
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -5186,6 +5265,12 @@ function ModalLoteDetalhe({
   }, "Fechar"))), /*#__PURE__*/React.createElement(FotoAmpliada, {
     url: fotoAmpliada,
     aoFechar: () => setFotoAmpliada(null)
+  }), orcamentoParaVer && /*#__PURE__*/React.createElement(ModalOrcamento, {
+    orcamento: orcamentoParaVer,
+    clientes: clientes,
+    totalAtual: 0,
+    usuario: usuario,
+    aoFechar: () => setOrcamentoParaVer(null)
   }));
 }
 
@@ -5933,6 +6018,10 @@ function ModalOrcamento({
   aoFechar
 }) {
   const [funcionarios] = useColecao('funcionarios');
+  const [todosLotes] = useColecao('lotes');
+  const [catalogoOrigem] = useColecao('catalogoPecas');
+  const loteOrigem = orcamento?.loteId ? todosLotes.find(l => l.id === orcamento.loteId) : null;
+  const [loteParaVer, setLoteParaVer] = useState(false);
   const [numero, setNumero] = useState(orcamento?.numero ?? totalAtual + 1);
   const [clienteId, setClienteId] = useState(orcamento?.clienteId || '');
   const [validade, setValidade] = useState(orcamento?.validade || '');
@@ -6053,7 +6142,52 @@ function ModalOrcamento({
     style: {
       marginTop: 0
     }
-  }, orcamento ? `Editar orçamento #${orcamento.numero}` : 'Novo orçamento'), /*#__PURE__*/React.createElement("div", {
+  }, orcamento ? `Editar orçamento #${orcamento.numero}` : 'Novo orçamento'), loteOrigem && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      background: 'var(--fundo)',
+      marginBottom: 14,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      fontWeight: 700,
+      marginBottom: 4
+    }
+  }, "📦 ENTRADA DE ORIGEM"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 600
+    }
+  }, "Entrada #", loteOrigem.numero || '-', " — ", clientes.find(c => c.id === loteOrigem.clienteId)?.razaoSocial || '-'), orcamento.loteAjustes && orcamento.loteAjustes.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)',
+      marginBottom: 2
+    }
+  }, "🔧 Peças desta entrada neste orçamento:"), orcamento.loteAjustes.map((a, i) => {
+    const item = loteOrigem.itens?.[a.idx];
+    const rotuloCategoria = a.categoria === 'consertada' ? 'Conserto' : a.categoria === 'garantia' ? 'Garantia' : a.categoria === 'teste' ? 'Teste' : 'Sem conserto';
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        fontSize: 12.5
+      }
+    }, "- ", item?.pecaDescricao || 'Peça', " (", rotuloCategoria, ", ", a.qtd, "x)");
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 8
+    },
+    onClick: () => setLoteParaVer(true)
+  }, "Ver entrada completa")), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Número"), /*#__PURE__*/React.createElement("input", {
     value: numero,
@@ -6181,7 +6315,14 @@ function ModalOrcamento({
   }, podeEditar(usuario, 'orcamentos') ? 'Cancelar' : 'Fechar'), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     disabled: salvando
-  }, salvando ? 'Salvando...' : 'Salvar'))));
+  }, salvando ? 'Salvando...' : 'Salvar'))), loteParaVer && loteOrigem && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
+    lote: loteOrigem,
+    clientes: clientes,
+    funcionarios: funcionarios,
+    catalogo: catalogoOrigem,
+    usuario: usuario,
+    aoFechar: () => setLoteParaVer(false)
+  }));
 }
 
 // ======================= COMISSÕES =======================
