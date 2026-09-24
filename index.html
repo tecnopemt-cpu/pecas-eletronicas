@@ -4416,6 +4416,7 @@ function AbaLotes({
   const [imprimindo, setImprimindo] = useState(false);
   const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
   const [resultadoArquivado, setResultadoArquivado] = useState(null);
+  const [clienteParaVer, setClienteParaVer] = useState(null);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId) || (resultadoArquivado?.id === loteSelecionadoId ? resultadoArquivado : null);
   const loteParaAssinar = lotes.find(l => l.id === loteAssinaturaId);
@@ -4577,7 +4578,13 @@ function AbaLotes({
       justifyContent: 'center',
       color: 'var(--texto-fraco)'
     }
-  }, "—")), /*#__PURE__*/React.createElement("td", null, l.numero ? `#${l.numero}` : '-'), /*#__PURE__*/React.createElement("td", null, nomeCliente(l.clienteId)), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+  }, "—")), /*#__PURE__*/React.createElement("td", null, l.numero ? `#${l.numero}` : '-'), /*#__PURE__*/React.createElement("td", {
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement(ClienteResumo, {
+    cliente: clientes.find(c => c.id === l.clienteId),
+    aoClicar: () => setClienteParaVer(clientes.find(c => c.id === l.clienteId)),
+    tamanho: 13.5
+  })), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
     className: `badge ${STATUS_CLASSE[l.status] || 'estoque'}`
   }, l.status)), /*#__PURE__*/React.createElement("td", {
     style: {
@@ -4670,6 +4677,9 @@ function AbaLotes({
   }), /*#__PURE__*/React.createElement(FotoAmpliada, {
     url: fotoAmpliada,
     aoFechar: () => setFotoAmpliada(null)
+  }), clienteParaVer && /*#__PURE__*/React.createElement(ModalDetalheCliente, {
+    cliente: clienteParaVer,
+    aoFechar: () => setClienteParaVer(null)
   }));
 }
 function ModalNovoLote({
