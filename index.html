@@ -554,6 +554,22 @@ function desenharCampoTimbrado(doc, label, valor, x, y) {
   doc.setFont('helvetica', 'normal');
   doc.text(valor || '-', x, y + 4.8);
 }
+// Link clicável "Ver localização", reaproveitado em todo PDF que tenha uma assinatura com
+// localização registrada — mesma lógica usada na tela (BlocoAssinatura), não uma nova.
+function desenharLinkLocalizacao(doc, x, y, localizacao) {
+  if (!localizacao) return y;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.8);
+  doc.setTextColor(140, 130, 128);
+  doc.text('LOCAL DA ASSINATURA', x, y);
+  doc.setFontSize(9.5);
+  doc.setTextColor(233, 115, 7);
+  doc.textWithLink('📍 Ver localização', x, y + 4.8, {
+    url: `https://www.google.com/maps?q=${localizacao.lat},${localizacao.lng}`
+  });
+  doc.setTextColor(40, 34, 33);
+  return y + 9;
+}
 
 // Config central dos 3 tipos de documento com assinatura: entrada (no lote),
 // entrega (recibo final, com foto obrigatória) e teste (recibo de entrega para teste,
@@ -720,6 +736,7 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
   yConf += 8;
   desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, colDir, yConf);
   yConf += 7;
+  yConf = desenharLinkLocalizacao(doc, colDir, yConf, assinatura.localizacao);
   if (assinatura.imagem) {
     try {
       doc.addImage(assinatura.imagem, 'PNG', colDir, yConf, 52, 22);
@@ -910,6 +927,7 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   yConf += 8;
   desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, colDir, yConf);
   yConf += 7;
+  yConf = desenharLinkLocalizacao(doc, colDir, yConf, assinatura.localizacao);
   if (assinatura.imagem) {
     try {
       doc.addImage(assinatura.imagem, 'PNG', colDir, yConf, 52, 22);
@@ -1086,7 +1104,10 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   y += 11;
   desenharCampoTimbrado(doc, 'Recebido por', assinatura.nome, margemX, y);
   desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), margemX + metade, y);
-  y += 11;
+  y += 8;
+  desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, margemX, y);
+  y += 7;
+  y = desenharLinkLocalizacao(doc, margemX, y, assinatura.localizacao);
   if (assinatura.imagem) {
     try {
       doc.addImage(assinatura.imagem, 'PNG', margemX, y, 52, 22);
