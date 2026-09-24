@@ -6587,7 +6587,19 @@ function ModalOrcamento({
     type: "date",
     value: validade,
     onChange: e => setValidade(e.target.value)
-  }))), /*#__PURE__*/React.createElement("label", null, "Cliente"), /*#__PURE__*/React.createElement("select", {
+  }))), orcamento ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginBottom: 4
+    }
+  }, "Cliente"), /*#__PURE__*/React.createElement(ClienteResumo, {
+    cliente: clientes.find(c => c.id === clienteId),
+    aoClicar: () => setClienteParaVer(clientes.find(c => c.id === clienteId)),
+    tamanho: 15
+  })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Cliente"), /*#__PURE__*/React.createElement("select", {
     value: clienteId,
     onChange: e => setClienteId(e.target.value),
     required: true
@@ -6596,22 +6608,7 @@ function ModalOrcamento({
   }, "Selecione..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
     key: c.id,
     value: c.id
-  }, c.razaoSocial))), (() => {
-    const c = clientes.find(cl => cl.id === clienteId);
-    const linha = clienteLinhaResumo(c);
-    return linha ? /*#__PURE__*/React.createElement("div", {
-      className: "nome-cliente-clicavel",
-      style: {
-        fontSize: 11.5,
-        color: 'var(--texto-fraco)',
-        marginTop: -8,
-        marginBottom: 14,
-        cursor: 'pointer',
-        width: 'fit-content'
-      },
-      onClick: () => setClienteParaVer(c)
-    }, linha, " · ver cadastro completo") : null;
-  })(), /*#__PURE__*/React.createElement("label", null, "N. Pedido de Compras"), /*#__PURE__*/React.createElement("input", {
+  }, c.razaoSocial)))), /*#__PURE__*/React.createElement("label", null, "N. Pedido de Compras"), /*#__PURE__*/React.createElement("input", {
     value: numeroPedidoCompras,
     onChange: e => setNumeroPedidoCompras(e.target.value),
     placeholder: "Número do pedido de compras do cliente"
