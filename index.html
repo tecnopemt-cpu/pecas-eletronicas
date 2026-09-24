@@ -74,7 +74,7 @@
   .linha-clicavel{cursor:pointer;}
   .nome-cliente-clicavel{text-decoration:none;}
   @media (hover:hover){ .nome-cliente-clicavel:hover{text-decoration:underline;color:var(--laranja-escuro);} }
-  .avisos-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;}
+  .avisos-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:20px;align-items:start;}
   @media (max-width:960px){ .avisos-grid{grid-template-columns:1fr;} }
   .btn-menu-pontos{background:none;border:none;cursor:pointer;font-size:18px;line-height:1;padding:5px 9px;color:var(--texto-fraco);border-radius:6px;transition:background-color .15s ease,color .15s ease;}
   @media (hover:hover){ .btn-menu-pontos:hover{background:var(--fundo);color:var(--texto);} }
@@ -7845,7 +7845,8 @@ function AbaAvisos({
   return /*#__PURE__*/React.createElement("div", {
     className: "avisos-grid",
     style: {
-      maxWidth: 1180
+      width: '100%',
+      maxWidth: 1600
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
