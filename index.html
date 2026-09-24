@@ -4162,7 +4162,10 @@ function ClienteResumo({
   if (!cliente) return null;
   const complemento = clienteLinhaResumo(cliente);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    onClick: aoClicar,
+    onClick: aoClicar ? e => {
+      e.stopPropagation();
+      aoClicar(e);
+    } : undefined,
     className: aoClicar ? 'nome-cliente-clicavel' : '',
     style: {
       fontWeight: 700,
@@ -4578,9 +4581,7 @@ function AbaLotes({
       justifyContent: 'center',
       color: 'var(--texto-fraco)'
     }
-  }, "—")), /*#__PURE__*/React.createElement("td", null, l.numero ? `#${l.numero}` : '-'), /*#__PURE__*/React.createElement("td", {
-    onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement(ClienteResumo, {
+  }, "—")), /*#__PURE__*/React.createElement("td", null, l.numero ? `#${l.numero}` : '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(ClienteResumo, {
     cliente: clientes.find(c => c.id === l.clienteId),
     aoClicar: () => setClienteParaVer(clientes.find(c => c.id === l.clienteId)),
     tamanho: 13.5
