@@ -530,11 +530,8 @@ async function desenharTimbradoCabecalho(doc) {
   } catch (err) {}
 }
 async function desenharTimbradoRodape(doc) {
-  try {
-    const dataUrl = await carregarImagemDataUrl('icons/timbrado-rodape.png');
-    const altura = 210 * (171 / 1600);
-    doc.addImage(dataUrl, 'PNG', 0, 297 - altura, 210, altura);
-  } catch (err) {}
+  // Rodapé institucional removido de todos os PDFs por pedido — mantido como no-op
+  // (em vez de tirar as 9 chamadas espalhadas) pra continuar sendo um ajuste único e global.
 }
 function desenharTituloSecaoTimbrado(doc, texto, x, y, larguraUtil) {
   doc.setFont('helvetica', 'bold');
@@ -613,6 +610,14 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
   doc.setFontSize(15);
   doc.setTextColor(40, 34, 33);
   doc.text('RECIBO DE ENTRADA DE PEÇAS', margemX, y);
+  if (lote?.numero) {
+    doc.setFontSize(10);
+    doc.setTextColor(233, 115, 7);
+    doc.text(`Nº ${lote.numero}`, 210 - margemX, y, {
+      align: 'right'
+    });
+    doc.setTextColor(40, 34, 33);
+  }
   y += 7;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -746,6 +751,13 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   const meiaColuna = (larguraUtil - 10) / 2;
   const colEsq = margemX;
   const colDir = margemX + meiaColuna + 10;
+  let numeroLoteOrigem = null;
+  if (orcamento?.loteId) {
+    try {
+      const loteSnap = await db.collection('lotes').doc(orcamento.loteId).get();
+      if (loteSnap.exists) numeroLoteOrigem = loteSnap.data().numero;
+    } catch (err) {}
+  }
   async function novaPagina() {
     await desenharTimbradoRodape(doc);
     doc.addPage();
@@ -765,6 +777,17 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   doc.setFontSize(15);
   doc.setTextColor(40, 34, 33);
   doc.text('RECIBO DE ENTREGA DE PEÇAS', margemX, y);
+  if (orcamento?.numero || numeroLoteOrigem) {
+    doc.setFontSize(9.5);
+    doc.setTextColor(233, 115, 7);
+    const partes = [];
+    if (orcamento?.numero) partes.push(`Orçamento nº ${orcamento.numero}`);
+    if (numeroLoteOrigem) partes.push(`Entrada nº ${numeroLoteOrigem}`);
+    doc.text(partes.join('  •  '), 210 - margemX, y, {
+      align: 'right'
+    });
+    doc.setTextColor(40, 34, 33);
+  }
   y += 7;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -915,6 +938,13 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   const doc = new jsPDF();
   const margemX = 16;
   const larguraUtil = 210 - margemX * 2;
+  let numeroLoteOrigem = null;
+  if (orcamento?.loteId) {
+    try {
+      const loteSnap = await db.collection('lotes').doc(orcamento.loteId).get();
+      if (loteSnap.exists) numeroLoteOrigem = loteSnap.data().numero;
+    } catch (err) {}
+  }
   async function novaPagina() {
     await desenharTimbradoRodape(doc);
     doc.addPage();
@@ -934,6 +964,17 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   doc.setFontSize(15);
   doc.setTextColor(40, 34, 33);
   doc.text('RECIBO DE ENTREGA DE PEÇAS EM TESTE', margemX, y);
+  if (orcamento?.numero || numeroLoteOrigem) {
+    doc.setFontSize(9);
+    doc.setTextColor(233, 115, 7);
+    const partes = [];
+    if (orcamento?.numero) partes.push(`Orçamento nº ${orcamento.numero}`);
+    if (numeroLoteOrigem) partes.push(`Entrada nº ${numeroLoteOrigem}`);
+    doc.text(partes.join('  •  '), 210 - margemX, y, {
+      align: 'right'
+    });
+    doc.setTextColor(40, 34, 33);
+  }
   y += 9;
 
   // Aviso importante — única caixa de destaque do documento, de propósito:
@@ -1153,6 +1194,14 @@ async function gerarPdfLoteImpressao(lote, cliente) {
   doc.setFontSize(15);
   doc.setTextColor(40, 34, 33);
   doc.text('ENTRADA DE PEÇAS', margemX, y);
+  if (lote?.numero) {
+    doc.setFontSize(10);
+    doc.setTextColor(233, 115, 7);
+    doc.text(`Nº ${lote.numero}`, 210 - margemX, y, {
+      align: 'right'
+    });
+    doc.setTextColor(40, 34, 33);
+  }
   y += 10;
   desenharTituloSecaoTimbrado(doc, 'Dados do cliente', margemX, y);
   y += 7;
@@ -1282,6 +1331,13 @@ async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
   const doc = new jsPDF();
   const margemX = 16;
   const larguraUtil = 210 - margemX * 2;
+  let numeroLoteOrigem = null;
+  if (orcamento?.loteId) {
+    try {
+      const loteSnap = await db.collection('lotes').doc(orcamento.loteId).get();
+      if (loteSnap.exists) numeroLoteOrigem = loteSnap.data().numero;
+    } catch (err) {}
+  }
   await desenharTimbradoCabecalho(doc);
   let y = 58;
   doc.setFont('helvetica', 'bold');
@@ -1301,6 +1357,10 @@ async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
   desenharCampoTimbrado(doc, 'Status', orcamento.status || '-', margemX, y);
   desenharCampoTimbrado(doc, 'Data', formatData(orcamento.criadoEm), margemX + metade, y);
   y += 8;
+  if (numeroLoteOrigem) {
+    desenharCampoTimbrado(doc, 'Entrada de origem', `Nº ${numeroLoteOrigem}`, margemX, y);
+    y += 8;
+  }
   if (orcamento.numeroPedidoCompras) {
     desenharCampoTimbrado(doc, 'N. Pedido de Compras', orcamento.numeroPedidoCompras, margemX, y);
     y += 8;
