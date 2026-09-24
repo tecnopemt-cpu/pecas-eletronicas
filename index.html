@@ -2140,24 +2140,39 @@ function BlocoAssinatura({
     aoFechar: () => setModalPresencialAberto(false)
   }));
 }
-function useColecao(nome, ordenarPor) {
+function useColecao(nome, ordenarPor, apenasAtivos) {
   const [dados, setDados] = useState([]);
   const [carregando, setCarregando] = useState(true);
   useEffect(() => {
     let ref = db.collection(nome);
-    if (ordenarPor) ref = ref.orderBy(ordenarPor, 'desc');
+    if (apenasAtivos) {
+      // Filtro único de igualdade — não precisa de índice composto no Firestore.
+      // Como combinar where+orderBy em campos diferentes exigiria um índice manual
+      // (que precisaria ser criado no Console do Firebase), ordenamos no cliente abaixo.
+      ref = ref.where('arquivado', '==', false);
+    } else if (ordenarPor) {
+      ref = ref.orderBy(ordenarPor, 'desc');
+    }
     const unsub = ref.onSnapshot(snap => {
-      setDados(snap.docs.map(d => ({
+      let lista = snap.docs.map(d => ({
         id: d.id,
         ...d.data()
-      })));
+      }));
+      if (apenasAtivos && ordenarPor) {
+        lista = lista.slice().sort((a, b) => {
+          const da = a[ordenarPor]?.toDate ? a[ordenarPor].toDate() : new Date(a[ordenarPor] || 0);
+          const dbb = b[ordenarPor]?.toDate ? b[ordenarPor].toDate() : new Date(b[ordenarPor] || 0);
+          return dbb - da;
+        });
+      }
+      setDados(lista);
       setCarregando(false);
     }, err => {
       console.error(nome, err);
       setCarregando(false);
     });
     return unsub;
-  }, [nome]);
+  }, [nome, ordenarPor, apenasAtivos]);
   return [dados, carregando];
 }
 async function atualizarApp() {
@@ -2861,6 +2876,32 @@ function App() {
         await opBatch.commit();
       } catch (err) {
         console.error('migração de permissões', err);
+      }
+    })();
+  }, [usuario]);
+  useEffect(() => {
+    if (!usuario) return;
+    (async () => {
+      try {
+        const configRef = db.collection('config').doc('migracaoArquivamento');
+        const configSnap = await configRef.get();
+        if (configSnap.exists) return;
+        const [lotesSnap, orcamentosSnap] = await Promise.all([db.collection('lotes').get(), db.collection('orcamentos').get()]);
+        const pendentes = [...lotesSnap.docs.filter(d => d.data().arquivado === undefined), ...orcamentosSnap.docs.filter(d => d.data().arquivado === undefined)];
+        for (let i = 0; i < pendentes.length; i += 400) {
+          const pedaco = pendentes.slice(i, i + 400);
+          const lote = db.batch();
+          pedaco.forEach(doc => lote.update(doc.ref, {
+            arquivado: false
+          }));
+          await lote.commit();
+        }
+        await configRef.set({
+          feito: true,
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch (err) {
+        console.error('migração de arquivamento', err);
       }
     })();
   }, [usuario]);
@@ -4283,7 +4324,7 @@ function AbaLotes({
   usuario,
   funcionarios
 }) {
-  const [lotes, carregando] = useColecao('lotes', 'criadoEm');
+  const [lotes, carregando] = useColecao('lotes', 'criadoEm', true);
   const [clientes] = useColecao('clientes');
   const [catalogo] = useColecao('catalogoPecas');
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
@@ -4294,10 +4335,30 @@ function AbaLotes({
   const [menuLote, setMenuLote] = useState(null);
   const [loteParaCopiar, setLoteParaCopiar] = useState(null);
   const [imprimindo, setImprimindo] = useState(false);
+  const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
+  const [resultadoArquivado, setResultadoArquivado] = useState(null);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
-  const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId);
+  const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId) || (resultadoArquivado?.id === loteSelecionadoId ? resultadoArquivado : null);
   const loteParaAssinar = lotes.find(l => l.id === loteAssinaturaId);
   const [busca, setBusca] = useState('');
+  useEffect(() => {
+    const numeroBuscado = Number(busca.trim().replace(/\D/g, ''));
+    if (!numeroBuscado || lotes.some(l => l.numero === numeroBuscado)) {
+      setResultadoArquivado(null);
+      return;
+    }
+    let cancelado = false;
+    (async () => {
+      const snap = await db.collection('lotes').where('numero', '==', numeroBuscado).where('arquivado', '==', true).limit(1).get();
+      if (!cancelado) setResultadoArquivado(snap.empty ? null : {
+        id: snap.docs[0].id,
+        ...snap.docs[0].data()
+      });
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, [busca, lotes]);
   const filtrados = lotes.filter(l => {
     if (filtroStatus && l.status !== filtroStatus) return false;
     if (busca) {
@@ -4349,15 +4410,23 @@ function AbaLotes({
     style: {
       margin: 0
     }
-  }, "Entrada de peças"), podeEditar(usuario, 'lotes') && /*#__PURE__*/React.createElement("button", {
+  }, "Entrada de peças"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, podeEditar(usuario, 'lotes') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => setModalNovoAberto(true)
-  }, "+ Dar entrada")), /*#__PURE__*/React.createElement("div", {
+  }, "+ Dar entrada"), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => setModalArquivadosAberto(true)
+  }, "📁 Arquivados"))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10,
       flexWrap: 'wrap',
-      marginBottom: 14
+      marginBottom: 10
     }
   }, /*#__PURE__*/React.createElement("input", {
     placeholder: "Buscar por número da entrada ou cliente...",
@@ -4377,7 +4446,39 @@ function AbaLotes({
   }, "Todos os status"), STATUS_LOTE.map(s => /*#__PURE__*/React.createElement("option", {
     key: s,
     value: s
-  }, s))))), /*#__PURE__*/React.createElement("div", {
+  }, s)))), resultadoArquivado && /*#__PURE__*/React.createElement("div", {
+    className: "card clicavel",
+    style: {
+      marginBottom: 14,
+      borderColor: 'var(--laranja)'
+    },
+    onClick: () => setLoteSelecionadoId(resultadoArquivado.id)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "badge estoque"
+  }, "📁 ARQUIVADO"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginTop: 4
+    }
+  }, "Entrada #", resultadoArquivado.numero, " — ", nomeCliente(resultadoArquivado.clienteId)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, formatData(resultadoArquivado.criadoEm))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setLoteSelecionadoId(resultadoArquivado.id)
+  }, "Abrir cartão")))), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
   }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id,
@@ -4438,6 +4539,13 @@ function AbaLotes({
     catalogo: catalogo,
     usuario: usuario,
     aoFechar: () => setLoteSelecionadoId(null)
+  }), modalArquivadosAberto && /*#__PURE__*/React.createElement(ModalArquivados, {
+    usuario: usuario,
+    clientes: clientes,
+    funcionarios: funcionarios,
+    catalogo: catalogo,
+    tipoInicial: "lotes",
+    aoFechar: () => setModalArquivadosAberto(false)
   }), loteParaAssinar && /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && setLoteAssinaturaId(null)
@@ -4889,18 +4997,47 @@ function ModalLoteDetalhe({
     setProcessando(false);
   }
   async function excluirLote() {
-    if (!confirm('Excluir este lote e as comissões geradas por ele? Essa ação não pode ser desfeita.')) return;
+    if (!confirm('Excluir este lote, todos os orçamentos vinculados e as comissões geradas por eles? Essa ação não pode ser desfeita.')) return;
     if (!confirmarSenhaMaster('Digite a senha master para excluir este lote:')) return;
     setProcessando(true);
     const opBatch = db.batch();
-    if (lote.orcamentoId) {
-      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', lote.orcamentoId).get();
+    const orcamentosSnap = await db.collection('orcamentos').where('loteId', '==', lote.id).get();
+    for (const orcDoc of orcamentosSnap.docs) {
+      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', orcDoc.id).get();
       comSnap.docs.forEach(d => opBatch.delete(d.ref));
+      opBatch.delete(orcDoc.ref);
     }
     opBatch.delete(db.collection('lotes').doc(lote.id));
     await opBatch.commit();
     setProcessando(false);
     aoFechar();
+  }
+  async function arquivarLote() {
+    const pendentes = orcamentosVinculados.filter(o => !o.arquivado && o.status !== 'Entregue/Faturado');
+    if (lote.status !== 'Concluído' || pendentes.length > 0) {
+      alert('Essa entrada só pode ser arquivada quando todas as peças já foram classificadas e todos os orçamentos vinculados estiverem em Entregue/Faturado (ou já arquivados).');
+      return;
+    }
+    if (!confirm(`Arquivar a entrada #${lote.numero}? Ela sai da lista operacional, mas continua disponível em "📁 Arquivados".`)) return;
+    setProcessando(true);
+    await db.collection('lotes').doc(lote.id).update({
+      arquivado: true,
+      statusAnterior: lote.status,
+      dataArquivamento: new Date().toISOString(),
+      arquivadoPor: usuario.nome
+    });
+    setProcessando(false);
+    aoFechar();
+  }
+  async function desarquivarLote() {
+    setProcessando(true);
+    await db.collection('lotes').doc(lote.id).update({
+      arquivado: false,
+      status: lote.statusAnterior || lote.status,
+      dataArquivamento: null,
+      arquivadoPor: null
+    });
+    setProcessando(false);
   }
   const temPendenteDeOrcamento = (lote.itens || []).some(it => (it.qtdConsertada || 0) > (it.qtdConsertadaOrcada || 0) || (it.qtdGarantia || 0) > (it.qtdGarantiaOrcada || 0) || (it.qtdTeste || 0) > (it.qtdTesteOrcada || 0) || (it.qtdNaoConsertada || 0) > (it.qtdNaoConsertadaOrcada || 0));
   return /*#__PURE__*/React.createElement("div", {
@@ -4911,7 +5048,16 @@ function ModalLoteDetalhe({
     style: {
       maxWidth: 680
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, lote.arquivado && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--fundo)',
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      padding: '8px 12px',
+      marginBottom: 12,
+      fontSize: 12.5
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, "📁 ARQUIVADO"), " — Entrada #", lote.numero, " · arquivada em ", formatData(lote.dataArquivamento), lote.arquivadoPor ? ` por ${lote.arquivadoPor}` : ''), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -5236,7 +5382,13 @@ function ModalLoteDetalhe({
         color: 'var(--texto-fraco)',
         marginTop: 2
       }
-    }, rotuloCategorias || 'sem itens classificados', " · ", qtdPecas, " peça(s)"), /*#__PURE__*/React.createElement("span", {
+    }, rotuloCategorias || 'sem itens classificados', " · ", qtdPecas, " peça(s)"), o.arquivado ? /*#__PURE__*/React.createElement("span", {
+      className: "badge estoque",
+      style: {
+        marginTop: 4,
+        display: 'inline-block'
+      }
+    }, "📁 Arquivado (era ", o.statusAnterior, ")") : /*#__PURE__*/React.createElement("span", {
       className: `badge ${STATUS_CLASSE[o.status] || 'estoque'}`,
       style: {
         marginTop: 4,
@@ -5251,14 +5403,31 @@ function ModalLoteDetalhe({
     style: {
       display: 'flex',
       justifyContent: 'space-between',
-      marginTop: 16
+      marginTop: 16,
+      flexWrap: 'wrap',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
     }
   }, !somenteLeitura && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn perigo",
     disabled: processando,
     onClick: excluirLote
-  }, "🔒 Excluir lote"), /*#__PURE__*/React.createElement("button", {
+  }, "🔒 Excluir lote"), ehAdministrador(usuario) && (lote.arquivado ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: processando,
+    onClick: desarquivarLote
+  }, "↩️ Desarquivar") : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: processando,
+    onClick: arquivarLote
+  }, "📁 Arquivar"))), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
@@ -5509,6 +5678,7 @@ function ModalMenuOrcamento({
   cliente,
   aoExcluir,
   aoCopiar,
+  aoArquivar,
   aoFechar
 }) {
   const [imprimindo, setImprimindo] = useState(false);
@@ -5558,6 +5728,13 @@ function ModalMenuOrcamento({
     onClick: imprimir
   }, imprimindo ? 'Gerando...' : '🖨️ Imprimir'), /*#__PURE__*/React.createElement("button", {
     type: "button",
+    className: "btn secundario",
+    style: {
+      justifyContent: 'flex-start'
+    },
+    onClick: aoArquivar
+  }, "📁 Arquivar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn perigo",
     style: {
       justifyContent: 'flex-start'
@@ -5578,7 +5755,7 @@ function ModalMenuOrcamento({
 function AbaOrcamentos({
   usuario
 }) {
-  const [orcamentos, carregando] = useColecao('orcamentos', 'criadoEm');
+  const [orcamentos, carregando] = useColecao('orcamentos', 'criadoEm', true);
   const [clientes] = useColecao('clientes');
   const [catalogo] = useColecao('catalogoPecas');
   const [modalAberto, setModalAberto] = useState(false);
@@ -5589,6 +5766,8 @@ function AbaOrcamentos({
   const [funcionarios] = useColecao('funcionarios');
   const [menuOrcamento, setMenuOrcamento] = useState(null);
   const [orcamentoParaCopiar, setOrcamentoParaCopiar] = useState(null);
+  const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
+  const [resultadoArquivado, setResultadoArquivado] = useState(null);
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const buscaTrim = busca.trim();
   const buscaLower = buscaTrim.toLowerCase();
@@ -5606,6 +5785,23 @@ function AbaOrcamentos({
     if ((o.itens || []).some(i => (i.descricao || '').toLowerCase().includes(buscaLower))) return true;
     return false;
   });
+  useEffect(() => {
+    if (!buscaTrim || orcamentosFiltrados.length > 0) {
+      setResultadoArquivado(null);
+      return;
+    }
+    let cancelado = false;
+    (async () => {
+      const snap = await db.collection('orcamentos').where('numero', '==', buscaTrim).where('arquivado', '==', true).limit(1).get();
+      if (!cancelado) setResultadoArquivado(snap.empty ? null : {
+        id: snap.docs[0].id,
+        ...snap.docs[0].data()
+      });
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, [buscaTrim, orcamentosFiltrados.length]);
   const sugestoesPecas = !buscaEhNumerica && buscaLower ? catalogo.filter(c => `${c.codigo || ''} ${c.descricao || ''}`.toLowerCase().includes(buscaLower)).slice(0, 8) : [];
   async function excluir(o) {
     if (!confirm(`Excluir o orçamento #${o.numero}?`)) return;
@@ -5692,17 +5888,25 @@ function AbaOrcamentos({
     style: {
       margin: 0
     }
-  }, "Orçamentos"), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
+  }, "Orçamentos"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => {
       setEditando(null);
       setModalAberto(true);
     }
-  }, "+ Novo orçamento")), /*#__PURE__*/React.createElement("div", {
+  }, "+ Novo orçamento"), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => setModalArquivadosAberto(true)
+  }, "📁 Arquivados"))), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'relative',
       maxWidth: 520,
-      marginBottom: 14,
+      marginBottom: 10,
       flexShrink: 0
     }
   }, /*#__PURE__*/React.createElement("input", {
@@ -5740,7 +5944,47 @@ function AbaOrcamentos({
       fontSize: 13.5,
       borderBottom: '1px solid var(--borda)'
     }
-  }, c.codigo && /*#__PURE__*/React.createElement("strong", null, c.codigo, " — "), c.descricao)))), /*#__PURE__*/React.createElement("div", {
+  }, c.codigo && /*#__PURE__*/React.createElement("strong", null, c.codigo, " — "), c.descricao)))), resultadoArquivado && /*#__PURE__*/React.createElement("div", {
+    className: "card clicavel",
+    style: {
+      marginBottom: 14,
+      flexShrink: 0,
+      borderColor: 'var(--laranja)',
+      maxWidth: 520
+    },
+    onClick: () => {
+      setEditando(resultadoArquivado);
+      setModalAberto(true);
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "badge estoque"
+  }, "📁 ARQUIVADO"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginTop: 4
+    }
+  }, "Orçamento #", resultadoArquivado.numero, " — ", nomeCliente(resultadoArquivado.clienteId)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Status anterior: ", resultadoArquivado.statusAnterior || resultadoArquivado.status)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      setEditando(resultadoArquivado);
+      setModalAberto(true);
+    }
+  }, "Abrir orçamento"))), /*#__PURE__*/React.createElement("div", {
     className: "kanban-orcamento",
     style: {
       display: 'flex',
@@ -6003,11 +6247,29 @@ function AbaOrcamentos({
       setOrcamentoParaCopiar(menuOrcamento);
       setMenuOrcamento(null);
     },
+    aoArquivar: async () => {
+      const o = menuOrcamento;
+      if (!confirm(`Arquivar o orçamento #${o.numero}? Ele sai do Kanban, mas continua disponível em "📁 Arquivados".`)) return;
+      setMenuOrcamento(null);
+      await db.collection('orcamentos').doc(o.id).update({
+        arquivado: true,
+        statusAnterior: o.status,
+        dataArquivamento: new Date().toISOString(),
+        arquivadoPor: usuario.nome
+      });
+    },
     aoFechar: () => setMenuOrcamento(null)
   }), orcamentoParaCopiar && /*#__PURE__*/React.createElement(ModalCopiarOrcamento, {
     orcamento: orcamentoParaCopiar,
     funcionarios: funcionarios,
     aoFechar: () => setOrcamentoParaCopiar(null)
+  }), modalArquivadosAberto && /*#__PURE__*/React.createElement(ModalArquivados, {
+    usuario: usuario,
+    clientes: clientes,
+    funcionarios: funcionarios,
+    catalogo: catalogo,
+    tipoInicial: "orcamentos",
+    aoFechar: () => setModalArquivadosAberto(false)
   }));
 }
 function ModalOrcamento({
@@ -6138,7 +6400,16 @@ function ModalOrcamento({
       maxWidth: 620
     },
     onSubmit: salvar
-  }, /*#__PURE__*/React.createElement("h3", {
+  }, orcamento?.arquivado && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--fundo)',
+      border: '1px solid var(--borda)',
+      borderRadius: 8,
+      padding: '8px 12px',
+      marginBottom: 12,
+      fontSize: 12.5
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, "📁 ARQUIVADO"), " — status anterior: ", orcamento.statusAnterior || '-', " · arquivado em ", formatData(orcamento.dataArquivamento), orcamento.arquivadoPor ? ` por ${orcamento.arquivadoPor}` : ''), /*#__PURE__*/React.createElement("h3", {
     style: {
       marginTop: 0
     }
@@ -6161,7 +6432,13 @@ function ModalOrcamento({
       fontSize: 13,
       fontWeight: 600
     }
-  }, "Entrada #", loteOrigem.numero || '-', " — ", clientes.find(c => c.id === loteOrigem.clienteId)?.razaoSocial || '-'), orcamento.loteAjustes && orcamento.loteAjustes.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "Entrada #", loteOrigem.numero || '-', " — ", clientes.find(c => c.id === loteOrigem.clienteId)?.razaoSocial || '-', loteOrigem.arquivado && /*#__PURE__*/React.createElement("span", {
+    className: "badge estoque",
+    style: {
+      marginLeft: 8,
+      fontSize: 10
+    }
+  }, "📁 Arquivado")), orcamento.loteAjustes && orcamento.loteAjustes.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 6
     }
@@ -6305,6 +6582,205 @@ function ModalOrcamento({
     style: {
       display: 'flex',
       gap: 8,
+      justifyContent: 'space-between',
+      marginTop: 16,
+      flexWrap: 'wrap'
+    }
+  }, orcamento?.arquivado && ehAdministrador(usuario) ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: async () => {
+      await db.collection('orcamentos').doc(orcamento.id).update({
+        arquivado: false,
+        status: orcamento.statusAnterior || orcamento.status,
+        dataArquivamento: null,
+        arquivadoPor: null
+      });
+      aoFechar();
+    }
+  }, "↩️ Desarquivar") : /*#__PURE__*/React.createElement("span", null), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, podeEditar(usuario, 'orcamentos') ? 'Cancelar' : 'Fechar'), podeEditar(usuario, 'orcamentos') && !orcamento?.arquivado && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: salvando
+  }, salvando ? 'Salvando...' : 'Salvar')))), loteParaVer && loteOrigem && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
+    lote: loteOrigem,
+    clientes: clientes,
+    funcionarios: funcionarios,
+    catalogo: catalogoOrigem,
+    usuario: usuario,
+    aoFechar: () => setLoteParaVer(false)
+  }));
+}
+function ModalArquivados({
+  usuario,
+  clientes,
+  funcionarios,
+  catalogo,
+  tipoInicial,
+  aoFechar
+}) {
+  const [tipo, setTipo] = useState(tipoInicial || 'todos');
+  const [numero, setNumero] = useState('');
+  const [clienteId, setClienteId] = useState('');
+  const [de, setDe] = useState('');
+  const [ate, setAte] = useState('');
+  const [buscando, setBuscando] = useState(false);
+  const [resultados, setResultados] = useState(null);
+  const [itemAberto, setItemAberto] = useState(null);
+  const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
+  async function buscar() {
+    setBuscando(true);
+    try {
+      const tiposAlvo = tipo === 'todos' ? ['lotes', 'orcamentos'] : [tipo];
+      const tarefas = tiposAlvo.map(colecao => {
+        let ref = db.collection(colecao).where('arquivado', '==', true);
+        if (clienteId) ref = ref.where('clienteId', '==', clienteId);
+        if (numero.trim()) {
+          const valor = colecao === 'lotes' ? Number(numero.trim().replace(/\D/g, '')) : numero.trim();
+          ref = ref.where('numero', '==', valor);
+        }
+        return ref.get().then(snap => snap.docs.map(d => ({
+          id: d.id,
+          _tipo: colecao,
+          ...d.data()
+        })));
+      });
+      let lista = (await Promise.all(tarefas)).flat();
+      if (de) lista = lista.filter(item => item.dataArquivamento && new Date(item.dataArquivamento) >= new Date(de));
+      if (ate) lista = lista.filter(item => item.dataArquivamento && new Date(item.dataArquivamento) <= new Date(ate + 'T23:59:59'));
+      lista.sort((a, b) => new Date(b.dataArquivamento || 0) - new Date(a.dataArquivamento || 0));
+      setResultados(lista);
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui buscar os registros arquivados.');
+    }
+    setBuscando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 640
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "📁 Arquivados"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap',
+      marginBottom: 12
+    }
+  }, [['todos', 'Todos'], ['lotes', 'Entradas'], ['orcamentos', 'Orçamentos']].map(([v, r]) => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    type: "button",
+    className: `btn pequeno ${tipo === v ? '' : 'secundario'}`,
+    onClick: () => setTipo(v)
+  }, r))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Número exato"), /*#__PURE__*/React.createElement("input", {
+    value: numero,
+    onChange: e => setNumero(e.target.value),
+    placeholder: "Ex: 87 ou RP-1042"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cliente"), /*#__PURE__*/React.createElement("select", {
+    value: clienteId,
+    onChange: e => setClienteId(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todos os clientes"), clientes.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.razaoSocial))))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Arquivado de"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: de,
+    onChange: e => setDe(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "até"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: ate,
+    onChange: e => setAte(e.target.value)
+  }))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    style: {
+      marginTop: 6
+    },
+    disabled: buscando,
+    onClick: buscar
+  }, buscando ? 'Buscando...' : '🔎 Pesquisar registros arquivados'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      maxHeight: 360,
+      overflowY: 'auto'
+    }
+  }, resultados === null ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 20
+    }
+  }, "Use os filtros acima e pesquise pra ver os registros arquivados.") : resultados.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 20
+    }
+  }, "Nenhum registro arquivado encontrado com esses filtros.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, resultados.map(item => /*#__PURE__*/React.createElement("div", {
+    key: item._tipo + item.id,
+    className: "card clicavel",
+    onClick: () => setItemAberto(item)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "badge estoque"
+  }, "📁 ARQUIVADO"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginTop: 4
+    }
+  }, item._tipo === 'lotes' ? `Entrada #${item.numero}` : `Orçamento #${item.numero}`, " — ", nomeCliente(item.clienteId)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, item._tipo === 'orcamentos' && `Status anterior: ${item.statusAnterior || '-'} · `, "Arquivado em ", formatData(item.dataArquivamento))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: e => {
+      e.stopPropagation();
+      setItemAberto(item);
+    }
+  }, "Abrir cartão")))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
       justifyContent: 'flex-end',
       marginTop: 16
     }
@@ -6312,16 +6788,19 @@ function ModalOrcamento({
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
-  }, podeEditar(usuario, 'orcamentos') ? 'Cancelar' : 'Fechar'), podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
-    className: "btn",
-    disabled: salvando
-  }, salvando ? 'Salvando...' : 'Salvar'))), loteParaVer && loteOrigem && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
-    lote: loteOrigem,
+  }, "Fechar"))), itemAberto?._tipo === 'lotes' && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
+    lote: itemAberto,
     clientes: clientes,
     funcionarios: funcionarios,
-    catalogo: catalogoOrigem,
+    catalogo: catalogo,
     usuario: usuario,
-    aoFechar: () => setLoteParaVer(false)
+    aoFechar: () => setItemAberto(null)
+  }), itemAberto?._tipo === 'orcamentos' && /*#__PURE__*/React.createElement(ModalOrcamento, {
+    orcamento: itemAberto,
+    clientes: clientes,
+    totalAtual: 0,
+    usuario: usuario,
+    aoFechar: () => setItemAberto(null)
   }));
 }
 
