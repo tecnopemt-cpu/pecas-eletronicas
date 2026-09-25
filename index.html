@@ -438,7 +438,7 @@ async function coletarLocalizacao() {
       lat: pos.coords.latitude,
       lng: pos.coords.longitude
     }), () => resolve(null), {
-      timeout: 6000
+      timeout: 12000
     });
   });
 }
@@ -1563,6 +1563,13 @@ function FormularioAssinatura({
     }
     setEnviando(true);
     const [localizacao, ip] = await Promise.all([coletarLocalizacao(), coletarIp()]);
+    if (!localizacao) {
+      const continuar = confirm('Não foi possível registrar a localização desta assinatura (o navegador não concedeu acesso à localização, ou ela não respondeu a tempo).\n\nSe quiser tentar de novo, verifique se a permissão de localização deste site está liberada nas configurações do navegador (às vezes fica bloqueada de um teste anterior e não volta a perguntar sozinha) e cancele para tentar novamente.\n\nDeseja continuar e salvar esta assinatura mesmo sem a localização?');
+      if (!continuar) {
+        setEnviando(false);
+        return;
+      }
+    }
     const agora = new Date();
     const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
     const assinatura = {
@@ -1914,6 +1921,7 @@ function RegistroFotografico({
   legenda
 }) {
   const [processando, setProcessando] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState(null);
   const inputRef = useRef();
   const foto = documento[campo];
   async function capturarFoto(file) {
@@ -1973,6 +1981,11 @@ function RegistroFotografico({
     }
   }, /*#__PURE__*/React.createElement("img", {
     src: foto.imagem,
+    className: "foto-clicavel",
+    onClick: e => {
+      e.stopPropagation();
+      setFotoAmpliada(foto.imagem);
+    },
     style: {
       width: 60,
       height: 60,
@@ -2015,6 +2028,9 @@ function RegistroFotografico({
       capturarFoto(e.target.files[0]);
       e.target.value = '';
     }
+  }), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: fotoAmpliada,
+    aoFechar: () => setFotoAmpliada(null)
   }));
 }
 function BlocoAssinatura({
@@ -3864,6 +3880,7 @@ function AbaCatalogo({
   const [busca, setBusca] = useState('');
   const [menuPeca, setMenuPeca] = useState(null);
   const [imprimindo, setImprimindo] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState(null);
   const filtrados = catalogo.filter(p => (p.codigo || '').toLowerCase().includes(busca.toLowerCase()) || (p.descricao || '').toLowerCase().includes(busca.toLowerCase()));
   async function excluir(p) {
     if (!confirm(`Excluir "${p.descricao}" do cadastro?`)) return;
@@ -3938,9 +3955,12 @@ function AbaCatalogo({
       setEditando(p);
       setModalAberto(true);
     }
-  }, /*#__PURE__*/React.createElement("td", null, p.fotos && p.fotos[0] ? /*#__PURE__*/React.createElement("img", {
+  }, /*#__PURE__*/React.createElement("td", {
+    onClick: e => e.stopPropagation()
+  }, p.fotos && p.fotos[0] ? /*#__PURE__*/React.createElement("img", {
     src: p.fotos[0],
-    className: "foto-thumb"
+    className: "foto-thumb foto-clicavel",
+    onClick: () => setFotoAmpliada(p.fotos[0])
   }) : /*#__PURE__*/React.createElement("div", {
     className: "foto-thumb",
     style: {
@@ -3982,6 +4002,9 @@ function AbaCatalogo({
       excluir(p);
     },
     aoFechar: () => setMenuPeca(null)
+  }), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: fotoAmpliada,
+    aoFechar: () => setFotoAmpliada(null)
   }));
 }
 function ModalCatalogo({
@@ -3998,6 +4021,7 @@ function ModalCatalogo({
   });
   const [salvando, setSalvando] = useState(false);
   const [processandoFoto, setProcessandoFoto] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState(null);
   const inputCameraRef = useRef();
   const inputGaleriaRef = useRef();
   function campo(k, v) {
@@ -4066,7 +4090,8 @@ function ModalCatalogo({
     }
   }, /*#__PURE__*/React.createElement("img", {
     src: foto,
-    className: "foto-thumb"
+    className: "foto-thumb foto-clicavel",
+    onClick: () => setFotoAmpliada(foto)
   }), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => removerFoto(i),
@@ -4154,7 +4179,10 @@ function ModalCatalogo({
   }, podeEditar(usuario, 'catalogo') ? 'Cancelar' : 'Fechar'), podeEditar(usuario, 'catalogo') && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     disabled: salvando
-  }, salvando ? 'Salvando...' : 'Salvar'))));
+  }, salvando ? 'Salvando...' : 'Salvar'))), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: fotoAmpliada,
+    aoFechar: () => setFotoAmpliada(null)
+  }));
 }
 function SeletorCliente({
   clientes,
