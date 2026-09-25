@@ -1438,77 +1438,95 @@ async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
   const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
   doc.save(`Orcamento ${orcamento.numero} - ${nomeCliente}.pdf`);
 }
-function PainelAssinatura({
-  onMudar
+// Assinatura digitada: o nome (Nome + Sobrenome) escrito em fonte cursiva.
+// Única forma de assinatura do sistema — a assinatura desenhada foi removida.
+const FONTE_ASSINATURA = "'Dancing Script', cursive";
+const COR_ASSINATURA = '#453B3C';
+// Gera a imagem PNG salva no registro e usada nos PDFs. Mantém a proporção 340x160
+// de sempre (os PDFs já reservam esse espaço), só que em resolução 2x pra ficar nítida.
+// Sem linha própria: os PDFs já desenham a linha de assinatura embaixo da imagem.
+async function gerarImagemAssinaturaDigitada(texto) {
+  const largura = 680,
+    altura = 320,
+    margem = 16;
+  try {
+    if (document.fonts) await document.fonts.load(`700 120px ${FONTE_ASSINATURA}`, texto);
+  } catch (err) {}
+  const canvas = document.createElement('canvas');
+  canvas.width = largura;
+  canvas.height = altura;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, largura, altura);
+  let tamanho = 120;
+  ctx.font = `700 ${tamanho}px ${FONTE_ASSINATURA}`;
+  while (tamanho > 30 && ctx.measureText(texto).width > largura - margem * 2) {
+    tamanho -= 2;
+    ctx.font = `700 ${tamanho}px ${FONTE_ASSINATURA}`;
+  }
+  ctx.fillStyle = COR_ASSINATURA;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(texto, largura / 2, altura / 2);
+  return canvas.toDataURL('image/png');
+}
+// Prévia ao vivo: atualiza a cada letra digitada em Nome/Sobrenome, sem botão.
+function PreviaAssinaturaDigitada({
+  nome
 }) {
-  const canvasRef = useRef();
-  const desenhando = useRef(false);
-  const ultimo = useRef(null);
-  function pos(e) {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const ponto = e.touches ? e.touches[0] : e;
-    return {
-      x: ponto.clientX - rect.left,
-      y: ponto.clientY - rect.top
-    };
-  }
-  function iniciar(e) {
-    e.preventDefault();
-    desenhando.current = true;
-    ultimo.current = pos(e);
-  }
-  function mover(e) {
-    if (!desenhando.current) return;
-    e.preventDefault();
-    const ctx = canvasRef.current.getContext('2d');
-    const atual = pos(e);
-    ctx.strokeStyle = '#453B3C';
-    ctx.lineWidth = 2.2;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(ultimo.current.x, ultimo.current.y);
-    ctx.lineTo(atual.x, atual.y);
-    ctx.stroke();
-    ultimo.current = atual;
-  }
-  function parar() {
-    if (desenhando.current) {
-      desenhando.current = false;
-      onMudar(canvasRef.current.toDataURL('image/png'));
+  const caixaRef = useRef();
+  const textoRef = useRef();
+  const [tamanho, setTamanho] = useState(40);
+  React.useLayoutEffect(() => {
+    const caixa = caixaRef.current,
+      el = textoRef.current;
+    if (!caixa || !el) return;
+    let t = 40;
+    el.style.fontSize = t + 'px';
+    while (t > 18 && el.scrollWidth > caixa.clientWidth - 24) {
+      t -= 2;
+      el.style.fontSize = t + 'px';
     }
-  }
-  function limpar() {
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    onMudar('');
-  }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("canvas", {
-    ref: canvasRef,
-    width: 340,
-    height: 160,
+    setTamanho(t);
+  }, [nome]);
+  return /*#__PURE__*/React.createElement("div", {
+    ref: caixaRef,
     style: {
-      width: '100%',
-      height: 160,
+      background: '#fff',
       border: '1px solid var(--borda)',
       borderRadius: 8,
-      background: '#fff',
-      touchAction: 'none'
-    },
-    onMouseDown: iniciar,
-    onMouseMove: mover,
-    onMouseUp: parar,
-    onMouseLeave: parar,
-    onTouchStart: iniciar,
-    onTouchMove: mover,
-    onTouchEnd: parar
-  }), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario pequeno",
+      height: 110,
+      padding: '0 12px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'hidden'
+    }
+  }, nome ? /*#__PURE__*/React.createElement("span", {
+    ref: textoRef,
+    "data-assinatura-previa": "",
     style: {
-      marginTop: 8
-    },
-    onClick: limpar
-  }, "Limpar assinatura"));
+      fontFamily: FONTE_ASSINATURA,
+      fontWeight: 700,
+      fontSize: tamanho,
+      color: COR_ASSINATURA,
+      whiteSpace: 'nowrap',
+      lineHeight: 1.2
+    }
+  }, nome) : /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      textAlign: 'center'
+    }
+  }, "Preencha Nome e Sobrenome acima — a assinatura aparece aqui automaticamente."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100%',
+      borderTop: '1px solid rgba(69,59,60,.35)',
+      marginTop: 2
+    }
+  }));
 }
 function FormularioAssinatura({
   tipo,
@@ -1517,50 +1535,28 @@ function FormularioAssinatura({
   colecao,
   onConcluido
 }) {
-  const [modoAssinatura, setModoAssinatura] = useState('desenho');
-  const [nome, setNome] = useState('');
+  const [primeiroNome, setPrimeiroNome] = useState('');
+  const [sobrenome, setSobrenome] = useState('');
   const [cpf, setCpf] = useState('');
-  const [assinaturaImg, setAssinaturaImg] = useState('');
   const [enviando, setEnviando] = useState(false);
   const semValores = tipo !== 'entrega';
-  async function gerarImagemTexto(texto) {
-    if (!texto.trim()) {
-      setAssinaturaImg('');
-      return;
-    }
-    try {
-      if (document.fonts) await document.fonts.load("44px 'Dancing Script'");
-    } catch (err) {}
-    const canvas = document.createElement('canvas');
-    canvas.width = 340;
-    canvas.height = 160;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, 340, 160);
-    ctx.fillStyle = '#453B3C';
-    ctx.font = "44px 'Dancing Script', cursive";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(texto, 170, 85);
-    setAssinaturaImg(canvas.toDataURL('image/png'));
-  }
-  useEffect(() => {
-    if (modoAssinatura === 'texto') gerarImagemTexto(nome);
-  }, [nome, modoAssinatura]);
+  // A assinatura é sempre o nome digitado (Nome + Sobrenome), gerada automaticamente.
+  const nome = [primeiroNome, sobrenome].map(p => p.trim().replace(/\s+/g, ' ')).filter(Boolean).join(' ');
   async function enviar(e) {
     e.preventDefault();
-    if (!nome.trim()) {
+    if (!primeiroNome.trim()) {
       alert('Informe o nome de quem está assinando.');
+      return;
+    }
+    if (!sobrenome.trim()) {
+      alert('Informe o sobrenome de quem está assinando.');
       return;
     }
     if (!validarCPF(cpf)) {
       alert('CPF inválido. Confira os números digitados.');
       return;
     }
-    if (!assinaturaImg) {
-      alert('Desenhe ou digite a assinatura.');
-      return;
-    }
+    const assinaturaImg = await gerarImagemAssinaturaDigitada(nome);
     setEnviando(true);
     const [localizacao, ip] = await Promise.all([coletarLocalizacao(), coletarIp()]);
     if (!localizacao) {
@@ -1573,7 +1569,10 @@ function FormularioAssinatura({
     const agora = new Date();
     const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
     const assinatura = {
-      nome: nome.trim(),
+      nome: nome,
+      primeiroNome: primeiroNome.trim().replace(/\s+/g, ' '),
+      sobrenome: sobrenome.trim().replace(/\s+/g, ' '),
+      tipoAssinatura: 'digitada',
       cpf: cpf.replace(/\D/g, ''),
       imagem: assinaturaImg,
       ip: ip || '',
@@ -1587,7 +1586,7 @@ function FormularioAssinatura({
       if (tipo === 'teste') {
         dadosSalvar.historico = [...(documento.historico || []), {
           data: new Date().toISOString(),
-          texto: `✍️ Recebimento assinado por ${nome.trim()} — ${agora.toLocaleString('pt-BR')}`
+          texto: `✍️ Recebimento assinado por ${nome} — ${agora.toLocaleString('pt-BR')}`
         }];
       }
       await db.collection(colecao).doc(documento.id).update(dadosSalvar);
@@ -1648,11 +1647,19 @@ function FormularioAssinatura({
       color: 'var(--laranja-escuro)',
       fontWeight: 600
     }
-  }, "⚠️ Entrega para teste — não representa conclusão do conserto nem faturamento.")), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
-    value: nome,
-    onChange: e => setNome(e.target.value),
+  }, "⚠️ Entrega para teste — não representa conclusão do conserto nem faturamento.")), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Nome"), /*#__PURE__*/React.createElement("input", {
+    value: primeiroNome,
+    onChange: e => setPrimeiroNome(e.target.value),
+    autoComplete: "given-name",
     required: true
-  }), /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Sobrenome"), /*#__PURE__*/React.createElement("input", {
+    value: sobrenome,
+    onChange: e => setSobrenome(e.target.value),
+    autoComplete: "family-name",
+    required: true
+  }))), /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
     value: formatarCPF(cpf),
     onChange: e => setCpf(e.target.value),
     placeholder: "000.000.000-00",
@@ -1662,43 +1669,9 @@ function FormularioAssinatura({
     style: {
       marginTop: 16
     }
-  }, "Assinatura"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 6,
-      marginBottom: 8
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: `btn ${modoAssinatura === 'desenho' ? '' : 'secundario'} pequeno`,
-    onClick: () => {
-      setModoAssinatura('desenho');
-      setAssinaturaImg('');
-    }
-  }, "✍️ Desenhar"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: `btn ${modoAssinatura === 'texto' ? '' : 'secundario'} pequeno`,
-    onClick: () => setModoAssinatura('texto')
-  }, "🔤 Usar nome digitado")), modoAssinatura === 'desenho' ? /*#__PURE__*/React.createElement(PainelAssinatura, {
-    onMudar: setAssinaturaImg
-  }) : /*#__PURE__*/React.createElement("div", null, assinaturaImg ? /*#__PURE__*/React.createElement("img", {
-    src: assinaturaImg,
-    style: {
-      width: '100%',
-      border: '1px solid var(--borda)',
-      borderRadius: 8,
-      background: '#fff'
-    }
-  }) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--texto-fraco)',
-      border: '1px dashed var(--borda)',
-      borderRadius: 8,
-      padding: 16,
-      textAlign: 'center'
-    }
-  }, "Preencha o \"Nome completo\" acima para gerar a assinatura.")), /*#__PURE__*/React.createElement("div", {
+  }, "Assinatura"), /*#__PURE__*/React.createElement(PreviaAssinaturaDigitada, {
+    nome: nome
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: 'var(--texto-fraco)',
