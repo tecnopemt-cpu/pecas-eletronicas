@@ -490,39 +490,6 @@ async function desenharCabecalhoPdf(doc, titulo, cliente) {
   }
   return y;
 }
-function desenharRodapeAssinatura(doc, y, assinatura) {
-  if (y > 235) {
-    doc.addPage();
-    y = 20;
-  }
-  doc.setFontSize(10);
-  doc.text(`Assinado por: ${assinatura.nome}`, 14, y);
-  y += 6;
-  doc.text(`CPF: ${formatarCPF(assinatura.cpf)}`, 14, y);
-  y += 6;
-  doc.text(`Data/hora: ${assinatura.dataTexto}`, 14, y);
-  y += 6;
-  if (assinatura.ip) {
-    doc.text(`IP: ${assinatura.ip}`, 14, y);
-    y += 6;
-  }
-  if (assinatura.localizacao) {
-    doc.setTextColor(200, 90, 10);
-    doc.textWithLink(`Localização: ${assinatura.localizacao.lat.toFixed(5)}, ${assinatura.localizacao.lng.toFixed(5)} (ver no mapa)`, 14, y, {
-      url: `https://www.google.com/maps?q=${assinatura.localizacao.lat},${assinatura.localizacao.lng}`
-    });
-    doc.setTextColor(0);
-    y += 6;
-  }
-  y += 4;
-  if (assinatura.imagem) {
-    try {
-      doc.addImage(assinatura.imagem, 'PNG', 14, y, 65, 28);
-    } catch (err) {}
-    y += 32;
-  }
-  return y;
-}
 async function desenharTimbradoCabecalho(doc) {
   try {
     const dataUrl = await carregarImagemDataUrl('icons/timbrado-cabecalho.png');
@@ -554,21 +521,205 @@ function desenharCampoTimbrado(doc, label, valor, x, y) {
   doc.setFont('helvetica', 'normal');
   doc.text(valor || '-', x, y + 4.8);
 }
-// Link clicável "Ver localização", reaproveitado em todo PDF que tenha uma assinatura com
-// localização registrada — mesma lógica usada na tela (BlocoAssinatura), não uma nova.
-function desenharLinkLocalizacao(doc, x, y, localizacao) {
-  if (!localizacao) return y;
+// ======================= BLOCOS DE CONFIRMAÇÃO / ASSINATURA (PDF) =======================
+// Padrão único usado por TODO PDF que tenha assinatura. Cada documento só monta a lista de
+// células (blocos de confirmação e, se houver, o registro fotográfico) e chama
+// desenharGradeConfirmacoes — o layout (colunas, alinhamento, área de assinatura, quebra de
+// página) é sempre o mesmo. Localização no PDF: somente o IP (sem mapa/coordenadas).
+const PDF_CONF = {
+  colunas: 2,
+  gapColunas: 10,
+  gapLinhas: 10,
+  limiteY: 284,
+  // Título do bloco
+  tituloParaCampos: 8,
+  // Campo: rótulo pequeno em cima, valor embaixo
+  rotuloParaValor: 4.6,
+  alturaLinhaValor: 4.3,
+  entreCampos: 5.6,
+  // Área de assinatura (mesma altura em todos os blocos)
+  camposParaAssinatura: 6,
+  larguraAreaAssinatura: 62,
+  alturaImagemAssinatura: 22,
+  imagemParaLinha: 1.5,
+  linhaParaRotulo: 4,
+  alturaAreaAssinatura: 22 + 1.5 + 4 + 1.5
+};
+// "25/09/2026, 10:43:08" -> "25/09/2026 – 10:43:08"
+function formatarDataHoraPdf(texto) {
+  if (!texto) return '-';
+  return String(texto).replace(/,\s*/, ' – ');
+}
+// Campos padrão de quem assinou — iguais em todos os documentos.
+function camposAssinante(assinatura, rotuloResponsavel) {
+  return [{
+    rotulo: rotuloResponsavel,
+    valor: assinatura?.nome
+  }, {
+    rotulo: 'CPF',
+    valor: assinatura?.cpf ? formatarCPF(assinatura.cpf) : '-'
+  }, {
+    rotulo: 'Data e hora',
+    valor: formatarDataHoraPdf(assinatura?.dataTexto)
+  }, {
+    rotulo: 'IP da localização',
+    valor: assinatura?.ip || 'Não registrado'
+  }];
+}
+function _linhasCampo(doc, valor, largura) {
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.8);
-  doc.setTextColor(140, 130, 128);
-  doc.text('LOCAL DA ASSINATURA', x, y);
   doc.setFontSize(9.5);
-  doc.setTextColor(233, 115, 7);
-  doc.textWithLink('📍 Ver localização', x, y + 4.8, {
-    url: `https://www.google.com/maps?q=${localizacao.lat},${localizacao.lng}`
+  return doc.splitTextToSize(String(valor || '-'), largura);
+}
+function _alturaCampos(doc, campos, largura) {
+  let h = 0;
+  campos.forEach((c, i) => {
+    if (c.separador) {
+      h += 4;
+      return;
+    }
+    const n = _linhasCampo(doc, c.valor, largura).length;
+    h += PDF_CONF.rotuloParaValor + (n - 1) * PDF_CONF.alturaLinhaValor;
+    if (i < campos.length - 1) h += PDF_CONF.entreCampos;
+  });
+  return h;
+}
+function _desenharCampos(doc, campos, x, y, largura) {
+  campos.forEach((c, i) => {
+    if (c.separador) {
+      doc.setDrawColor(230, 223, 221);
+      doc.setLineWidth(0.25);
+      doc.line(x, y - 1.2, x + largura, y - 1.2);
+      y += 4;
+      return;
+    }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.6);
+    doc.setTextColor(140, 130, 128);
+    doc.text(String(c.rotulo).toUpperCase(), x, y);
+    const linhas = _linhasCampo(doc, c.valor, largura);
+    doc.setTextColor(40, 34, 33);
+    doc.text(linhas, x, y + PDF_CONF.rotuloParaValor, {
+      lineHeightFactor: PDF_CONF.alturaLinhaValor / (9.5 * 0.3528)
+    });
+    y += PDF_CONF.rotuloParaValor + (linhas.length - 1) * PDF_CONF.alturaLinhaValor;
+    if (i < campos.length - 1) y += PDF_CONF.entreCampos;
+  });
+}
+function _desenharAreaAssinatura(doc, imagem, x, y, largura) {
+  const w = Math.min(PDF_CONF.larguraAreaAssinatura, largura);
+  const hImg = PDF_CONF.alturaImagemAssinatura;
+  if (imagem) {
+    // Imagem gerada em 340x160 — mantém a proporção, centralizada sobre a linha.
+    const wImg = Math.min(w, hImg * 340 / 160);
+    try {
+      doc.addImage(imagem, 'PNG', x + (w - wImg) / 2, y, wImg, hImg);
+    } catch (err) {}
+  }
+  const yLinha = y + hImg + PDF_CONF.imagemParaLinha;
+  doc.setDrawColor(120, 110, 108);
+  doc.setLineWidth(0.3);
+  doc.line(x, yLinha, x + w, yLinha);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.6);
+  doc.setTextColor(140, 130, 128);
+  doc.text('Assinatura', x + w / 2, yLinha + PDF_CONF.linhaParaRotulo, {
+    align: 'center'
   });
   doc.setTextColor(40, 34, 33);
-  return y + 9;
+}
+// Célula de confirmação: { tipo:'confirmacao', titulo, campos:[{rotulo, valor}|{separador:true}], imagem }
+function celulaConfirmacao(titulo, campos, imagem) {
+  return {
+    tipo: 'confirmacao',
+    titulo,
+    campos,
+    imagem
+  };
+}
+// Célula de registro fotográfico: { tipo:'foto', titulo, legenda, fotos:[dataUrl], rodape }
+function celulaFoto(titulo, legenda, fotos, rodape) {
+  return {
+    tipo: 'foto',
+    titulo,
+    legenda,
+    fotos: (fotos || []).filter(Boolean).slice(0, 3),
+    rodape
+  };
+}
+function _medidasFoto(celula, largura) {
+  const gap = 4,
+    n = celula.fotos.length;
+  const tamanho = n <= 1 ? Math.min(58, largura) : (largura - gap * (n - 1)) / n;
+  return {
+    gap,
+    tamanho
+  };
+}
+function _alturaCelula(doc, celula, largura, alturaCamposLinha) {
+  if (celula.tipo === 'foto') {
+    const {
+      tamanho
+    } = _medidasFoto(celula, largura);
+    return PDF_CONF.tituloParaCampos + 6 + tamanho + (celula.rodape ? 5 : 0);
+  }
+  return PDF_CONF.tituloParaCampos + alturaCamposLinha + PDF_CONF.camposParaAssinatura + PDF_CONF.alturaAreaAssinatura;
+}
+function _desenharCelula(doc, celula, x, y, largura, alturaCamposLinha) {
+  desenharTituloSecaoTimbrado(doc, celula.titulo, x, y);
+  let yy = y + PDF_CONF.tituloParaCampos;
+  if (celula.tipo === 'foto') {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(130, 120, 118);
+    if (celula.legenda) doc.text(doc.splitTextToSize(celula.legenda, largura)[0], x, yy - 1.5);
+    yy += 3;
+    const {
+      gap,
+      tamanho
+    } = _medidasFoto(celula, largura);
+    let fx = x;
+    celula.fotos.forEach(foto => {
+      try {
+        doc.addImage(foto, 'JPEG', fx, yy, tamanho, tamanho);
+      } catch (err) {
+        try {
+          doc.addImage(foto, 'PNG', fx, yy, tamanho, tamanho);
+        } catch (err2) {}
+      }
+      fx += tamanho + gap;
+    });
+    if (celula.rodape) {
+      doc.setFontSize(7);
+      doc.setTextColor(150, 140, 138);
+      doc.text(doc.splitTextToSize(celula.rodape, largura)[0], x, yy + tamanho + 4);
+    }
+    doc.setTextColor(40, 34, 33);
+    return;
+  }
+  _desenharCampos(doc, celula.campos, x, yy, largura);
+  // A área de assinatura fica na MESMA altura em todos os blocos da linha.
+  _desenharAreaAssinatura(doc, celula.imagem, x, yy + alturaCamposLinha + PDF_CONF.camposParaAssinatura, largura);
+}
+// Desenha as células em colunas de mesma largura, linhas alinhadas pelo topo e
+// quebra de página automática (uma linha nunca é cortada entre páginas).
+async function desenharGradeConfirmacoes(doc, celulas, {
+  y,
+  margemX,
+  larguraUtil,
+  novaPagina
+}) {
+  const cols = PDF_CONF.colunas;
+  const largura = (larguraUtil - PDF_CONF.gapColunas * (cols - 1)) / cols;
+  for (let i = 0; i < celulas.length; i += cols) {
+    const linha = celulas.slice(i, i + cols);
+    const alturaCamposLinha = Math.max(0, ...linha.filter(c => c.tipo === 'confirmacao').map(c => _alturaCampos(doc, c.campos, largura)));
+    const alturaLinha = Math.max(...linha.map(c => _alturaCelula(doc, c, largura, alturaCamposLinha)));
+    if (y + alturaLinha > PDF_CONF.limiteY) y = await novaPagina();
+    linha.forEach((c, j) => _desenharCelula(doc, c, margemX + j * (largura + PDF_CONF.gapColunas), y, largura, alturaCamposLinha));
+    y += alturaLinha + PDF_CONF.gapLinhas;
+  }
+  return y;
 }
 
 // Config central dos 3 tipos de documento com assinatura: entrada (no lote),
@@ -679,7 +830,13 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(40, 34, 33);
-  (lote.itens || []).forEach(it => {
+  for (const it of (lote.itens || [])) {
+    if (y > 272) {
+      y = await novaPagina();
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(40, 34, 33);
+    }
     const partes = (it.pecaDescricao || '').split(' — ');
     const codigo = partes.length > 1 ? partes[0] : '-';
     const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.pecaDescricao || '';
@@ -688,71 +845,21 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
     doc.text(linhasDesc, colDescricao, y);
     doc.text(String(it.quantidade), colQtd, y);
     y += Math.max(6.5, linhasDesc.length * 4.2 + 1.5);
-  });
+  }
   doc.setDrawColor(225, 217, 215);
   doc.setLineWidth(0.3);
   doc.line(margemX, y - 2, margemX + larguraUtil, y - 2);
   y += 9;
-  if (y > 195) {
-    y = await novaPagina();
-  }
-  const yBlocoFinal = y;
-  const temFoto = lote.fotos && lote.fotos.length > 0;
-
-  // REGISTRO FOTOGRÁFICO (coluna esquerda)
-  let yFoto = yBlocoFinal;
-  if (temFoto) {
-    desenharTituloSecaoTimbrado(doc, 'Registro fotográfico', colEsq, yFoto);
-    yFoto += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(130, 120, 118);
-    doc.text('Registro visual das peças no momento da entrada.', colEsq, yFoto);
-    yFoto += 6;
-    const fotos = lote.fotos.slice(0, 3);
-    const gap = 4;
-    const tamanho = fotos.length === 1 ? Math.min(58, meiaColuna) : (meiaColuna - gap * (fotos.length - 1)) / fotos.length;
-    let fotoX = colEsq;
-    fotos.forEach(foto => {
-      try {
-        doc.addImage(foto, 'JPEG', fotoX, yFoto, tamanho, tamanho);
-      } catch (err) {
-        try {
-          doc.addImage(foto, 'PNG', fotoX, yFoto, tamanho, tamanho);
-        } catch (err2) {}
-      }
-      fotoX += tamanho + gap;
-    });
-    yFoto += tamanho + 6;
-  }
-
-  // CONFIRMAÇÃO DO RECEBIMENTO (coluna direita)
-  let yConf = yBlocoFinal;
-  desenharTituloSecaoTimbrado(doc, 'Confirmação do recebimento', colDir, yConf);
-  yConf += 7;
-  desenharCampoTimbrado(doc, 'Responsável pelo recebimento', assinatura.nome, colDir, yConf);
-  yConf += 8;
-  desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), colDir, yConf);
-  yConf += 8;
-  desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, colDir, yConf);
-  yConf += 7;
-  yConf = desenharLinkLocalizacao(doc, colDir, yConf, assinatura.localizacao);
-  if (assinatura.imagem) {
-    try {
-      doc.addImage(assinatura.imagem, 'PNG', colDir, yConf, 52, 22);
-    } catch (err) {}
-    doc.setDrawColor(200, 190, 188);
-    doc.setLineWidth(0.3);
-    doc.line(colDir, yConf + 23, colDir + 52, yConf + 23);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 140, 138);
-    doc.text('Assinatura', colDir, yConf + 27);
-    yConf += 30;
-  }
-  y = Math.max(yFoto, yConf) + 6;
-  if (y > 270) {
-    y = await novaPagina();
-  }
+  // REGISTRO FOTOGRÁFICO + CONFIRMAÇÃO DO RECEBIMENTO — padrão único de blocos de assinatura
+  const celulasEntrada = [];
+  if (lote.fotos && lote.fotos.length > 0) celulasEntrada.push(celulaFoto('Registro fotográfico', 'Registro visual das peças no momento da entrada.', lote.fotos));
+  celulasEntrada.push(celulaConfirmacao('Confirmação do recebimento', camposAssinante(assinatura, 'Responsável pelo recebimento'), assinatura.imagem));
+  y = await desenharGradeConfirmacoes(doc, celulasEntrada, {
+    y,
+    margemX,
+    larguraUtil,
+    novaPagina
+  });
   await desenharTimbradoRodape(doc);
   const dataArquivo = lote.criadoEm ? formatData(lote.criadoEm).replace(/\//g, '-') : '';
   const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
@@ -857,7 +964,13 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(40, 34, 33);
-  (orcamento.itens || []).forEach(it => {
+  for (const it of (orcamento.itens || [])) {
+    if (y > 272) {
+      y = await novaPagina();
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(40, 34, 33);
+    }
     const subtotal = (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0);
     const partes = (it.descricao || '').split(' — ');
     const codigo = partes.length > 1 ? partes[0] : '-';
@@ -868,11 +981,12 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
     doc.text(String(it.qtd), colQtd, y);
     doc.text(formatMoeda(subtotal), colValor, y);
     y += Math.max(6.5, linhasDesc.length * 4.2 + 1.5);
-  });
+  }
   doc.setDrawColor(69, 59, 60);
   doc.setLineWidth(0.3);
   doc.line(margemX, y - 1.5, margemX + larguraUtil, y - 1.5);
   y += 6;
+  if (y > 280) y = await novaPagina();
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10.5);
   doc.setTextColor(40, 34, 33);
@@ -882,68 +996,22 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   });
   doc.setFont('helvetica', 'normal');
   y += 11;
-  if (y > 195) {
-    y = await novaPagina();
-  }
-  const yBlocoFinal = y;
-  const temFoto = orcamento.fotoEntrega && orcamento.fotoEntrega.imagem;
-
-  // REGISTRO FOTOGRÁFICO DAS PEÇAS FINALIZADAS (coluna esquerda)
-  let yFoto = yBlocoFinal;
-  if (temFoto) {
-    desenharTituloSecaoTimbrado(doc, 'Registro fotográfico', colEsq, yFoto);
-    yFoto += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(130, 120, 118);
-    doc.text('Registro visual das peças finalizadas antes da entrega.', colEsq, yFoto);
-    yFoto += 6;
-    const tamanho = Math.min(58, meiaColuna);
-    try {
-      doc.addImage(orcamento.fotoEntrega.imagem, 'JPEG', colEsq, yFoto, tamanho, tamanho);
-    } catch (err) {
-      try {
-        doc.addImage(orcamento.fotoEntrega.imagem, 'PNG', colEsq, yFoto, tamanho, tamanho);
-      } catch (err2) {}
-    }
-    yFoto += tamanho + 5;
-    doc.setFontSize(7);
-    doc.setTextColor(150, 140, 138);
+  // REGISTRO FOTOGRÁFICO + CONFIRMAÇÃO DA ENTREGA — padrão único de blocos de assinatura
+  const celulasEntrega = [];
+  if (orcamento.fotoEntrega && orcamento.fotoEntrega.imagem) {
     const dataFoto = orcamento.fotoEntrega.dataRegistro?.toDate ? orcamento.fotoEntrega.dataRegistro.toDate() : new Date();
-    doc.text(`Registrado por ${orcamento.fotoEntrega.registradoPor || '-'} em ${dataFoto.toLocaleDateString('pt-BR')} às ${dataFoto.toLocaleTimeString('pt-BR', {
+    celulasEntrega.push(celulaFoto('Registro fotográfico', 'Registro visual das peças finalizadas antes da entrega.', [orcamento.fotoEntrega.imagem], `Registrado por ${orcamento.fotoEntrega.registradoPor || '-'} em ${dataFoto.toLocaleDateString('pt-BR')} às ${dataFoto.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit'
-    })}`, colEsq, yFoto);
-    yFoto += 4;
+    })}`));
   }
-
-  // CONFIRMAÇÃO DA ENTREGA (coluna direita)
-  let yConf = yBlocoFinal;
-  desenharTituloSecaoTimbrado(doc, 'Confirmação da entrega', colDir, yConf);
-  yConf += 7;
-  desenharCampoTimbrado(doc, 'Responsável pelo recebimento', assinatura.nome, colDir, yConf);
-  yConf += 8;
-  desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), colDir, yConf);
-  yConf += 8;
-  desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, colDir, yConf);
-  yConf += 7;
-  yConf = desenharLinkLocalizacao(doc, colDir, yConf, assinatura.localizacao);
-  if (assinatura.imagem) {
-    try {
-      doc.addImage(assinatura.imagem, 'PNG', colDir, yConf, 52, 22);
-    } catch (err) {}
-    doc.setDrawColor(200, 190, 188);
-    doc.setLineWidth(0.3);
-    doc.line(colDir, yConf + 23, colDir + 52, yConf + 23);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 140, 138);
-    doc.text('Assinatura', colDir, yConf + 27);
-    yConf += 30;
-  }
-  y = Math.max(yFoto, yConf) + 6;
-  if (y > 270) {
-    y = await novaPagina();
-  }
+  celulasEntrega.push(celulaConfirmacao('Confirmação da entrega', camposAssinante(assinatura, 'Responsável pelo recebimento'), assinatura.imagem));
+  y = await desenharGradeConfirmacoes(doc, celulasEntrega, {
+    y,
+    margemX,
+    larguraUtil,
+    novaPagina
+  });
   await desenharTimbradoRodape(doc);
   const dataArquivo = orcamento.criadoEm ? formatData(orcamento.criadoEm).replace(/\//g, '-') : '';
   const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
@@ -1027,7 +1095,7 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   y += 7;
   const metade = larguraUtil / 2;
   desenharCampoTimbrado(doc, 'Número do orçamento', `#${orcamento.numero}`, margemX, y);
-  desenharCampoTimbrado(doc, 'Data/horário da entrega', assinatura.dataTexto, margemX + metade, y);
+  desenharCampoTimbrado(doc, 'Data/horário da entrega', formatarDataHoraPdf(assinatura.dataTexto), margemX + metade, y);
   y += 8;
   desenharCampoTimbrado(doc, 'Responsável pela entrega', orcamento.entreguePorTeste || '-', margemX, y);
   y += 11;
@@ -1052,7 +1120,13 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(40, 34, 33);
-  (orcamento.itens || []).forEach(it => {
+  for (const it of (orcamento.itens || [])) {
+    if (y > 272) {
+      y = await novaPagina();
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(40, 34, 33);
+    }
     const partes = (it.descricao || '').split(' — ');
     const codigo = partes.length > 1 ? partes[0] : '-';
     const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.descricao || '';
@@ -1061,68 +1135,26 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
     doc.text(linhasDesc, colPeca, y);
     doc.text(codigo, colId, y);
     y += Math.max(6.5, linhasDesc.length * 4.2 + 1.5);
-  });
+  }
   doc.setDrawColor(225, 217, 215);
   doc.setLineWidth(0.3);
   doc.line(margemX, y - 2, margemX + larguraUtil, y - 2);
   y += 12;
-  if (y > 195) {
-    y = await novaPagina();
-  }
-
-  // REGISTRO FOTOGRÁFICO
-  if (orcamento.fotoTeste && orcamento.fotoTeste.imagem) {
-    desenharTituloSecaoTimbrado(doc, 'Registro fotográfico', margemX, y);
-    y += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(130, 120, 118);
-    doc.text('Registro visual da peça entregue para teste.', margemX, y);
-    y += 6;
-    const tamanho = 55;
-    try {
-      doc.addImage(orcamento.fotoTeste.imagem, 'JPEG', margemX, y, tamanho, tamanho);
-    } catch (err) {
-      try {
-        doc.addImage(orcamento.fotoTeste.imagem, 'PNG', margemX, y, tamanho, tamanho);
-      } catch (err2) {}
-    }
-    y += tamanho + 4;
-    doc.setFontSize(7);
-    doc.setTextColor(150, 140, 138);
-    doc.text(`Registrada por ${orcamento.fotoTeste.registradoPor || '-'} em ${formatDataHora(orcamento.fotoTeste.dataRegistro)}`, margemX, y);
-    y += 10;
-  }
-  if (y > 195) {
-    y = await novaPagina();
-  }
-
-  // CONFIRMAÇÃO — Entregue por / Recebido por / assinatura
-  desenharTituloSecaoTimbrado(doc, 'Confirmação da entrega para teste', margemX, y);
-  y += 7;
-  desenharCampoTimbrado(doc, 'Entregue por (Tecnopemt)', orcamento.entreguePorTeste || '-', margemX, y);
-  y += 11;
-  desenharCampoTimbrado(doc, 'Recebido por', assinatura.nome, margemX, y);
-  desenharCampoTimbrado(doc, 'CPF', formatarCPF(assinatura.cpf), margemX + metade, y);
-  y += 8;
-  desenharCampoTimbrado(doc, 'Data e hora', assinatura.dataTexto, margemX, y);
-  y += 7;
-  y = desenharLinkLocalizacao(doc, margemX, y, assinatura.localizacao);
-  if (assinatura.imagem) {
-    try {
-      doc.addImage(assinatura.imagem, 'PNG', margemX, y, 52, 22);
-    } catch (err) {}
-    doc.setDrawColor(200, 190, 188);
-    doc.setLineWidth(0.3);
-    doc.line(margemX, y + 23, margemX + 52, y + 23);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 140, 138);
-    doc.text('Assinatura', margemX, y + 27);
-    y += 32;
-  }
-  if (y > 270) {
-    y = await novaPagina();
-  }
+  // REGISTRO FOTOGRÁFICO + CONFIRMAÇÃO DA ENTREGA PARA TESTE — mesmo padrão dos demais documentos
+  const celulasTeste = [];
+  if (orcamento.fotoTeste && orcamento.fotoTeste.imagem) celulasTeste.push(celulaFoto('Registro fotográfico', 'Registro visual da peça entregue para teste.', [orcamento.fotoTeste.imagem], `Registrada por ${orcamento.fotoTeste.registradoPor || '-'} em ${formatDataHora(orcamento.fotoTeste.dataRegistro)}`));
+  celulasTeste.push(celulaConfirmacao('Confirmação da entrega para teste', [{
+    rotulo: 'Entregue por (Tecnopemt)',
+    valor: orcamento.entreguePorTeste || '-'
+  }, {
+    separador: true
+  }, ...camposAssinante(assinatura, 'Recebido por')], assinatura.imagem));
+  y = await desenharGradeConfirmacoes(doc, celulasTeste, {
+    y,
+    margemX,
+    larguraUtil,
+    novaPagina
+  });
   await desenharTimbradoRodape(doc);
   const dataArquivo = orcamento.criadoEm ? formatData(orcamento.criadoEm).replace(/\//g, '-') : '';
   const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
@@ -1456,8 +1488,7 @@ async function gerarImagemAssinaturaDigitada(texto) {
   canvas.width = largura;
   canvas.height = altura;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, largura, altura);
+  // Fundo transparente: no PDF a assinatura fica direto sobre o papel, sem caixa.
   let tamanho = 120;
   ctx.font = `700 ${tamanho}px ${FONTE_ASSINATURA}`;
   while (tamanho > 30 && ctx.measureText(texto).width > largura - margem * 2) {
