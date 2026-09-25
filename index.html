@@ -543,8 +543,16 @@ const PDF_CONF = {
   alturaImagemAssinatura: 22,
   imagemParaLinha: 1.5,
   linhaParaRotulo: 4,
-  alturaAreaAssinatura: 22 + 1.5 + 4 + 1.5
+  nomeParaRotulo: 3.4,
+  alturaAreaAssinatura: 22 + 1.5 + 4 + 3.4 + 1.5
 };
+// Data/hora de registro (Timestamp do Firestore, ISO ou Date) no padrão do PDF.
+function formatarDataHoraRegistro(v) {
+  if (!v) return '-';
+  const d = v.toDate ? v.toDate() : new Date(v);
+  if (isNaN(d.getTime())) return '-';
+  return formatarDataHoraPdf(d.toLocaleString('pt-BR'));
+}
 // "25/09/2026, 10:43:08" -> "25/09/2026 – 10:43:08"
 function formatarDataHoraPdf(texto) {
   if (!texto) return '-';
@@ -606,7 +614,7 @@ function _desenharCampos(doc, campos, x, y, largura) {
     if (i < campos.length - 1) y += PDF_CONF.entreCampos;
   });
 }
-function _desenharAreaAssinatura(doc, imagem, x, y, largura) {
+function _desenharAreaAssinatura(doc, imagem, nome, x, y, largura) {
   const w = Math.min(PDF_CONF.larguraAreaAssinatura, largura);
   const hImg = PDF_CONF.alturaImagemAssinatura;
   if (imagem) {
@@ -620,32 +628,53 @@ function _desenharAreaAssinatura(doc, imagem, x, y, largura) {
   doc.setDrawColor(120, 110, 108);
   doc.setLineWidth(0.3);
   doc.line(x, yLinha, x + w, yLinha);
+  let yTexto = yLinha + PDF_CONF.linhaParaRotulo;
+  if (nome) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(40, 34, 33);
+    doc.text(doc.splitTextToSize(String(nome), w)[0], x + w / 2, yTexto, {
+      align: 'center'
+    });
+    yTexto += PDF_CONF.nomeParaRotulo;
+  }
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.6);
+  doc.setFontSize(7.2);
   doc.setTextColor(140, 130, 128);
-  doc.text('Assinatura', x + w / 2, yLinha + PDF_CONF.linhaParaRotulo, {
+  doc.text('Assinatura', x + w / 2, yTexto, {
     align: 'center'
   });
   doc.setTextColor(40, 34, 33);
 }
-// Célula de confirmação: { tipo:'confirmacao', titulo, campos:[{rotulo, valor}|{separador:true}], imagem }
-function celulaConfirmacao(titulo, campos, imagem) {
+// Célula de confirmação: { tipo:'confirmacao', titulo, campos:[{rotulo, valor}|{separador:true}], imagem, nomeAssinante }
+function celulaConfirmacao(titulo, campos, imagem, nomeAssinante) {
   return {
     tipo: 'confirmacao',
     titulo,
     campos,
-    imagem
+    imagem,
+    nomeAssinante
   };
 }
-// Célula de registro fotográfico: { tipo:'foto', titulo, legenda, fotos:[dataUrl], rodape }
-function celulaFoto(titulo, legenda, fotos, rodape) {
+// Célula de registro fotográfico. `registros` tem a mesma posição de `fotos`:
+// [{ registradoPor, dataRegistro }] — quem (usuário da empresa) registrou cada foto e quando.
+// Foto sem registro (entradas antigas) mostra "Registro não disponível".
+function celulaFoto(titulo, legenda, fotos, registros) {
+  const lista = (fotos || []).map((f, i) => ({
+    foto: f,
+    registro: (registros || [])[i] || null
+  })).filter(x => x.foto).slice(0, 3);
   return {
     tipo: 'foto',
     titulo,
     legenda,
-    fotos: (fotos || []).filter(Boolean).slice(0, 3),
-    rodape
+    fotos: lista.map(x => x.foto),
+    registros: lista.map(x => x.registro)
   };
+}
+function _legendaFoto(registro) {
+  if (!registro || !registro.registradoPor && !registro.dataRegistro) return ['Registro não disponível'];
+  return [`Registrado por: ${registro.registradoPor || '-'}`, `Data e hora: ${formatarDataHoraRegistro(registro.dataRegistro)}`];
 }
 function _medidasFoto(celula, largura) {
   const gap = 4,
@@ -656,17 +685,47 @@ function _medidasFoto(celula, largura) {
     tamanho
   };
 }
+function _linhasLegendaFoto(doc, registro, tamanho) {
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  return _legendaFoto(registro).flatMap(l => doc.splitTextToSize(l, tamanho));
+}
+function _alturaLegendas(doc, celula, largura) {
+  const {
+    tamanho
+  } = _medidasFoto(celula, largura);
+  const maxLinhas = Math.max(0, ...celula.registros.map(r => _linhasLegendaFoto(doc, r, tamanho).length));
+  return maxLinhas ? 3.2 + maxLinhas * 2.9 : 0;
+}
 function _alturaCelula(doc, celula, largura, alturaCamposLinha) {
   if (celula.tipo === 'foto') {
     const {
       tamanho
     } = _medidasFoto(celula, largura);
-    return PDF_CONF.tituloParaCampos + 6 + tamanho + (celula.rodape ? 5 : 0);
+    return PDF_CONF.tituloParaCampos + 3 + tamanho + _alturaLegendas(doc, celula, largura);
   }
   return PDF_CONF.tituloParaCampos + alturaCamposLinha + PDF_CONF.camposParaAssinatura + PDF_CONF.alturaAreaAssinatura;
 }
+// Título do bloco: mesmo estilo dos demais títulos de seção, reduzindo a fonte
+// só se ele não couber na largura da coluna.
+function _desenharTituloCelula(doc, texto, x, y, largura) {
+  doc.setFont('helvetica', 'bold');
+  let tam = 10;
+  doc.setFontSize(tam);
+  while (tam > 7.5 && doc.getTextWidth(texto.toUpperCase()) > largura) {
+    tam -= 0.25;
+    doc.setFontSize(tam);
+  }
+  doc.setTextColor(69, 59, 60);
+  doc.text(texto.toUpperCase(), x, y);
+  doc.setDrawColor(233, 115, 7);
+  doc.setLineWidth(0.4);
+  doc.line(x, y + 1.8, x + 14, y + 1.8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+}
 function _desenharCelula(doc, celula, x, y, largura, alturaCamposLinha) {
-  desenharTituloSecaoTimbrado(doc, celula.titulo, x, y);
+  _desenharTituloCelula(doc, celula.titulo, x, y, largura);
   let yy = y + PDF_CONF.tituloParaCampos;
   if (celula.tipo === 'foto') {
     doc.setFont('helvetica', 'normal');
@@ -679,7 +738,7 @@ function _desenharCelula(doc, celula, x, y, largura, alturaCamposLinha) {
       tamanho
     } = _medidasFoto(celula, largura);
     let fx = x;
-    celula.fotos.forEach(foto => {
+    celula.fotos.forEach((foto, i) => {
       try {
         doc.addImage(foto, 'JPEG', fx, yy, tamanho, tamanho);
       } catch (err) {
@@ -687,19 +746,18 @@ function _desenharCelula(doc, celula, x, y, largura, alturaCamposLinha) {
           doc.addImage(foto, 'PNG', fx, yy, tamanho, tamanho);
         } catch (err2) {}
       }
+      // Identificação de quem registrou ESTA foto, logo abaixo dela.
+      const linhas = _linhasLegendaFoto(doc, celula.registros[i], tamanho);
+      doc.setTextColor(110, 100, 98);
+      linhas.forEach((l, k) => doc.text(l, fx, yy + tamanho + 3.2 + k * 2.9));
       fx += tamanho + gap;
     });
-    if (celula.rodape) {
-      doc.setFontSize(7);
-      doc.setTextColor(150, 140, 138);
-      doc.text(doc.splitTextToSize(celula.rodape, largura)[0], x, yy + tamanho + 4);
-    }
     doc.setTextColor(40, 34, 33);
     return;
   }
   _desenharCampos(doc, celula.campos, x, yy, largura);
   // A área de assinatura fica na MESMA altura em todos os blocos da linha.
-  _desenharAreaAssinatura(doc, celula.imagem, x, yy + alturaCamposLinha + PDF_CONF.camposParaAssinatura, largura);
+  _desenharAreaAssinatura(doc, celula.imagem, celula.nomeAssinante, x, yy + alturaCamposLinha + PDF_CONF.camposParaAssinatura, largura);
 }
 // Desenha as células em colunas de mesma largura, linhas alinhadas pelo topo e
 // quebra de página automática (uma linha nunca é cortada entre páginas).
@@ -852,8 +910,9 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
   y += 9;
   // REGISTRO FOTOGRÁFICO + CONFIRMAÇÃO DO RECEBIMENTO — padrão único de blocos de assinatura
   const celulasEntrada = [];
-  if (lote.fotos && lote.fotos.length > 0) celulasEntrada.push(celulaFoto('Registro fotográfico', 'Registro visual das peças no momento da entrada.', lote.fotos));
-  celulasEntrada.push(celulaConfirmacao('Confirmação do recebimento', camposAssinante(assinatura, 'Responsável pelo recebimento'), assinatura.imagem));
+  // Foto: usuário da EMPRESA que registrou cada foto. Assinatura: CLIENTE que entregou as peças.
+  if (lote.fotos && lote.fotos.length > 0) celulasEntrada.push(celulaFoto('Registro fotográfico das peças recebidas', 'Registro visual das peças no momento da entrada.', lote.fotos, lote.fotosRegistro));
+  celulasEntrada.push(celulaConfirmacao('Confirmação da entrega para conserto', camposAssinante(assinatura, 'Responsável pela entrega'), assinatura.imagem, assinatura.nome));
   y = await desenharGradeConfirmacoes(doc, celulasEntrada, {
     y,
     margemX,
@@ -998,14 +1057,9 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   y += 11;
   // REGISTRO FOTOGRÁFICO + CONFIRMAÇÃO DA ENTREGA — padrão único de blocos de assinatura
   const celulasEntrega = [];
-  if (orcamento.fotoEntrega && orcamento.fotoEntrega.imagem) {
-    const dataFoto = orcamento.fotoEntrega.dataRegistro?.toDate ? orcamento.fotoEntrega.dataRegistro.toDate() : new Date();
-    celulasEntrega.push(celulaFoto('Registro fotográfico', 'Registro visual das peças finalizadas antes da entrega.', [orcamento.fotoEntrega.imagem], `Registrado por ${orcamento.fotoEntrega.registradoPor || '-'} em ${dataFoto.toLocaleDateString('pt-BR')} às ${dataFoto.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })}`));
-  }
-  celulasEntrega.push(celulaConfirmacao('Confirmação da entrega', camposAssinante(assinatura, 'Responsável pelo recebimento'), assinatura.imagem));
+  // Foto: usuário da EMPRESA que registrou a peça finalizada. Assinatura: CLIENTE que recebeu.
+  if (orcamento.fotoEntrega && orcamento.fotoEntrega.imagem) celulasEntrega.push(celulaFoto('Registro fotográfico', 'Registro visual das peças finalizadas antes da entrega.', [orcamento.fotoEntrega.imagem], [orcamento.fotoEntrega]));
+  celulasEntrega.push(celulaConfirmacao('Confirmação da entrega', camposAssinante(assinatura, 'Responsável pelo recebimento'), assinatura.imagem, assinatura.nome));
   y = await desenharGradeConfirmacoes(doc, celulasEntrega, {
     y,
     margemX,
@@ -1142,13 +1196,13 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
   y += 12;
   // REGISTRO FOTOGRÁFICO + CONFIRMAÇÃO DA ENTREGA PARA TESTE — mesmo padrão dos demais documentos
   const celulasTeste = [];
-  if (orcamento.fotoTeste && orcamento.fotoTeste.imagem) celulasTeste.push(celulaFoto('Registro fotográfico', 'Registro visual da peça entregue para teste.', [orcamento.fotoTeste.imagem], `Registrada por ${orcamento.fotoTeste.registradoPor || '-'} em ${formatDataHora(orcamento.fotoTeste.dataRegistro)}`));
+  if (orcamento.fotoTeste && orcamento.fotoTeste.imagem) celulasTeste.push(celulaFoto('Registro fotográfico', 'Registro visual da peça entregue para teste.', [orcamento.fotoTeste.imagem], [orcamento.fotoTeste]));
   celulasTeste.push(celulaConfirmacao('Confirmação da entrega para teste', [{
     rotulo: 'Entregue por (Tecnopemt)',
     valor: orcamento.entreguePorTeste || '-'
   }, {
     separador: true
-  }, ...camposAssinante(assinatura, 'Recebido por')], assinatura.imagem));
+  }, ...camposAssinante(assinatura, 'Recebido por')], assinatura.imagem, assinatura.nome));
   y = await desenharGradeConfirmacoes(doc, celulasTeste, {
     y,
     margemX,
@@ -4726,10 +4780,12 @@ function AbaLotes({
   }, "Nenhuma entrada cadastrada ainda."))))), modalNovoAberto && /*#__PURE__*/React.createElement(ModalNovoLote, {
     clientes: clientes,
     catalogo: catalogo,
+    usuario: usuario,
     aoFechar: () => setModalNovoAberto(false)
   }), loteParaCopiar && /*#__PURE__*/React.createElement(ModalNovoLote, {
     clientes: clientes,
     catalogo: catalogo,
+    usuario: usuario,
     origemCopia: loteParaCopiar,
     aoFechar: () => setLoteParaCopiar(null)
   }), loteSelecionado && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
@@ -4800,6 +4856,7 @@ function ModalNovoLote({
   clientes,
   catalogo,
   origemCopia,
+  usuario,
   aoFechar
 }) {
   const [clienteId, setClienteId] = useState(origemCopia?.clienteId || '');
@@ -4811,6 +4868,8 @@ function ModalNovoLote({
     quantidade: 1
   }]);
   const [fotosLote, setFotosLote] = useState([]);
+  // Quem registrou cada foto e quando — mesma posição do array fotosLote.
+  const [fotosRegistro, setFotosRegistro] = useState([]);
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const inputCameraRef = useRef();
@@ -4835,6 +4894,10 @@ function ModalNovoLote({
     try {
       const dataUrl = await resizeImagem(file);
       setFotosLote(prev => [...prev, dataUrl].slice(0, 3));
+      setFotosRegistro(prev => [...prev, {
+        registradoPor: usuario?.nome || '',
+        dataRegistro: new Date().toISOString()
+      }].slice(0, 3));
     } catch (err) {
       alert('Não consegui processar essa foto.');
     }
@@ -4842,6 +4905,7 @@ function ModalNovoLote({
   }
   function removerFoto(i) {
     setFotosLote(prev => prev.filter((_, idx) => idx !== i));
+    setFotosRegistro(prev => prev.filter((_, idx) => idx !== i));
   }
   async function salvar(e) {
     e.preventDefault();
@@ -4883,6 +4947,7 @@ function ModalNovoLote({
       clienteId,
       itens: itensLote,
       fotos: fotosLote,
+      fotosRegistro,
       status: 'Em análise',
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
