@@ -543,8 +543,7 @@ const PDF_CONF = {
   alturaImagemAssinatura: 22,
   imagemParaLinha: 1.5,
   linhaParaRotulo: 4,
-  nomeParaRotulo: 3.4,
-  alturaAreaAssinatura: 22 + 1.5 + 4 + 3.4 + 1.5
+  alturaAreaAssinatura: 22 + 1.5 + 4 + 1.5
 };
 // Data/hora de registro (Timestamp do Firestore, ISO ou Date) no padrão do PDF.
 function formatarDataHoraRegistro(v) {
@@ -614,7 +613,7 @@ function _desenharCampos(doc, campos, x, y, largura) {
     if (i < campos.length - 1) y += PDF_CONF.entreCampos;
   });
 }
-function _desenharAreaAssinatura(doc, imagem, nome, x, y, largura) {
+function _desenharAreaAssinatura(doc, imagem, x, y, largura) {
   const w = Math.min(PDF_CONF.larguraAreaAssinatura, largura);
   const hImg = PDF_CONF.alturaImagemAssinatura;
   if (imagem) {
@@ -628,16 +627,8 @@ function _desenharAreaAssinatura(doc, imagem, nome, x, y, largura) {
   doc.setDrawColor(120, 110, 108);
   doc.setLineWidth(0.3);
   doc.line(x, yLinha, x + w, yLinha);
-  let yTexto = yLinha + PDF_CONF.linhaParaRotulo;
-  if (nome) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(40, 34, 33);
-    doc.text(doc.splitTextToSize(String(nome), w)[0], x + w / 2, yTexto, {
-      align: 'center'
-    });
-    yTexto += PDF_CONF.nomeParaRotulo;
-  }
+  // Sem repetir o nome embaixo da linha: ele já aparece nos campos do bloco.
+  const yTexto = yLinha + PDF_CONF.linhaParaRotulo;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.2);
   doc.setTextColor(140, 130, 128);
@@ -646,14 +637,13 @@ function _desenharAreaAssinatura(doc, imagem, nome, x, y, largura) {
   });
   doc.setTextColor(40, 34, 33);
 }
-// Célula de confirmação: { tipo:'confirmacao', titulo, campos:[{rotulo, valor}|{separador:true}], imagem, nomeAssinante }
-function celulaConfirmacao(titulo, campos, imagem, nomeAssinante) {
+// Célula de confirmação: { tipo:'confirmacao', titulo, campos:[{rotulo, valor}|{separador:true}], imagem }
+function celulaConfirmacao(titulo, campos, imagem) {
   return {
     tipo: 'confirmacao',
     titulo,
     campos,
-    imagem,
-    nomeAssinante
+    imagem
   };
 }
 // Célula de registro fotográfico. `registros` tem a mesma posição de `fotos`:
@@ -757,7 +747,7 @@ function _desenharCelula(doc, celula, x, y, largura, alturaCamposLinha) {
   }
   _desenharCampos(doc, celula.campos, x, yy, largura);
   // A área de assinatura fica na MESMA altura em todos os blocos da linha.
-  _desenharAreaAssinatura(doc, celula.imagem, celula.nomeAssinante, x, yy + alturaCamposLinha + PDF_CONF.camposParaAssinatura, largura);
+  _desenharAreaAssinatura(doc, celula.imagem, x, yy + alturaCamposLinha + PDF_CONF.camposParaAssinatura, largura);
 }
 // Desenha as células em colunas de mesma largura, linhas alinhadas pelo topo e
 // quebra de página automática (uma linha nunca é cortada entre páginas).
@@ -912,7 +902,7 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
   const celulasEntrada = [];
   // Foto: usuário da EMPRESA que registrou cada foto. Assinatura: CLIENTE que entregou as peças.
   if (lote.fotos && lote.fotos.length > 0) celulasEntrada.push(celulaFoto('Registro fotográfico das peças recebidas', 'Registro visual das peças no momento da entrada.', lote.fotos, lote.fotosRegistro));
-  celulasEntrada.push(celulaConfirmacao('Confirmação da entrega para conserto', camposAssinante(assinatura, 'Responsável pela entrega'), assinatura.imagem, assinatura.nome));
+  celulasEntrada.push(celulaConfirmacao('Confirmação da entrega para conserto', camposAssinante(assinatura, 'Responsável pela entrega'), assinatura.imagem));
   y = await desenharGradeConfirmacoes(doc, celulasEntrada, {
     y,
     margemX,
@@ -1059,7 +1049,7 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
   const celulasEntrega = [];
   // Foto: usuário da EMPRESA que registrou a peça finalizada. Assinatura: CLIENTE que recebeu.
   if (orcamento.fotoEntrega && orcamento.fotoEntrega.imagem) celulasEntrega.push(celulaFoto('Registro fotográfico', 'Registro visual das peças finalizadas antes da entrega.', [orcamento.fotoEntrega.imagem], [orcamento.fotoEntrega]));
-  celulasEntrega.push(celulaConfirmacao('Confirmação da entrega', camposAssinante(assinatura, 'Responsável pelo recebimento'), assinatura.imagem, assinatura.nome));
+  celulasEntrega.push(celulaConfirmacao('Confirmação da entrega', camposAssinante(assinatura, 'Responsável pelo recebimento'), assinatura.imagem));
   y = await desenharGradeConfirmacoes(doc, celulasEntrega, {
     y,
     margemX,
@@ -1202,7 +1192,7 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
     valor: orcamento.entreguePorTeste || '-'
   }, {
     separador: true
-  }, ...camposAssinante(assinatura, 'Recebido por')], assinatura.imagem, assinatura.nome));
+  }, ...camposAssinante(assinatura, 'Recebido por')], assinatura.imagem));
   y = await desenharGradeConfirmacoes(doc, celulasTeste, {
     y,
     margemX,
