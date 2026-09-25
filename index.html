@@ -3030,7 +3030,10 @@ function App() {
     if (!usuario) return;
     (async () => {
       try {
-        const configRef = db.collection('config').doc('migracaoArquivamento');
+        // "_v2": a 1ª passada (24/09) rodou antes de as telas de criação gravarem arquivado:false,
+        // então entradas/orçamentos criados depois dela ficaram fora das listas. Esta passada
+        // única devolve esses registros às listas; os novos já nascem com arquivado:false.
+        const configRef = db.collection('config').doc('migracaoArquivamento_v2');
         const configSnap = await configRef.get();
         if (configSnap.exists) return;
         const [lotesSnap, orcamentosSnap] = await Promise.all([db.collection('lotes').get(), db.collection('orcamentos').get()]);
@@ -4939,6 +4942,9 @@ function ModalNovoLote({
       fotos: fotosLote,
       fotosRegistro,
       status: 'Em análise',
+      // Obrigatório: as telas de Entradas/Orçamentos listam só arquivado == false,
+      // e no Firestore um documento SEM o campo não entra nessa consulta.
+      arquivado: false,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
     setSalvando(false);
@@ -5222,6 +5228,7 @@ function ModalLoteDetalhe({
       status: 'Pendente orçamento',
       loteId: lote.id,
       loteAjustes: ajustes,
+      arquivado: false,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
     const opBatch = db.batch();
@@ -5828,6 +5835,7 @@ function ModalCopiarOrcamento({
           data: new Date().toISOString(),
           texto: `Orçamento criado a partir da separação de peças do orçamento #${orcamento.numero}.`
         }],
+        arquivado: false,
         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
       });
       if (comissoesNovas.length > 0) {
@@ -6665,6 +6673,7 @@ function ModalOrcamento({
         total,
         comissaoTotal,
         status: 'Pendente orçamento',
+        arquivado: false,
         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
       };
       const ref = await db.collection('orcamentos').add(dados);
