@@ -334,14 +334,20 @@ async function registrarHistorico(funcionarioId, texto) {
     })
   });
 }
-function calcularComissoesOrcamento(total, funcionarios) {
+// Lançamentos de comissão de um orçamento: valor × % da ficha (Equipe) VIGENTE na data de
+// referência. Funcionário desligado não recebe lançamento novo; quem já tinha lançamento
+// neste orçamento (idsPreservar) mantém — o histórico dele é preservado.
+function calcularComissoesOrcamento(total, funcionarios, dataRef, idsPreservar) {
+  dataRef = dataRef || new Date();
+  idsPreservar = idsPreservar || [];
+  const participa = f => funcionarioAtivoEm(f, dataRef) || idsPreservar.includes(f.id);
   const cache = {};
   function valorDe(func, visitados) {
     if (!func) return 0;
     if (cache[func.id] !== undefined) return cache[func.id];
     if (visitados.has(func.id)) return 0; // evita loop de referência
     visitados.add(func.id);
-    const percentual = Number(func.percentualComissao) || 0;
+    const percentual = percentualVigente(func, dataRef);
     let base;
     if (func.comissaoBaseId) {
       const funcBase = funcionarios.find(fu => fu.id === func.comissaoBaseId);
@@ -353,9 +359,10 @@ function calcularComissoesOrcamento(total, funcionarios) {
     cache[func.id] = valor;
     return valor;
   }
-  return funcionarios.filter(f => f.ativo !== false && Number(f.percentualComissao) > 0).map(f => ({
+  return funcionarios.filter(f => participa(f) && percentualVigente(f, dataRef) > 0).map(f => ({
     funcionarioId: f.id,
-    valor: valorDe(f, new Set())
+    valor: valorDe(f, new Set()),
+    percentual: percentualVigente(f, dataRef)
   })).filter(c => c.valor > 0);
 }
 function loteTotalmenteClassificado(itens) {
@@ -5215,7 +5222,7 @@ function ModalLoteDetalhe({
     }
     setProcessando(true);
     const total = linhas.reduce((s, l) => s + l.qtd * l.valorUnit, 0);
-    const comissoes = calcularComissoesOrcamento(total, funcionarios);
+    const comissoes = calcularComissoesOrcamento(total, funcionarios, new Date());
     const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
     const snap = await db.collection('orcamentos').get();
     const numero = snap.size + 1;
@@ -5237,6 +5244,7 @@ function ModalLoteDetalhe({
         funcionarioId: c.funcionarioId,
         orcamentoId: ref.id,
         valor: c.valor,
+        percentual: c.percentual,
         data: firebase.firestore.FieldValue.serverTimestamp(),
         lancadoPor: usuario?.nome || ''
       });
@@ -5816,7 +5824,7 @@ function ModalCopiarOrcamento({
       const itensRestantes = (orcamento.itens || []).filter((_, i) => !selecionados.has(i));
       const totalNovo = totalDe(itensNovos);
       const totalRestante = totalDe(itensRestantes);
-      const comissoesNovas = calcularComissoesOrcamento(totalNovo, funcionarios);
+      const comissoesNovas = calcularComissoesOrcamento(totalNovo, funcionarios, new Date());
       const comissaoTotalNovo = comissoesNovas.reduce((s, c) => s + c.valor, 0);
       const snap = await db.collection('orcamentos').get();
       const novoNumero = snap.size + 1;
@@ -5845,6 +5853,7 @@ function ModalCopiarOrcamento({
             funcionarioId: c.funcionarioId,
             orcamentoId: refNovo.id,
             valor: c.valor,
+            percentual: c.percentual,
             data: firebase.firestore.FieldValue.serverTimestamp(),
             lancadoPor: 'Cópia de orçamento'
           });
@@ -5855,12 +5864,18 @@ function ModalCopiarOrcamento({
       await db.collection('orcamentos').doc(orcamento.id).update({
         itens: itensRestantes,
         total: totalRestante,
-        comissaoTotal: calcularComissoesOrcamento(totalRestante, funcionarios).reduce((s, c) => s + c.valor, 0),
         historico: [...(orcamento.historico || []), {
           data: new Date().toISOString(),
           texto: `Peça(s) "${nomesTransferidos}" separada(s) e enviada(s) para o orçamento #${novoNumero}.`
         }]
       });
+      // Os lançamentos do orçamento original precisam acompanhar o novo total — sem isso as
+      // peças separadas ficavam com comissão nos DOIS orçamentos (lançamento em dobro).
+      await recalcularLancamentosOrcamento({
+        ...orcamento,
+        itens: itensRestantes,
+        total: totalRestante
+      }, funcionarios);
       aoFechar();
     } catch (err) {
       console.error(err);
@@ -6119,6 +6134,9 @@ function AbaOrcamentos({
     const dados = {
       status
     };
+    // Data de faturamento: define em qual período de comissão o orçamento entra.
+    if (status === 'Entregue/Faturado' && o.status !== 'Entregue/Faturado') dados.dataFaturamento = firebase.firestore.FieldValue.serverTimestamp();
+    if (status !== 'Entregue/Faturado' && o.dataFaturamento) dados.dataFaturamento = firebase.firestore.FieldValue.delete();
     if (status === 'Teste' && !o.resultadoTeste) {
       dados.resultadoTeste = 'pendente';
     }
@@ -6139,6 +6157,14 @@ function AbaOrcamentos({
       }];
     }
     await db.collection('orcamentos').doc(o.id).update(dados);
+    if (status === 'Entregue/Faturado' && o.status !== 'Entregue/Faturado') {
+      // % vigente na data do faturamento (respeita alterações de % com vigência).
+      await recalcularLancamentosOrcamento({
+        ...o,
+        status,
+        dataFaturamento: new Date()
+      }, funcionarios);
+    }
   }
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6644,24 +6670,14 @@ function ModalOrcamento({
         total,
         status: orcamento?.status || 'Pendente orçamento'
       };
-      const comissoesNovas = calcularComissoesOrcamento(total, funcionarios);
-      const comissaoTotal = comissoesNovas.reduce((s, c) => s + c.valor, 0);
-      dados.comissaoTotal = comissaoTotal;
-      const comSnapAntigas = await db.collection('comissoes').where('orcamentoId', '==', orcamento.id).get();
-      const opBatch = db.batch();
-      comSnapAntigas.docs.forEach(d => opBatch.delete(d.ref));
-      comissoesNovas.forEach(c => {
-        opBatch.set(db.collection('comissoes').doc(), {
-          funcionarioId: c.funcionarioId,
-          orcamentoId: orcamento.id,
-          valor: c.valor,
-          data: orcamento.criadoEm || firebase.firestore.FieldValue.serverTimestamp()
-        });
-      });
-      opBatch.update(db.collection('orcamentos').doc(orcamento.id), dados);
-      await opBatch.commit();
+      await db.collection('orcamentos').doc(orcamento.id).update(dados);
+      const rc = await recalcularLancamentosOrcamento({
+        ...orcamento,
+        ...dados
+      }, funcionarios);
+      if (rc.fechamento) alert(`Orçamento salvo. Ele pertence ao período de comissão já fechado (${formatarDataBr(rc.fechamento.inicio)} a ${formatarDataBr(rc.fechamento.fim)}), então os lançamentos de comissão não foram alterados.`);
     } else {
-      const comissoes = calcularComissoesOrcamento(total, funcionarios);
+      const comissoes = calcularComissoesOrcamento(total, funcionarios, new Date());
       const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
       const dados = {
         numero,
@@ -6683,6 +6699,7 @@ function ModalOrcamento({
           funcionarioId: c.funcionarioId,
           orcamentoId: ref.id,
           valor: c.valor,
+          percentual: c.percentual,
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
       });
@@ -7121,11 +7138,153 @@ function ModalArquivados({
 
 // ======================= COMISSÕES =======================
 // ======================= PERÍODO DE APURAÇÃO =======================
-const APURACAO_FATURAMENTO_MINIMO = 70000;
-const APURACAO_GARANTIA_LIMITE = 10; // % — acima disso reduz o bônus
-const APURACAO_GARANTIA_REDUCAO = 0.85; // multiplicador quando passa do limite de garantia
-const APURACAO_ATRASO_REDUCAO = 0.8; // multiplicador por atraso (acumulativo)
+// ======================= COMISSÃO — REGRAS, CÁLCULO E DADOS =======================
+// Todas as regras de comissão ficam no banco (coleção "regrasComissao", uma versão por
+// data de vigência). Os valores abaixo são só o PADRÃO inicial, iguais às regras que o
+// sistema já aplicava — usados enquanto nenhuma versão tiver sido salva.
+const REGRAS_COMISSAO_PADRAO = {
+  faixas: [{
+    id: 'f1',
+    min: 0,
+    max: 120,
+    percentual: 70,
+    ativa: true
+  }, {
+    id: 'f2',
+    min: 121,
+    max: 160,
+    percentual: 100,
+    ativa: true
+  }, {
+    id: 'f3',
+    min: 161,
+    max: 180,
+    percentual: 120,
+    ativa: true
+  }, {
+    id: 'f4',
+    min: 181,
+    max: null,
+    percentual: 150,
+    ativa: true
+  }],
+  // Quais peças contam para a faixa: só consertadas, ou consertadas + garantia.
+  contagemFaixa: 'consertadas',
+  faturamento: {
+    valorMinimo: 70000,
+    comparacao: 'maior',
+    // 'maior': libera só ACIMA do mínimo; 'maiorIgual': libera a partir do mínimo
+    acao: 'zerar',
+    // 'zerar' | 'reduzir'
+    reducaoPct: 0,
+    fonte: 'totalFaturado' // 'totalFaturado' | 'somenteConserto'
+  },
+  garantia: {
+    limitePct: 10,
+    reducaoPct: 15,
+    aplicarSobre: 'atual',
+    // 'atual': sobre o valor já com a faixa | 'base': sobre a comissão base
+    formula: 'sobreConsertadas' // 'sobreConsertadas': garantia ÷ consertadas | 'sobreTotal': garantia ÷ (consertadas + garantia)
+  },
+  atrasos: {
+    reducaoPct: 20,
+    modo: 'composto',
+    // 'composto': 20% sobre o que sobrou a cada atraso | 'simples': 20% × nº de atrasos | 'unico': desconto único se houver atraso
+    limitePct: 100
+  },
+  faltas: {
+    tipos: [{
+      id: 'nao_justificada',
+      nome: 'Falta não justificada',
+      efeito: 'zerar',
+      descontoPct: 0
+    }, {
+      id: 'justificada',
+      nome: 'Falta justificada',
+      efeito: 'nenhum',
+      descontoPct: 0
+    }]
+  },
+  base: {
+    producao: 'equipe',
+    // 'equipe' (única disponível hoje — o sistema não registra o técnico de cada peça)
+    ordem: ['faixa', 'faturamento', 'garantia', 'atrasosFaltas']
+  }
+};
+const ETAPAS_COMISSAO = {
+  faixa: 'Faixa de produção',
+  faturamento: 'Faturamento mínimo',
+  garantia: 'Índice de garantia',
+  atrasosFaltas: 'Atrasos e faltas'
+};
+function clonarJson(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+// Completa uma versão salva com as chaves que faltarem (regras criadas antes de um campo existir).
+function normalizarRegras(r) {
+  const p = clonarJson(REGRAS_COMISSAO_PADRAO);
+  if (!r) return p;
+  const out = {
+    ...p,
+    ...clonarJson(r)
+  };
+  ['faturamento', 'garantia', 'atrasos', 'faltas', 'base'].forEach(k => {
+    out[k] = {
+      ...p[k],
+      ...(r[k] || {})
+    };
+  });
+  if (!Array.isArray(out.faixas) || !out.faixas.length) out.faixas = p.faixas;
+  if (!Array.isArray(out.faltas.tipos)) out.faltas.tipos = p.faltas.tipos;
+  if (!Array.isArray(out.base.ordem) || out.base.ordem.length !== 4) out.base.ordem = p.base.ordem;
+  return out;
+}
+// Versão vigente numa data (YYYY-MM-DD): a mais recente com vigenciaInicio <= data.
+function versaoRegrasVigente(versoes, dataStr) {
+  const validas = (versoes || []).filter(v => v.vigenciaInicio && v.vigenciaInicio <= dataStr).sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? 1 : a.vigenciaInicio > b.vigenciaInicio ? -1 : 0);
+  return validas[0] || null;
+}
+function regrasVigentesEm(versoes, dataStr) {
+  const v = versaoRegrasVigente(versoes, dataStr);
+  return normalizarRegras(v ? v.regras : null);
+}
+function descreverFaixa(fx) {
+  if (!fx) return 'Nenhuma faixa';
+  if (fx.max === null || fx.max === undefined || fx.max === '') return `Acima de ${Number(fx.min) - 1} peças`;
+  return `${fx.min} a ${fx.max} peças`;
+}
+function faixaDaQuantidade(regras, qtd) {
+  return (regras.faixas || []).filter(f => f.ativa !== false).find(f => qtd >= Number(f.min) && (f.max === null || f.max === undefined || f.max === '' || qtd <= Number(f.max))) || null;
+}
+// Conferência das faixas antes de salvar: sobreposição e buracos entre faixas ativas.
+function validarFaixas(faixas) {
+  const ativas = faixas.filter(f => f.ativa !== false).map(f => ({
+    ...f,
+    min: Number(f.min),
+    max: f.max === '' || f.max === null || f.max === undefined ? null : Number(f.max)
+  })).sort((a, b) => a.min - b.min);
+  const erros = [],
+    avisos = [];
+  if (!ativas.length) erros.push('Deixe pelo menos uma faixa ativa.');
+  ativas.forEach((f, i) => {
+    if (isNaN(f.min) || f.min < 0) erros.push(`Faixa ${i + 1}: início inválido.`);
+    if (f.max !== null && f.max < f.min) erros.push(`Faixa ${descreverFaixa(f)}: o fim é menor que o início.`);
+    if (isNaN(Number(f.percentual)) || Number(f.percentual) < 0) erros.push(`Faixa ${descreverFaixa(f)}: percentual inválido.`);
+    const prox = ativas[i + 1];
+    if (prox) {
+      if (f.max === null) erros.push(`A faixa ${descreverFaixa(f)} não tem limite e há outra faixa depois dela.`);else if (prox.min <= f.max) erros.push(`As faixas ${descreverFaixa(f)} e ${descreverFaixa(prox)} se sobrepõem.`);else if (prox.min > f.max + 1) avisos.push(`Nenhuma faixa cobre de ${f.max + 1} a ${prox.min - 1} peças (nesse caso a comissão fica em 0%).`);
+    }
+  });
+  if (ativas.length && ativas[0].min > 0) avisos.push(`Nenhuma faixa cobre de 0 a ${ativas[0].min - 1} peças.`);
+  if (ativas.length && ativas[ativas.length - 1].max !== null) avisos.push(`Acima de ${ativas[ativas.length - 1].max} peças nenhuma faixa se aplica.`);
+  return {
+    erros,
+    avisos
+  };
+}
 
+// ---------- Datas ----------
+// Período de apuração padrão da empresa: dia 25 do mês anterior ao dia 24 do mês de referência.
 function periodoApuracao(chave) {
   // chave = 'YYYY-MM', mês de referência (ex: '2026-09' = 25/08 a 24/09)
   const [ano, mes] = chave.split('-').map(Number);
@@ -7142,281 +7301,683 @@ function periodoApuracao(chave) {
     fimStr: formatarDataInput(fim)
   };
 }
-function multiplicadorPorVolume(qtd) {
-  if (qtd > 180) return 1.5;
-  if (qtd >= 161) return 1.2;
-  if (qtd >= 121) return 1.0;
-  return 0.7;
+// Data que define o período de um orçamento: a data de faturamento (gravada a partir de
+// agora ao mudar para Entregue/Faturado). Orçamentos antigos, sem essa data, usam a criação.
+function dataReferenciaOrcamento(o) {
+  return dataDe(o?.dataFaturamento) || dataDe(o?.criadoEm);
 }
-function faixaPorVolume(qtd) {
-  if (qtd > 180) return 'Acima de 180 (acréscimo de 150%)';
-  if (qtd >= 161) return '161–180 (acréscimo de 120%)';
-  if (qtd >= 121) return '121–160 (sem acréscimo)';
-  return '0–120 (paga 70%)';
+function periodoApuracaoDeslocado(inicioStr, meses) {
+  const d = new Date(inicioStr + 'T00:00:00');
+  // período começa no dia 25: chave = mês em que ele TERMINA
+  const fimMes = new Date(d.getFullYear(), d.getMonth() + 1 + meses, 1);
+  return periodoApuracao(`${fimMes.getFullYear()}-${String(fimMes.getMonth() + 1).padStart(2, '0')}`);
 }
-function ModalApuracao({
+function formatarDataBr(str) {
+  return str ? new Date(str + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
+}
+function formatarPct(v) {
+  const n = Number(v) || 0;
+  return `${n.toLocaleString('pt-BR', {
+    maximumFractionDigits: 2
+  })}%`;
+}
+
+// ---------- Funcionário: % vigente e desligamento ----------
+// % da ficha vigente numa data. Sem histórico = o valor atual da ficha (comportamento de sempre).
+function percentualVigente(f, data) {
+  const hist = (f?.historicoPercentual || []).filter(h => h && h.vigenciaInicio).slice().sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? -1 : a.vigenciaInicio > b.vigenciaInicio ? 1 : 0);
+  if (!hist.length) return Number(f?.percentualComissao) || 0;
+  const d = chaveDia(data || new Date());
+  let atual = null;
+  hist.forEach(h => {
+    if (h.vigenciaInicio <= d) atual = h;
+  });
+  return Number((atual || hist[0]).percentual) || 0;
+}
+// Inativado (desligado) não recebe lançamentos novos a partir da data de inativação.
+function funcionarioAtivoEm(f, data) {
+  const inativo = f?.status === 'inativo' || f?.ativo === false;
+  if (!inativo) return true;
+  if (f.dataInativacao) return chaveDia(data || new Date()) < f.dataInativacao;
+  return false;
+}
+
+// ---------- Permissões ----------
+// Editar regras, ajustar, fechar/pagar e recalcular: Master, ou Administrador com
+// permissão de edição no módulo Comissão.
+function podeGerirComissao(u) {
+  if (!u) return false;
+  if (ehMaster(u)) return true;
+  return u.perfil === 'administrador' && nivelAcesso(u, 'comissoes') === 'editar';
+}
+
+// ---------- Motor de cálculo do período ----------
+// Entrada: período, regras vigentes, funcionários, lançamentos (coleção comissoes),
+// orçamentos e registros do período (atrasos, faltas, ajustes por funcionário).
+// Saída: indicadores da equipe + uma linha por funcionário com a memória de cálculo.
+function calcularApuracaoComissao({
+  inicio,
+  fim,
+  regras,
   funcionarios,
   comissoes,
   orcamentos,
-  aoFechar
+  registros
 }) {
-  const hoje = new Date();
-  const mesAtualChave = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-  const padrao = periodoApuracao(mesAtualChave);
-  const [inicioStr, setInicioStr] = useState(padrao.inicioStr);
-  const [fimStr, setFimStr] = useState(padrao.fimStr);
+  regras = normalizarRegras(regras);
+  const faturados = (orcamentos || []).filter(o => o.status === 'Entregue/Faturado' && dentroDoIntervalo(dataReferenciaOrcamento(o), inicio, fim));
+  const idsFaturados = new Set(faturados.map(o => o.id));
+  const orcPorId = {};
+  (orcamentos || []).forEach(o => {
+    orcPorId[o.id] = o;
+  });
+  const somaTipo = (itens, tipo) => itens.filter(i => i.tipo === tipo).reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const itens = faturados.flatMap(o => o.itens || []);
+  const qtdConsertadas = somaTipo(itens, 'consertada');
+  const qtdGarantia = somaTipo(itens, 'garantia');
+  const qtdFaixa = regras.contagemFaixa === 'consertadasGarantia' ? qtdConsertadas + qtdGarantia : qtdConsertadas;
+  let pctGarantia = 0;
+  if (regras.garantia.formula === 'sobreTotal') pctGarantia = qtdConsertadas + qtdGarantia > 0 ? qtdGarantia / (qtdConsertadas + qtdGarantia) * 100 : 0;else pctGarantia = qtdConsertadas > 0 ? qtdGarantia / qtdConsertadas * 100 : 0;
+  const faturamento = regras.faturamento.fonte === 'somenteConserto' ? itens.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0) * (Number(i.valorUnit) || 0), 0) : faturados.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const minimo = Number(regras.faturamento.valorMinimo) || 0;
+  const faturamentoOk = regras.faturamento.comparacao === 'maiorIgual' ? faturamento >= minimo : faturamento > minimo;
+  const faixa = faixaDaQuantidade(regras, qtdFaixa);
+  const pctFaixa = faixa ? Number(faixa.percentual) || 0 : 0;
+  const garantiaEstourada = pctGarantia > (Number(regras.garantia.limitePct) || 0);
+
+  // Lançamentos elegíveis: só de orçamentos Entregue/Faturado do período (garantia e sem
+  // conserto não geram valor no orçamento, então não geram comissão).
+  const lancamentos = (comissoes || []).filter(c => idsFaturados.has(c.orcamentoId));
+  const porFunc = {};
+  lancamentos.forEach(c => {
+    (porFunc[c.funcionarioId] = porFunc[c.funcionarioId] || []).push(c);
+  });
+  const regPorFunc = {};
+  (registros || []).forEach(r => {
+    regPorFunc[r.funcionarioId] = r;
+  });
+  const idsLinhas = new Set([...Object.keys(porFunc), ...(registros || []).filter(r => (r.ajustes || []).length).map(r => r.funcionarioId)]);
+  const funcPorId = {};
+  (funcionarios || []).forEach(f => {
+    funcPorId[f.id] = f;
+  });
+  const dataFim = new Date(fim + 'T12:00:00');
+  const tiposFalta = regras.faltas.tipos || [];
+  const linhas = [...idsLinhas].map(fid => {
+    const f = funcPorId[fid] || {
+      id: fid,
+      nome: '(funcionário removido)'
+    };
+    const lans = (porFunc[fid] || []).map(c => {
+      const o = orcPorId[c.orcamentoId];
+      const itensO = o?.itens || [];
+      return {
+        id: c.id,
+        orcamentoId: c.orcamentoId,
+        numero: o?.numero ?? '-',
+        data: chaveDia(dataReferenciaOrcamento(o)),
+        valorOrcamento: Number(o?.total) || 0,
+        percentual: c.percentual !== undefined ? Number(c.percentual) : null,
+        valor: Number(c.valor) || 0,
+        pecas: somaTipo(itensO, 'consertada')
+      };
+    }).sort((a, b) => (a.data || '') < (b.data || '') ? -1 : 1);
+    const base = lans.reduce((s, l) => s + l.valor, 0);
+    const reg = regPorFunc[fid] || {};
+    const atrasos = Math.max(0, Number(reg.atrasos) || 0);
+    const faltas = {};
+    tiposFalta.forEach(t => {
+      faltas[t.id] = Math.max(0, Number(reg.faltas?.[t.id]) || 0);
+    });
+    // registro antigo (checkbox "falta não justificada")
+    if (reg.faltaNaoJustificada && !reg.faltas && faltas.nao_justificada !== undefined) faltas.nao_justificada = Math.max(1, faltas.nao_justificada);
+    let v = base;
+    const passos = [];
+    regras.base.ordem.forEach(etapa => {
+      const antes = v;
+      let descricao = '';
+      if (etapa === 'faixa') {
+        v = v * pctFaixa / 100;
+        descricao = faixa ? `${qtdFaixa} peças → faixa ${descreverFaixa(faixa)}: paga ${formatarPct(pctFaixa)} da comissão` : `${qtdFaixa} peças → nenhuma faixa ativa cobre essa quantidade (0%)`;
+      } else if (etapa === 'faturamento') {
+        const cond = regras.faturamento.comparacao === 'maiorIgual' ? 'igual ou acima de' : 'acima de';
+        if (faturamentoOk) descricao = `Faturamento ${formatMoeda(faturamento)} ${cond} ${formatMoeda(minimo)}: liberado`;else if (regras.faturamento.acao === 'reduzir') {
+          const r = Number(regras.faturamento.reducaoPct) || 0;
+          v = v - v * r / 100;
+          descricao = `Faturamento ${formatMoeda(faturamento)} não ficou ${cond} ${formatMoeda(minimo)}: redução de ${formatarPct(r)}`;
+        } else {
+          v = 0;
+          descricao = `Faturamento ${formatMoeda(faturamento)} não ficou ${cond} ${formatMoeda(minimo)}: comissão não liberada`;
+        }
+      } else if (etapa === 'garantia') {
+        const lim = Number(regras.garantia.limitePct) || 0;
+        if (garantiaEstourada) {
+          const r = Number(regras.garantia.reducaoPct) || 0;
+          const sobre = regras.garantia.aplicarSobre === 'base' ? base : v;
+          v = Math.max(0, v - sobre * r / 100);
+          descricao = `Garantia ${formatarPct(pctGarantia.toFixed(1))} acima do limite de ${formatarPct(lim)}: redução de ${formatarPct(r)} sobre ${regras.garantia.aplicarSobre === 'base' ? 'a comissão base' : 'o valor até aqui'}`;
+        } else descricao = `Garantia ${formatarPct(pctGarantia.toFixed(1))} dentro do limite de ${formatarPct(lim)}`;
+      } else if (etapa === 'atrasosFaltas') {
+        const partes = [];
+        if (atrasos > 0) {
+          const r = (Number(regras.atrasos.reducaoPct) || 0) / 100;
+          let mult = regras.atrasos.modo === 'simples' ? Math.max(0, 1 - r * atrasos) : regras.atrasos.modo === 'unico' ? 1 - r : Math.pow(1 - r, atrasos);
+          const lim = (Number(regras.atrasos.limitePct) || 0) / 100;
+          const desc = Math.min(1 - mult, lim);
+          v = v * (1 - desc);
+          partes.push(`${atrasos} atraso(s): −${formatarPct((desc * 100).toFixed(1))}`);
+        }
+        tiposFalta.forEach(t => {
+          const n = faltas[t.id] || 0;
+          if (!n) return;
+          if (t.efeito === 'zerar') {
+            v = 0;
+            partes.push(`${n} ${t.nome.toLowerCase()}: zera a comissão`);
+          } else if (t.efeito === 'desconto') {
+            const d = (Number(t.descontoPct) || 0) / 100;
+            v = v * Math.pow(Math.max(0, 1 - d), n);
+            partes.push(`${n} ${t.nome.toLowerCase()}: −${formatarPct(t.descontoPct)} cada`);
+          } else partes.push(`${n} ${t.nome.toLowerCase()}: sem efeito`);
+        });
+        descricao = partes.length ? partes.join(' · ') : 'Sem atrasos ou faltas';
+      }
+      passos.push({
+        etapa,
+        nome: ETAPAS_COMISSAO[etapa],
+        descricao,
+        antes,
+        depois: v,
+        delta: v - antes
+      });
+    });
+    const ajustes = (reg.ajustes || []).filter(a => a && !a.removido);
+    const totalAjustes = ajustes.reduce((s, a) => s + (Number(a.valor) || 0), 0);
+    const semAjuste = v;
+    const finalBruto = Math.max(0, v + totalAjustes);
+    const deltaFaixa = passos.filter(p => p.etapa === 'faixa').reduce((s, p) => s + p.delta, 0);
+    const descontos = passos.filter(p => p.etapa !== 'faixa').reduce((s, p) => s + p.delta, 0);
+    const percentuais = [...new Set(lans.map(l => l.percentual).filter(p => p !== null))];
+    return {
+      funcionarioId: fid,
+      nome: f.nome,
+      inativo: f.status === 'inativo' || f.ativo === false,
+      percentualFicha: percentualVigente(f, dataFim),
+      percentuaisLancamentos: percentuais,
+      pecas: lans.reduce((s, l) => s + l.pecas, 0),
+      base,
+      lancamentos: lans,
+      atrasos,
+      faltas,
+      passos,
+      deltaFaixa,
+      descontos,
+      ajustes,
+      totalAjustes,
+      valorSemAjuste: semAjuste,
+      final: Math.round(finalBruto * 100) / 100
+    };
+  }).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+  const semPercentual = (funcionarios || []).filter(f => f.perfil !== 'master' && funcionarioAtivoEm(f, dataFim) && ['ativo', undefined].includes(f.status) && !(percentualVigente(f, dataFim) > 0)).map(f => f.nome);
+  return {
+    inicio,
+    fim,
+    regras,
+    orcamentosFaturados: faturados.length,
+    qtdConsertadas,
+    qtdGarantia,
+    qtdFaixa,
+    pctGarantia,
+    faturamento,
+    faturamentoMinimo: minimo,
+    faturamentoOk,
+    faixa,
+    pctFaixa,
+    garantiaEstourada,
+    linhas,
+    semPercentual,
+    totalBase: linhas.reduce((s, l) => s + l.base, 0),
+    totalFinal: Math.round(linhas.reduce((s, l) => s + l.final, 0) * 100) / 100
+  };
+}
+
+// ---------- Lançamentos por orçamento ----------
+function idFechamentoComissao(inicio, fim) {
+  return `${inicio}_${fim}`;
+}
+async function carregarFechamentosComissao() {
+  const snap = await db.collection('comissaoFechamentos').get();
+  return snap.docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  }));
+}
+function fechamentoQueContem(fechamentos, data) {
+  const d = chaveDia(data);
+  if (!d) return null;
+  return (fechamentos || []).find(f => f.inicio <= d && d <= f.fim) || null;
+}
+// Refaz os lançamentos de um orçamento com o % vigente na data de referência dele.
+// Nunca mexe em orçamento de período já fechado/pago. Funcionário desligado mantém
+// o lançamento que já tinha; só deixa de receber lançamentos novos.
+async function recalcularLancamentosOrcamento(orcamento, funcionarios, fechamentos) {
+  if (!orcamento?.id) return {
+    recalculado: false
+  };
+  fechamentos = fechamentos || (await carregarFechamentosComissao());
+  const dataRef = dataReferenciaOrcamento(orcamento) || new Date();
+  const fech = fechamentoQueContem(fechamentos, dataRef);
+  if (fech && orcamento.status === 'Entregue/Faturado') return {
+    recalculado: false,
+    fechamento: fech
+  };
+  const antigas = await db.collection('comissoes').where('orcamentoId', '==', orcamento.id).get();
+  const idsAnteriores = antigas.docs.map(d => d.data().funcionarioId);
+  const novas = calcularComissoesOrcamento(Number(orcamento.total) || 0, funcionarios, dataRef, idsAnteriores);
+  const lote = db.batch();
+  antigas.docs.forEach(d => lote.delete(d.ref));
+  novas.forEach(c => {
+    lote.set(db.collection('comissoes').doc(), {
+      funcionarioId: c.funcionarioId,
+      orcamentoId: orcamento.id,
+      valor: c.valor,
+      percentual: c.percentual,
+      data: orcamento.criadoEm || firebase.firestore.FieldValue.serverTimestamp()
+    });
+  });
+  lote.update(db.collection('orcamentos').doc(orcamento.id), {
+    comissaoTotal: novas.reduce((s, c) => s + c.valor, 0)
+  });
+  await lote.commit();
+  return {
+    recalculado: true
+  };
+}
+async function registrarHistoricoComissao(dados, usuario) {
+  await db.collection('comissaoHistorico').add({
+    ...dados,
+    usuario: usuario?.nome || '-',
+    usuarioId: usuario?.id || '',
+    em: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+// ======================= COMISSÃO — TELAS =======================
+function AbasInternas({
+  abas,
+  ativa,
+  aoMudar
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 4,
+      marginBottom: 18,
+      borderBottom: '1px solid var(--borda)',
+      overflowX: 'auto'
+    }
+  }, abas.map(([id, label]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    type: "button",
+    onClick: () => aoMudar(id),
+    style: {
+      background: 'none',
+      border: 'none',
+      borderBottom: ativa === id ? '2px solid var(--laranja)' : '2px solid transparent',
+      padding: '9px 12px',
+      fontSize: 14,
+      fontWeight: 600,
+      color: ativa === id ? 'var(--laranja-escuro)' : 'var(--texto-fraco)',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap'
+    }
+  }, label)));
+}
+function useRegistrosApuracao(inicio, fim) {
   const [registros, setRegistros] = useState([]);
-  const [carregandoRegistros, setCarregandoRegistros] = useState(true);
+  const [carregando, setCarregando] = useState(true);
   useEffect(() => {
-    setCarregandoRegistros(true);
-    const unsub = db.collection('apuracaoRegistros').where('periodoInicio', '==', inicioStr).onSnapshot(snap => {
+    if (!inicio || !fim) return;
+    setCarregando(true);
+    const unsub = db.collection('apuracaoRegistros').where('periodoInicio', '==', inicio).onSnapshot(snap => {
       setRegistros(snap.docs.map(d => ({
         id: d.id,
         ...d.data()
-      })).filter(r => r.periodoFim === fimStr));
-      setCarregandoRegistros(false);
-    }, () => setCarregandoRegistros(false));
+      })).filter(r => r.periodoFim === fim));
+      setCarregando(false);
+    }, () => setCarregando(false));
     return unsub;
-  }, [inicioStr, fimStr]);
-  const orcamentosPeriodo = orcamentos.filter(o => dentroDoIntervalo(dataDe(o.criadoEm), inicioStr, fimStr));
-  const itensPeriodo = orcamentosPeriodo.flatMap(o => o.itens || []);
-  const qtdConsertada = itensPeriodo.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
-  const qtdGarantia = itensPeriodo.filter(i => i.tipo === 'garantia').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
-  const percentualGarantia = qtdConsertada > 0 ? qtdGarantia / qtdConsertada * 100 : 0;
-  // Faturamento realizado: só conta o que já chegou em Entregue/Faturado — um orçamento
-  // em Teste, Aprovado etc. tem valor, mas ainda não é faturamento de verdade.
-  const faturamento = orcamentosPeriodo.filter(o => o.status === 'Entregue/Faturado').reduce((s, o) => s + (Number(o.total) || 0), 0);
-  const orcamentoPorId = {};
-  orcamentos.forEach(o => {
-    orcamentoPorId[o.id] = o;
-  });
-  const comissoesPeriodo = comissoes.filter(c => dentroDoIntervalo(dataDe(c.data), inicioStr, fimStr)).filter(c => comissaoElegivel(orcamentoPorId[c.orcamentoId]));
-  const baseComPorFunc = {};
-  comissoesPeriodo.forEach(c => {
-    baseComPorFunc[c.funcionarioId] = (baseComPorFunc[c.funcionarioId] || 0) + (Number(c.valor) || 0);
-  });
-  const totalBase = Object.values(baseComPorFunc).reduce((s, v) => s + v, 0);
-  const multiplicadorVolume = multiplicadorPorVolume(qtdConsertada);
-  const travaFaturamento = faturamento <= APURACAO_FATURAMENTO_MINIMO;
-  const travaGarantia = percentualGarantia > APURACAO_GARANTIA_LIMITE;
-  const totalAjustado = travaFaturamento ? 0 : totalBase * multiplicadorVolume * (travaGarantia ? APURACAO_GARANTIA_REDUCAO : 1);
-  function registroDe(funcionarioId) {
-    return registros.find(r => r.funcionarioId === funcionarioId) || {
-      atrasos: 0,
-      faltaNaoJustificada: false
-    };
-  }
-  const linhasFuncionarios = funcionarios.filter(f => (baseComPorFunc[f.id] || 0) > 0).map(f => {
-    const base = baseComPorFunc[f.id] || 0;
-    const share = totalBase > 0 ? base / totalBase : 0;
-    const redistribuido = share * totalAjustado;
-    const reg = registroDe(f.id);
-    const valorFinal = reg.faltaNaoJustificada ? 0 : redistribuido * Math.pow(APURACAO_ATRASO_REDUCAO, Number(reg.atrasos) || 0);
-    return {
-      funcionario: f,
-      base,
-      redistribuido,
-      reg,
-      valorFinal
-    };
-  });
-  async function salvarRegistro(funcionarioId, campo, valor) {
-    const id = `${inicioStr}_${fimStr}_${funcionarioId}`;
-    await db.collection('apuracaoRegistros').doc(id).set({
-      periodoInicio: inicioStr,
-      periodoFim: fimStr,
-      funcionarioId,
-      [campo]: valor
-    }, {
-      merge: true
-    });
+  }, [inicio, fim]);
+  return [registros, carregando];
+}
+function periodoApuracaoPadrao() {
+  const hoje = new Date();
+  return periodoApuracao(`${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`);
+}
+function situacaoPagamento(fechamento, funcionarioId) {
+  if (!fechamento) return {
+    rotulo: 'Aberto',
+    cor: 'var(--texto-fraco)',
+    badge: 'estoque'
+  };
+  if (fechamento.pagamentos?.[funcionarioId]?.pago) return {
+    rotulo: 'Pago',
+    cor: 'var(--verde)',
+    badge: 'entregue'
+  };
+  return {
+    rotulo: 'Fechado — a pagar',
+    cor: 'var(--laranja-escuro)',
+    badge: 'pendente'
+  };
+}
+function SeletorPeriodo({
+  inicio,
+  fim,
+  aoMudar
+}) {
+  function mover(meses) {
+    const p = periodoApuracaoDeslocado(inicio, meses);
+    aoMudar(p.inicioStr, p.fimStr);
   }
   return /*#__PURE__*/React.createElement("div", {
-    className: "modal-fundo",
-    onClick: e => e.target === e.currentTarget && aoFechar()
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "modal",
-    style: {
-      maxWidth: 720
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      marginTop: 0
-    }
-  }, "Período de Apuração"), /*#__PURE__*/React.createElement("div", {
-    className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "De"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: inicioStr,
-    onChange: e => setInicioStr(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Até"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: fimStr,
-    onChange: e => setFimStr(e.target.value)
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--texto-fraco)',
-      marginTop: 6
-    }
-  }, "Período: ", new Date(inicioStr + 'T00:00:00').toLocaleDateString('pt-BR'), " a ", new Date(fimStr + 'T00:00:00').toLocaleDateString('pt-BR')), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
-      gap: 10,
-      marginTop: 16,
-      marginBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Peças com conserto",
-    valor: qtdConsertada
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Faixa de volume",
-    valor: faixaPorVolume(qtdConsertada)
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Faturamento",
-    valor: formatMoeda(faturamento),
-    cor: travaFaturamento ? 'var(--vermelho)' : undefined
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "% de garantia",
-    valor: `${percentualGarantia.toFixed(1)}%`,
-    cor: travaGarantia ? 'var(--vermelho)' : undefined
-  })), travaFaturamento && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--vermelho)',
-      marginBottom: 10
-    }
-  }, "⚠️ Faturamento do período é R$ ", APURACAO_FATURAMENTO_MINIMO.toLocaleString('pt-BR'), " ou menos — sem pagamento de comissão nesse período (regra 3)."), !travaFaturamento && travaGarantia && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--laranja-escuro)',
-      marginBottom: 10
-    }
-  }, "⚠️ Garantia acima de ", APURACAO_GARANTIA_LIMITE, "% — comissão total reduzida em 15% (regra 4)."), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      justifyContent: 'space-between',
-      fontSize: 13.5
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "Comissão base (soma normal)"), /*#__PURE__*/React.createElement("strong", null, formatMoeda(totalBase))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      fontSize: 13.5,
-      marginTop: 6
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "Multiplicador de volume (regra 1)"), /*#__PURE__*/React.createElement("strong", null, "×", multiplicadorVolume.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      fontSize: 15,
-      marginTop: 10,
-      paddingTop: 10,
-      borderTop: '1px solid var(--borda)'
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "Total ajustado do período"), /*#__PURE__*/React.createElement("strong", {
-    style: {
-      color: 'var(--laranja)'
-    }
-  }, formatMoeda(totalAjustado)))), /*#__PURE__*/React.createElement("h4", {
-    style: {
-      margin: '0 0 8px'
-    }
-  }, "Por funcionário"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      overflowX: 'auto'
-    }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Redistribuído"), /*#__PURE__*/React.createElement("th", null, "Atrasos"), /*#__PURE__*/React.createElement("th", null, "Falta não just."), /*#__PURE__*/React.createElement("th", null, "Valor final"))), /*#__PURE__*/React.createElement("tbody", null, linhasFuncionarios.map(l => /*#__PURE__*/React.createElement("tr", {
-    key: l.funcionario.id
-  }, /*#__PURE__*/React.createElement("td", null, l.funcionario.nome), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.redistribuido)), /*#__PURE__*/React.createElement("td", {
-    style: {
-      width: 80
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    min: "0",
-    step: "1",
-    defaultValue: l.reg.atrasos || 0,
-    onBlur: e => salvarRegistro(l.funcionario.id, 'atrasos', Math.max(0, Number(e.target.value) || 0))
-  })), /*#__PURE__*/React.createElement("td", {
-    style: {
-      textAlign: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: !!l.reg.faltaNaoJustificada,
-    onChange: e => salvarRegistro(l.funcionario.id, 'faltaNaoJustificada', e.target.checked)
-  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, formatMoeda(l.valorFinal))))), !carregandoRegistros && linhasFuncionarios.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "5",
-    style: {
-      color: 'var(--texto-fraco)',
-      textAlign: 'center',
-      padding: 16
-    }
-  }, "Nenhuma comissão lançada nesse período."))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11.5,
-      color: 'var(--texto-fraco)',
-      marginTop: 10
-    }
-  }, "Atraso reduz 20% por ocorrência (acumulativo). Falta não justificada zera a comissão daquele funcionário no período. Os valores de atraso/falta salvam automaticamente ao sair do campo."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      marginTop: 16
+      gap: 8,
+      alignItems: 'flex-end',
+      flexWrap: 'wrap'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "btn secundario",
-    onClick: aoFechar
-  }, "Fechar"))));
+    className: "btn secundario pequeno",
+    onClick: () => mover(-1),
+    title: "Período anterior"
+  }, "◀"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "De"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: inicio,
+    onChange: e => aoMudar(e.target.value, fim)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "Até"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: fim,
+    onChange: e => aoMudar(inicio, e.target.value)
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => mover(1),
+    title: "Próximo período"
+  }, "▶"));
+}
+function CartoesApuracao({
+  res,
+  mostrarFaturamento,
+  resumoLinhas
+}) {
+  const base = resumoLinhas ? resumoLinhas.reduce((s, l) => s + l.base, 0) : res.totalBase;
+  const final = resumoLinhas ? resumoLinhas.reduce((s, l) => s + l.final, 0) : res.totalFinal;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit,minmax(165px,1fr))',
+      gap: 10,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Peças elegíveis",
+    valor: res.qtdFaixa
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: res.faixa ? `Faixa: ${descreverFaixa(res.faixa)}` : 'Faixa: nenhuma',
+    valor: formatarPct(res.pctFaixa)
+  }), mostrarFaturamento ? /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Faturamento do período",
+    valor: formatMoeda(res.faturamento),
+    cor: res.faturamentoOk ? undefined : 'var(--vermelho)'
+  }) : /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Faturamento mínimo",
+    valor: res.faturamentoOk ? 'Atingido' : 'Não atingido',
+    cor: res.faturamentoOk ? undefined : 'var(--vermelho)'
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "% de garantia",
+    valor: `${formatarPct(res.pctGarantia.toFixed(1))}`,
+    cor: res.garantiaEstourada ? 'var(--vermelho)' : undefined
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Comissão base",
+    valor: formatMoeda(base)
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Valor final",
+    valor: formatMoeda(final),
+    cor: "var(--laranja)"
+  }));
+}
+function AvisosApuracao({
+  res,
+  mostrarFaturamento
+}) {
+  const r = res.regras;
+  return /*#__PURE__*/React.createElement(React.Fragment, null, !res.faturamentoOk && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--vermelho)',
+      marginBottom: 8
+    }
+  }, "⚠️ Faturamento ", mostrarFaturamento ? `de ${formatMoeda(res.faturamento)} ` : '', "não ficou ", r.faturamento.comparacao === 'maiorIgual' ? 'igual ou acima de' : 'acima de', " ", formatMoeda(res.faturamentoMinimo), " — ", r.faturamento.acao === 'reduzir' ? `comissão reduzida em ${formatarPct(r.faturamento.reducaoPct)}` : 'comissão não liberada neste período', "."), res.garantiaEstourada && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--laranja-escuro)',
+      marginBottom: 8
+    }
+  }, "⚠️ Garantia de ", formatarPct(res.pctGarantia.toFixed(1)), " acima do limite de ", formatarPct(r.garantia.limitePct), " — redução de ", formatarPct(r.garantia.reducaoPct), "."), res.semPercentual.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      marginBottom: 8
+    }
+  }, "ℹ️ Sem % de comissão na ficha da Equipe: ", res.semPercentual.join(', '), ". Se devem receber comissão, configure o percentual em Equipe."));
+}
+function MemoriaCalculo({
+  linha
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--fundo)',
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 12.5
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Memória de cálculo — ", linha.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      padding: '3px 0'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Comissão base: ", linha.lancamentos.length, " lançamento(s) (valor do orçamento × ", linha.percentuaisLancamentos.length ? linha.percentuaisLancamentos.map(formatarPct).join(' / ') : 'percentual da ficha', ")"), /*#__PURE__*/React.createElement("strong", null, formatMoeda(linha.base))), linha.passos.map((p, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 10,
+      padding: '3px 0',
+      borderTop: '1px dashed var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, i + 1, ". ", p.nome, ":"), " ", p.descricao), /*#__PURE__*/React.createElement("span", {
+    style: {
+      whiteSpace: 'nowrap'
+    }
+  }, p.delta === 0 ? '—' : `${p.delta > 0 ? '+' : '−'} ${formatMoeda(Math.abs(p.delta))}`, " → ", /*#__PURE__*/React.createElement("strong", null, formatMoeda(p.depois))))), linha.ajustes.map((a, i) => /*#__PURE__*/React.createElement("div", {
+    key: 'aj' + i,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 10,
+      padding: '3px 0',
+      borderTop: '1px dashed var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, "Ajuste manual:"), " ", a.justificativa, " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--texto-fraco)'
+    }
+  }, "(", a.por, a.em ? `, ${new Date(a.em).toLocaleString('pt-BR')}` : '', ")")), /*#__PURE__*/React.createElement("span", {
+    style: {
+      whiteSpace: 'nowrap'
+    }
+  }, Number(a.valor) >= 0 ? '+' : '−', " ", formatMoeda(Math.abs(Number(a.valor) || 0))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      padding: '6px 0 0',
+      borderTop: '1px solid var(--borda)',
+      marginTop: 4,
+      fontSize: 13.5
+    }
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, "Valor final")), /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: 'var(--laranja)'
+    }
+  }, formatMoeda(linha.final))), linha.lancamentos.length > 0 && /*#__PURE__*/React.createElement("table", {
+    style: {
+      marginTop: 10,
+      fontSize: 12
+    }
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "Peças"), /*#__PURE__*/React.createElement("th", null, "Valor do orçamento"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Comissão"))), /*#__PURE__*/React.createElement("tbody", null, linha.lancamentos.map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.id
+  }, /*#__PURE__*/React.createElement("td", null, formatarDataBr(l.data)), /*#__PURE__*/React.createElement("td", null, "#", l.numero), /*#__PURE__*/React.createElement("td", null, l.pecas), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.valorOrcamento)), /*#__PURE__*/React.createElement("td", null, l.percentual !== null ? formatarPct(l.percentual) : '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.valor)))))));
+}
+function TabelaApuracao({
+  linhas,
+  fechamento,
+  expandido,
+  aoExpandir
+}) {
+  if (!linhas.length) return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      color: 'var(--texto-fraco)',
+      textAlign: 'center'
+    }
+  }, "Nenhuma comissão elegível neste período (só entram orçamentos Entregue/Faturado).");
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 0,
+      overflowX: 'auto',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "% (Equipe)"), /*#__PURE__*/React.createElement("th", null, "Peças"), /*#__PURE__*/React.createElement("th", null, "Comissão base"), /*#__PURE__*/React.createElement("th", null, "Faixa"), /*#__PURE__*/React.createElement("th", null, "Descontos"), /*#__PURE__*/React.createElement("th", null, "Ajustes"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhas.map(l => {
+    const st = situacaoPagamento(fechamento, l.funcionarioId);
+    return /*#__PURE__*/React.createElement(React.Fragment, {
+      key: l.funcionarioId
+    }, /*#__PURE__*/React.createElement("tr", {
+      className: "linha-clicavel",
+      onClick: () => aoExpandir(expandido === l.funcionarioId ? null : l.funcionarioId)
+    }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, l.nome), l.inativo && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)'
+      }
+    }, " (desligado)"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)'
+      }
+    }, expandido === l.funcionarioId ? '▲ ocultar cálculo' : '▼ ver cálculo')), /*#__PURE__*/React.createElement("td", null, l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--vermelho)',
+        fontSize: 12
+      }
+    }, "Configurar na Equipe")), /*#__PURE__*/React.createElement("td", null, l.pecas), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.base)), /*#__PURE__*/React.createElement("td", null, l.deltaFaixa === 0 ? '—' : `${l.deltaFaixa > 0 ? '+' : '−'} ${formatMoeda(Math.abs(l.deltaFaixa))}`), /*#__PURE__*/React.createElement("td", null, l.descontos === 0 ? '—' : `− ${formatMoeda(Math.abs(l.descontos))}`), /*#__PURE__*/React.createElement("td", null, l.totalAjustes === 0 ? '—' : `${l.totalAjustes > 0 ? '+' : '−'} ${formatMoeda(Math.abs(l.totalAjustes))}`), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, formatMoeda(l.final))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+      className: `badge ${st.badge}`
+    }, st.rotulo))), expandido === l.funcionarioId && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+      colSpan: "9"
+    }, /*#__PURE__*/React.createElement(MemoriaCalculo, {
+      linha: l
+    }))));
+  }))));
+}
+// Congela o resultado para gravar no fechamento (sem objetos do Firestore).
+function resultadoParaGravar(res) {
+  return clonarJson(res);
 }
 function AbaComissoes({
   usuario,
   funcionarios
 }) {
+  const [aba, setAba] = useState('analise');
+  const gerir = podeGerirComissao(usuario);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(AbasInternas, {
+    abas: [['analise', '📊 Análise de comissão'], ['regras', '⚙️ Regras de comissão']],
+    ativa: aba,
+    aoMudar: setAba
+  }), aba === 'analise' && /*#__PURE__*/React.createElement(AnaliseComissao, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    gerir: gerir
+  }), aba === 'regras' && /*#__PURE__*/React.createElement(AbaRegrasComissao, {
+    usuario: usuario,
+    gerir: gerir
+  }));
+}
+function AnaliseComissao({
+  usuario,
+  funcionarios,
+  gerir
+}) {
   const [comissoes, carregando] = useColecao('comissoes', 'data');
   const [orcamentos] = useColecao('orcamentos');
+  const [versoes] = useColecao('regrasComissao');
+  const [fechamentos] = useColecao('comissaoFechamentos');
   const escopo = comissaoEscopoDe(usuario);
+  const padrao = periodoApuracaoPadrao();
+  const [inicio, setInicio] = useState(padrao.inicioStr);
+  const [fim, setFim] = useState(padrao.fimStr);
   const [filtroFunc, setFiltroFunc] = useState(escopo === 'propria' ? usuario.id : '');
-  const [de, setDe] = useState('');
-  const [ate, setAte] = useState('');
-  const [modalApuracaoAberto, setModalApuracaoAberto] = useState(false);
+  const [expandido, setExpandido] = useState(null);
+  const [modalApuracao, setModalApuracao] = useState(false);
+  const [relatorio, setRelatorio] = useState(null);
+  const [registros] = useRegistrosApuracao(inicio, fim);
+  const fechamento = fechamentos.find(f => f.id === idFechamentoComissao(inicio, fim)) || null;
+  const regras = regrasVigentesEm(versoes, inicio);
+  const resVivo = useMemo(() => calcularApuracaoComissao({
+    inicio,
+    fim,
+    regras,
+    funcionarios,
+    comissoes,
+    orcamentos,
+    registros
+  }), [inicio, fim, JSON.stringify(regras), funcionarios, comissoes, orcamentos, registros]);
+  const res = fechamento ? fechamento.resultado : resVivo;
+  const filtroEfetivo = escopo === 'propria' ? usuario.id : filtroFunc;
+  const linhas = res.linhas.filter(l => !filtroEfetivo || l.funcionarioId === filtroEfetivo);
+  const verTudo = escopo !== 'propria';
+  const sobreposto = !fechamento && fechamentos.find(f => f.inicio <= fim && inicio <= f.fim);
+  const orcPorId = {};
+  orcamentos.forEach(o => {
+    orcPorId[o.id] = o;
+  });
+  // Lançamentos dos orçamentos com data de referência no período (liberados + aguardando).
+  const lancPeriodo = comissoes.filter(c => (!filtroEfetivo || c.funcionarioId === filtroEfetivo) && dentroDoIntervalo(dataReferenciaOrcamento(orcPorId[c.orcamentoId]) || dataDe(c.data), inicio, fim));
   const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
-  const orcamentoDe = id => orcamentos.find(o => o.id === id);
-  const numeroOrcamento = id => {
-    const o = orcamentoDe(id);
-    return o ? `#${o.numero}` : '-';
-  };
-  const filtroFuncEfetivo = escopo === 'propria' ? usuario.id : filtroFunc;
-  const filtradas = comissoes.filter(c => {
-    if (filtroFuncEfetivo && c.funcionarioId !== filtroFuncEfetivo) return false;
-    if (!c.data) return true;
-    const d = c.data.toDate ? c.data.toDate() : new Date(c.data);
-    if (de && d < new Date(de)) return false;
-    if (ate && d > new Date(ate + 'T23:59:59')) return false;
-    return true;
-  });
-
-  // Comissões de orçamentos em Teste (aguardando confirmação) ou reprovados no teste
-  // ficam listadas para transparência, mas não entram nos totais até serem liberadas.
-  const elegiveis = filtradas.filter(c => comissaoElegivel(orcamentoDe(c.orcamentoId)));
-  const totalGeral = elegiveis.reduce((s, c) => s + (Number(c.valor) || 0), 0);
-  const porFuncionario = {};
-  elegiveis.forEach(c => {
-    porFuncionario[c.funcionarioId] = porFuncionario[c.funcionarioId] || {
-      qtd: 0,
-      total: 0
-    };
-    porFuncionario[c.funcionarioId].qtd++;
-    porFuncionario[c.funcionarioId].total += Number(c.valor) || 0;
-  });
+  function abrirRelatorio(tipo) {
+    setRelatorio({
+      tipo,
+      res: {
+        ...res,
+        linhas
+      },
+      fechamento
+    });
+  }
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -7424,133 +7985,1635 @@ function AbaComissoes({
       alignItems: 'center',
       flexWrap: 'wrap',
       gap: 10,
-      marginBottom: 16
+      marginBottom: 14
     }
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
       margin: 0
     }
-  }, escopo === 'propria' ? 'Minha Comissão' : 'Análise de comissão'), escopo === 'administrar' && /*#__PURE__*/React.createElement("button", {
-    className: "btn",
-    onClick: () => setModalApuracaoAberto(true)
-  }, "📅 Período de Apuração")), /*#__PURE__*/React.createElement("div", {
+  }, escopo === 'propria' ? 'Minha Comissão' : 'Análise de comissão'), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      gap: 10,
-      marginBottom: 16,
+      gap: 8,
       flexWrap: 'wrap'
     }
-  }, escopo !== 'propria' && /*#__PURE__*/React.createElement("select", {
+  }, verTudo && /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => abrirRelatorio('simples')
+  }, "📄 Relatório simples"), verTudo && /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => abrirRelatorio('detalhado')
+  }, "📑 Relatório detalhado"), escopo === 'administrar' && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: () => setModalApuracao(true)
+  }, "📅 Período de Apuração"))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 14,
+      display: 'flex',
+      gap: 14,
+      alignItems: 'flex-end',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement(SeletorPeriodo, {
+    inicio: inicio,
+    fim: fim,
+    aoMudar: (i, f) => {
+      setInicio(i);
+      setFim(f);
+    }
+  }), verTudo && /*#__PURE__*/React.createElement("select", {
     value: filtroFunc,
     onChange: e => setFiltroFunc(e.target.value),
     style: {
-      maxWidth: 220
+      maxWidth: 240
     }
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
   }, "Todos os funcionários"), funcionarios.map(f => /*#__PURE__*/React.createElement("option", {
     key: f.id,
     value: f.id
-  }, f.nome))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+  }, f.nome, f.status === 'inativo' ? ' (desligado)' : ''))), /*#__PURE__*/React.createElement("div", {
     style: {
-      margin: 0
+      fontSize: 13
     }
-  }, "De"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: de,
-    onChange: e => setDe(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      margin: 0
-    }
-  }, "Até"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: ate,
-    onChange: e => setAte(e.target.value)
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))',
-      gap: 12,
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "card"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       color: 'var(--texto-fraco)',
-      fontSize: 12.5
+      fontSize: 12
     }
-  }, "Lançamentos de comissão"), /*#__PURE__*/React.createElement("div", {
+  }, "Período selecionado"), /*#__PURE__*/React.createElement("strong", null, formatarDataBr(inicio), " a ", formatarDataBr(fim)), ' ', fechamento ? /*#__PURE__*/React.createElement("span", {
+    className: `badge ${fechamento.status === 'pago' ? 'entregue' : 'pendente'}`
+  }, fechamento.status === 'pago' ? 'Pago' : 'Fechado') : /*#__PURE__*/React.createElement("span", {
+    className: "badge estoque"
+  }, "Aberto — valores provisórios"))), fechamento && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 26,
-      fontWeight: 700,
-      marginTop: 4
-    }
-  }, filtradas.length)), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
+      fontSize: 12.5,
       color: 'var(--texto-fraco)',
-      fontSize: 12.5
+      marginBottom: 10
     }
-  }, "Comissão total no período"), /*#__PURE__*/React.createElement("div", {
+  }, "🔒 Período fechado por ", fechamento.fechadoPor, " — os valores abaixo estão congelados e não mudam com alterações posteriores de regras ou lançamentos."), sobreposto && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 26,
-      fontWeight: 700,
-      marginTop: 4,
-      color: 'var(--laranja)'
+      fontSize: 12.5,
+      color: 'var(--vermelho)',
+      marginBottom: 10
     }
-  }, formatMoeda(totalGeral)))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 20,
-      overflowX: 'auto',
-      padding: 0
-    }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamentos"), /*#__PURE__*/React.createElement("th", null, "Comissão total"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(porFuncionario).map(([fid, dados]) => /*#__PURE__*/React.createElement("tr", {
-    key: fid
-  }, /*#__PURE__*/React.createElement("td", null, nomeFunc(fid)), /*#__PURE__*/React.createElement("td", null, dados.qtd), /*#__PURE__*/React.createElement("td", null, formatMoeda(dados.total)))), Object.keys(porFuncionario).length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "3",
-    style: {
-      color: 'var(--texto-fraco)',
-      textAlign: 'center',
-      padding: 20
-    }
-  }, "Sem lançamentos nesse período."))))), /*#__PURE__*/React.createElement("h3", {
+  }, "⚠️ Este intervalo cruza o período fechado de ", formatarDataBr(sobreposto.inicio), " a ", formatarDataBr(sobreposto.fim), ". Use exatamente as datas do período para ver os valores fechados."), /*#__PURE__*/React.createElement(CartoesApuracao, {
+    res: res,
+    mostrarFaturamento: verTudo,
+    resumoLinhas: filtroEfetivo ? linhas : null
+  }), /*#__PURE__*/React.createElement(AvisosApuracao, {
+    res: res,
+    mostrarFaturamento: verTudo
+  }), /*#__PURE__*/React.createElement(TabelaApuracao, {
+    linhas: linhas,
+    fechamento: fechamento,
+    expandido: expandido,
+    aoExpandir: setExpandido
+  }), /*#__PURE__*/React.createElement("h3", {
     style: {
       marginBottom: 10
     }
-  }, "Lançamentos"), /*#__PURE__*/React.createElement("div", {
+  }, "Lançamentos do período"), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, filtradas.map(c => {
-    const st = statusComissaoOrcamento(orcamentoDe(c.orcamentoId));
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data ref."), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, lancPeriodo.map(c => {
+    const o = orcPorId[c.orcamentoId];
+    const st = statusComissaoOrcamento(o);
     return /*#__PURE__*/React.createElement("tr", {
       key: c.id
-    }, /*#__PURE__*/React.createElement("td", null, formatData(c.data)), /*#__PURE__*/React.createElement("td", null, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", null, numeroOrcamento(c.orcamentoId)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+    }, /*#__PURE__*/React.createElement("td", null, formatData(dataReferenciaOrcamento(o) || c.data)), /*#__PURE__*/React.createElement("td", null, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", null, o ? `#${o.numero}` : '-'), /*#__PURE__*/React.createElement("td", null, c.percentual !== undefined ? formatarPct(c.percentual) : '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 12,
         fontWeight: 700,
         color: st.cor
       }
     }, st.rotulo)), /*#__PURE__*/React.createElement("td", null, formatMoeda(c.valor)));
-  }), !carregando && filtradas.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: "5",
+  }), !carregando && lancPeriodo.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "6",
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
       padding: 20
     }
-  }, "Nenhum lançamento."))))), modalApuracaoAberto && /*#__PURE__*/React.createElement(ModalApuracao, {
+  }, "Nenhum lançamento neste período."))))), modalApuracao && /*#__PURE__*/React.createElement(ModalApuracao, {
+    usuario: usuario,
+    gerir: gerir,
     funcionarios: funcionarios,
     comissoes: comissoes,
     orcamentos: orcamentos,
-    aoFechar: () => setModalApuracaoAberto(false)
+    versoes: versoes,
+    fechamentos: fechamentos,
+    inicioInicial: inicio,
+    fimInicial: fim,
+    aoFechar: () => setModalApuracao(false),
+    aoGerarRelatorio: (tipo, r, fech) => setRelatorio({
+      tipo,
+      res: r,
+      fechamento: fech
+    })
+  }), relatorio && /*#__PURE__*/React.createElement(ModalRelatorioComissao, {
+    relatorio: relatorio,
+    usuario: usuario,
+    aoFechar: () => setRelatorio(null)
   }));
+}
+function ModalApuracao({
+  usuario,
+  gerir,
+  funcionarios,
+  comissoes,
+  orcamentos,
+  versoes,
+  fechamentos,
+  inicioInicial,
+  fimInicial,
+  aoFechar,
+  aoGerarRelatorio
+}) {
+  const [inicio, setInicio] = useState(inicioInicial);
+  const [fim, setFim] = useState(fimInicial);
+  const [registros, carregandoRegistros] = useRegistrosApuracao(inicio, fim);
+  const [expandido, setExpandido] = useState(null);
+  const [ajusteDe, setAjusteDe] = useState(null);
+  const [processando, setProcessando] = useState(false);
+  const fechamento = fechamentos.find(f => f.id === idFechamentoComissao(inicio, fim)) || null;
+  const versao = versaoRegrasVigente(versoes, inicio);
+  const regras = regrasVigentesEm(versoes, inicio);
+  const resVivo = calcularApuracaoComissao({
+    inicio,
+    fim,
+    regras,
+    funcionarios,
+    comissoes,
+    orcamentos,
+    registros
+  });
+  const res = fechamento ? fechamento.resultado : resVivo;
+  const editavel = gerir && !fechamento;
+  const tiposFalta = regras.faltas.tipos || [];
+  const regDe = fid => registros.find(r => r.funcionarioId === fid) || {};
+  // funcionários com lançamento + ativos (para poder lançar atraso/falta de quem ainda não tem lançamento)
+  const linhasTabela = res.linhas;
+  async function salvarRegistro(fid, dados) {
+    await db.collection('apuracaoRegistros').doc(`${inicio}_${fim}_${fid}`).set({
+      periodoInicio: inicio,
+      periodoFim: fim,
+      funcionarioId: fid,
+      ...dados
+    }, {
+      merge: true
+    });
+  }
+  async function salvarAtrasos(fid, valor, anterior) {
+    const n = Math.max(0, Math.floor(Number(valor) || 0));
+    if (n === anterior) return;
+    await salvarRegistro(fid, {
+      atrasos: n
+    });
+    await registrarHistoricoComissao({
+      tipo: 'ocorrencia',
+      descricao: `Atrasos de ${funcionarios.find(f => f.id === fid)?.nome} no período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
+      valorAnterior: String(anterior),
+      valorNovo: String(n)
+    }, usuario);
+  }
+  async function salvarFalta(fid, tipo, valor, anterior) {
+    const n = Math.max(0, Math.floor(Number(valor) || 0));
+    if (n === anterior) return;
+    const reg = regDe(fid);
+    const faltas = {
+      ...(reg.faltas || {})
+    };
+    if (!reg.faltas && reg.faltaNaoJustificada) faltas.nao_justificada = 1;
+    faltas[tipo.id] = n;
+    await salvarRegistro(fid, {
+      faltas,
+      faltaNaoJustificada: (faltas.nao_justificada || 0) > 0
+    });
+    await registrarHistoricoComissao({
+      tipo: 'ocorrencia',
+      descricao: `${tipo.nome} de ${funcionarios.find(f => f.id === fid)?.nome} no período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
+      valorAnterior: String(anterior),
+      valorNovo: String(n)
+    }, usuario);
+  }
+  async function fecharPeriodo() {
+    const cruzado = fechamentos.find(f => f.id !== idFechamentoComissao(inicio, fim) && f.inicio <= fim && inicio <= f.fim);
+    if (cruzado) {
+      alert(`Não dá para fechar: este intervalo cruza o período já fechado de ${formatarDataBr(cruzado.inicio)} a ${formatarDataBr(cruzado.fim)}.`);
+      return;
+    }
+    if (!confirm(`Fechar o período ${formatarDataBr(inicio)} a ${formatarDataBr(fim)}?\n\nTotal: ${formatMoeda(resVivo.totalFinal)} para ${resVivo.linhas.length} funcionário(s).\n\nDepois de fechado, os valores ficam congelados: mudanças de regras, percentuais ou lançamentos não alteram mais este período (só um recálculo autorizado).`)) return;
+    setProcessando(true);
+    await db.collection('comissaoFechamentos').doc(idFechamentoComissao(inicio, fim)).set({
+      inicio,
+      fim,
+      status: 'fechado',
+      resultado: resultadoParaGravar(resVivo),
+      versaoRegrasId: versao?.id || 'padrao',
+      fechadoPor: usuario.nome,
+      fechadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      pagamentos: {},
+      recalculos: []
+    });
+    await registrarHistoricoComissao({
+      tipo: 'fechamento',
+      descricao: `Fechou o período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
+      valorNovo: formatMoeda(resVivo.totalFinal)
+    }, usuario);
+    setProcessando(false);
+  }
+  async function recalcularPeriodo() {
+    const pagos = Object.values(fechamento.pagamentos || {}).filter(p => p.pago).length;
+    if (!confirm(`Recalcular o período fechado ${formatarDataBr(inicio)}–${formatarDataBr(fim)} com as regras, percentuais e lançamentos de agora?\n\nValor fechado: ${formatMoeda(fechamento.resultado.totalFinal)}\nValor recalculado: ${formatMoeda(resVivo.totalFinal)}`)) return;
+    if (pagos > 0 && !confirm(`Atenção: ${pagos} funcionário(s) já estão marcados como PAGOS neste período. Confirmar mesmo assim?`)) return;
+    setProcessando(true);
+    await db.collection('comissaoFechamentos').doc(fechamento.id).update({
+      resultado: resultadoParaGravar(resVivo),
+      versaoRegrasId: versao?.id || 'padrao',
+      recalculos: firebase.firestore.FieldValue.arrayUnion({
+        por: usuario.nome,
+        em: new Date().toISOString(),
+        totalAnterior: fechamento.resultado.totalFinal,
+        totalNovo: resVivo.totalFinal
+      })
+    });
+    await registrarHistoricoComissao({
+      tipo: 'recalculo',
+      descricao: `Recalculou o período fechado ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
+      valorAnterior: formatMoeda(fechamento.resultado.totalFinal),
+      valorNovo: formatMoeda(resVivo.totalFinal)
+    }, usuario);
+    setProcessando(false);
+  }
+  async function reabrirPeriodo() {
+    const pagos = Object.values(fechamento.pagamentos || {}).filter(p => p.pago).length;
+    if (!confirm(`Reabrir o período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}? Os valores voltam a ser calculados ao vivo e podem mudar.`)) return;
+    if (pagos > 0 && !confirm(`Atenção: ${pagos} funcionário(s) já foram marcados como PAGOS. Reabrir mesmo assim?`)) return;
+    setProcessando(true);
+    await db.collection('comissaoFechamentos').doc(fechamento.id).delete();
+    await registrarHistoricoComissao({
+      tipo: 'reabertura',
+      descricao: `Reabriu o período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
+      valorAnterior: formatMoeda(fechamento.resultado.totalFinal)
+    }, usuario);
+    setProcessando(false);
+  }
+  async function alternarPago(l) {
+    const pago = !fechamento.pagamentos?.[l.funcionarioId]?.pago;
+    if (!confirm(pago ? `Marcar ${formatMoeda(l.final)} de ${l.nome} como PAGO?` : `Desfazer o pagamento de ${l.nome}?`)) return;
+    const pagamentos = {
+      ...(fechamento.pagamentos || {}),
+      [l.funcionarioId]: {
+        pago,
+        por: usuario.nome,
+        em: new Date().toISOString(),
+        valor: l.final
+      }
+    };
+    const todosPagos = fechamento.resultado.linhas.every(x => pagamentos[x.funcionarioId]?.pago);
+    await db.collection('comissaoFechamentos').doc(fechamento.id).update({
+      pagamentos,
+      status: todosPagos ? 'pago' : 'fechado'
+    });
+    await registrarHistoricoComissao({
+      tipo: 'pagamento',
+      descricao: `${pago ? 'Marcou como pago' : 'Desfez pagamento'}: ${l.nome} (${formatarDataBr(inicio)}–${formatarDataBr(fim)})`,
+      valorNovo: formatMoeda(l.final)
+    }, usuario);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 1000
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0
+    }
+  }, "Período de Apuração"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario pequeno",
+    onClick: () => aoGerarRelatorio('simples', res, fechamento)
+  }, "📄 Gerar relatório simples"), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario pequeno",
+    onClick: () => aoGerarRelatorio('detalhado', res, fechamento)
+  }, "📑 Gerar relatório detalhado"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      gap: 10,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement(SeletorPeriodo, {
+    inicio: inicio,
+    fim: fim,
+    aoMudar: (i, f) => {
+      setInicio(i);
+      setFim(f);
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Regras: ", versao ? `versão vigente desde ${formatarDataBr(versao.vigenciaInicio)}` : 'padrão (nenhuma alteração salva)')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      margin: '12px 0',
+      fontSize: 13
+    }
+  }, fechamento ? /*#__PURE__*/React.createElement("span", null, "🔒 ", /*#__PURE__*/React.createElement("strong", null, "Período fechado"), " por ", fechamento.fechadoPor, fechamento.status === 'pago' ? ' · todos pagos' : '', ". Valores congelados.", (fechamento.recalculos || []).length > 0 && ` Recalculado ${fechamento.recalculos.length}x.`) : /*#__PURE__*/React.createElement("span", null, "🟡 ", /*#__PURE__*/React.createElement("strong", null, "Período aberto"), " — valores provisórios, recalculados automaticamente a cada mudança.")), /*#__PURE__*/React.createElement(CartoesApuracao, {
+    res: res,
+    mostrarFaturamento: true
+  }), /*#__PURE__*/React.createElement(AvisosApuracao, {
+    res: res,
+    mostrarFaturamento: true
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 0,
+      overflowX: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Base"), /*#__PURE__*/React.createElement("th", null, "Atrasos"), tiposFalta.map(t => /*#__PURE__*/React.createElement("th", {
+    key: t.id
+  }, t.nome)), /*#__PURE__*/React.createElement("th", null, "Ajustes"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhasTabela.map(l => {
+    const reg = regDe(l.funcionarioId);
+    const st = situacaoPagamento(fechamento, l.funcionarioId);
+    return /*#__PURE__*/React.createElement(React.Fragment, {
+      key: l.funcionarioId + inicio + fim
+    }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", {
+      className: "linha-clicavel",
+      onClick: () => setExpandido(expandido === l.funcionarioId ? null : l.funcionarioId)
+    }, l.nome), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: 'var(--texto-fraco)'
+      }
+    }, l.percentualFicha > 0 ? `${formatarPct(l.percentualFicha)} na Equipe` : 'sem % na Equipe')), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.base)), /*#__PURE__*/React.createElement("td", {
+      style: {
+        width: 80
+      }
+    }, editavel ? /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      min: "0",
+      step: "1",
+      defaultValue: l.atrasos,
+      onBlur: e => salvarAtrasos(l.funcionarioId, e.target.value, l.atrasos)
+    }) : l.atrasos), tiposFalta.map(t => /*#__PURE__*/React.createElement("td", {
+      key: t.id,
+      style: {
+        width: 90
+      }
+    }, editavel ? /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      min: "0",
+      step: "1",
+      defaultValue: l.faltas[t.id] || 0,
+      onBlur: e => salvarFalta(l.funcionarioId, t, e.target.value, l.faltas[t.id] || 0)
+    }) : l.faltas[t.id] || 0)), /*#__PURE__*/React.createElement("td", {
+      style: {
+        whiteSpace: 'nowrap'
+      }
+    }, l.totalAjustes === 0 ? '—' : `${l.totalAjustes > 0 ? '+' : '−'} ${formatMoeda(Math.abs(l.totalAjustes))}`, editavel && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      style: {
+        marginLeft: 6
+      },
+      onClick: () => setAjusteDe(l)
+    }, "± Ajuste")), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, formatMoeda(l.final))), /*#__PURE__*/React.createElement("td", null, fechamento && gerir ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: `btn pequeno ${st.rotulo === 'Pago' ? 'verde' : 'secundario'}`,
+      onClick: () => alternarPago(l)
+    }, st.rotulo === 'Pago' ? '✓ Pago' : 'Marcar pago') : /*#__PURE__*/React.createElement("span", {
+      className: `badge ${st.badge}`
+    }, st.rotulo))), expandido === l.funcionarioId && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+      colSpan: 6 + tiposFalta.length
+    }, /*#__PURE__*/React.createElement(MemoriaCalculo, {
+      linha: l
+    }))));
+  }), !carregandoRegistros && linhasTabela.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: 6 + tiposFalta.length,
+    style: {
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 16
+    }
+  }, "Nenhuma comissão elegível neste período."))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 10
+    }
+  }, "Clique no nome para ver a memória de cálculo. Atrasos e faltas salvam ao sair do campo e ficam no histórico. Regras de atraso: ", formatarPct(regras.atrasos.reducaoPct), " por ocorrência (", regras.atrasos.modo === 'composto' ? 'acumulativo sobre o que sobra' : regras.atrasos.modo === 'simples' ? 'somado por ocorrência' : 'desconto único', ", máx. ", formatarPct(regras.atrasos.limitePct), ")."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginTop: 16,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, gerir && !fechamento && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: processando || !resVivo.linhas.length,
+    onClick: fecharPeriodo
+  }, "🔒 Fechar período"), gerir && fechamento && /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    disabled: processando,
+    onClick: recalcularPeriodo
+  }, "🔄 Recalcular período"), gerir && fechamento && /*#__PURE__*/React.createElement("button", {
+    className: "btn perigo",
+    disabled: processando,
+    onClick: reabrirPeriodo
+  }, "Reabrir período")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar")), ajusteDe && /*#__PURE__*/React.createElement(ModalAjusteComissao, {
+    linha: ajusteDe,
+    inicio: inicio,
+    fim: fim,
+    usuario: usuario,
+    registro: regDe(ajusteDe.funcionarioId),
+    aoFechar: () => setAjusteDe(null)
+  })));
+}
+function ModalAjusteComissao({
+  linha,
+  inicio,
+  fim,
+  usuario,
+  registro,
+  aoFechar
+}) {
+  const [valor, setValor] = useState('');
+  const [sinal, setSinal] = useState('-');
+  const [justificativa, setJustificativa] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const ajustes = (registro.ajustes || []).filter(a => !a.removido);
+  async function salvar(e) {
+    e.preventDefault();
+    const v = Number(String(valor).replace(',', '.'));
+    if (!(v > 0)) {
+      alert('Informe um valor maior que zero.');
+      return;
+    }
+    if (justificativa.trim().length < 5) {
+      alert('A justificativa é obrigatória.');
+      return;
+    }
+    setSalvando(true);
+    const ajuste = {
+      id: Math.random().toString(36).slice(2, 10),
+      valor: sinal === '-' ? -v : v,
+      justificativa: justificativa.trim(),
+      por: usuario.nome,
+      em: new Date().toISOString()
+    };
+    await db.collection('apuracaoRegistros').doc(`${inicio}_${fim}_${linha.funcionarioId}`).set({
+      periodoInicio: inicio,
+      periodoFim: fim,
+      funcionarioId: linha.funcionarioId,
+      ajustes: firebase.firestore.FieldValue.arrayUnion(ajuste)
+    }, {
+      merge: true
+    });
+    await registrarHistoricoComissao({
+      tipo: 'ajuste',
+      descricao: `Ajuste manual para ${linha.nome} (${formatarDataBr(inicio)}–${formatarDataBr(fim)}): ${ajuste.justificativa}`,
+      valorNovo: `${ajuste.valor >= 0 ? '+' : '−'} ${formatMoeda(Math.abs(ajuste.valor))}`
+    }, usuario);
+    setSalvando(false);
+    aoFechar();
+  }
+  async function remover(a) {
+    const motivo = prompt('Motivo para remover este ajuste:');
+    if (!motivo || !motivo.trim()) return;
+    const novos = (registro.ajustes || []).map(x => x.id === a.id ? {
+      ...x,
+      removido: true,
+      removidoPor: usuario.nome,
+      removidoEm: new Date().toISOString(),
+      motivoRemocao: motivo.trim()
+    } : x);
+    await db.collection('apuracaoRegistros').doc(`${inicio}_${fim}_${linha.funcionarioId}`).set({
+      ajustes: novos
+    }, {
+      merge: true
+    });
+    await registrarHistoricoComissao({
+      tipo: 'ajuste',
+      descricao: `Removeu ajuste de ${linha.nome} (${a.justificativa}) — motivo: ${motivo.trim()}`,
+      valorAnterior: formatMoeda(a.valor)
+    }, usuario);
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("form", {
+    className: "modal",
+    style: {
+      maxWidth: 460
+    },
+    onSubmit: salvar
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Ajuste manual — ", linha.nome), ajustes.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12,
+      fontSize: 12.5
+    }
+  }, ajustes.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.id,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 8,
+      padding: '4px 0',
+      borderBottom: '1px solid var(--borda)'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, Number(a.valor) >= 0 ? '+' : '−', " ", formatMoeda(Math.abs(a.valor)), " — ", a.justificativa, " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--texto-fraco)'
+    }
+  }, "(", a.por, ")")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: () => remover(a)
+  }, "Remover")))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Tipo"), /*#__PURE__*/React.createElement("select", {
+    value: sinal,
+    onChange: e => setSinal(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "-"
+  }, "Desconto (−)"), /*#__PURE__*/React.createElement("option", {
+    value: "+"
+  }, "Acréscimo (+)"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Valor (R$)"), /*#__PURE__*/React.createElement("input", {
+    value: valor,
+    onChange: e => setValor(e.target.value),
+    inputMode: "decimal",
+    placeholder: "0,00"
+  }))), /*#__PURE__*/React.createElement("label", null, "Justificativa (obrigatória)"), /*#__PURE__*/React.createElement("textarea", {
+    value: justificativa,
+    onChange: e => setJustificativa(e.target.value),
+    rows: "3"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "O ajuste fica registrado com seu nome, data e hora no histórico de comissão."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: salvando
+  }, salvando ? 'Salvando...' : 'Salvar ajuste'))));
+}
+
+// ======================= COMISSÃO — ABA REGRAS =======================
+const ROTULOS_REGRA = {
+  faixas: 'Faixas de produção',
+  contagemFaixa: 'Peças consideradas na faixa',
+  'faturamento.valorMinimo': 'Faturamento mínimo',
+  'faturamento.comparacao': 'Condição do faturamento',
+  'faturamento.acao': 'Se não atingir o faturamento',
+  'faturamento.reducaoPct': 'Redução por faturamento (%)',
+  'faturamento.fonte': 'Faturamento considerado',
+  'garantia.limitePct': 'Limite de garantia (%)',
+  'garantia.reducaoPct': 'Redução por garantia (%)',
+  'garantia.aplicarSobre': 'Redução de garantia aplicada sobre',
+  'garantia.formula': 'Cálculo do índice de garantia',
+  'atrasos.reducaoPct': 'Desconto por atraso (%)',
+  'atrasos.modo': 'Forma do desconto por atraso',
+  'atrasos.limitePct': 'Limite máximo de desconto por atraso (%)',
+  'faltas.tipos': 'Tipos de ausência',
+  'base.producao': 'Produção usada na faixa',
+  'base.ordem': 'Ordem de aplicação'
+};
+const OPCOES_REGRA = {
+  contagemFaixa: {
+    consertadas: 'Somente peças consertadas',
+    consertadasGarantia: 'Consertadas + garantia'
+  },
+  'faturamento.comparacao': {
+    maior: 'Libera só ACIMA do mínimo (igual ou inferior não libera)',
+    maiorIgual: 'Libera a partir do mínimo (igual ou acima)'
+  },
+  'faturamento.acao': {
+    zerar: 'Não libera a comissão (zera)',
+    reduzir: 'Aplica uma redução'
+  },
+  'faturamento.fonte': {
+    totalFaturado: 'Total dos orçamentos Entregue/Faturado do período',
+    somenteConserto: 'Somente o valor das peças consertadas faturadas'
+  },
+  'garantia.aplicarSobre': {
+    atual: 'Valor já ajustado pela faixa',
+    base: 'Comissão base (antes da faixa)'
+  },
+  'garantia.formula': {
+    sobreConsertadas: 'Peças em garantia ÷ peças consertadas',
+    sobreTotal: 'Peças em garantia ÷ (consertadas + garantia)'
+  },
+  'atrasos.modo': {
+    composto: 'Acumulativo (cada atraso desconta sobre o que sobrou)',
+    simples: 'Somado (nº de atrasos × %)',
+    unico: 'Desconto único, independente da quantidade'
+  },
+  'base.producao': {
+    equipe: 'Produção geral da equipe',
+    individual: 'Produção individual'
+  },
+  efeitoFalta: {
+    zerar: 'Zera a comissão do mês',
+    desconto: 'Desconto parcial por ocorrência',
+    nenhum: 'Não afeta'
+  }
+};
+function textoValorRegra(campo, v) {
+  if (campo === 'faixas') return (v || []).map(f => `${descreverFaixa(f)}: ${formatarPct(f.percentual)}${f.ativa === false ? ' (desativada)' : ''}`).join('; ');
+  if (campo === 'faltas.tipos') return (v || []).map(t => `${t.nome}: ${OPCOES_REGRA.efeitoFalta[t.efeito]}${t.efeito === 'desconto' ? ` ${formatarPct(t.descontoPct)}` : ''}`).join('; ');
+  if (campo === 'base.ordem') return (v || []).map(e => ETAPAS_COMISSAO[e]).join(' → ');
+  if (campo === 'faturamento.valorMinimo') return formatMoeda(v);
+  if (OPCOES_REGRA[campo]) return OPCOES_REGRA[campo][v] || String(v);
+  return String(v);
+}
+function diferencasRegras(antes, depois) {
+  const campos = Object.keys(ROTULOS_REGRA);
+  const pegar = (o, c) => c.split('.').reduce((x, k) => x?.[k], o);
+  return campos.filter(c => JSON.stringify(pegar(antes, c)) !== JSON.stringify(pegar(depois, c))).map(c => ({
+    campo: c,
+    rotulo: ROTULOS_REGRA[c],
+    antes: textoValorRegra(c, pegar(antes, c)),
+    depois: textoValorRegra(c, pegar(depois, c))
+  }));
+}
+function inicioPeriodoAbertoHoje() {
+  const h = new Date();
+  const d = h.getDate() >= 25 ? new Date(h.getFullYear(), h.getMonth(), 25) : new Date(h.getFullYear(), h.getMonth() - 1, 25);
+  return formatarDataInput(d);
+}
+function AbaRegrasComissao({
+  usuario,
+  gerir
+}) {
+  const [versoes] = useColecao('regrasComissao');
+  const [historico] = useColecao('comissaoHistorico', 'em');
+  const [fechamentos] = useColecao('comissaoFechamentos');
+  const [dataConsulta, setDataConsulta] = useState(formatarDataInput(new Date()));
+  const [editando, setEditando] = useState(null); // chave da seção
+  const [rascunho, setRascunho] = useState(null);
+  const [pedirVigencia, setPedirVigencia] = useState(false);
+  const [filtroHist, setFiltroHist] = useState('');
+  const versao = versaoRegrasVigente(versoes, dataConsulta);
+  const regras = regrasVigentesEm(versoes, dataConsulta);
+  function editar(secao) {
+    if (!gerir) return;
+    setEditando(secao);
+    setRascunho(clonarJson(regras));
+  }
+  function cancelar() {
+    setEditando(null);
+    setRascunho(null);
+  }
+  function validarRascunho() {
+    if (editando === 'faixas') {
+      const {
+        erros,
+        avisos
+      } = validarFaixas(rascunho.faixas);
+      if (erros.length) {
+        alert('Corrija as faixas:\n\n' + erros.join('\n'));
+        return false;
+      }
+      if (avisos.length && !confirm('Atenção:\n\n' + avisos.join('\n') + '\n\nSalvar assim mesmo?')) return false;
+    }
+    if (editando === 'faturamento' && !(Number(rascunho.faturamento.valorMinimo) >= 0)) {
+      alert('Informe o faturamento mínimo.');
+      return false;
+    }
+    const pcts = [rascunho.faturamento.reducaoPct, rascunho.garantia.limitePct, rascunho.garantia.reducaoPct, rascunho.atrasos.reducaoPct, rascunho.atrasos.limitePct, ...rascunho.faltas.tipos.map(t => t.descontoPct)];
+    if (pcts.some(p => isNaN(Number(p)) || Number(p) < 0 || Number(p) > 100)) {
+      alert('Os percentuais de redução e limite devem ficar entre 0 e 100.');
+      return false;
+    }
+    if (rascunho.faltas.tipos.some(t => !String(t.nome || '').trim())) {
+      alert('Dê um nome a cada tipo de ausência.');
+      return false;
+    }
+    return true;
+  }
+  function pedirSalvar() {
+    if (!validarRascunho()) return;
+    if (!diferencasRegras(regras, rascunho).length) {
+      alert('Nada foi alterado.');
+      return;
+    }
+    setPedirVigencia(true);
+  }
+  async function salvarComVigencia(vigenciaInicio) {
+    // Aplica a alteração desta seção sobre as regras vigentes NA DATA DE VIGÊNCIA escolhida.
+    const baseVig = regrasVigentesEm(versoes, vigenciaInicio);
+    const secoes = {
+      faixas: ['faixas', 'contagemFaixa'],
+      faturamento: ['faturamento'],
+      garantia: ['garantia'],
+      atrasosFaltas: ['atrasos', 'faltas'],
+      base: ['base']
+    }[editando];
+    const novas = clonarJson(baseVig);
+    secoes.forEach(k => {
+      novas[k] = clonarJson(rascunho[k]);
+    });
+    // normaliza números
+    novas.faixas = novas.faixas.map(f => ({
+      ...f,
+      min: Number(f.min) || 0,
+      max: f.max === '' || f.max === null || f.max === undefined ? null : Number(f.max),
+      percentual: Number(f.percentual) || 0,
+      ativa: f.ativa !== false
+    }));
+    ['valorMinimo', 'reducaoPct'].forEach(k => {
+      novas.faturamento[k] = Number(novas.faturamento[k]) || 0;
+    });
+    ['limitePct', 'reducaoPct'].forEach(k => {
+      novas.garantia[k] = Number(novas.garantia[k]) || 0;
+    });
+    ['reducaoPct', 'limitePct'].forEach(k => {
+      novas.atrasos[k] = Number(novas.atrasos[k]) || 0;
+    });
+    novas.faltas.tipos = novas.faltas.tipos.map(t => ({
+      ...t,
+      nome: t.nome.trim(),
+      descontoPct: Number(t.descontoPct) || 0
+    }));
+    const difs = diferencasRegras(baseVig, novas);
+    if (!difs.length) {
+      alert('A regra escolhida já está assim nessa data de vigência.');
+      setPedirVigencia(false);
+      return;
+    }
+    const existente = versoes.find(v => v.vigenciaInicio === vigenciaInicio);
+    const dados = {
+      vigenciaInicio,
+      regras: novas,
+      salvoPor: usuario.nome,
+      salvoEm: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (existente) await db.collection('regrasComissao').doc(existente.id).set(dados);else await db.collection('regrasComissao').add(dados);
+    for (const d of difs) {
+      await registrarHistoricoComissao({
+        tipo: 'regra',
+        descricao: `Regra alterada: ${d.rotulo}`,
+        campo: d.campo,
+        valorAnterior: d.antes,
+        valorNovo: d.depois,
+        vigenciaInicio
+      }, usuario);
+    }
+    setPedirVigencia(false);
+    cancelar();
+  }
+  const r = editando ? rascunho : regras;
+  const set = fn => setRascunho(prev => {
+    const c = clonarJson(prev);
+    fn(c);
+    return c;
+  });
+  const secao = (id, titulo, resumo, editor) => /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 10,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      fontSize: 16
+    }
+  }, titulo), gerir && editando !== id && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: !!editando,
+    onClick: () => editar(id)
+  }, "✏️ Editar"), editando === id && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: cancelar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: pedirSalvar
+  }, "Salvar"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, editando === id ? editor() : resumo()));
+  const linhaResumo = (rot, val) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      fontSize: 13.5,
+      padding: '3px 0'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--texto-fraco)',
+      minWidth: 260
+    }
+  }, rot), /*#__PURE__*/React.createElement("strong", null, val));
+  const seletor = (campo, valor, onChange, desabilitadas) => /*#__PURE__*/React.createElement("select", {
+    value: valor,
+    onChange: e => onChange(e.target.value)
+  }, Object.entries(OPCOES_REGRA[campo]).map(([k, t]) => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k,
+    disabled: (desabilitadas || []).includes(k)
+  }, t, (desabilitadas || []).includes(k) ? ' (indisponível)' : '')));
+  const histFiltrado = historico.filter(h => !filtroHist || h.tipo === filtroHist);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 14,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      gap: 12,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "Consultar regras vigentes em"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataConsulta,
+    onChange: e => {
+      cancelar();
+      setDataConsulta(e.target.value);
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13
+    }
+  }, versao ? /*#__PURE__*/React.createElement(React.Fragment, null, "Versão vigente desde ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(versao.vigenciaInicio)), versao.salvoPor ? ` · salva por ${versao.salvoPor}` : '') : /*#__PURE__*/React.createElement(React.Fragment, null, "Regras ", /*#__PURE__*/React.createElement("strong", null, "padrão"), " (nenhuma alteração salva até esta data)"), !gerir && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--texto-fraco)',
+      fontSize: 12,
+      marginTop: 4
+    }
+  }, "Somente o Master e administradores com permissão de edição em Comissão podem alterar as regras."))), secao('faixas', '1. Faixas de produção e bonificação', () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
+    style: {
+      maxWidth: 520
+    }
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Produção no período"), /*#__PURE__*/React.createElement("th", null, "Paga da comissão"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, r.faixas.map(f => /*#__PURE__*/React.createElement("tr", {
+    key: f.id
+  }, /*#__PURE__*/React.createElement("td", null, descreverFaixa(f)), /*#__PURE__*/React.createElement("td", null, formatarPct(f.percentual)), /*#__PURE__*/React.createElement("td", null, f.ativa === false ? 'Desativada' : 'Ativa'))))), linhaResumo('Peças consideradas', OPCOES_REGRA.contagemFaixa[r.contagemFaixa]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)'
+    }
+  }, "O percentual indica quanto da comissão é pago: 70% = recebe 0,7× a comissão; 150% = 1,5×.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "De (peças)"), /*#__PURE__*/React.createElement("th", null, "Até (vazio = sem limite)"), /*#__PURE__*/React.createElement("th", null, "Paga (%)"), /*#__PURE__*/React.createElement("th", null, "Ativa"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faixas.map((f, i) => /*#__PURE__*/React.createElement("tr", {
+    key: f.id
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    value: f.min,
+    onChange: e => set(c => {
+      c.faixas[i].min = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    value: f.max === null ? '' : f.max,
+    onChange: e => set(c => {
+      c.faixas[i].max = e.target.value === '' ? null : e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    step: "0.01",
+    value: f.percentual,
+    onChange: e => set(c => {
+      c.faixas[i].percentual = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("td", {
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: f.ativa !== false,
+    onChange: e => set(c => {
+      c.faixas[i].ativa = e.target.checked;
+    })
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: () => set(c => {
+      c.faixas.splice(i, 1);
+    })
+  }, "×")))))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 8
+    },
+    onClick: () => set(c => {
+      const ult = c.faixas[c.faixas.length - 1];
+      c.faixas.push({
+        id: 'f' + Date.now(),
+        min: ult && ult.max !== null ? Number(ult.max) + 1 : 0,
+        max: null,
+        percentual: 100,
+        ativa: true
+      });
+    })
+  }, "+ Nova faixa"), /*#__PURE__*/React.createElement("label", null, "Peças consideradas para definir a faixa"), seletor('contagemFaixa', r.contagemFaixa, v => set(c => {
+    c.contagemFaixa = v;
+  })))), secao('faturamento', '2. Faturamento mínimo', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Faturamento mínimo', formatMoeda(r.faturamento.valorMinimo)), linhaResumo('Condição', OPCOES_REGRA['faturamento.comparacao'][r.faturamento.comparacao]), linhaResumo('Se não atingir', r.faturamento.acao === 'reduzir' ? `Redução de ${formatarPct(r.faturamento.reducaoPct)}` : OPCOES_REGRA['faturamento.acao'].zerar), linhaResumo('Faturamento considerado', OPCOES_REGRA['faturamento.fonte'][r.faturamento.fonte])), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Faturamento mínimo (R$)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    step: "0.01",
+    value: r.faturamento.valorMinimo,
+    onChange: e => set(c => {
+      c.faturamento.valorMinimo = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Condição de comparação"), seletor('faturamento.comparacao', r.faturamento.comparacao, v => set(c => {
+    c.faturamento.comparacao = v;
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Se não atingir"), seletor('faturamento.acao', r.faturamento.acao, v => set(c => {
+    c.faturamento.acao = v;
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Redução (%) — se escolher \"redução\""), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    max: "100",
+    value: r.faturamento.reducaoPct,
+    disabled: r.faturamento.acao !== 'reduzir',
+    onChange: e => set(c => {
+      c.faturamento.reducaoPct = e.target.value;
+    })
+  }))), /*#__PURE__*/React.createElement("label", null, "Faturamento considerado"), seletor('faturamento.fonte', r.faturamento.fonte, v => set(c => {
+    c.faturamento.fonte = v;
+  })))), secao('garantia', '3. Percentual de garantia', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Limite de garantia', formatarPct(r.garantia.limitePct)), linhaResumo('Redução se passar do limite', formatarPct(r.garantia.reducaoPct)), linhaResumo('Redução aplicada sobre', OPCOES_REGRA['garantia.aplicarSobre'][r.garantia.aplicarSobre]), linhaResumo('Cálculo do índice', OPCOES_REGRA['garantia.formula'][r.garantia.formula])), () => /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Limite de garantia (%)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    max: "100",
+    step: "0.1",
+    value: r.garantia.limitePct,
+    onChange: e => set(c => {
+      c.garantia.limitePct = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Redução se passar do limite (%)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    max: "100",
+    step: "0.1",
+    value: r.garantia.reducaoPct,
+    onChange: e => set(c => {
+      c.garantia.reducaoPct = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Redução aplicada sobre"), seletor('garantia.aplicarSobre', r.garantia.aplicarSobre, v => set(c => {
+    c.garantia.aplicarSobre = v;
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cálculo do índice de garantia"), seletor('garantia.formula', r.garantia.formula, v => set(c => {
+    c.garantia.formula = v;
+  }))))), secao('atrasosFaltas', '4. Atrasos e faltas', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Desconto por atraso', formatarPct(r.atrasos.reducaoPct)), linhaResumo('Forma do desconto', OPCOES_REGRA['atrasos.modo'][r.atrasos.modo]), linhaResumo('Limite máximo de desconto por atrasos', formatarPct(r.atrasos.limitePct)), r.faltas.tipos.map(t => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: t.id
+  }, linhaResumo(t.nome, OPCOES_REGRA.efeitoFalta[t.efeito] + (t.efeito === 'desconto' ? ` (${formatarPct(t.descontoPct)} por ocorrência)` : '')))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)'
+    }
+  }, "A quantidade de atrasos e faltas de cada funcionário é lançada no Período de Apuração.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Desconto por atraso (%)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    max: "100",
+    value: r.atrasos.reducaoPct,
+    onChange: e => set(c => {
+      c.atrasos.reducaoPct = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Limite máximo de desconto (%)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    max: "100",
+    value: r.atrasos.limitePct,
+    onChange: e => set(c => {
+      c.atrasos.limitePct = e.target.value;
+    })
+  }))), /*#__PURE__*/React.createElement("label", null, "Forma do desconto"), seletor('atrasos.modo', r.atrasos.modo, v => set(c => {
+    c.atrasos.modo = v;
+  })), /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 14
+    }
+  }, "Tipos de ausência considerados"), /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Efeito"), /*#__PURE__*/React.createElement("th", null, "Desconto (%)"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faltas.tipos.map((t, i) => /*#__PURE__*/React.createElement("tr", {
+    key: t.id
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+    value: t.nome,
+    onChange: e => set(c => {
+      c.faltas.tipos[i].nome = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
+    value: t.efeito,
+    onChange: e => set(c => {
+      c.faltas.tipos[i].efeito = e.target.value;
+    })
+  }, Object.entries(OPCOES_REGRA.efeitoFalta).map(([k, v]) => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k
+  }, v)))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    max: "100",
+    value: t.descontoPct,
+    disabled: t.efeito !== 'desconto',
+    onChange: e => set(c => {
+      c.faltas.tipos[i].descontoPct = e.target.value;
+    })
+  })), /*#__PURE__*/React.createElement("td", null, !['nao_justificada', 'justificada'].includes(t.id) && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: () => set(c => {
+      c.faltas.tipos.splice(i, 1);
+    })
+  }, "×")))))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 8
+    },
+    onClick: () => set(c => {
+      c.faltas.tipos.push({
+        id: 't' + Date.now(),
+        nome: '',
+        efeito: 'desconto',
+        descontoPct: 10
+      });
+    })
+  }, "+ Tipo de ausência"))), secao('base', '5. Base de cálculo', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Comissão base', 'Soma dos lançamentos do funcionário: valor de cada orçamento Entregue/Faturado × % da ficha dele na Equipe (vigente na data de faturamento)'), linhaResumo('Produção usada na faixa', OPCOES_REGRA['base.producao'][r.base.producao]), linhaResumo('Ordem de aplicação', textoValorRegra('base.ordem', r.base.ordem) + ' → ajustes manuais'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "O percentual individual vem sempre da ficha do funcionário na aba Equipe — não existe um segundo cadastro de percentual aqui.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Produção usada para definir a faixa"), seletor('base.producao', r.base.producao, v => set(c => {
+    c.base.producao = v;
+  }), ['individual']), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 4
+    }
+  }, "\"Produção individual\" fica disponível quando o sistema passar a registrar qual técnico consertou cada peça."), /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 14
+    }
+  }, "Ordem de aplicação dos multiplicadores e descontos"), r.base.ordem.map((e, i) => /*#__PURE__*/React.createElement("div", {
+    key: e,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      padding: '4px 0'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 22,
+      color: 'var(--texto-fraco)'
+    }
+  }, i + 1, "."), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, ETAPAS_COMISSAO[e]), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: i === 0,
+    onClick: () => set(c => {
+      const o = c.base.ordem;
+      [o[i - 1], o[i]] = [o[i], o[i - 1]];
+    })
+  }, "↑"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: i === r.base.ordem.length - 1,
+    onClick: () => set(c => {
+      const o = c.base.ordem;
+      [o[i + 1], o[i]] = [o[i], o[i + 1]];
+    })
+  }, "↓"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 4
+    }
+  }, "Ajustes manuais são sempre aplicados por último."))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 10px',
+      fontSize: 16
+    }
+  }, "Versões das regras"), versoes.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Nenhuma versão salva — valem as regras padrão.") : /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Vigente a partir de"), /*#__PURE__*/React.createElement("th", null, "Salva por"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, versoes.slice().sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? 1 : -1).map(v => /*#__PURE__*/React.createElement("tr", {
+    key: v.id
+  }, /*#__PURE__*/React.createElement("td", null, formatarDataBr(v.vigenciaInicio)), /*#__PURE__*/React.createElement("td", null, v.salvoPor || '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      cancelar();
+      setDataConsulta(v.vigenciaInicio);
+    }
+  }, "Ver"))))))), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 10,
+      flexWrap: 'wrap',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      fontSize: 16
+    }
+  }, "6. Histórico de alterações"), /*#__PURE__*/React.createElement("select", {
+    value: filtroHist,
+    onChange: e => setFiltroHist(e.target.value),
+    style: {
+      maxWidth: 220
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Tudo"), /*#__PURE__*/React.createElement("option", {
+    value: "regra"
+  }, "Regras"), /*#__PURE__*/React.createElement("option", {
+    value: "percentual"
+  }, "Percentuais (Equipe)"), /*#__PURE__*/React.createElement("option", {
+    value: "ajuste"
+  }, "Ajustes manuais"), /*#__PURE__*/React.createElement("option", {
+    value: "ocorrencia"
+  }, "Atrasos/faltas"), /*#__PURE__*/React.createElement("option", {
+    value: "fechamento"
+  }, "Fechamentos"), /*#__PURE__*/React.createElement("option", {
+    value: "recalculo"
+  }, "Recálculos"), /*#__PURE__*/React.createElement("option", {
+    value: "reabertura"
+  }, "Reaberturas"), /*#__PURE__*/React.createElement("option", {
+    value: "pagamento"
+  }, "Pagamentos"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: 'auto',
+      maxHeight: 420,
+      overflowY: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data e hora"), /*#__PURE__*/React.createElement("th", null, "Usuário"), /*#__PURE__*/React.createElement("th", null, "Alteração"), /*#__PURE__*/React.createElement("th", null, "Anterior"), /*#__PURE__*/React.createElement("th", null, "Novo"), /*#__PURE__*/React.createElement("th", null, "Vigência"))), /*#__PURE__*/React.createElement("tbody", null, histFiltrado.map(h => /*#__PURE__*/React.createElement("tr", {
+    key: h.id
+  }, /*#__PURE__*/React.createElement("td", {
+    style: {
+      whiteSpace: 'nowrap'
+    }
+  }, h.em?.toDate ? h.em.toDate().toLocaleString('pt-BR') : '-'), /*#__PURE__*/React.createElement("td", null, h.usuario), /*#__PURE__*/React.createElement("td", null, h.descricao), /*#__PURE__*/React.createElement("td", null, h.valorAnterior || '—'), /*#__PURE__*/React.createElement("td", null, h.valorNovo || '—'), /*#__PURE__*/React.createElement("td", null, h.vigenciaInicio ? formatarDataBr(h.vigenciaInicio) : '—'))), histFiltrado.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "6",
+    style: {
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 16
+    }
+  }, "Nenhum registro.")))))), pedirVigencia && /*#__PURE__*/React.createElement(ModalVigenciaRegra, {
+    versoes: versoes,
+    fechamentos: fechamentos,
+    difs: diferencasRegras(regras, rascunho),
+    aoConfirmar: salvarComVigencia,
+    aoFechar: () => setPedirVigencia(false)
+  }));
+}
+function ModalVigenciaRegra({
+  versoes,
+  fechamentos,
+  difs,
+  aoConfirmar,
+  aoFechar
+}) {
+  const atual = inicioPeriodoAbertoHoje();
+  const proximo = periodoApuracaoDeslocado(atual, 1).inicioStr;
+  const [data, setData] = useState(atual);
+  const [salvando, setSalvando] = useState(false);
+  const posteriores = versoes.filter(v => v.vigenciaInicio > data).sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? -1 : 1);
+  const fechadosAfetados = fechamentos.filter(f => f.fim >= data);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 520
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "A partir de quando vale esta alteração?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      marginBottom: 10
+    }
+  }, difs.map(d => /*#__PURE__*/React.createElement("div", {
+    key: d.campo,
+    style: {
+      padding: '3px 0'
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, d.rotulo, ":"), " ", d.antes, " → ", /*#__PURE__*/React.createElement("strong", null, d.depois)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap',
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `btn pequeno ${data === atual ? '' : 'secundario'}`,
+    onClick: () => setData(atual)
+  }, "Período atual (", formatarDataBr(atual), ")"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `btn pequeno ${data === proximo ? '' : 'secundario'}`,
+    onClick: () => setData(proximo)
+  }, "Próximo período (", formatarDataBr(proximo), ")")), /*#__PURE__*/React.createElement("label", null, "Início da vigência"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: data,
+    onChange: e => setData(e.target.value)
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 8
+    }
+  }, "A regra vale para os períodos que começam a partir dessa data. Períodos anteriores continuam com as regras que valiam na época.", fechadosAfetados.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--laranja-escuro)',
+      marginTop: 4
+    }
+  }, "Períodos já fechados não mudam — só com um recálculo autorizado no Período de Apuração."), posteriores.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--laranja-escuro)',
+      marginTop: 4
+    }
+  }, "Já existe uma versão a partir de ", formatarDataBr(posteriores[0].vigenciaInicio), ": esta alteração vale só até lá.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando || !data,
+    onClick: async () => {
+      setSalvando(true);
+      await aoConfirmar(data);
+      setSalvando(false);
+    }
+  }, salvando ? 'Salvando...' : 'Salvar regra'))));
+}
+
+// ======================= COMISSÃO — RELATÓRIOS =======================
+function metaRelatorioComissao(relatorio, usuario) {
+  const f = relatorio.fechamento;
+  return {
+    tipo: relatorio.tipo,
+    titulo: relatorio.tipo === 'detalhado' ? 'Relatório Detalhado de Comissões' : 'Relatório de Comissões',
+    periodo: `${formatarDataBr(relatorio.res.inicio)} a ${formatarDataBr(relatorio.res.fim)}`,
+    situacao: f ? f.status === 'pago' ? 'Período fechado e pago' : `Período fechado por ${f.fechadoPor}` : 'Período em aberto — valores provisórios',
+    geradoEm: new Date().toLocaleString('pt-BR'),
+    geradoPor: usuario?.nome || '-'
+  };
+}
+function escHtml(s) {
+  return String(s ?? '').replace(/[&<>"]/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;'
+  })[c]);
+}
+function sinalMoeda(v) {
+  return v === 0 ? '—' : `${v > 0 ? '+' : '−'} ${formatMoeda(Math.abs(v))}`;
+}
+function htmlRelatorioComissao(res, meta) {
+  const linhas = res.linhas;
+  const total = linhas.reduce((s, l) => s + l.final, 0);
+  const eq = `Peças consideradas: <b>${res.qtdFaixa}</b> · Faixa: <b>${escHtml(res.faixa ? `${descreverFaixa(res.faixa)} (${formatarPct(res.pctFaixa)})` : 'nenhuma')}</b> · Faturamento: <b>${formatMoeda(res.faturamento)}</b> (${res.faturamentoOk ? 'mínimo atingido' : 'mínimo NÃO atingido'}) · Garantia: <b>${formatarPct(res.pctGarantia.toFixed(1))}</b>${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
+  let corpo = '';
+  if (meta.tipo === 'simples') {
+    corpo = `<table><thead><tr><th>Funcionário</th><th>Peças</th><th>% (Equipe)</th><th>Comissão base</th><th>Faixa</th><th>Descontos</th><th>Ajustes</th><th>Valor final</th></tr></thead><tbody>${linhas.map(l => `<tr><td>${escHtml(l.nome)}</td><td>${l.pecas}</td><td>${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}</td><td>${formatMoeda(l.base)}</td><td>${sinalMoeda(l.deltaFaixa)}</td><td>${sinalMoeda(l.descontos)}</td><td>${sinalMoeda(l.totalAjustes)}</td><td><b>${formatMoeda(l.final)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="7"><b>Total geral das comissões</b></td><td><b>${formatMoeda(total)}</b></td></tr></tfoot></table>`;
+  } else {
+    corpo = linhas.map(l => `<div class="func"><h3>${escHtml(l.nome)}</h3>
+      <div class="kv">Período: <b>${meta.periodo}</b> · Peças consideradas: <b>${l.pecas}</b> · Faturamento do período: <b>${formatMoeda(res.faturamento)}</b> · Faixa: <b>${escHtml(res.faixa ? descreverFaixa(res.faixa) : 'nenhuma')} (${formatarPct(res.pctFaixa)})</b> · % na Equipe: <b>${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}</b></div>
+      <table><tbody><tr><td>Comissão base</td><td>${formatMoeda(l.base)}</td></tr>${l.passos.map(p => `<tr><td>${escHtml(p.nome)}: ${escHtml(p.descricao)}</td><td>${sinalMoeda(p.delta)}</td></tr>`).join('')}${l.ajustes.map(a => `<tr><td>Ajuste manual: ${escHtml(a.justificativa)} (${escHtml(a.por)})</td><td>${sinalMoeda(Number(a.valor) || 0)}</td></tr>`).join('')}<tr><td><b>Valor final</b></td><td><b>${formatMoeda(l.final)}</b></td></tr></tbody></table>
+      ${l.lancamentos.length ? `<div class="sub">Lançamentos</div><table><thead><tr><th>Data</th><th>Orçamento</th><th>Peças</th><th>Valor do orçamento</th><th>%</th><th>Comissão</th></tr></thead><tbody>${l.lancamentos.map(x => `<tr><td>${formatarDataBr(x.data)}</td><td>#${escHtml(x.numero)}</td><td>${x.pecas}</td><td>${formatMoeda(x.valorOrcamento)}</td><td>${x.percentual !== null ? formatarPct(x.percentual) : '-'}</td><td>${formatMoeda(x.valor)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`).join('') + `<div class="total">Total geral das comissões: ${formatMoeda(total)}</div>`;
+  }
+  return `<div class="rel"><div class="cab"><div><div class="emp">TECNOPEMT</div><h2>${meta.titulo}</h2></div><div class="dir">Período: <b>${meta.periodo}</b><br>${escHtml(meta.situacao)}<br>Gerado em ${meta.geradoEm} por ${escHtml(meta.geradoPor)}</div></div><div class="eq">${eq}</div>${linhas.length ? corpo : '<p>Nenhuma comissão elegível no período.</p>'}</div>`;
+}
+const CSS_RELATORIO_COMISSAO = `.rel{font-family:Helvetica,Arial,sans-serif;color:#282221;font-size:12.5px}.rel .cab{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #E97307;padding-bottom:8px;margin-bottom:10px}.rel .emp{font-weight:800;letter-spacing:1px;color:#E97307}.rel h2{margin:2px 0 0;font-size:17px}.rel .dir{text-align:right;font-size:11.5px;color:#5a5250}.rel .eq{background:#f6f1ef;border-radius:6px;padding:8px 10px;margin-bottom:12px;font-size:12px}.rel table{width:100%;border-collapse:collapse;margin:6px 0}.rel th,.rel td{border-bottom:1px solid #e6dfdd;padding:5px 6px;text-align:left}.rel th{font-size:11px;color:#6b605e;text-transform:uppercase}.rel tfoot td{border-top:2px solid #453B3C}.rel .func{margin-bottom:16px;page-break-inside:avoid}.rel .func h3{margin:10px 0 4px;font-size:14px}.rel .kv{font-size:11.5px;color:#5a5250}.rel .sub{font-weight:700;font-size:11.5px;margin-top:6px}.rel .total{font-size:15px;font-weight:800;text-align:right;border-top:2px solid #453B3C;padding-top:8px}`;
+function imprimirRelatorioComissao(html, titulo) {
+  const w = window.open('', '_blank');
+  if (!w) {
+    alert('O navegador bloqueou a janela de impressão. Libere pop-ups para este site.');
+    return;
+  }
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>${CSS_RELATORIO_COMISSAO}@page{margin:14mm}</style></head><body>${html}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 300);
+}
+// A fonte padrão do jsPDF (Helvetica/WinAnsi) não tem "−", "→" e similares.
+function textoPdf(s) {
+  return String(s ?? '').replace(/\u2212/g, '-').replace(/\u2192/g, '>').replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"').replace(/[^\x00-\xFF\u2013\u2014\u2022\u20AC]/g, '');
+}
+async function gerarPdfRelatorioComissao(res, meta) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const textoOriginal = doc.text.bind(doc);
+  doc.text = (t, ...resto) => textoOriginal(Array.isArray(t) ? t.map(textoPdf) : textoPdf(t), ...resto);
+  const splitOriginal = doc.splitTextToSize.bind(doc);
+  doc.splitTextToSize = (t, ...resto) => splitOriginal(textoPdf(t), ...resto);
+  const mX = 14,
+    larg = 210 - mX * 2;
+  let y;
+  async function cabecalho(continuacao) {
+    await desenharTimbradoCabecalho(doc);
+    y = 58;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(40, 34, 33);
+    doc.text(meta.titulo.toUpperCase() + (continuacao ? ' (cont.)' : ''), mX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(90, 82, 80);
+    y += 6;
+    doc.text(`Período: ${meta.periodo}   ·   ${meta.situacao}`, mX, y);
+    y += 4.5;
+    doc.text(`Gerado em ${meta.geradoEm} por ${meta.geradoPor}`, mX, y);
+    y += 7;
+  }
+  async function garantir(h) {
+    if (y + h > 284) {
+      doc.addPage();
+      await cabecalho(true);
+    }
+  }
+  function linhaTabela(cols, larguras, opts = {}) {
+    doc.setFont('helvetica', opts.negrito ? 'bold' : 'normal');
+    doc.setFontSize(opts.tam || 8.8);
+    doc.setTextColor(...(opts.cor || [40, 34, 33]));
+    let x = mX,
+      altura = 0;
+    const partes = cols.map((c, i) => doc.splitTextToSize(String(c), larguras[i] - 2));
+    partes.forEach((p, i) => {
+      doc.text(p, x, y);
+      x += larguras[i];
+      altura = Math.max(altura, p.length);
+    });
+    y += Math.max(1, altura) * 3.9 + 1.6;
+    if (opts.linha) {
+      doc.setDrawColor(225, 217, 215);
+      doc.setLineWidth(0.2);
+      doc.line(mX, y - 2.6, mX + larg, y - 2.6);
+    }
+  }
+  await cabecalho(false);
+  const eq = `Peças consideradas: ${res.qtdFaixa}  ·  Faixa: ${res.faixa ? `${descreverFaixa(res.faixa)} (${formatarPct(res.pctFaixa)})` : 'nenhuma'}  ·  Faturamento: ${formatMoeda(res.faturamento)} (${res.faturamentoOk ? 'mínimo atingido' : 'mínimo não atingido'})  ·  Garantia: ${formatarPct(res.pctGarantia.toFixed(1))}${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
+  doc.setFontSize(8.8);
+  doc.setTextColor(69, 59, 60);
+  const eqL = doc.splitTextToSize(eq, larg);
+  doc.text(eqL, mX, y);
+  y += eqL.length * 4 + 4;
+  const total = res.linhas.reduce((s, l) => s + l.final, 0);
+  if (!res.linhas.length) {
+    doc.text('Nenhuma comissão elegível no período.', mX, y);
+    y += 6;
+  }
+  if (meta.tipo === 'simples' && res.linhas.length) {
+    const L = [36, 12, 17, 25, 23, 25, 20, 24];
+    linhaTabela(['FUNCIONÁRIO', 'PEÇAS', '% EQUIPE', 'BASE', 'FAIXA', 'DESCONTOS', 'AJUSTES', 'VALOR FINAL'], L, {
+      negrito: true,
+      tam: 7.2,
+      cor: [107, 96, 94],
+      linha: true
+    });
+    for (const l of res.linhas) {
+      await garantir(8);
+      linhaTabela([l.nome, l.pecas, l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não config.', formatMoeda(l.base), sinalMoeda(l.deltaFaixa), sinalMoeda(l.descontos), sinalMoeda(l.totalAjustes), formatMoeda(l.final)], L, {
+        linha: true,
+        tam: 8.2
+      });
+    }
+    await garantir(10);
+    y += 2;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11.5);
+    doc.setTextColor(40, 34, 33);
+    doc.text(`Total geral das comissões: ${formatMoeda(total)}`, mX + larg, y, {
+      align: 'right'
+    });
+    y += 6;
+  }
+  if (meta.tipo === 'detalhado') {
+    for (const l of res.linhas) {
+      await garantir(40);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11.5);
+      doc.setTextColor(40, 34, 33);
+      doc.text(l.nome, mX, y);
+      doc.setDrawColor(233, 115, 7);
+      doc.setLineWidth(0.4);
+      doc.line(mX, y + 1.6, mX + 14, y + 1.6);
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.6);
+      doc.setTextColor(90, 82, 80);
+      const info = doc.splitTextToSize(`Peças consideradas: ${l.pecas}  ·  Faturamento do período: ${formatMoeda(res.faturamento)}  ·  Faixa: ${res.faixa ? descreverFaixa(res.faixa) : 'nenhuma'} (${formatarPct(res.pctFaixa)})  ·  % na Equipe: ${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}`, larg);
+      doc.text(info, mX, y);
+      y += info.length * 3.9 + 2;
+      const L2 = [larg - 34, 34];
+      linhaTabela(['Comissão base', formatMoeda(l.base)], L2, {
+        linha: true
+      });
+      for (const p of l.passos) {
+        await garantir(9);
+        linhaTabela([`${p.nome}: ${p.descricao}`, sinalMoeda(p.delta)], L2, {
+          linha: true
+        });
+      }
+      for (const a of l.ajustes) {
+        await garantir(9);
+        linhaTabela([`Ajuste manual: ${a.justificativa} (${a.por})`, sinalMoeda(Number(a.valor) || 0)], L2, {
+          linha: true
+        });
+      }
+      linhaTabela(['VALOR FINAL', formatMoeda(l.final)], L2, {
+        negrito: true,
+        tam: 9.6
+      });
+      if (l.lancamentos.length) {
+        await garantir(12);
+        const L3 = [24, 26, 16, 38, 18, 38];
+        y += 1;
+        linhaTabela(['DATA', 'ORÇAMENTO', 'PEÇAS', 'VALOR DO ORÇAMENTO', '%', 'COMISSÃO'], L3, {
+          negrito: true,
+          tam: 7.4,
+          cor: [107, 96, 94],
+          linha: true
+        });
+        for (const x of l.lancamentos) {
+          await garantir(7);
+          linhaTabela([formatarDataBr(x.data), `#${x.numero}`, x.pecas, formatMoeda(x.valorOrcamento), x.percentual !== null ? formatarPct(x.percentual) : '-', formatMoeda(x.valor)], L3, {
+            tam: 8.2,
+            linha: true
+          });
+        }
+      }
+      y += 6;
+    }
+    await garantir(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(40, 34, 33);
+    doc.text(`Total geral das comissões: ${formatMoeda(total)}`, mX + larg, y, {
+      align: 'right'
+    });
+  }
+  doc.save(`${meta.titulo} - ${res.inicio} a ${res.fim}.pdf`);
+}
+function ModalRelatorioComissao({
+  relatorio,
+  usuario,
+  aoFechar
+}) {
+  const meta = metaRelatorioComissao(relatorio, usuario);
+  const html = htmlRelatorioComissao(relatorio.res, meta);
+  const [gerando, setGerando] = useState(false);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 900
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      flexWrap: 'wrap',
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => imprimirRelatorioComissao(html, meta.titulo)
+  }, "🖨️ Imprimir"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    disabled: gerando,
+    onClick: async () => {
+      setGerando(true);
+      await gerarPdfRelatorioComissao(relatorio.res, meta);
+      setGerando(false);
+    }
+  }, gerando ? 'Gerando...' : '⬇️ Exportar PDF'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: aoFechar
+  }, "Fechar")), /*#__PURE__*/React.createElement("style", null, CSS_RELATORIO_COMISSAO), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#fff',
+      borderRadius: 8,
+      padding: 14,
+      overflowX: 'auto'
+    },
+    dangerouslySetInnerHTML: {
+      __html: html
+    }
+  })));
 }
 
 // ======================= DASHBOARD =======================
@@ -9175,8 +11238,14 @@ function AbaFuncionarios({
 }
 function AbaDadosPessoaisFuncionario({
   funcionario,
-  podeEditar
+  podeEditar,
+  usuarioLogado
 }) {
+  // % de comissão: só Master ou administrador com permissão de edição em Comissão
+  // (o próprio funcionário não altera o seu percentual).
+  const podeEditarPercentual = podeEditar && podeGerirComissao(usuarioLogado);
+  const [vigenciaPct, setVigenciaPct] = useState(inicioPeriodoAbertoHoje());
+  const [recalculando, setRecalculando] = useState('');
   const [f, setF] = useState({
     nome: funcionario.nome || '',
     cpf: funcionario.cpf || '',
@@ -9215,11 +11284,70 @@ function AbaDadosPessoaisFuncionario({
     setBuscandoCep(false);
   }
   async function salvar() {
+    const pctAntigo = Number(funcionario.percentualComissao) || 0;
+    const pctNovo = Number(f.percentualComissao) || 0;
+    const mudouPct = pctNovo !== pctAntigo;
+    if (mudouPct && !podeEditarPercentual) {
+      alert('Você não tem permissão para alterar o % de comissão.');
+      return;
+    }
+    if (mudouPct && !vigenciaPct) {
+      alert('Informe a partir de quando o novo % de comissão vale.');
+      return;
+    }
+    if (mudouPct && !confirm(`Alterar o % de comissão de ${funcionario.nome} de ${formatarPct(pctAntigo)} para ${formatarPct(pctNovo)}, valendo a partir de ${formatarDataBr(vigenciaPct)}?\n\nOs lançamentos de orçamentos a partir dessa data serão recalculados. Períodos de comissão já fechados ou pagos não mudam.`)) return;
     setSalvando(true);
-    await db.collection('funcionarios').doc(funcionario.id).update({
+    const dados = {
       ...f,
-      percentualComissao: Number(f.percentualComissao) || 0
-    });
+      percentualComissao: pctNovo
+    };
+    if (mudouPct) {
+      let hist = (funcionario.historicoPercentual || []).slice();
+      if (!hist.length) hist.push({
+        percentual: pctAntigo,
+        vigenciaInicio: '2000-01-01',
+        alteradoPor: 'valor anterior ao histórico',
+        em: new Date().toISOString()
+      });
+      hist = hist.filter(h => h.vigenciaInicio !== vigenciaPct);
+      hist.push({
+        percentual: pctNovo,
+        vigenciaInicio: vigenciaPct,
+        alteradoPor: usuarioLogado?.nome || '-',
+        em: new Date().toISOString()
+      });
+      dados.historicoPercentual = hist;
+    }
+    await db.collection('funcionarios').doc(funcionario.id).update(dados);
+    if (mudouPct) {
+      await registrarHistoricoComissao({
+        tipo: 'percentual',
+        descricao: `% de comissão de ${funcionario.nome} (ficha da Equipe)`,
+        valorAnterior: formatarPct(pctAntigo),
+        valorNovo: formatarPct(pctNovo),
+        vigenciaInicio: vigenciaPct
+      }, usuarioLogado);
+      await registrarHistorico(funcionario.id, `${usuarioLogado?.nome || '-'} alterou o % de comissão de ${formatarPct(pctAntigo)} para ${formatarPct(pctNovo)} (vigência a partir de ${formatarDataBr(vigenciaPct)}) em ${new Date().toLocaleString('pt-BR')}.`);
+      // Recalcula os lançamentos dos orçamentos a partir da vigência (só períodos abertos).
+      setRecalculando('Recalculando lançamentos...');
+      const [orcSnap, funcSnap, fechamentos] = await Promise.all([db.collection('orcamentos').get(), db.collection('funcionarios').get(), carregarFechamentosComissao()]);
+      const funcs = funcSnap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
+      const alvos = orcSnap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })).filter(o => chaveDia(dataReferenciaOrcamento(o) || new Date()) >= vigenciaPct);
+      let feitos = 0,
+        mantidos = 0;
+      for (const o of alvos) {
+        const r = await recalcularLancamentosOrcamento(o, funcs, fechamentos);
+        if (r.recalculado) feitos++;else mantidos++;
+      }
+      setRecalculando('');
+      alert(`% de comissão atualizado. ${feitos} orçamento(s) recalculado(s)` + (mantidos ? `; ${mantidos} de período já fechado mantido(s) como estava(m).` : '.'));
+    }
     setSalvando(false);
   }
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -9289,8 +11417,29 @@ function AbaDadosPessoaisFuncionario({
     step: "0.01",
     value: f.percentualComissao,
     onChange: e => campo('percentualComissao', e.target.value),
-    disabled: !podeEditar
-  }), podeEditar && /*#__PURE__*/React.createElement("button", {
+    disabled: !podeEditarPercentual
+  }), Number(f.percentualComissao || 0) !== Number(funcionario.percentualComissao || 0) && podeEditarPercentual && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Novo % vale a partir de"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: vigenciaPct,
+    onChange: e => setVigenciaPct(e.target.value)
+  })), (funcionario.historicoPercentual || []).length > 1 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 4
+    }
+  }, "Vigências: ", funcionario.historicoPercentual.slice().sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? -1 : 1).map(h => `${h.vigenciaInicio === '2000-01-01' ? 'antes' : 'desde ' + formatarDataBr(h.vigenciaInicio)}: ${formatarPct(h.percentual)}`).join(' · ')), !podeEditarPercentual && podeEditar && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 4
+    }
+  }, "O % de comissão só pode ser alterado pelo Master ou por administrador com permissão em Comissão."), recalculando && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      marginTop: 6
+    }
+  }, recalculando), podeEditar && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     style: {
@@ -9554,9 +11703,14 @@ function ModalFuncionarioDetalhe({
       return;
     }
     setProcessando(true);
-    await db.collection('funcionarios').doc(funcionario.id).update({
+    const dadosStatus = {
       status: novoStatus
-    });
+    };
+    // Desligamento: a partir desta data o funcionário não recebe lançamentos de comissão novos;
+    // tudo que ele já tinha continua no histórico e nos períodos anteriores.
+    if (novoStatus === 'inativo') dadosStatus.dataInativacao = formatarDataInput(new Date());
+    if (novoStatus !== 'inativo' && funcionario.dataInativacao) dadosStatus.dataInativacao = firebase.firestore.FieldValue.delete();
+    await db.collection('funcionarios').doc(funcionario.id).update(dadosStatus);
     await registrarHistorico(funcionario.id, `${usuarioLogado.nome} ${textoHistorico} em ${new Date().toLocaleString('pt-BR')}.`);
     setProcessando(false);
   }
@@ -9665,7 +11819,8 @@ function ModalFuncionarioDetalhe({
     }
   }, aba === 'dados' && /*#__PURE__*/React.createElement(AbaDadosPessoaisFuncionario, {
     funcionario: funcionario,
-    podeEditar: ehVoceMesmo || podeGerenciar
+    podeEditar: ehVoceMesmo || podeGerenciar,
+    usuarioLogado: usuarioLogado
   }), aba === 'acesso' && /*#__PURE__*/React.createElement(AbaAcessoFuncionario, {
     funcionario: funcionario,
     alvoEhMaster: alvoEhMaster,
