@@ -7566,6 +7566,19 @@ function percentualVigente(f, data) {
   });
   return Number((atual || hist[0]).percentual) || 0;
 }
+// Elegibilidade para o módulo Comissão: SOMENTE quem tem % de comissão > 0 na ficha da Equipe.
+// 0%, vazio ou nulo = não participa (o cadastro na Equipe não muda). Respeita a vigência do %:
+// é elegível no período se o % vigente for > 0 em algum momento entre o início e o fim dele.
+function elegivelComissaoNoPeriodo(f, inicioStr, fimStr) {
+  if (!f) return false;
+  const inicio = new Date((inicioStr || fimStr) + 'T12:00:00');
+  const fim = new Date((fimStr || inicioStr) + 'T12:00:00');
+  if (percentualVigente(f, inicio) > 0 || percentualVigente(f, fim) > 0) return true;
+  return (f.historicoPercentual || []).some(h => h && Number(h.percentual) > 0 && h.vigenciaInicio >= inicioStr && h.vigenciaInicio <= fimStr);
+}
+function funcionariosElegiveisComissao(funcionarios, inicioStr, fimStr) {
+  return (funcionarios || []).filter(f => elegivelComissaoNoPeriodo(f, inicioStr, fimStr)).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+}
 // Inativado (desligado) não recebe lançamentos novos a partir da data de inativação.
 function funcionarioAtivoEm(f, data) {
   const inativo = f?.status === 'inativo' || f?.ativo === false;
@@ -7635,7 +7648,8 @@ function calcularApuracaoComissao({
   });
   const dataFim = new Date(fim + 'T12:00:00');
   const tiposFalta = regras.faltas.tipos || [];
-  const linhas = [...idsLinhas].map(fid => {
+  const idsElegiveis = new Set(funcionariosElegiveisComissao(funcionarios, inicio, fim).map(f => f.id));
+  const linhas = [...idsLinhas].filter(fid => idsElegiveis.has(fid)).map(fid => {
     const f = funcPorId[fid] || {
       id: fid,
       nome: '(funcionário removido)'
@@ -7771,7 +7785,6 @@ function calcularApuracaoComissao({
       final: Math.round(finalBruto * 100) / 100
     };
   }).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
-  const semPercentual = (funcionarios || []).filter(f => f.perfil !== 'master' && funcionarioAtivoEm(f, dataFim) && ['ativo', undefined].includes(f.status) && !(percentualVigente(f, dataFim) > 0)).map(f => f.nome);
   return {
     inicio,
     fim,
@@ -7788,7 +7801,6 @@ function calcularApuracaoComissao({
     pctFaixa,
     garantiaEstourada,
     linhas,
-    semPercentual,
     totalBase: linhas.reduce((s, l) => s + l.base, 0),
     totalFinal: Math.round(linhas.reduce((s, l) => s + l.final, 0) * 100) / 100
   };
@@ -8026,13 +8038,7 @@ function AvisosApuracao({
       color: 'var(--laranja-escuro)',
       marginBottom: 8
     }
-  }, "⚠️ Garantia de ", formatarPct(res.pctGarantia.toFixed(1)), " acima do limite de ", formatarPct(r.garantia.limitePct), " — redução de ", formatarPct(r.garantia.reducaoPct), "."), res.semPercentual.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--texto-fraco)',
-      marginBottom: 8
-    }
-  }, "ℹ️ Sem % de comissão na ficha da Equipe: ", res.semPercentual.join(', '), ". Se devem receber comissão, configure o percentual em Equipe."));
+  }, "⚠️ Garantia de ", formatarPct(res.pctGarantia.toFixed(1)), " acima do limite de ", formatarPct(r.garantia.limitePct), " — redução de ", formatarPct(r.garantia.reducaoPct), "."));
 }
 function MemoriaCalculo({
   linha,
@@ -8236,6 +8242,12 @@ function AnaliseComissao({
     registros
   }), [inicio, fim, JSON.stringify(regras), funcionarios, comissoes, orcamentos, registros]);
   const res = fechamento ? fechamento.resultado : resVivo;
+  // Só funcionários com % de comissão > 0 na Equipe participam da Comissão.
+  const elegiveis = funcionariosElegiveisComissao(funcionarios, inicio, fim);
+  const idsElegiveis = new Set(elegiveis.map(f => f.id));
+  useEffect(() => {
+    if (filtroFunc && escopo !== 'propria' && !idsElegiveis.has(filtroFunc)) setFiltroFunc('');
+  }, [inicio, fim, funcionarios]);
   const filtroEfetivo = escopo === 'propria' ? usuario.id : filtroFunc;
   const linhas = res.linhas.filter(l => !filtroEfetivo || l.funcionarioId === filtroEfetivo);
   const verTudo = escopo !== 'propria';
@@ -8245,7 +8257,7 @@ function AnaliseComissao({
     orcPorId[o.id] = o;
   });
   // Lançamentos dos orçamentos com data de referência no período (liberados + aguardando).
-  const lancPeriodo = comissoes.filter(c => (!filtroEfetivo || c.funcionarioId === filtroEfetivo) && dentroDoIntervalo(dataReferenciaOrcamento(orcPorId[c.orcamentoId]) || dataDe(c.data), inicio, fim));
+  const lancPeriodo = comissoes.filter(c => idsElegiveis.has(c.funcionarioId) && (!filtroEfetivo || c.funcionarioId === filtroEfetivo) && dentroDoIntervalo(dataReferenciaOrcamento(orcPorId[c.orcamentoId]) || dataDe(c.data), inicio, fim));
   const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
   function abrirRelatorio(tipo) {
     setRelatorio({
@@ -8313,7 +8325,7 @@ function AnaliseComissao({
     }
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "Todos os funcionários"), funcionarios.map(f => /*#__PURE__*/React.createElement("option", {
+  }, "Todos os funcionários"), elegiveis.map(f => /*#__PURE__*/React.createElement("option", {
     key: f.id,
     value: f.id
   }, f.nome, f.status === 'inativo' ? ' (desligado)' : ''))), /*#__PURE__*/React.createElement("div", {
@@ -8929,9 +8941,10 @@ function ModalOcorrencia({
   dataInicial,
   aoFechar
 }) {
-  const ativos = funcionarios.filter(f => funcionarioAtivoEm(f, new Date()) && !['recusado', 'pendente'].includes(f.status)).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
   const [fid, setFid] = useState(funcionarioInicial || '');
   const [data, setData] = useState(dataInicial || formatarDataInput(new Date()));
+  const perSel = data ? periodoDaData(data) : periodoApuracaoPadrao();
+  const ativos = funcionariosElegiveisComissao(funcionarios, perSel.inicioStr, perSel.fimStr).filter(f => funcionarioAtivoEm(f, new Date(data + 'T12:00:00')) && !['recusado', 'pendente'].includes(f.status));
   const [tipo, setTipo] = useState('atraso');
   const [previsto, setPrevisto] = useState(() => {
     try {
