@@ -148,12 +148,12 @@
   }
 
   /* ---- Telas de acesso (Login / Criar conta / Primeiro acesso) ---- */
-  .acesso{min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);background:linear-gradient(135deg,#0A1D33 0%,#0F2A47 55%,#12345A 100%);color:#fff;position:relative;overflow:hidden;}
-  .acesso-marca{position:relative;overflow:hidden;background:#0A1D33;clip-path:polygon(0 0,100% 0,88% 100%,0 100%);}
-  /* Foto ilustrativa de placa: suave e transparente, só como textura de fundo */
-  .acesso-marca::before{content:'';position:absolute;inset:0;background:url(icons/fundo-placa.jpg) 78% center/cover no-repeat;opacity:.72;}
-  /* Véu escuro atrás dos textos (mais forte à esquerda) para dar contraste */
-  .acesso-marca::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,20,36,.9) 0%,rgba(7,20,36,.78) 32%,rgba(7,20,36,.38) 62%,rgba(7,20,36,.12) 100%),linear-gradient(180deg,rgba(7,20,36,.35),rgba(7,20,36,0) 30%,rgba(7,20,36,0) 70%,rgba(7,20,36,.45));}
+  .acesso{min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);background:#0F2A47;color:#fff;position:relative;overflow:hidden;isolation:isolate;}
+  /* Um único fundo contínuo para a tela inteira (sem divisão): placa ao centro, dissolvendo nos dois lados */
+  .acesso::before{content:'';position:absolute;inset:0;z-index:-2;background:url(icons/fundo-placa.jpg) 46% center/cover no-repeat;opacity:.62;-webkit-mask-image:radial-gradient(ellipse 55% 85% at 46% 50%,#000 30%,rgba(0,0,0,.55) 62%,transparent 100%);mask-image:radial-gradient(ellipse 55% 85% at 46% 50%,#000 30%,rgba(0,0,0,.55) 62%,transparent 100%);animation:acessoAparece 1.2s ease both;}
+  /* Véu no mesmo azul-marinho do menu lateral: mais denso atrás dos textos (esq.) e do formulário (dir.) */
+  .acesso::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(11,33,56,.9) 0%,rgba(11,33,56,.74) 26%,rgba(15,42,71,.3) 48%,rgba(15,42,71,.42) 60%,rgba(15,42,71,.8) 78%,rgba(15,42,71,.9) 100%),radial-gradient(ellipse 60% 50% at 50% 0%,rgba(233,115,7,.07),transparent 70%),linear-gradient(180deg,rgba(9,28,48,.35),transparent 25%,transparent 75%,rgba(9,28,48,.45));}
+  .acesso-marca{position:relative;}
   .acesso-acento{position:absolute;z-index:3;fill:none;stroke:var(--laranja);stroke-width:2;opacity:.75;pointer-events:none;}
   .acesso-acento-1{top:0;left:0;width:200px;height:200px;}
   .acesso-acento-2{bottom:0;left:0;width:260px;height:260px;opacity:.55;}
@@ -174,17 +174,17 @@
   .acesso-destaques li div span{font-size:14px;color:#D3DEEB;text-shadow:0 1px 6px rgba(0,0,0,.45);}
   .acesso-rodape{font-size:12.5px;color:#9FB3CB;line-height:1.6;letter-spacing:.2px;}
   .acesso-painel{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:40px 6% 40px 2%;color:var(--texto);}
-  .acesso-card{width:100%;max-width:460px;background:#F8FAFC;border-radius:18px;padding:40px 40px 32px;box-shadow:0 24px 60px rgba(3,12,24,.45),0 2px 6px rgba(3,12,24,.2);border:1px solid rgba(255,255,255,.6);}
-  .acesso-painel .card{width:100% !important;max-width:460px;border-radius:18px;padding:32px;background:#F8FAFC;box-shadow:0 24px 60px rgba(3,12,24,.45),0 2px 6px rgba(3,12,24,.2);border:1px solid rgba(255,255,255,.6);}
+  .acesso-card{width:100%;max-width:460px;background:#FFFFFF;border-radius:18px;padding:40px 40px 32px;box-shadow:0 30px 70px rgba(4,14,28,.45),0 2px 8px rgba(4,14,28,.2);border:1px solid rgba(255,255,255,.08);}
+  .acesso-painel .card{width:100% !important;max-width:460px;border-radius:18px;padding:32px;background:#FFFFFF;box-shadow:0 30px 70px rgba(4,14,28,.45),0 2px 8px rgba(4,14,28,.2);border:1px solid rgba(255,255,255,.08);}
   .acesso-painel .card h2{color:#13253A;}
   .acesso-card-topo{text-align:center;margin-bottom:22px;}
   .acesso-card-logo{width:72px;height:72px;border-radius:18px;box-shadow:0 8px 20px rgba(15,42,71,.25);}
-  .acesso-card-topo h2{margin:14px 0 4px;font-size:27px;font-weight:800;color:#13253A;letter-spacing:-.3px;}
+  .acesso-card-topo h2{margin:14px 0 4px;font-size:27px;font-weight:800;color:#0F2A47;letter-spacing:-.3px;}
   .acesso-card-topo p{margin:0;font-size:14.5px;color:#617085;}
   .acesso-rotulo{font-size:13px;color:#3A4A5E;font-weight:600;margin:16px 0 6px;}
   .acesso-campo{position:relative;}
   .acesso-campo-icone{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#7D8DA1;display:flex;pointer-events:none;transition:color .15s ease;}
-  .acesso-campo input{height:52px;padding:0 14px 0 46px;border-radius:11px;border:1px solid #D3DCE7;background:#EEF3F9;color:#13253A;font-size:16px;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease;}
+  .acesso-campo input{height:52px;padding:0 14px 0 46px;border-radius:11px;border:1px solid #D8DDE3;background:#F3F5F7;color:#13253A;font-size:16px;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease;}
   .acesso-campo input::placeholder{color:#8C9AAC;}
   .acesso-campo input:focus{outline:none;border-color:var(--laranja);background:#fff;box-shadow:0 0 0 4px rgba(233,115,7,.16);}
   .acesso-campo:focus-within .acesso-campo-icone{color:var(--laranja);}
@@ -198,13 +198,13 @@
   .acesso-btn-entrar:active:not(:disabled){transform:translateY(1px) scale(.99);box-shadow:0 3px 8px rgba(233,115,7,.3);}
   .acesso-btn-entrar:disabled{opacity:.75;cursor:progress;}
   .acesso-btn-entrar:focus-visible,.acesso-btn-sec:focus-visible{outline:3px solid rgba(233,115,7,.45);outline-offset:2px;}
-  .acesso-btn-sec{margin-top:12px;width:100%;min-height:48px;padding:8px 12px;border-radius:11px;border:1px solid #D9E1EB;background:#EEF3F9;color:#13253A;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:9px;text-align:center;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;}
+  .acesso-btn-sec{margin-top:12px;width:100%;min-height:48px;padding:8px 12px;border-radius:11px;border:1px solid #DCE1E7;background:#F3F5F7;color:#0F2A47;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:9px;text-align:center;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;}
   .acesso-btn-sec svg{color:#51637A;flex-shrink:0;}
-  .acesso-btn-sec:active{background:#E4EBF3;}
+  .acesso-btn-sec:active{background:#E8ECF0;}
   .acesso-spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:acessoGiro .7s linear infinite;}
   @media (hover:hover){
-    .acesso-ver-senha:hover{background:#E2E9F2;color:#13253A;}
-    .acesso-campo input:hover:not(:focus){border-color:#B9C6D6;}
+    .acesso-ver-senha:hover{background:#E6EAEE;color:#13253A;}
+    .acesso-campo input:hover:not(:focus){border-color:#BCC4CE;}
     .acesso-btn-entrar:hover:not(:disabled){filter:brightness(1.05);box-shadow:0 12px 24px rgba(233,115,7,.4);transform:translateY(-1px);}
     .acesso-btn-entrar:hover:not(:disabled) svg{transform:translateX(3px);}
     .acesso-btn-sec:hover{background:#fff;border-color:#F0B98A;box-shadow:0 2px 8px rgba(15,42,71,.08);}
@@ -217,7 +217,6 @@
   .acesso-marca-conteudo>*{animation:acessoSobe .55s cubic-bezier(.2,.7,.2,1) both;}
   .acesso-marca-conteudo>*:nth-child(2){animation-delay:.07s;}
   .acesso-marca-conteudo>*:nth-child(3){animation-delay:.14s;}
-  .acesso-marca::before{animation:acessoAparece 1.2s ease both;}
   @media (prefers-reduced-motion:reduce){ .acesso *{animation:none !important;transition:none !important;} }
   /* Notebook com pouca altura */
   @media (max-height:720px) and (min-width:901px){
@@ -230,7 +229,8 @@
   @media (max-width:900px){
     .acesso{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
     .acesso-marca{clip-path:none;}
-    .acesso-marca::after{background:linear-gradient(180deg,rgba(7,20,36,.6),rgba(7,20,36,.85));}
+    .acesso::after{background:linear-gradient(180deg,rgba(11,33,56,.55),rgba(15,42,71,.88) 22%,rgba(15,42,71,.94));}
+    .acesso::before{background-position:50% top;background-size:auto 60%;opacity:.5;}
     .acesso-marca-conteudo{padding:22px 20px 18px;gap:0;flex-direction:row;align-items:center;justify-content:center;}
     .acesso-marca-conteudo>*:not(.acesso-logo){display:none;}
     .acesso-logo img{width:44px;height:44px;border-radius:12px;}
