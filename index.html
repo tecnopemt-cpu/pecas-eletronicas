@@ -3473,17 +3473,9 @@ function App() {
       color: '#fff',
       position: 'relative'
     }
-  }, "🔔", pendentesAniversario.length > 0 && /*#__PURE__*/React.createElement("span", {
-    style: {
-      position: 'absolute',
-      top: 3,
-      right: 5,
-      width: 8,
-      height: 8,
-      borderRadius: '50%',
-      background: 'var(--laranja)',
-      border: '1.5px solid var(--dark)'
-    }
+  }, "🔔", /*#__PURE__*/React.createElement(PontoNotificacoes, {
+    usuarioId: usuario.id,
+    extra: pendentesAniversario.length > 0
   })), menuNotificacoesAberto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     onClick: () => setMenuNotificacoesAberto(false),
     style: {
@@ -3501,7 +3493,8 @@ function App() {
       border: '1px solid var(--borda)',
       borderRadius: 10,
       boxShadow: '0 8px 24px rgba(0,0,0,.18)',
-      width: 270,
+      width: 320,
+      maxWidth: 'calc(100vw - 24px)',
       zIndex: 50,
       padding: 12
     }
@@ -3511,12 +3504,10 @@ function App() {
       fontSize: 13,
       marginBottom: 8
     }
-  }, "🔔 Notificações"), aniversariantesHoje.length === 0 && proximosAniversarios.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--texto-fraco)'
-    }
-  }, "Nenhuma notificação no momento.") : /*#__PURE__*/React.createElement("div", {
+  }, "🔔 Notificações"), /*#__PURE__*/React.createElement(NotificacoesPessoais, {
+    usuarioId: usuario.id,
+    temOutras: aniversariantesHoje.length > 0 || proximosAniversarios.length > 0
+  }), aniversariantesHoje.length === 0 && proximosAniversarios.length === 0 ? null : /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -7407,8 +7398,9 @@ const REGRAS_COMISSAO_PADRAO = {
   },
   atrasos: {
     reducaoPct: 20,
-    modo: 'composto',
-    // 'composto': 20% sobre o que sobrou a cada atraso | 'simples': 20% × nº de atrasos | 'unico': desconto único se houver atraso
+    // 'simples': cada OCORRÊNCIA de atraso reduz 20 pontos percentuais (1 = 20%, 2 = 40% ... 5 = 100%),
+    //            independente dos minutos atrasados | 'unico': desconto único se houver qualquer atraso
+    modo: 'simples',
     limitePct: 100
   },
   faltas: {
@@ -7456,6 +7448,8 @@ function normalizarRegras(r) {
   if (!Array.isArray(out.faixas) || !out.faixas.length) out.faixas = p.faixas;
   if (!Array.isArray(out.faltas.tipos)) out.faltas.tipos = p.faltas.tipos;
   if (!Array.isArray(out.base.ordem) || out.base.ordem.length !== 4) out.base.ordem = p.base.ordem;
+  // "Acumulativo sobre o saldo" não é a regra da empresa: qualquer versão salva assim passa a valer por ocorrência.
+  if (!['simples', 'unico'].includes(out.atrasos.modo)) out.atrasos.modo = 'simples';
   return out;
 }
 // Versão vigente numa data (YYYY-MM-DD): a mais recente com vigenciaInicio <= data.
@@ -7530,6 +7524,25 @@ function periodoApuracaoDeslocado(inicioStr, meses) {
   // período começa no dia 25: chave = mês em que ele TERMINA
   const fimMes = new Date(d.getFullYear(), d.getMonth() + 1 + meses, 1);
   return periodoApuracao(`${fimMes.getFullYear()}-${String(fimMes.getMonth() + 1).padStart(2, '0')}`);
+}
+function periodoDaData(dataStr) {
+  const d = new Date(dataStr + 'T12:00:00');
+  const fimMes = d.getDate() >= 25 ? new Date(d.getFullYear(), d.getMonth() + 1, 1) : new Date(d.getFullYear(), d.getMonth(), 1);
+  return periodoApuracao(`${fimMes.getFullYear()}-${String(fimMes.getMonth() + 1).padStart(2, '0')}`);
+}
+// Minutos entre o horário previsto e a chegada ("HH:MM"). Só informativo — não entra no cálculo.
+function minutosDeAtraso(previsto, chegada) {
+  if (!previsto || !chegada) return 0;
+  const [ph, pm] = previsto.split(':').map(Number),
+    [ch, cm] = chegada.split(':').map(Number);
+  return Math.max(0, ch * 60 + cm - (ph * 60 + pm));
+}
+function formatarMinutos(min) {
+  min = Math.max(0, Math.round(Number(min) || 0));
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60),
+    r = min % 60;
+  return r ? `${h} h ${r} min` : `${h} h`;
 }
 function formatarDataBr(str) {
   return str ? new Date(str + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
@@ -7615,7 +7628,7 @@ function calcularApuracaoComissao({
   (registros || []).forEach(r => {
     regPorFunc[r.funcionarioId] = r;
   });
-  const idsLinhas = new Set([...Object.keys(porFunc), ...(registros || []).filter(r => (r.ajustes || []).length).map(r => r.funcionarioId)]);
+  const idsLinhas = new Set([...Object.keys(porFunc), ...(registros || []).filter(r => (r.ajustes || []).some(a => !a.removido) || (r.ocorrencias || []).some(o => !o.removido) || Number(r.atrasos) > 0 || r.faltaNaoJustificada || Object.values(r.faltas || {}).some(n => Number(n) > 0)).map(r => r.funcionarioId)]);
   const funcPorId = {};
   (funcionarios || []).forEach(f => {
     funcPorId[f.id] = f;
@@ -7643,13 +7656,22 @@ function calcularApuracaoComissao({
     }).sort((a, b) => (a.data || '') < (b.data || '') ? -1 : 1);
     const base = lans.reduce((s, l) => s + l.valor, 0);
     const reg = regPorFunc[fid] || {};
-    const atrasos = Math.max(0, Number(reg.atrasos) || 0);
+    // Ocorrências (atraso/falta) registradas uma a uma. Contagens lançadas antes, sem
+    // horário (campo numérico antigo), continuam somando.
+    const ocorrencias = (reg.ocorrencias || []).filter(o => o && !o.removido).slice().sort((a, b) => (a.data || '') < (b.data || '') ? -1 : 1);
+    const ocAtraso = ocorrencias.filter(o => o.tipo === 'atraso');
+    const atrasosAntigos = Math.max(0, Math.floor(Number(reg.atrasos) || 0));
+    const atrasos = atrasosAntigos + ocAtraso.length;
+    const minutosAtraso = ocAtraso.reduce((s, o) => s + (Number(o.minutos) || 0), 0);
     const faltas = {};
     tiposFalta.forEach(t => {
-      faltas[t.id] = Math.max(0, Number(reg.faltas?.[t.id]) || 0);
+      faltas[t.id] = Math.max(0, Math.floor(Number(reg.faltas?.[t.id]) || 0)) + ocorrencias.filter(o => o.tipo === t.id).length;
     });
     // registro antigo (checkbox "falta não justificada")
     if (reg.faltaNaoJustificada && !reg.faltas && faltas.nao_justificada !== undefined) faltas.nao_justificada = Math.max(1, faltas.nao_justificada);
+    let pctReducaoAtrasos = 0,
+      descontoAtrasos = 0,
+      descontoFaltas = 0;
     let v = base;
     const passos = [];
     regras.base.ordem.forEach(etapa => {
@@ -7678,14 +7700,19 @@ function calcularApuracaoComissao({
         } else descricao = `Garantia ${formatarPct(pctGarantia.toFixed(1))} dentro do limite de ${formatarPct(lim)}`;
       } else if (etapa === 'atrasosFaltas') {
         const partes = [];
+        // Atraso: redução = nº de OCORRÊNCIAS × pontos percentuais (limitada), sobre o valor desta etapa.
+        // Os minutos atrasados não entram no cálculo.
         if (atrasos > 0) {
-          const r = (Number(regras.atrasos.reducaoPct) || 0) / 100;
-          let mult = regras.atrasos.modo === 'simples' ? Math.max(0, 1 - r * atrasos) : regras.atrasos.modo === 'unico' ? 1 - r : Math.pow(1 - r, atrasos);
-          const lim = (Number(regras.atrasos.limitePct) || 0) / 100;
-          const desc = Math.min(1 - mult, lim);
-          v = v * (1 - desc);
-          partes.push(`${atrasos} atraso(s): −${formatarPct((desc * 100).toFixed(1))}`);
+          const r = Number(regras.atrasos.reducaoPct) || 0;
+          const lim = Math.min(100, Number(regras.atrasos.limitePct) || 0);
+          pctReducaoAtrasos = Math.min(regras.atrasos.modo === 'unico' ? r : r * atrasos, lim);
+          const vAntes = v;
+          v = Math.max(0, v * (1 - pctReducaoAtrasos / 100));
+          descontoAtrasos = vAntes - v;
+          partes.push(regras.atrasos.modo === 'unico' ? `${atrasos} atraso(s): desconto único de ${formatarPct(pctReducaoAtrasos)}` : `${atrasos} atraso(s) × ${formatarPct(r).replace('%', '')} p.p. = ${formatarPct(pctReducaoAtrasos)} de redução${r * atrasos > lim ? ` (limite de ${formatarPct(lim)})` : ''}` + (minutosAtraso ? ` · ${formatarMinutos(minutosAtraso)} no total (só informativo)` : ''));
         }
+        // Falta: ocorrência (sem proporcional de horas), conforme o tipo configurado.
+        const vAntesFaltas = v;
         tiposFalta.forEach(t => {
           const n = faltas[t.id] || 0;
           if (!n) return;
@@ -7693,11 +7720,12 @@ function calcularApuracaoComissao({
             v = 0;
             partes.push(`${n} ${t.nome.toLowerCase()}: zera a comissão`);
           } else if (t.efeito === 'desconto') {
-            const d = (Number(t.descontoPct) || 0) / 100;
-            v = v * Math.pow(Math.max(0, 1 - d), n);
-            partes.push(`${n} ${t.nome.toLowerCase()}: −${formatarPct(t.descontoPct)} cada`);
+            const d = Math.min(100, (Number(t.descontoPct) || 0) * n);
+            v = Math.max(0, v * (1 - d / 100));
+            partes.push(`${n} ${t.nome.toLowerCase()} × ${formatarPct(t.descontoPct).replace('%', '')} p.p. = ${formatarPct(d)} de redução`);
           } else partes.push(`${n} ${t.nome.toLowerCase()}: sem efeito`);
         });
+        descontoFaltas = vAntesFaltas - v;
         descricao = partes.length ? partes.join(' · ') : 'Sem atrasos ou faltas';
       }
       passos.push({
@@ -7726,7 +7754,14 @@ function calcularApuracaoComissao({
       base,
       lancamentos: lans,
       atrasos,
+      atrasosAntigos,
+      minutosAtraso,
+      pctReducaoAtrasos,
+      descontoAtrasos,
       faltas,
+      qtdFaltas: Object.values(faltas).reduce((s, n) => s + n, 0),
+      descontoFaltas,
+      ocorrencias,
       passos,
       deltaFaixa,
       descontos,
@@ -8000,7 +8035,9 @@ function AvisosApuracao({
   }, "ℹ️ Sem % de comissão na ficha da Equipe: ", res.semPercentual.join(', '), ". Se devem receber comissão, configure o percentual em Equipe."));
 }
 function MemoriaCalculo({
-  linha
+  linha,
+  tiposFalta,
+  aoRemoverOcorrencia
 }) {
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8063,7 +8100,29 @@ function MemoriaCalculo({
     style: {
       color: 'var(--laranja)'
     }
-  }, formatMoeda(linha.final))), linha.lancamentos.length > 0 && /*#__PURE__*/React.createElement("table", {
+  }, formatMoeda(linha.final))), (linha.ocorrencias || []).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      marginTop: 12
+    }
+  }, "Ocorrências no período"), /*#__PURE__*/React.createElement("table", {
+    style: {
+      marginTop: 4,
+      fontSize: 12
+    }
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Previsto"), /*#__PURE__*/React.createElement("th", null, "Chegada"), /*#__PURE__*/React.createElement("th", null, "Atraso"), /*#__PURE__*/React.createElement("th", null, "Observação"), /*#__PURE__*/React.createElement("th", null, "Registrado por"), aoRemoverOcorrencia && /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, linha.ocorrencias.map(o => /*#__PURE__*/React.createElement("tr", {
+    key: o.id
+  }, /*#__PURE__*/React.createElement("td", null, formatarDataBr(o.data)), /*#__PURE__*/React.createElement("td", null, o.tipo === 'atraso' ? 'Atraso' : (tiposFalta || linha.tiposFalta || []).find(t => t.id === o.tipo)?.nome || o.nomeTipo || 'Falta'), /*#__PURE__*/React.createElement("td", null, o.previsto || '—'), /*#__PURE__*/React.createElement("td", null, o.chegada || '—'), /*#__PURE__*/React.createElement("td", null, o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '—'), /*#__PURE__*/React.createElement("td", null, o.obs || '—'), /*#__PURE__*/React.createElement("td", null, o.por), aoRemoverOcorrencia && /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: () => aoRemoverOcorrencia(o)
+  }, "Remover")))))), linha.atrasosAntigos > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 4
+    }
+  }, "+ ", linha.atrasosAntigos, " atraso(s) lançado(s) antes, sem horário.")), linha.lancamentos.length > 0 && /*#__PURE__*/React.createElement("table", {
     style: {
       marginTop: 10,
       fontSize: 12
@@ -8162,6 +8221,7 @@ function AnaliseComissao({
   const [filtroFunc, setFiltroFunc] = useState(escopo === 'propria' ? usuario.id : '');
   const [expandido, setExpandido] = useState(null);
   const [modalApuracao, setModalApuracao] = useState(false);
+  const [modalOcorrencia, setModalOcorrencia] = useState(false);
   const [relatorio, setRelatorio] = useState(null);
   const [registros] = useRegistrosApuracao(inicio, fim);
   const fechamento = fechamentos.find(f => f.id === idFechamentoComissao(inicio, fim)) || null;
@@ -8222,7 +8282,10 @@ function AnaliseComissao({
   }, "📄 Relatório simples"), verTudo && /*#__PURE__*/React.createElement("button", {
     className: "btn secundario",
     onClick: () => abrirRelatorio('detalhado')
-  }, "📑 Relatório detalhado"), escopo === 'administrar' && /*#__PURE__*/React.createElement("button", {
+  }, "📑 Relatório detalhado"), gerir && /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => setModalOcorrencia(true)
+  }, "⏱️ Registrar atraso/falta"), escopo === 'administrar' && /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: () => setModalApuracao(true)
   }, "📅 Período de Apuração"))), /*#__PURE__*/React.createElement("div", {
@@ -8335,6 +8398,13 @@ function AnaliseComissao({
       res: r,
       fechamento: fech
     })
+  }), modalOcorrencia && /*#__PURE__*/React.createElement(ModalOcorrencia, {
+    funcionarios: funcionarios,
+    usuario: usuario,
+    versoes: versoes,
+    fechamentos: fechamentos,
+    dataInicial: formatarDataInput(new Date()),
+    aoFechar: () => setModalOcorrencia(false)
   }), relatorio && /*#__PURE__*/React.createElement(ModalRelatorioComissao, {
     relatorio: relatorio,
     usuario: usuario,
@@ -8359,6 +8429,7 @@ function ModalApuracao({
   const [registros, carregandoRegistros] = useRegistrosApuracao(inicio, fim);
   const [expandido, setExpandido] = useState(null);
   const [ajusteDe, setAjusteDe] = useState(null);
+  const [ocorrenciaDe, setOcorrenciaDe] = useState(null); // { funcionarioId } ou {} (escolher na hora)
   const [processando, setProcessando] = useState(false);
   const fechamento = fechamentos.find(f => f.id === idFechamentoComissao(inicio, fim)) || null;
   const versao = versaoRegrasVigente(versoes, inicio);
@@ -8388,38 +8459,26 @@ function ModalApuracao({
       merge: true
     });
   }
-  async function salvarAtrasos(fid, valor, anterior) {
-    const n = Math.max(0, Math.floor(Number(valor) || 0));
-    if (n === anterior) return;
-    await salvarRegistro(fid, {
-      atrasos: n
+  async function removerOcorrencia(l, o) {
+    const motivo = prompt(`Remover ${o.tipo === 'atraso' ? 'o atraso' : 'a falta'} de ${l.nome} em ${formatarDataBr(o.data)}? Informe o motivo:`);
+    if (!motivo || !motivo.trim()) return;
+    const reg = regDe(l.funcionarioId);
+    const novas = (reg.ocorrencias || []).map(x => x.id === o.id ? {
+      ...x,
+      removido: true,
+      removidoPor: usuario.nome,
+      removidoEm: new Date().toISOString(),
+      motivoRemocao: motivo.trim()
+    } : x);
+    await salvarRegistro(l.funcionarioId, {
+      ocorrencias: novas
     });
+    const nome = o.tipo === 'atraso' ? 'Atraso' : tiposFalta.find(x => x.id === o.tipo)?.nome || 'Falta';
     await registrarHistoricoComissao({
       tipo: 'ocorrencia',
-      descricao: `Atrasos de ${funcionarios.find(f => f.id === fid)?.nome} no período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
-      valorAnterior: String(anterior),
-      valorNovo: String(n)
+      descricao: `Removeu ocorrência de ${l.nome}: ${nome} em ${formatarDataBr(o.data)} — motivo: ${motivo.trim()}`
     }, usuario);
-  }
-  async function salvarFalta(fid, tipo, valor, anterior) {
-    const n = Math.max(0, Math.floor(Number(valor) || 0));
-    if (n === anterior) return;
-    const reg = regDe(fid);
-    const faltas = {
-      ...(reg.faltas || {})
-    };
-    if (!reg.faltas && reg.faltaNaoJustificada) faltas.nao_justificada = 1;
-    faltas[tipo.id] = n;
-    await salvarRegistro(fid, {
-      faltas,
-      faltaNaoJustificada: (faltas.nao_justificada || 0) > 0
-    });
-    await registrarHistoricoComissao({
-      tipo: 'ocorrencia',
-      descricao: `${tipo.nome} de ${funcionarios.find(f => f.id === fid)?.nome} no período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
-      valorAnterior: String(anterior),
-      valorNovo: String(n)
-    }, usuario);
+    await notificarFuncionario(l.funcionarioId, `A ocorrência "${nome}" de ${formatarDataBr(o.data)} foi removida da sua apuração de comissão.`, 'ocorrencia');
   }
   async function fecharPeriodo() {
     const cruzado = fechamentos.find(f => f.id !== idFechamentoComissao(inicio, fim) && f.inicio <= fim && inicio <= f.fim);
@@ -8532,7 +8591,10 @@ function ModalApuracao({
       gap: 8,
       flexWrap: 'wrap'
     }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, editavel && /*#__PURE__*/React.createElement("button", {
+    className: "btn pequeno",
+    onClick: () => setOcorrenciaDe({})
+  }, "⏱️ Registrar atraso/falta"), /*#__PURE__*/React.createElement("button", {
     className: "btn secundario pequeno",
     onClick: () => aoGerarRelatorio('simples', res, fechamento)
   }, "📄 Gerar relatório simples"), /*#__PURE__*/React.createElement("button", {
@@ -8578,7 +8640,7 @@ function ModalApuracao({
     }
   }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Base"), /*#__PURE__*/React.createElement("th", null, "Atrasos"), tiposFalta.map(t => /*#__PURE__*/React.createElement("th", {
     key: t.id
-  }, t.nome)), /*#__PURE__*/React.createElement("th", null, "Ajustes"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhasTabela.map(l => {
+  }, t.nome)), /*#__PURE__*/React.createElement("th", null, "Redução"), /*#__PURE__*/React.createElement("th", null, "Ajustes"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhasTabela.map(l => {
     const reg = regDe(l.funcionarioId);
     const st = situacaoPagamento(fechamento, l.funcionarioId);
     return /*#__PURE__*/React.createElement(React.Fragment, {
@@ -8593,26 +8655,30 @@ function ModalApuracao({
       }
     }, l.percentualFicha > 0 ? `${formatarPct(l.percentualFicha)} na Equipe` : 'sem % na Equipe')), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.base)), /*#__PURE__*/React.createElement("td", {
       style: {
-        width: 80
+        whiteSpace: 'nowrap'
       }
-    }, editavel ? /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      min: "0",
-      step: "1",
-      defaultValue: l.atrasos,
-      onBlur: e => salvarAtrasos(l.funcionarioId, e.target.value, l.atrasos)
-    }) : l.atrasos), tiposFalta.map(t => /*#__PURE__*/React.createElement("td", {
-      key: t.id,
+    }, /*#__PURE__*/React.createElement("strong", null, l.atrasos), l.minutosAtraso > 0 && /*#__PURE__*/React.createElement("div", {
       style: {
-        width: 90
+        fontSize: 11,
+        color: 'var(--texto-fraco)'
       }
-    }, editavel ? /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      min: "0",
-      step: "1",
-      defaultValue: l.faltas[t.id] || 0,
-      onBlur: e => salvarFalta(l.funcionarioId, t, e.target.value, l.faltas[t.id] || 0)
-    }) : l.faltas[t.id] || 0)), /*#__PURE__*/React.createElement("td", {
+    }, formatarMinutos(l.minutosAtraso))), tiposFalta.map(t => /*#__PURE__*/React.createElement("td", {
+      key: t.id
+    }, /*#__PURE__*/React.createElement("strong", null, l.faltas[t.id] || 0))), /*#__PURE__*/React.createElement("td", {
+      style: {
+        whiteSpace: 'nowrap',
+        fontSize: 12.5
+      }
+    }, l.pctReducaoAtrasos > 0 && /*#__PURE__*/React.createElement("div", null, "Atrasos: −", formatarPct(l.pctReducaoAtrasos)), l.descontoFaltas > 0 && /*#__PURE__*/React.createElement("div", null, "Faltas: −", formatMoeda(l.descontoFaltas)), !l.pctReducaoAtrasos && !l.descontoFaltas && '—', editavel && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      style: {
+        marginTop: 4
+      },
+      onClick: () => setOcorrenciaDe({
+        funcionarioId: l.funcionarioId
+      })
+    }, "+ Ocorrência"))), /*#__PURE__*/React.createElement("td", {
       style: {
         whiteSpace: 'nowrap'
       }
@@ -8630,12 +8696,14 @@ function ModalApuracao({
     }, st.rotulo === 'Pago' ? '✓ Pago' : 'Marcar pago') : /*#__PURE__*/React.createElement("span", {
       className: `badge ${st.badge}`
     }, st.rotulo))), expandido === l.funcionarioId && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-      colSpan: 6 + tiposFalta.length
+      colSpan: 7 + tiposFalta.length
     }, /*#__PURE__*/React.createElement(MemoriaCalculo, {
-      linha: l
+      linha: l,
+      tiposFalta: tiposFalta,
+      aoRemoverOcorrencia: editavel ? o => removerOcorrencia(l, o) : null
     }))));
   }), !carregandoRegistros && linhasTabela.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: 6 + tiposFalta.length,
+    colSpan: 7 + tiposFalta.length,
     style: {
       color: 'var(--texto-fraco)',
       textAlign: 'center',
@@ -8647,7 +8715,7 @@ function ModalApuracao({
       color: 'var(--texto-fraco)',
       marginTop: 10
     }
-  }, "Clique no nome para ver a memória de cálculo. Atrasos e faltas salvam ao sair do campo e ficam no histórico. Regras de atraso: ", formatarPct(regras.atrasos.reducaoPct), " por ocorrência (", regras.atrasos.modo === 'composto' ? 'acumulativo sobre o que sobra' : regras.atrasos.modo === 'simples' ? 'somado por ocorrência' : 'desconto único', ", máx. ", formatarPct(regras.atrasos.limitePct), ")."), /*#__PURE__*/React.createElement("div", {
+  }, "Clique no nome para ver a memória de cálculo e as ocorrências. Regra de atraso: ", regras.atrasos.modo === 'unico' ? `desconto único de ${formatarPct(regras.atrasos.reducaoPct)} se houver atraso` : `cada ocorrência reduz ${formatarPct(regras.atrasos.reducaoPct).replace('%', '')} pontos percentuais (1 = ${formatarPct(regras.atrasos.reducaoPct)}, 2 = ${formatarPct(Math.min(regras.atrasos.limitePct, regras.atrasos.reducaoPct * 2))}…), até ${formatarPct(regras.atrasos.limitePct)}`, ". Os minutos de atraso são só informativos. Não é preciso fechar o período para registrar ocorrências."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -8677,7 +8745,15 @@ function ModalApuracao({
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
-  }, "Fechar")), ajusteDe && /*#__PURE__*/React.createElement(ModalAjusteComissao, {
+  }, "Fechar")), ocorrenciaDe && /*#__PURE__*/React.createElement(ModalOcorrencia, {
+    funcionarios: funcionarios,
+    usuario: usuario,
+    versoes: versoes,
+    fechamentos: fechamentos,
+    funcionarioInicial: ocorrenciaDe.funcionarioId,
+    dataInicial: inicio <= formatarDataInput(new Date()) && formatarDataInput(new Date()) <= fim ? formatarDataInput(new Date()) : fim,
+    aoFechar: () => setOcorrenciaDe(null)
+  }), ajusteDe && /*#__PURE__*/React.createElement(ModalAjusteComissao, {
     linha: ajusteDe,
     inicio: inicio,
     fim: fim,
@@ -8832,6 +8908,279 @@ function ModalAjusteComissao({
   }, salvando ? 'Salvando...' : 'Salvar ajuste'))));
 }
 
+// ---------- Ocorrências (atraso / falta) ----------
+// Notificação individual (aparece no 🔔 do funcionário).
+async function notificarFuncionario(funcionarioId, texto, tipo) {
+  if (!funcionarioId) return;
+  await db.collection('notificacoes').add({
+    funcionarioId,
+    texto,
+    tipo: tipo || 'geral',
+    lida: false,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+function ModalOcorrencia({
+  funcionarios,
+  usuario,
+  versoes,
+  fechamentos,
+  funcionarioInicial,
+  dataInicial,
+  aoFechar
+}) {
+  const ativos = funcionarios.filter(f => funcionarioAtivoEm(f, new Date()) && !['recusado', 'pendente'].includes(f.status)).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+  const [fid, setFid] = useState(funcionarioInicial || '');
+  const [data, setData] = useState(dataInicial || formatarDataInput(new Date()));
+  const [tipo, setTipo] = useState('atraso');
+  const [previsto, setPrevisto] = useState(() => {
+    try {
+      return localStorage.getItem('pecas_horario_previsto') || '08:00';
+    } catch (e) {
+      return '08:00';
+    }
+  });
+  const [chegada, setChegada] = useState('');
+  const [obs, setObs] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const per = data ? periodoDaData(data) : null;
+  const regras = regrasVigentesEm(versoes, per ? per.inicioStr : formatarDataInput(new Date()));
+  const tiposFalta = regras.faltas.tipos || [];
+  const minutos = tipo === 'atraso' ? minutosDeAtraso(previsto, chegada) : 0;
+  const fechado = per && fechamentos.find(f => f.inicio <= data && data <= f.fim);
+  async function salvar(e) {
+    e.preventDefault();
+    if (!fid) {
+      alert('Escolha o funcionário.');
+      return;
+    }
+    if (!data) {
+      alert('Informe a data.');
+      return;
+    }
+    if (tipo === 'atraso' && (!previsto || !chegada)) {
+      alert('Informe o horário previsto e o horário de chegada.');
+      return;
+    }
+    if (tipo === 'atraso' && minutos <= 0 && !confirm('O horário de chegada não é depois do previsto. Registrar o atraso mesmo assim?')) return;
+    if (fechado) {
+      alert(`O período de ${formatarDataBr(fechado.inicio)} a ${formatarDataBr(fechado.fim)} já está fechado. Reabra o período no Período de Apuração para registrar.`);
+      return;
+    }
+    setSalvando(true);
+    const f = funcionarios.find(x => x.id === fid);
+    const docId = `${per.inicioStr}_${per.fimStr}_${fid}`;
+    const ref = db.collection('apuracaoRegistros').doc(docId);
+    const snap = await ref.get();
+    const regAtual = snap.exists ? snap.data() : {};
+    const nomeTipo = tipo === 'atraso' ? 'Atraso' : tiposFalta.find(t => t.id === tipo)?.nome || 'Falta';
+    const oc = {
+      id: Math.random().toString(36).slice(2, 10),
+      tipo,
+      nomeTipo,
+      data,
+      previsto: tipo === 'atraso' ? previsto : '',
+      chegada: tipo === 'atraso' ? chegada : '',
+      minutos,
+      obs: obs.trim(),
+      por: usuario.nome,
+      em: new Date().toISOString()
+    };
+    await ref.set({
+      periodoInicio: per.inicioStr,
+      periodoFim: per.fimStr,
+      funcionarioId: fid,
+      ocorrencias: firebase.firestore.FieldValue.arrayUnion(oc)
+    }, {
+      merge: true
+    });
+    try {
+      localStorage.setItem('pecas_horario_previsto', previsto);
+    } catch (err) {}
+    // Totais depois desta ocorrência (para o histórico e a notificação)
+    const ocs = [...(regAtual.ocorrencias || []).filter(o => !o.removido), oc];
+    const nAtrasos = Math.floor(Number(regAtual.atrasos) || 0) + ocs.filter(o => o.tipo === 'atraso').length;
+    const r = Number(regras.atrasos.reducaoPct) || 0,
+      lim = Math.min(100, Number(regras.atrasos.limitePct) || 0);
+    const pct = Math.min(regras.atrasos.modo === 'unico' ? r : r * nAtrasos, lim);
+    const detalhe = tipo === 'atraso' ? `Atraso em ${formatarDataBr(data)} (previsto ${previsto}, chegada ${chegada} — ${formatarMinutos(minutos)}). Total no período: ${nAtrasos} atraso(s) = ${formatarPct(pct)} de redução na comissão.` : `${nomeTipo} em ${formatarDataBr(data)}${tiposFalta.find(t => t.id === tipo)?.efeito === 'zerar' ? ' — pela regra, zera a bonificação do mês.' : tiposFalta.find(t => t.id === tipo)?.efeito === 'desconto' ? ` — desconto de ${formatarPct(tiposFalta.find(t => t.id === tipo).descontoPct)} na comissão.` : ' — não afeta a comissão.'}`;
+    await registrarHistoricoComissao({
+      tipo: 'ocorrencia',
+      descricao: `${nomeTipo} de ${f?.nome} em ${formatarDataBr(data)}${tipo === 'atraso' ? ` (previsto ${previsto}, chegada ${chegada}, ${formatarMinutos(minutos)})` : ''}${oc.obs ? ` — ${oc.obs}` : ''}`,
+      valorNovo: tipo === 'atraso' ? `${nAtrasos} atraso(s) = −${formatarPct(pct)}` : nomeTipo
+    }, usuario);
+    await notificarFuncionario(fid, `⏱️ ${detalhe}${oc.obs ? ` Obs.: ${oc.obs}` : ''}`, 'ocorrencia');
+    setSalvando(false);
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("form", {
+    className: "modal",
+    style: {
+      maxWidth: 480
+    },
+    onSubmit: salvar
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Registrar atraso ou falta"), /*#__PURE__*/React.createElement("label", null, "Funcionário"), /*#__PURE__*/React.createElement("select", {
+    value: fid,
+    onChange: e => setFid(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), ativos.map(f => /*#__PURE__*/React.createElement("option", {
+    key: f.id,
+    value: f.id
+  }, f.nome))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Tipo"), /*#__PURE__*/React.createElement("select", {
+    value: tipo,
+    onChange: e => setTipo(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "atraso"
+  }, "Atraso"), tiposFalta.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t.id,
+    value: t.id
+  }, t.nome)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: data,
+    onChange: e => setData(e.target.value)
+  }))), tipo === 'atraso' && /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Horário previsto"), /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    value: previsto,
+    onChange: e => setPrevisto(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Horário de chegada"), /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    value: chegada,
+    onChange: e => setChegada(e.target.value)
+  }))), tipo === 'atraso' && chegada && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      marginTop: 8
+    }
+  }, "⏱️ ", /*#__PURE__*/React.createElement("strong", null, formatarMinutos(minutos)), " de atraso — só para histórico; na comissão conta como ", /*#__PURE__*/React.createElement("strong", null, "1 ocorrência"), " (−", formatarPct(regras.atrasos.reducaoPct).replace('%', ''), " p.p.)."), /*#__PURE__*/React.createElement("label", null, "Observação (opcional)"), /*#__PURE__*/React.createElement("input", {
+    value: obs,
+    onChange: e => setObs(e.target.value),
+    placeholder: "Ex.: trânsito, consulta médica..."
+  }), per && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: fechado ? 'var(--vermelho)' : 'var(--texto-fraco)',
+      marginTop: 10
+    }
+  }, fechado ? `⚠️ Período ${formatarDataBr(fechado.inicio)}–${formatarDataBr(fechado.fim)} fechado: reabra para registrar.` : `Entra no período de ${formatarDataBr(per.inicioStr)} a ${formatarDataBr(per.fimStr)}. A comissão é recalculada na hora e o funcionário recebe uma notificação.`), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: salvando
+  }, salvando ? 'Salvando...' : 'Registrar'))));
+}
+// ---------- Notificações individuais no 🔔 ----------
+function useNotificacoesPessoais(funcionarioId) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!funcionarioId) return;
+    const unsub = db.collection('notificacoes').where('funcionarioId', '==', funcionarioId).onSnapshot(snap => {
+      setLista(snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })).sort((a, b) => (dataDe(b.criadoEm) || 0) - (dataDe(a.criadoEm) || 0)));
+    }, () => {});
+    return unsub;
+  }, [funcionarioId]);
+  return lista;
+}
+function PontoNotificacoes({
+  usuarioId,
+  extra
+}) {
+  const lista = useNotificacoesPessoais(usuarioId);
+  const naoLidas = lista.filter(n => !n.lida).length;
+  if (!naoLidas && !extra) return null;
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: 'absolute',
+      top: 1,
+      right: 1,
+      minWidth: naoLidas ? 16 : 8,
+      height: naoLidas ? 16 : 8,
+      padding: naoLidas ? '0 4px' : 0,
+      borderRadius: 9,
+      background: 'var(--laranja)',
+      border: '1.5px solid var(--dark)',
+      fontSize: 10,
+      fontWeight: 800,
+      lineHeight: '13px',
+      color: '#fff',
+      textAlign: 'center'
+    }
+  }, naoLidas || '');
+}
+function NotificacoesPessoais({
+  usuarioId,
+  temOutras
+}) {
+  const lista = useNotificacoesPessoais(usuarioId);
+  const recentes = lista.slice(0, 8);
+  useEffect(() => {
+    // Ao abrir o 🔔, marca as não lidas como lidas (continuam na lista).
+    const naoLidas = lista.filter(n => !n.lida);
+    if (!naoLidas.length) return;
+    const lote = db.batch();
+    naoLidas.forEach(n => lote.update(db.collection('notificacoes').doc(n.id), {
+      lida: true,
+      lidaEm: firebase.firestore.FieldValue.serverTimestamp()
+    }));
+    lote.commit().catch(() => {});
+  }, [lista.map(n => n.id + n.lida).join()]);
+  if (!recentes.length) return temOutras ? null : /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Nenhuma notificação no momento.");
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 7,
+      marginBottom: temOutras ? 10 : 0,
+      maxHeight: 260,
+      overflowY: 'auto'
+    }
+  }, recentes.map(n => /*#__PURE__*/React.createElement("div", {
+    key: n.id,
+    style: {
+      fontSize: 12.5,
+      lineHeight: 1.4,
+      padding: '7px 9px',
+      borderRadius: 8,
+      background: n.lida ? 'var(--fundo)' : 'var(--laranja-bg)',
+      borderLeft: `3px solid ${n.lida ? 'var(--borda)' : 'var(--laranja)'}`
+    }
+  }, /*#__PURE__*/React.createElement("div", null, n.texto), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--texto-fraco)',
+      marginTop: 2
+    }
+  }, dataDe(n.criadoEm) ? dataDe(n.criadoEm).toLocaleString('pt-BR') : ''))));
+}
+
 // ======================= COMISSÃO — ABA REGRAS =======================
 const ROTULOS_REGRA = {
   faixas: 'Faixas de produção',
@@ -8845,7 +9194,7 @@ const ROTULOS_REGRA = {
   'garantia.reducaoPct': 'Redução por garantia (%)',
   'garantia.aplicarSobre': 'Redução de garantia aplicada sobre',
   'garantia.formula': 'Cálculo do índice de garantia',
-  'atrasos.reducaoPct': 'Desconto por atraso (%)',
+  'atrasos.reducaoPct': 'Redução por atraso (pontos percentuais)',
   'atrasos.modo': 'Forma do desconto por atraso',
   'atrasos.limitePct': 'Limite máximo de desconto por atraso (%)',
   'faltas.tipos': 'Tipos de ausência',
@@ -8878,8 +9227,7 @@ const OPCOES_REGRA = {
     sobreTotal: 'Peças em garantia ÷ (consertadas + garantia)'
   },
   'atrasos.modo': {
-    composto: 'Acumulativo (cada atraso desconta sobre o que sobrou)',
-    simples: 'Somado (nº de atrasos × %)',
+    simples: 'Por ocorrência: cada atraso reduz os pontos percentuais (1 = 20%, 2 = 40%...)',
     unico: 'Desconto único, independente da quantidade'
   },
   'base.producao': {
@@ -8887,7 +9235,7 @@ const OPCOES_REGRA = {
     individual: 'Produção individual'
   },
   efeitoFalta: {
-    zerar: 'Zera a comissão do mês',
+    zerar: 'Zera a bonificação do mês',
     desconto: 'Desconto parcial por ocorrência',
     nenhum: 'Não afeta'
   }
@@ -9254,16 +9602,16 @@ function AbaRegrasComissao({
     c.garantia.aplicarSobre = v;
   }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cálculo do índice de garantia"), seletor('garantia.formula', r.garantia.formula, v => set(c => {
     c.garantia.formula = v;
-  }))))), secao('atrasosFaltas', '4. Atrasos e faltas', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Desconto por atraso', formatarPct(r.atrasos.reducaoPct)), linhaResumo('Forma do desconto', OPCOES_REGRA['atrasos.modo'][r.atrasos.modo]), linhaResumo('Limite máximo de desconto por atrasos', formatarPct(r.atrasos.limitePct)), r.faltas.tipos.map(t => /*#__PURE__*/React.createElement(React.Fragment, {
+  }))))), secao('atrasosFaltas', '4. Atrasos e faltas', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Redução por ocorrência de atraso', `${formatarPct(r.atrasos.reducaoPct).replace('%', '')} pontos percentuais (1 = ${formatarPct(r.atrasos.reducaoPct)}, 2 = ${formatarPct(Math.min(r.atrasos.limitePct, r.atrasos.reducaoPct * 2))}, 3 = ${formatarPct(Math.min(r.atrasos.limitePct, r.atrasos.reducaoPct * 3))}...)`), linhaResumo('Forma do desconto', OPCOES_REGRA['atrasos.modo'][r.atrasos.modo]), linhaResumo('Redução máxima por atrasos', formatarPct(r.atrasos.limitePct)), r.faltas.tipos.map(t => /*#__PURE__*/React.createElement(React.Fragment, {
     key: t.id
-  }, linhaResumo(t.nome, OPCOES_REGRA.efeitoFalta[t.efeito] + (t.efeito === 'desconto' ? ` (${formatarPct(t.descontoPct)} por ocorrência)` : '')))), /*#__PURE__*/React.createElement("div", {
+  }, linhaResumo(t.nome, OPCOES_REGRA.efeitoFalta[t.efeito] + (t.efeito === 'desconto' ? ` (${formatarPct(t.descontoPct).replace('%', '')} p.p. por ocorrência)` : '')))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: 'var(--texto-fraco)'
     }
-  }, "A quantidade de atrasos e faltas de cada funcionário é lançada no Período de Apuração.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "Cada atraso ou falta é registrado como ocorrência (botão ⏱️ Registrar atraso/falta). Os minutos de atraso ficam só no histórico e nos relatórios — o cálculo usa a quantidade de ocorrências. Falta não vira cálculo proporcional de horas.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Desconto por atraso (%)"), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Redução por atraso (pontos percentuais)"), /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
     max: "100",
@@ -9271,7 +9619,7 @@ function AbaRegrasComissao({
     onChange: e => set(c => {
       c.atrasos.reducaoPct = e.target.value;
     })
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Limite máximo de desconto (%)"), /*#__PURE__*/React.createElement("input", {
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Redução máxima (%)"), /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
     max: "100",
@@ -9442,7 +9790,7 @@ function AbaRegrasComissao({
     value: "ajuste"
   }, "Ajustes manuais"), /*#__PURE__*/React.createElement("option", {
     value: "ocorrencia"
-  }, "Atrasos/faltas"), /*#__PURE__*/React.createElement("option", {
+  }, "Atrasos/faltas (ocorrências)"), /*#__PURE__*/React.createElement("option", {
     value: "fechamento"
   }, "Fechamentos"), /*#__PURE__*/React.createElement("option", {
     value: "recalculo"
@@ -9593,17 +9941,25 @@ function escHtml(s) {
 function sinalMoeda(v) {
   return v === 0 ? '—' : `${v > 0 ? '+' : '−'} ${formatMoeda(Math.abs(v))}`;
 }
+// Faixa + faturamento + garantia (tudo que não é atraso, falta ou ajuste manual) — fecha a conta da linha.
+function outrasRegrasLinha(l) {
+  return l.final - l.base + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) - (l.totalAjustes || 0);
+}
+function nomeTipoOcorrencia(o, res) {
+  return o.tipo === 'atraso' ? 'Atraso' : (res.regras?.faltas?.tipos || []).find(t => t.id === o.tipo)?.nome || o.nomeTipo || 'Falta';
+}
 function htmlRelatorioComissao(res, meta) {
   const linhas = res.linhas;
   const total = linhas.reduce((s, l) => s + l.final, 0);
   const eq = `Peças consideradas: <b>${res.qtdFaixa}</b> · Faixa: <b>${escHtml(res.faixa ? `${descreverFaixa(res.faixa)} (${formatarPct(res.pctFaixa)})` : 'nenhuma')}</b> · Faturamento: <b>${formatMoeda(res.faturamento)}</b> (${res.faturamentoOk ? 'mínimo atingido' : 'mínimo NÃO atingido'}) · Garantia: <b>${formatarPct(res.pctGarantia.toFixed(1))}</b>${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
   let corpo = '';
   if (meta.tipo === 'simples') {
-    corpo = `<table><thead><tr><th>Funcionário</th><th>Peças</th><th>% (Equipe)</th><th>Comissão base</th><th>Faixa</th><th>Descontos</th><th>Ajustes</th><th>Valor final</th></tr></thead><tbody>${linhas.map(l => `<tr><td>${escHtml(l.nome)}</td><td>${l.pecas}</td><td>${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}</td><td>${formatMoeda(l.base)}</td><td>${sinalMoeda(l.deltaFaixa)}</td><td>${sinalMoeda(l.descontos)}</td><td>${sinalMoeda(l.totalAjustes)}</td><td><b>${formatMoeda(l.final)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="7"><b>Total geral das comissões</b></td><td><b>${formatMoeda(total)}</b></td></tr></tfoot></table>`;
+    corpo = `<table><thead><tr><th>Funcionário</th><th>Atrasos</th><th>Tempo de atraso*</th><th>Redução por atrasos</th><th>Faltas</th><th>Desconto por faltas</th><th>Comissão base</th><th>Faixa e demais regras</th><th>Ajustes</th><th>Valor final</th></tr></thead><tbody>${linhas.map(l => `<tr><td>${escHtml(l.nome)}<div class="kv">${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) + ' na Equipe' : '% não configurado'} · ${l.pecas} peças</div></td><td>${l.atrasos}</td><td>${l.minutosAtraso ? formatarMinutos(l.minutosAtraso) : '—'}</td><td>${l.pctReducaoAtrasos ? `${formatarPct(l.pctReducaoAtrasos)} (− ${formatMoeda(l.descontoAtrasos)})` : '—'}</td><td>${l.qtdFaltas}</td><td>${l.descontoFaltas ? `− ${formatMoeda(l.descontoFaltas)}` : '—'}</td><td>${formatMoeda(l.base)}</td><td>${sinalMoeda(outrasRegrasLinha(l))}</td><td>${sinalMoeda(l.totalAjustes)}</td><td><b>${formatMoeda(l.final)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="9"><b>Total geral das comissões</b></td><td><b>${formatMoeda(total)}</b></td></tr></tfoot></table><p class="kv">* Tempo de atraso é só informativo: a redução usa a quantidade de ocorrências (cada atraso = ${formatarPct(res.regras?.atrasos?.reducaoPct ?? 20).replace('%', '')} pontos percentuais, até ${formatarPct(res.regras?.atrasos?.limitePct ?? 100)}).</p>`;
   } else {
     corpo = linhas.map(l => `<div class="func"><h3>${escHtml(l.nome)}</h3>
       <div class="kv">Período: <b>${meta.periodo}</b> · Peças consideradas: <b>${l.pecas}</b> · Faturamento do período: <b>${formatMoeda(res.faturamento)}</b> · Faixa: <b>${escHtml(res.faixa ? descreverFaixa(res.faixa) : 'nenhuma')} (${formatarPct(res.pctFaixa)})</b> · % na Equipe: <b>${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}</b></div>
       <table><tbody><tr><td>Comissão base</td><td>${formatMoeda(l.base)}</td></tr>${l.passos.map(p => `<tr><td>${escHtml(p.nome)}: ${escHtml(p.descricao)}</td><td>${sinalMoeda(p.delta)}</td></tr>`).join('')}${l.ajustes.map(a => `<tr><td>Ajuste manual: ${escHtml(a.justificativa)} (${escHtml(a.por)})</td><td>${sinalMoeda(Number(a.valor) || 0)}</td></tr>`).join('')}<tr><td><b>Valor final</b></td><td><b>${formatMoeda(l.final)}</b></td></tr></tbody></table>
+      ${(l.ocorrencias || []).length ? `<div class="sub">Ocorrências — ${l.atrasos} atraso(s) (${formatarMinutos(l.minutosAtraso)} no total, só informativo) · ${l.qtdFaltas} falta(s)</div><table><thead><tr><th>Data</th><th>Tipo</th><th>Previsto</th><th>Chegada</th><th>Atraso</th><th>Observação</th></tr></thead><tbody>${l.ocorrencias.map(o => `<tr><td>${formatarDataBr(o.data)}</td><td>${escHtml(nomeTipoOcorrencia(o, res))}</td><td>${o.previsto || '—'}</td><td>${o.chegada || '—'}</td><td>${o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '—'}</td><td>${escHtml(o.obs || '—')}</td></tr>`).join('')}</tbody></table>` : ''}
       ${l.lancamentos.length ? `<div class="sub">Lançamentos</div><table><thead><tr><th>Data</th><th>Orçamento</th><th>Peças</th><th>Valor do orçamento</th><th>%</th><th>Comissão</th></tr></thead><tbody>${l.lancamentos.map(x => `<tr><td>${formatarDataBr(x.data)}</td><td>#${escHtml(x.numero)}</td><td>${x.pecas}</td><td>${formatMoeda(x.valorOrcamento)}</td><td>${x.percentual !== null ? formatarPct(x.percentual) : '-'}</td><td>${formatMoeda(x.valor)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`).join('') + `<div class="total">Total geral das comissões: ${formatMoeda(total)}</div>`;
   }
   return `<div class="rel"><div class="cab"><div><div class="emp">TECNOPEMT</div><h2>${meta.titulo}</h2></div><div class="dir">Período: <b>${meta.periodo}</b><br>${escHtml(meta.situacao)}<br>Gerado em ${meta.geradoEm} por ${escHtml(meta.geradoPor)}</div></div><div class="eq">${eq}</div>${linhas.length ? corpo : '<p>Nenhuma comissão elegível no período.</p>'}</div>`;
@@ -9690,18 +10046,18 @@ async function gerarPdfRelatorioComissao(res, meta) {
     y += 6;
   }
   if (meta.tipo === 'simples' && res.linhas.length) {
-    const L = [36, 12, 17, 25, 23, 25, 20, 24];
-    linhaTabela(['FUNCIONÁRIO', 'PEÇAS', '% EQUIPE', 'BASE', 'FAIXA', 'DESCONTOS', 'AJUSTES', 'VALOR FINAL'], L, {
+    const L = [27, 12, 16, 22, 11, 18, 20, 18, 16, 18];
+    linhaTabela(['FUNCIONÁRIO', 'ATRASOS', 'TEMPO*', 'RED. ATRASOS', 'FALTAS', 'DESC. FALTAS', 'BASE', 'FAIXA E DEMAIS', 'AJUSTES', 'VALOR FINAL'], L, {
       negrito: true,
-      tam: 7.2,
+      tam: 6.4,
       cor: [107, 96, 94],
       linha: true
     });
     for (const l of res.linhas) {
-      await garantir(8);
-      linhaTabela([l.nome, l.pecas, l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não config.', formatMoeda(l.base), sinalMoeda(l.deltaFaixa), sinalMoeda(l.descontos), sinalMoeda(l.totalAjustes), formatMoeda(l.final)], L, {
+      await garantir(10);
+      linhaTabela([l.nome, l.atrasos, l.minutosAtraso ? formatarMinutos(l.minutosAtraso) : '-', l.pctReducaoAtrasos ? `${formatarPct(l.pctReducaoAtrasos)} (-${formatMoeda(l.descontoAtrasos)})` : '-', l.qtdFaltas, l.descontoFaltas ? `-${formatMoeda(l.descontoFaltas)}` : '-', formatMoeda(l.base), sinalMoeda(outrasRegrasLinha(l)), sinalMoeda(l.totalAjustes), formatMoeda(l.final)], L, {
         linha: true,
-        tam: 8.2
+        tam: 7.4
       });
     }
     await garantir(10);
@@ -9712,6 +10068,11 @@ async function gerarPdfRelatorioComissao(res, meta) {
     doc.text(`Total geral das comissões: ${formatMoeda(total)}`, mX + larg, y, {
       align: 'right'
     });
+    y += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.4);
+    doc.setTextColor(120, 110, 108);
+    doc.text(doc.splitTextToSize(`* Tempo de atraso é só informativo: a redução usa a quantidade de ocorrências (cada atraso = ${formatarPct(res.regras?.atrasos?.reducaoPct ?? 20).replace('%', '')} pontos percentuais, até ${formatarPct(res.regras?.atrasos?.limitePct ?? 100)}).`, larg), mX, y);
     y += 6;
   }
   if (meta.tipo === 'detalhado') {
@@ -9751,6 +10112,29 @@ async function gerarPdfRelatorioComissao(res, meta) {
         negrito: true,
         tam: 9.6
       });
+      if ((l.ocorrencias || []).length) {
+        await garantir(14);
+        y += 1;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.4);
+        doc.setTextColor(69, 59, 60);
+        doc.text(`Ocorrências: ${l.atrasos} atraso(s) (${formatarMinutos(l.minutosAtraso)} no total, só informativo) · ${l.qtdFaltas} falta(s)`, mX, y);
+        y += 5;
+        const L4 = [22, 38, 20, 20, 22, 56];
+        linhaTabela(['DATA', 'TIPO', 'PREVISTO', 'CHEGADA', 'ATRASO', 'OBSERVAÇÃO'], L4, {
+          negrito: true,
+          tam: 7.2,
+          cor: [107, 96, 94],
+          linha: true
+        });
+        for (const o of l.ocorrencias) {
+          await garantir(7);
+          linhaTabela([formatarDataBr(o.data), nomeTipoOcorrencia(o, res), o.previsto || '-', o.chegada || '-', o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '-', o.obs || '-'], L4, {
+            tam: 7.8,
+            linha: true
+          });
+        }
+      }
       if (l.lancamentos.length) {
         await garantir(12);
         const L3 = [24, 26, 16, 38, 18, 38];
