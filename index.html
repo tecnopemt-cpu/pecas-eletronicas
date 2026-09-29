@@ -247,6 +247,87 @@
     .acesso-card-topo p{font-size:14px;}
     .acesso-rotulo{margin-top:14px;}
   }
+
+  /* ---- Período de Apuração (modal) ---- */
+  .modal-fundo:has(.modal-apuracao){background:rgba(12,24,40,.55);backdrop-filter:blur(1.5px);}
+  .modal-apuracao{position:relative;max-width:1180px !important;width:100%;padding:28px 30px 22px;border-radius:18px;border:1px solid rgba(15,42,71,.08);background:rgba(255,255,255,.97);box-shadow:0 30px 80px rgba(8,20,36,.35),0 4px 14px rgba(8,20,36,.12);color:#2B3445;isolation:isolate;overflow:hidden;max-height:calc(100dvh - 60px);overflow-y:auto;}
+  /* Marca-d'água: plataforma elevatória da identidade TECNOPEMT, ~93% transparente, atrás de tudo */
+  .modal-apuracao::before{content:'';position:absolute;z-index:-1;right:-40px;top:70px;width:min(62%,640px);aspect-ratio:912/840;background:url(icons/marca-plataforma.png) right top/contain no-repeat;opacity:.07;pointer-events:none;}
+  .apu-fechar-x{position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:10px;border:none;background:transparent;color:#0F2A47;display:flex;align-items:center;justify-content:center;transition:background-color .15s ease;}
+  .apu-fechar-x:hover{background:#EEF2F6;}
+  .apu-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;padding-right:46px;}
+  .apu-titulo{margin:0;font-size:26px;font-weight:800;color:#0F2A47;display:flex;align-items:center;gap:12px;letter-spacing:-.3px;}
+  .apu-titulo-icone{color:var(--laranja);display:flex;}
+  .apu-acoes{display:flex;gap:10px;flex-wrap:wrap;}
+  .apu-btn-principal{gap:8px;box-shadow:0 6px 16px rgba(233,115,7,.28);}
+  .apu-btn-claro{gap:8px;background:#fff !important;border:1px solid #D7DEE6 !important;color:#0F2A47 !important;font-weight:700;}
+  .apu-btn-claro:hover:not(:disabled){background:#F4F7FA !important;border-color:#B9C5D2 !important;}
+  .apu-periodo{margin-top:18px;display:flex;flex-direction:column;gap:8px;}
+  .apu-periodo label{color:#0F2A47;font-size:13px;}
+  .apu-periodo input[type=date]{border-color:#CED7E1;color:#0F2A47;font-weight:600;min-width:190px;}
+  .apu-periodo-info{font-size:13.5px;color:#3A4658;display:flex;flex-direction:column;gap:6px;}
+  .apu-periodo-info strong{color:#0F2A47;}
+  .apu-status{display:inline-block;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:20px;margin-right:10px;}
+  .apu-status.aberto{background:#FFF4E5;color:#B45309;}
+  .apu-status.aviso{background:#FFF4E5;color:#B45309;}
+  .apu-status.ok{background:var(--verde-bg);color:var(--verde);}
+  .apu-regras-versao{font-size:12.5px;color:#5B6778;}
+  .apu-cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:18px 0 14px;}
+  .apu-card{background:#fff;border:1px solid #DCE3EA;border-radius:12px;padding:14px 14px 13px;box-shadow:0 1px 3px rgba(15,42,71,.05);min-width:0;}
+  .apu-card-icone{display:flex;margin-bottom:10px;}
+  .apu-card-icone.azul{color:#1E5AA8;} .apu-card-icone.verde{color:#12948A;} .apu-card-icone.vermelho{color:#D93A33;} .apu-card-icone.escuro{color:#0F2A47;}
+  .apu-card-rotulo{font-size:13px;color:#1F2B3D;font-weight:600;line-height:1.25;}
+  .apu-card-rotulo small{font-size:10.5px;color:#5B6778;font-weight:500;}
+  .apu-card-valor{font-size:clamp(18px,1.9vw,24px);font-weight:800;color:#0F2A47;margin-top:6px;line-height:1.15;word-break:break-word;}
+  .apu-card-valor.final{color:var(--laranja);}
+  .apu-card-valor.alerta{color:#E0531F;}
+  .apu-card-sub{font-size:13px;color:#4A5568;font-weight:600;margin-top:4px;}
+  .apu-card-sub.alerta{color:#C2410C;}
+  .apu-alerta{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:#FFF4E5;border:1px solid #F9D2A4;color:#9A3412;font-size:13.5px;font-weight:600;margin-bottom:10px;}
+  .apu-alerta svg{color:#EA7A0C;flex-shrink:0;}
+  .apu-alerta.laranja{background:#FFF8EC;}
+  .apu-secao{display:flex;align-items:center;gap:10px;margin:20px 0 10px;font-size:17px;font-weight:800;color:#0F2A47;}
+  .apu-tabela-wrap{border:1px solid #DCE3EA;border-radius:12px;overflow-x:auto;background:rgba(255,255,255,.9);}
+  .apu-tabela{font-size:13.5px;min-width:860px;}
+  .apu-tabela th{background:#F4F7FA;color:#0F2A47;font-weight:700;font-size:12.5px;padding:12px 12px;border-bottom:1px solid #DCE3EA;border-right:1px solid #E6EBF0;white-space:normal;vertical-align:middle;line-height:1.25;}
+  .apu-tabela th:last-child{border-right:none;}
+  .apu-tabela th small{display:block;font-weight:500;color:#5B6778;font-size:11px;}
+  .apu-tabela td{padding:12px 12px;border-right:1px solid #EEF1F4;color:#2B3445;vertical-align:middle;background:transparent;}
+  .apu-tabela td:last-child{border-right:none;}
+  .apu-tabela td strong{color:#0F2A47;}
+  .apu-tabela tbody tr:hover td{background:rgba(244,247,250,.7);}
+  .apu-memoria td{background:#FBFCFD !important;}
+  .apu-nome{background:none;border:none;padding:0;font-weight:800;color:#0F2A47;font-size:14px;text-align:left;cursor:pointer;}
+  .apu-nome:hover{color:var(--laranja-escuro);}
+  .apu-mini{font-size:11.5px;color:#5B6778;margin-top:3px;}
+  .apu-mini.link{cursor:pointer;}
+  .apu-mini.link:hover{color:var(--laranja-escuro);}
+  .apu-neg{color:#B42318;font-weight:700;} .apu-pos{color:var(--verde);font-weight:700;}
+  .apu-acoes-linha{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+  .apu-acoes-linha button{font-size:11.5px;font-weight:700;padding:4px 8px;border-radius:7px;border:1px solid #D7DEE6;background:#fff;color:#0F2A47;}
+  .apu-acoes-linha button:hover{border-color:var(--laranja);color:var(--laranja-escuro);}
+  .apu-selo{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid #D7DEE6;background:#F4F7FA;color:#3A4658;white-space:nowrap;}
+  .apu-selo.ok{background:var(--verde-bg);border-color:#BFE3CD;color:var(--verde);}
+  .apu-selo.aviso{background:#FFF4E5;border-color:#F9D2A4;color:#B45309;}
+  .apu-selo.clicavel{cursor:pointer;}
+  .apu-vazio{text-align:center;color:#5B6778;padding:22px !important;}
+  .apu-info{display:flex;gap:12px;align-items:flex-start;margin-top:14px;font-size:13px;color:#2F4A6D;line-height:1.5;}
+  .apu-info svg{color:#1E5AA8;flex-shrink:0;margin-top:1px;}
+  /* Rodapé sempre visível: se o conteúdo rolar, os botões ficam presos na base do modal */
+  .apu-rodape{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:16px -30px -22px;padding:14px 30px 18px;position:sticky;bottom:-22px;z-index:3;background:rgba(255,255,255,.96);border-top:1px solid #E6EBF0;backdrop-filter:blur(4px);}
+  .apu-rodape-esq{display:flex;gap:10px;flex-wrap:wrap;}
+  @media (max-width:1100px){ .apu-cards{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:640px){
+    .modal-apuracao{padding:20px 14px 16px;border-radius:14px;max-height:calc(100dvh - 24px);}
+    .apu-titulo{font-size:21px;}
+    .apu-topo{padding-right:40px;}
+    .apu-acoes{width:100%;}
+    .apu-acoes .btn{flex:1 1 100%;}
+    .apu-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .apu-periodo input[type=date]{min-width:0;}
+    .apu-rodape{margin:14px -14px -16px;padding:12px 14px 14px;bottom:-16px;}
+    .modal-apuracao::before{width:90%;top:auto;bottom:40px;}
+  }
 </style>
 </head>
 <body>
@@ -8577,50 +8658,75 @@ function ModalApuracao({
       valorNovo: formatMoeda(l.final)
     }, usuario);
   }
+  // Faturamento e peças por funcionário (orçamentos dos lançamentos dele no período)
+  const extraLinha = l => ({
+    faturamento: [...new Map(l.lancamentos.map(x => [x.orcamentoId, x.valorOrcamento])).values()].reduce((s, v) => s + v, 0)
+  });
+  const faixaCurta = res.faixa ? res.faixa.max === null || res.faixa.max === undefined || res.faixa.max === '' ? `Acima de ${Number(res.faixa.min) - 1}` : `${res.faixa.min}–${res.faixa.max}` : 'Nenhuma';
+  const multFaixa = (res.pctFaixa || 0) / 100;
+  const situacaoLinha = l => {
+    if (fechamento) return fechamento.pagamentos?.[l.funcionarioId]?.pago ? {
+      rotulo: 'Pago',
+      cls: 'ok'
+    } : {
+      rotulo: 'A pagar',
+      cls: 'aviso'
+    };
+    return l.final > 0 ? {
+      rotulo: 'Aberto',
+      cls: 'neutro'
+    } : {
+      rotulo: 'Sem pagamento',
+      cls: 'neutro'
+    };
+  };
+  const r = res.regras || regras;
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && aoFechar()
   }, /*#__PURE__*/React.createElement("div", {
-    className: "modal",
-    style: {
-      maxWidth: 1000
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: 10
-    }
+    className: "modal modal-apuracao",
+    role: "dialog",
+    "aria-label": "Período de Apuração"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "apu-fechar-x",
+    onClick: aoFechar,
+    title: "Fechar",
+    "aria-label": "Fechar"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "x"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "apu-topo"
   }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      margin: 0
-    }
-  }, "Período de Apuração"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      flexWrap: 'wrap'
-    }
+    className: "apu-titulo"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "apu-titulo-icone"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "barras",
+    tamanho: 26
+  })), "Período de Apuração"), /*#__PURE__*/React.createElement("div", {
+    className: "apu-acoes"
   }, editavel && /*#__PURE__*/React.createElement("button", {
-    className: "btn pequeno",
+    className: "btn apu-btn-principal",
     onClick: () => setOcorrenciaDe({})
-  }, "⏱️ Registrar atraso/falta"), /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario pequeno",
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "relogio",
+    tamanho: 17
+  }), "Registrar atraso/falta"), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario apu-btn-claro",
     onClick: () => aoGerarRelatorio('simples', res, fechamento)
-  }, "📄 Gerar relatório simples"), /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario pequeno",
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "doc",
+    tamanho: 17
+  }), "Gerar relatório simples"), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario apu-btn-claro",
     onClick: () => aoGerarRelatorio('detalhado', res, fechamento)
-  }, "📑 Gerar relatório detalhado"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 12,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-end',
-      gap: 10,
-      flexWrap: 'wrap'
-    }
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "doc",
+    tamanho: 17
+  }), "Gerar relatório detalhado"))), /*#__PURE__*/React.createElement("div", {
+    className: "apu-periodo"
   }, /*#__PURE__*/React.createElement(SeletorPeriodo, {
     inicio: inicio,
     fim: fim,
@@ -8629,124 +8735,171 @@ function ModalApuracao({
       setFim(f);
     }
   }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--texto-fraco)'
-    }
-  }, "Regras: ", versao ? `versão vigente desde ${formatarDataBr(versao.vigenciaInicio)}` : 'padrão (nenhuma alteração salva)')), /*#__PURE__*/React.createElement("div", {
-    style: {
-      margin: '12px 0',
-      fontSize: 13
-    }
-  }, fechamento ? /*#__PURE__*/React.createElement("span", null, "🔒 ", /*#__PURE__*/React.createElement("strong", null, "Período fechado"), " por ", fechamento.fechadoPor, fechamento.status === 'pago' ? ' · todos pagos' : '', ". Valores congelados.", (fechamento.recalculos || []).length > 0 && ` Recalculado ${fechamento.recalculos.length}x.`) : /*#__PURE__*/React.createElement("span", null, "🟡 ", /*#__PURE__*/React.createElement("strong", null, "Período aberto"), " — valores provisórios, recalculados automaticamente a cada mudança.")), /*#__PURE__*/React.createElement(CartoesApuracao, {
-    res: res,
-    mostrarFaturamento: true
-  }), /*#__PURE__*/React.createElement(AvisosApuracao, {
-    res: res,
-    mostrarFaturamento: true
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      padding: 0,
-      overflowX: 'auto'
-    }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Base"), /*#__PURE__*/React.createElement("th", null, "Atrasos"), tiposFalta.map(t => /*#__PURE__*/React.createElement("th", {
-    key: t.id
-  }, t.nome)), /*#__PURE__*/React.createElement("th", null, "Redução"), /*#__PURE__*/React.createElement("th", null, "Ajustes"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhasTabela.map(l => {
-    const reg = regDe(l.funcionarioId);
-    const st = situacaoPagamento(fechamento, l.funcionarioId);
+    className: "apu-periodo-info"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Período:"), " ", formatarDataBr(inicio), " a ", formatarDataBr(fim)), /*#__PURE__*/React.createElement("div", null, fechamento ? /*#__PURE__*/React.createElement("span", {
+    className: `apu-status ${fechamento.status === 'pago' ? 'ok' : 'aviso'}`
+  }, "🔒 ", fechamento.status === 'pago' ? 'Período fechado e pago' : `Período fechado por ${fechamento.fechadoPor}`, (fechamento.recalculos || []).length > 0 ? ` · recalculado ${fechamento.recalculos.length}x` : '') : /*#__PURE__*/React.createElement("span", {
+    className: "apu-status aberto"
+  }, "● Período aberto — recalculado a cada mudança"), /*#__PURE__*/React.createElement("span", {
+    className: "apu-regras-versao"
+  }, "Regras: ", versao ? `vigentes desde ${formatarDataBr(versao.vigenciaInicio)}` : 'padrão')))), /*#__PURE__*/React.createElement("div", {
+    className: "apu-cards"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "apu-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "apu-card-icone azul"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "engrenagem"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-rotulo"
+  }, "Peças com conserto"), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-valor"
+  }, res.qtdFaixa)), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "apu-card-icone azul"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "barras"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-rotulo"
+  }, "Faixa de volume"), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-valor"
+  }, faixaCurta), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-sub"
+  }, "(paga ", formatarPct(res.pctFaixa), ")")), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "apu-card-icone verde"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "dinheiro"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-rotulo"
+  }, "Faturamento"), /*#__PURE__*/React.createElement("div", {
+    className: `apu-card-valor ${res.faturamentoOk ? '' : 'alerta'}`
+  }, formatMoeda(res.faturamento)), !res.faturamentoOk && /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-sub alerta"
+  }, "mínimo ", formatMoeda(res.faturamentoMinimo))), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "apu-card-icone vermelho"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "escudo"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-rotulo"
+  }, "% de garantia"), /*#__PURE__*/React.createElement("div", {
+    className: `apu-card-valor ${res.garantiaEstourada ? 'alerta' : ''}`
+  }, formatarPct(res.pctGarantia.toFixed(1))), /*#__PURE__*/React.createElement("div", {
+    className: `apu-card-sub ${res.garantiaEstourada ? 'alerta' : ''}`
+  }, "limite ", formatarPct(r.garantia.limitePct))), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "apu-card-icone escuro"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "porcento"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-rotulo"
+  }, "Comissão base ", /*#__PURE__*/React.createElement("small", null, "(soma normal)")), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-valor"
+  }, formatMoeda(res.totalBase)), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-sub"
+  }, "× ", multFaixa.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "apu-card-icone escuro"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "pessoa"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-rotulo"
+  }, "Valor final"), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-valor final"
+  }, formatMoeda(res.totalFinal)))), !res.faturamentoOk && /*#__PURE__*/React.createElement("div", {
+    className: "apu-alerta"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "alerta",
+    tamanho: 20
+  }), /*#__PURE__*/React.createElement("span", null, "Faturamento do período é ", formatMoeda(res.faturamento), " — ", r.faturamento.comparacao === 'maiorIgual' ? 'abaixo de' : 'igual ou abaixo de', " ", formatMoeda(res.faturamentoMinimo), ": ", r.faturamento.acao === 'reduzir' ? `comissão reduzida em ${formatarPct(r.faturamento.reducaoPct)} neste período.` : 'sem pagamento de comissão neste período.')), res.garantiaEstourada && /*#__PURE__*/React.createElement("div", {
+    className: "apu-alerta laranja"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "alerta",
+    tamanho: 20
+  }), /*#__PURE__*/React.createElement("span", null, "Garantia de ", formatarPct(res.pctGarantia.toFixed(1)), " acima do limite de ", formatarPct(r.garantia.limitePct), " — redução de ", formatarPct(r.garantia.reducaoPct), " na comissão.")), /*#__PURE__*/React.createElement("h4", {
+    className: "apu-secao"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "pessoa",
+    tamanho: 20
+  }), "Por funcionário"), /*#__PURE__*/React.createElement("div", {
+    className: "apu-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "apu-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Percentual", /*#__PURE__*/React.createElement("small", null, "Comissão (Equipe)")), /*#__PURE__*/React.createElement("th", null, "Peças com conserto"), /*#__PURE__*/React.createElement("th", null, "Faturamento"), /*#__PURE__*/React.createElement("th", null, "Comissão base"), /*#__PURE__*/React.createElement("th", null, "Ajustes / Descontos"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhasTabela.map(l => {
+    const st = situacaoLinha(l);
+    const x = extraLinha(l);
+    const totalDesc = l.final - l.base;
     return /*#__PURE__*/React.createElement(React.Fragment, {
       key: l.funcionarioId + inicio + fim
-    }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", {
-      className: "linha-clicavel",
-      onClick: () => setExpandido(expandido === l.funcionarioId ? null : l.funcionarioId)
-    }, l.nome), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: 'var(--texto-fraco)'
-      }
-    }, l.percentualFicha > 0 ? `${formatarPct(l.percentualFicha)} na Equipe` : 'sem % na Equipe')), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.base)), /*#__PURE__*/React.createElement("td", {
-      style: {
-        whiteSpace: 'nowrap'
-      }
-    }, /*#__PURE__*/React.createElement("strong", null, l.atrasos), l.minutosAtraso > 0 && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: 'var(--texto-fraco)'
-      }
-    }, formatarMinutos(l.minutosAtraso))), tiposFalta.map(t => /*#__PURE__*/React.createElement("td", {
-      key: t.id
-    }, /*#__PURE__*/React.createElement("strong", null, l.faltas[t.id] || 0))), /*#__PURE__*/React.createElement("td", {
-      style: {
-        whiteSpace: 'nowrap',
-        fontSize: 12.5
-      }
-    }, l.pctReducaoAtrasos > 0 && /*#__PURE__*/React.createElement("div", null, "Atrasos: −", formatarPct(l.pctReducaoAtrasos)), l.descontoFaltas > 0 && /*#__PURE__*/React.createElement("div", null, "Faltas: −", formatMoeda(l.descontoFaltas)), !l.pctReducaoAtrasos && !l.descontoFaltas && '—', editavel && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+    }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
       type: "button",
-      className: "btn secundario pequeno",
-      style: {
-        marginTop: 4
-      },
+      className: "apu-nome",
+      onClick: () => setExpandido(expandido === l.funcionarioId ? null : l.funcionarioId)
+    }, l.nome), l.inativo && /*#__PURE__*/React.createElement("div", {
+      className: "apu-mini"
+    }, "desligado"), /*#__PURE__*/React.createElement("div", {
+      className: "apu-mini link",
+      onClick: () => setExpandido(expandido === l.funcionarioId ? null : l.funcionarioId)
+    }, expandido === l.funcionarioId ? '▲ ocultar cálculo' : '▼ ver cálculo')), /*#__PURE__*/React.createElement("td", null, formatarPct(l.percentualFicha)), /*#__PURE__*/React.createElement("td", null, l.pecas), /*#__PURE__*/React.createElement("td", null, formatMoeda(x.faturamento)), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.base)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+      className: totalDesc < 0 ? 'apu-neg' : totalDesc > 0 ? 'apu-pos' : ''
+    }, totalDesc === 0 ? '—' : `${totalDesc > 0 ? '+' : '-'} ${formatMoeda(Math.abs(totalDesc))}`), (l.atrasos > 0 || l.qtdFaltas > 0 || l.totalAjustes !== 0) && /*#__PURE__*/React.createElement("div", {
+      className: "apu-mini"
+    }, [l.atrasos > 0 && `${l.atrasos} atraso(s) −${formatarPct(l.pctReducaoAtrasos)}`, l.qtdFaltas > 0 && `${l.qtdFaltas} falta(s)`, l.totalAjustes !== 0 && `ajuste ${l.totalAjustes > 0 ? '+' : '−'}${formatMoeda(Math.abs(l.totalAjustes))}`].filter(Boolean).join(' · ')), editavel && /*#__PURE__*/React.createElement("div", {
+      className: "apu-acoes-linha"
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
       onClick: () => setOcorrenciaDe({
         funcionarioId: l.funcionarioId
       })
-    }, "+ Ocorrência"))), /*#__PURE__*/React.createElement("td", {
-      style: {
-        whiteSpace: 'nowrap'
-      }
-    }, l.totalAjustes === 0 ? '—' : `${l.totalAjustes > 0 ? '+' : '−'} ${formatMoeda(Math.abs(l.totalAjustes))}`, editavel && /*#__PURE__*/React.createElement("button", {
+    }, "+ Ocorrência"), /*#__PURE__*/React.createElement("button", {
       type: "button",
-      className: "btn secundario pequeno",
-      style: {
-        marginLeft: 6
-      },
       onClick: () => setAjusteDe(l)
-    }, "± Ajuste")), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, formatMoeda(l.final))), /*#__PURE__*/React.createElement("td", null, fechamento && gerir ? /*#__PURE__*/React.createElement("button", {
+    }, "± Ajuste"))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, formatMoeda(l.final))), /*#__PURE__*/React.createElement("td", null, fechamento && gerir ? /*#__PURE__*/React.createElement("button", {
       type: "button",
-      className: `btn pequeno ${st.rotulo === 'Pago' ? 'verde' : 'secundario'}`,
-      onClick: () => alternarPago(l)
+      className: `apu-selo ${st.cls} clicavel`,
+      onClick: () => alternarPago(l),
+      title: st.rotulo === 'Pago' ? 'Desfazer pagamento' : 'Marcar como pago'
     }, st.rotulo === 'Pago' ? '✓ Pago' : 'Marcar pago') : /*#__PURE__*/React.createElement("span", {
-      className: `badge ${st.badge}`
-    }, st.rotulo))), expandido === l.funcionarioId && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-      colSpan: 7 + tiposFalta.length
+      className: `apu-selo ${st.cls}`
+    }, st.rotulo))), expandido === l.funcionarioId && /*#__PURE__*/React.createElement("tr", {
+      className: "apu-memoria"
+    }, /*#__PURE__*/React.createElement("td", {
+      colSpan: "8"
     }, /*#__PURE__*/React.createElement(MemoriaCalculo, {
       linha: l,
       tiposFalta: tiposFalta,
       aoRemoverOcorrencia: editavel ? o => removerOcorrencia(l, o) : null
     }))));
   }), !carregandoRegistros && linhasTabela.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: 7 + tiposFalta.length,
-    style: {
-      color: 'var(--texto-fraco)',
-      textAlign: 'center',
-      padding: 16
-    }
+    colSpan: "8",
+    className: "apu-vazio"
   }, "Nenhuma comissão elegível neste período."))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11.5,
-      color: 'var(--texto-fraco)',
-      marginTop: 10
-    }
-  }, "Clique no nome para ver a memória de cálculo e as ocorrências. Regra de atraso: ", regras.atrasos.modo === 'unico' ? `desconto único de ${formatarPct(regras.atrasos.reducaoPct)} se houver atraso` : `cada ocorrência reduz ${formatarPct(regras.atrasos.reducaoPct).replace('%', '')} pontos percentuais (1 = ${formatarPct(regras.atrasos.reducaoPct)}, 2 = ${formatarPct(Math.min(regras.atrasos.limitePct, regras.atrasos.reducaoPct * 2))}…), até ${formatarPct(regras.atrasos.limitePct)}`, ". Os minutos de atraso são só informativos. Não é preciso fechar o período para registrar ocorrências."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      gap: 8,
-      marginTop: 16,
-      flexWrap: 'wrap'
-    }
+    className: "apu-info"
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "info",
+    tamanho: 20
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, r.atrasos.modo === 'unico' ? `Atraso: desconto único de ${formatarPct(r.atrasos.reducaoPct)} se houver ocorrência.` : `Atraso reduz ${formatarPct(r.atrasos.reducaoPct).replace('%', '')} pontos percentuais por ocorrência (1 = ${formatarPct(r.atrasos.reducaoPct)}, 2 = ${formatarPct(Math.min(r.atrasos.limitePct, r.atrasos.reducaoPct * 2))}…), até ${formatarPct(r.atrasos.limitePct)}; os minutos são só informativos.`, " ", tiposFalta.filter(t => t.efeito === 'zerar').map(t => t.nome).join(', ') || 'Falta', " ", tiposFalta.some(t => t.efeito === 'zerar') ? 'zera a comissão daquele funcionário no período.' : ''), /*#__PURE__*/React.createElement("div", null, "Atrasos e faltas são registrados como ocorrências (botão “Registrar atraso/falta”) e recalculam na hora — não é preciso fechar o período."))), /*#__PURE__*/React.createElement("div", {
+    className: "apu-rodape"
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      flexWrap: 'wrap'
-    }
+    className: "apu-rodape-esq"
   }, gerir && !fechamento && /*#__PURE__*/React.createElement("button", {
-    className: "btn",
+    className: "btn apu-btn-principal",
     disabled: processando || !resVivo.linhas.length,
     onClick: fecharPeriodo
-  }, "🔒 Fechar período"), gerir && fechamento && /*#__PURE__*/React.createElement("button", {
-    className: "btn secundario",
+  }, /*#__PURE__*/React.createElement(IconeApu, {
+    nome: "cadeado",
+    tamanho: 17
+  }), "Fechar período"), gerir && fechamento && /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario apu-btn-claro",
     disabled: processando,
     onClick: recalcularPeriodo
   }, "🔄 Recalcular período"), gerir && fechamento && /*#__PURE__*/React.createElement("button", {
@@ -8755,7 +8908,7 @@ function ModalApuracao({
     onClick: reabrirPeriodo
   }, "Reabrir período")), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "btn secundario",
+    className: "btn secundario apu-btn-claro",
     onClick: aoFechar
   }, "Fechar")), ocorrenciaDe && /*#__PURE__*/React.createElement(ModalOcorrencia, {
     funcionarios: funcionarios,
@@ -8773,6 +8926,153 @@ function ModalApuracao({
     registro: regDe(ajusteDe.funcionarioId),
     aoFechar: () => setAjusteDe(null)
   })));
+}
+function IconeApu({
+  nome,
+  tamanho = 22
+}) {
+  const p = {
+    width: tamanho,
+    height: tamanho,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true
+  };
+  if (nome === 'x') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+    d: "M6 6l12 12M18 6 6 18"
+  }));
+  if (nome === 'barras') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    fill: "currentColor",
+    stroke: "none"
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "3",
+    y: "13",
+    width: "4",
+    height: "8",
+    rx: "1"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "10",
+    y: "8",
+    width: "4",
+    height: "13",
+    rx: "1"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "17",
+    y: "3",
+    width: "4",
+    height: "18",
+    rx: "1"
+  }));
+  if (nome === 'relogio') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "9"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 7v5l3 2"
+  }));
+  if (nome === 'doc') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+    d: "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M14 3v6h6M8 13h8M8 17h6"
+  }));
+  if (nome === 'engrenagem') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "3"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"
+  }));
+  if (nome === 'dinheiro') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("rect", {
+    x: "2.5",
+    y: "6",
+    width: "19",
+    height: "12",
+    rx: "2.5"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "2.8"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M6 9.5v5M18 9.5v5"
+  }));
+  if (nome === 'escudo') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    fill: "currentColor",
+    stroke: "none"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M12 2.5 4.5 5.5v5.6c0 4.7 3.2 8.8 7.5 10.4 4.3-1.6 7.5-5.7 7.5-10.4V5.5L12 2.5Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 7v6M12 16v.5",
+    stroke: "#fff",
+    strokeWidth: "2.2",
+    strokeLinecap: "round"
+  }));
+  if (nome === 'porcento') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    strokeWidth: "2.4"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M19 5 5 19"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "7",
+    cy: "7",
+    r: "2.5"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "17",
+    cy: "17",
+    r: "2.5"
+  }));
+  if (nome === 'pessoa') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    fill: "currentColor",
+    stroke: "none"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "7.5",
+    r: "4.2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3.5 21c0-4.6 3.8-7.6 8.5-7.6s8.5 3 8.5 7.6Z"
+  }));
+  if (nome === 'alerta') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    fill: "currentColor",
+    stroke: "none"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M10.3 3.9 1.9 18.5A2 2 0 0 0 3.6 21.5h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 9v5M12 17.3v.2",
+    stroke: "#fff",
+    strokeWidth: "2.2",
+    strokeLinecap: "round"
+  }));
+  if (nome === 'info') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    fill: "currentColor",
+    stroke: "none"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 11v6M12 7.6v.2",
+    stroke: "#fff",
+    strokeWidth: "2.4",
+    strokeLinecap: "round"
+  }));
+  if (nome === 'cadeado') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("rect", {
+    x: "4.5",
+    y: "10.5",
+    width: "15",
+    height: "10",
+    rx: "2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M8 10.5V7.5a4 4 0 0 1 8 0v3"
+  }));
+  return null;
 }
 function ModalAjusteComissao({
   linha,
