@@ -329,6 +329,53 @@
     .modal-apuracao::before{width:90%;top:auto;bottom:40px;}
   }
 
+  /* ---- Galeria de fotos (todo o sistema) ---- */
+  .galeria{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;background:#0A1524;color:#fff;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none;animation:galeriaAbre .16s ease-out;}
+  @keyframes galeriaAbre{from{opacity:0}}
+  .galeria-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));flex-shrink:0;}
+  .galeria-contador{font-size:15px;color:#E6ECF3;white-space:nowrap;}
+  .galeria-contador strong{color:#fff;font-size:17px;}
+  .galeria-ferramentas{display:flex;align-items:center;gap:6px;}
+  .galeria-btn{width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#fff;cursor:pointer;padding:0;transition:background .15s ease;}
+  .galeria-btn:hover:not(:disabled){background:rgba(255,255,255,.2);}
+  .galeria-btn:disabled{opacity:.38;cursor:default;}
+  .galeria-btn.galeria-fechar{background:var(--laranja);border-color:var(--laranja);margin-left:6px;}
+  .galeria-btn.galeria-fechar:hover{background:var(--laranja-escuro);}
+  .galeria-zoom-valor{min-width:46px;text-align:center;font-size:13px;font-weight:700;color:#E6ECF3;font-variant-numeric:tabular-nums;}
+  .galeria-palco{position:relative;flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:default;}
+  .galeria-imagem{width:100%;height:100%;object-fit:contain;transform-origin:center center;will-change:transform;-webkit-user-drag:none;}
+  .galeria-palco.ampliada .galeria-imagem:active{cursor:grabbing !important;}
+  .galeria-imagem.entra-dir{animation:galeriaEntraDir .22s ease-out;}
+  .galeria-imagem.entra-esq{animation:galeriaEntraEsq .22s ease-out;}
+  @keyframes galeriaEntraDir{from{opacity:.2;translate:48px 0}}
+  @keyframes galeriaEntraEsq{from{opacity:.2;translate:-48px 0}}
+  .galeria-seta{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(15,42,71,.72);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;z-index:2;transition:background .15s ease;}
+  .galeria-seta:hover{background:var(--laranja);border-color:var(--laranja);}
+  .galeria-seta.esq{left:16px;}
+  .galeria-seta.dir{right:16px;}
+  .galeria-rodape{flex-shrink:0;padding:8px 14px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .galeria-legenda{font-size:13.5px;color:#E6ECF3;text-align:center;max-width:720px;}
+  .galeria-miniaturas{display:flex;gap:8px;max-width:100%;overflow-x:auto;padding:3px;scrollbar-width:thin;touch-action:pan-x;}
+  .galeria-mini{flex-shrink:0;width:58px;height:58px;padding:0;border-radius:9px;overflow:hidden;border:2px solid transparent;background:#1B2C42;cursor:pointer;opacity:.6;transition:opacity .15s ease,border-color .15s ease;}
+  .galeria-mini img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
+  .galeria-mini.atual{border-color:var(--laranja);opacity:1;}
+  .galeria-mini:hover{opacity:1;}
+  .galeria-dica{font-size:11.5px;color:#A9B6C6;text-align:center;}
+  @media (max-width:640px){
+    .galeria-topo{padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));}
+    .galeria-btn{width:40px;height:40px;border-radius:11px;}
+    .galeria-ferramentas{gap:4px;}
+    .galeria-zoom-valor{min-width:40px;font-size:12px;}
+    .galeria-seta{width:42px;height:42px;background:rgba(15,42,71,.55);}
+    .galeria-seta.esq{left:6px;}
+    .galeria-seta.dir{right:6px;}
+    .galeria-mini{width:48px;height:48px;}
+    .galeria-rodape{padding:6px 10px 10px;}
+  }
+  @media (max-width:360px){ .galeria-zoom-valor{display:none;} }
+  /* miniatura com contador de fotos */
+  .mini-fotos{position:relative;display:inline-block;line-height:0;vertical-align:middle;}
+  .mini-fotos-qtd{position:absolute;right:-5px;bottom:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--laranja);color:#fff;font-size:11px;font-weight:700;line-height:20px;text-align:center;border:2px solid #fff;pointer-events:none;}
   /* ---- Comissão: celular e tablet (o computador não usa nada daqui) ---- */
   .so-mobile,.so-mobile-inline,.regra-salvar-mobile{display:none !important;}
   .func-cards{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px;}
@@ -2323,7 +2370,13 @@ function RegistroFotografico({
     className: "foto-clicavel",
     onClick: e => {
       e.stopPropagation();
-      setFotoAmpliada(foto.imagem);
+      setFotoAmpliada({
+        fotos: [{
+          src: foto.imagem,
+          legenda: foto.registradoPor ? `Registrada por ${foto.registradoPor} · ${formatDataHora(foto.dataRegistro)}` : ''
+        }],
+        indice: 0
+      });
     },
     style: {
       width: 60,
@@ -4408,10 +4461,12 @@ function AbaCatalogo({
     }
   }, /*#__PURE__*/React.createElement("td", {
     onClick: e => e.stopPropagation()
-  }, p.fotos && p.fotos[0] ? /*#__PURE__*/React.createElement("img", {
-    src: p.fotos[0],
-    className: "foto-thumb foto-clicavel",
-    onClick: () => setFotoAmpliada(p.fotos[0])
+  }, p.fotos && p.fotos[0] ? /*#__PURE__*/React.createElement(MiniaturaFotos, {
+    fotos: p.fotos,
+    aoAbrir: i => setFotoAmpliada({
+      fotos: p.fotos,
+      indice: i
+    })
   }) : /*#__PURE__*/React.createElement("div", {
     className: "foto-thumb",
     style: {
@@ -4542,7 +4597,10 @@ function ModalCatalogo({
   }, /*#__PURE__*/React.createElement("img", {
     src: foto,
     className: "foto-thumb foto-clicavel",
-    onClick: () => setFotoAmpliada(foto)
+    onClick: () => setFotoAmpliada({
+      fotos: f.fotos,
+      indice: i
+    })
   }), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => removerFoto(i),
@@ -4919,48 +4977,585 @@ function SeletorCatalogo({
 }
 
 // ======================= LOTES =======================
-function FotoAmpliada({
-  url,
+// ======================= GALERIA DE FOTOS (componente único do sistema) =======================
+// Uso: <GaleriaFotos fotos={[url | {src, legenda}]} indice={0} aoFechar={fn} />
+// Compatível com o antigo <FotoAmpliada url={...} />: url pode ser uma URL ou {fotos, indice}.
+const GALERIA_ZOOM_MAX = 5;
+const GALERIA_ZOOM_TOQUE = 2.5;
+function normalizarFotosGaleria(fotos) {
+  return (fotos || []).filter(Boolean).map(f => typeof f === 'string' ? {
+    src: f,
+    legenda: ''
+  } : {
+    src: f.src || f.imagem || '',
+    legenda: f.legenda || ''
+  }).filter(f => f.src);
+}
+function IconeGaleria({
+  nome
+}) {
+  const p = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2.2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true
+  };
+  if (nome === 'mais') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("circle", {
+    cx: "11",
+    cy: "11",
+    r: "7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M21 21l-4.3-4.3M11 8v6M8 11h6"
+  }));
+  if (nome === 'menos') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("circle", {
+    cx: "11",
+    cy: "11",
+    r: "7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M21 21l-4.3-4.3M8 11h6"
+  }));
+  if (nome === 'restaurar') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+    d: "M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6"
+  }));
+  if (nome === 'fechar') return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+    d: "M6 6l12 12M18 6L6 18"
+  }));
+  if (nome === 'esq') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    width: 26,
+    height: 26
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M15 5l-7 7 7 7"
+  }));
+  if (nome === 'dir') return /*#__PURE__*/React.createElement("svg", {
+    ...p,
+    width: 26,
+    height: 26
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M9 5l7 7-7 7"
+  }));
+  return null;
+}
+function GaleriaFotos({
+  fotos,
+  indice = 0,
   aoFechar
 }) {
-  if (!url) return null;
-  return /*#__PURE__*/React.createElement("div", {
-    onClick: aoFechar,
-    style: {
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(20,14,13,.88)',
-      zIndex: 80,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 20
+  const lista = useMemo(() => normalizarFotosGaleria(fotos), [fotos]);
+  const total = lista.length;
+  const [atual, setAtual] = useState(Math.min(Math.max(0, indice || 0), Math.max(0, total - 1)));
+  const [vista, setVista] = useState({
+    s: 1,
+    x: 0,
+    y: 0
+  });
+  const [arrasteX, setArrasteX] = useState(0);
+  const [animando, setAnimando] = useState(false);
+  const [direcao, setDirecao] = useState('');
+  const [natural, setNatural] = useState({
+    w: 0,
+    h: 0
+  });
+  const palcoRef = useRef(null);
+  const miniRef = useRef(null);
+  const ponteiros = useRef(new Map());
+  const gesto = useRef(null);
+  const vistaRef = useRef(vista);
+  vistaRef.current = vista;
+
+  // tamanho da foto “encaixada” no palco (sem distorcer)
+  function tamanhoBase() {
+    const el = palcoRef.current;
+    if (!el || !natural.w) return {
+      w: 0,
+      h: 0,
+      W: 0,
+      H: 0
+    };
+    const W = el.clientWidth,
+      H = el.clientHeight;
+    const f = Math.min(W / natural.w, H / natural.h);
+    return {
+      w: natural.w * f,
+      h: natural.h * f,
+      W,
+      H
+    };
+  }
+  function limitar(v) {
+    const s = Math.min(GALERIA_ZOOM_MAX, Math.max(1, v.s));
+    if (s <= 1.001) return {
+      s: 1,
+      x: 0,
+      y: 0
+    };
+    const b = tamanhoBase();
+    const mx = Math.max(0, (b.w * s - b.W) / 2),
+      my = Math.max(0, (b.h * s - b.H) / 2);
+    return {
+      s,
+      x: Math.min(mx, Math.max(-mx, v.x)),
+      y: Math.min(my, Math.max(-my, v.y))
+    };
+  }
+  // zoom mantendo fixo o ponto (px, py) relativo ao centro do palco
+  function zoomEm(novoS, px = 0, py = 0, base) {
+    const v = base || vistaRef.current;
+    const s2 = Math.min(GALERIA_ZOOM_MAX, Math.max(1, novoS));
+    const r = s2 / v.s;
+    return limitar({
+      s: s2,
+      x: px - (px - v.x) * r,
+      y: py - (py - v.y) * r
+    });
+  }
+  function pontoRelativo(clientX, clientY) {
+    const r = palcoRef.current.getBoundingClientRect();
+    return {
+      px: clientX - (r.left + r.width / 2),
+      py: clientY - (r.top + r.height / 2)
+    };
+  }
+  function pontoSobreFoto(clientX, clientY) {
+    const b = tamanhoBase();
+    if (!b.w) return true;
+    const {
+      px,
+      py
+    } = pontoRelativo(clientX, clientY);
+    const v = vistaRef.current;
+    return Math.abs(px - v.x) <= b.w * v.s / 2 + 4 && Math.abs(py - v.y) <= b.h * v.s / 2 + 4;
+  }
+  function irPara(novo, dir) {
+    if (total < 2) return;
+    const n = (novo + total) % total;
+    setDirecao(dir || (novo > atual ? 'dir' : 'esq'));
+    setAtual(n);
+    setVista({
+      s: 1,
+      x: 0,
+      y: 0
+    });
+    setArrasteX(0);
+    setNatural({
+      w: 0,
+      h: 0
+    });
+  }
+  const proxima = () => irPara(atual + 1, 'dir');
+  const anterior = () => irPara(atual - 1, 'esq');
+  function mudarZoom(fator) {
+    setAnimando(true);
+    setVista(zoomEm(vistaRef.current.s * fator));
+  }
+  function restaurar() {
+    setAnimando(true);
+    setVista({
+      s: 1,
+      x: 0,
+      y: 0
+    });
+  }
+
+  // teclado: setas, Esc, + / − / 0 (sem deixar o Esc fechar a janela de trás)
+  useEffect(() => {
+    const tecla = e => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        aoFechar();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        e.stopPropagation();
+        proxima();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        e.stopPropagation();
+        anterior();
+      } else if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        mudarZoom(1.4);
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        mudarZoom(1 / 1.4);
+      } else if (e.key === '0') {
+        e.preventDefault();
+        restaurar();
+      }
+    };
+    window.addEventListener('keydown', tecla, true);
+    return () => window.removeEventListener('keydown', tecla, true);
+  });
+  // trava a rolagem da página enquanto a galeria está aberta (a posição da tela é mantida)
+  useEffect(() => {
+    const html = document.documentElement,
+      body = document.body;
+    const antes = [html.style.overflow, body.style.overflow, body.style.overscrollBehavior];
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
+    return () => {
+      html.style.overflow = antes[0];
+      body.style.overflow = antes[1];
+      body.style.overscrollBehavior = antes[2];
+    };
+  }, []);
+  // roda do mouse: zoom no ponto do cursor (listener não-passivo para impedir a rolagem)
+  useEffect(() => {
+    const el = palcoRef.current;
+    if (!el) return;
+    const roda = e => {
+      e.preventDefault();
+      const {
+        px,
+        py
+      } = pontoRelativo(e.clientX, e.clientY);
+      const fator = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0022));
+      setAnimando(false);
+      setVista(zoomEm(vistaRef.current.s * fator, px, py));
+    };
+    el.addEventListener('wheel', roda, {
+      passive: false
+    });
+    return () => el.removeEventListener('wheel', roda);
+  });
+  // mantém a miniatura atual visível e pré-carrega as vizinhas
+  useEffect(() => {
+    const m = miniRef.current && miniRef.current.querySelector('[data-atual="1"]');
+    if (m && m.scrollIntoView) m.scrollIntoView({
+      block: 'nearest',
+      inline: 'center'
+    });
+    [atual + 1, atual - 1].forEach(i => {
+      const f = lista[(i + total) % total];
+      if (f) {
+        const im = new Image();
+        im.src = f.src;
+      }
+    });
+  }, [atual]);
+  // reencaixa ao girar/redimensionar a tela
+  useEffect(() => {
+    const r = () => setVista(v => limitar(v));
+    window.addEventListener('resize', r);
+    return () => window.removeEventListener('resize', r);
+  });
+  if (!total) return null;
+  const foto = lista[atual];
+
+  // ---- gestos (mouse, caneta e dedos pelo mesmo caminho)
+  function aoPressionar(e) {
+    if (e.button !== undefined && e.button > 0) return;
+    e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId);
+    ponteiros.current.set(e.pointerId, {
+      x: e.clientX,
+      y: e.clientY
+    });
+    setAnimando(false);
+    const pts = [...ponteiros.current.values()];
+    if (pts.length === 1) {
+      gesto.current = {
+        tipo: 'um',
+        x0: e.clientX,
+        y0: e.clientY,
+        v0: vistaRef.current,
+        moveu: false,
+        t0: Date.now(),
+        sobreFoto: pontoSobreFoto(e.clientX, e.clientY)
+      };
+    } else if (pts.length === 2) {
+      const [a, b] = pts;
+      const meio = pontoRelativo((a.x + b.x) / 2, (a.y + b.y) / 2);
+      gesto.current = {
+        tipo: 'pinca',
+        d0: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+        v0: vistaRef.current,
+        m0: meio,
+        moveu: true
+      };
+      setArrasteX(0);
     }
-  }, /*#__PURE__*/React.createElement("img", {
-    src: url,
-    style: {
-      maxWidth: '100%',
-      maxHeight: '100%',
-      borderRadius: 8,
-      objectFit: 'contain'
+  }
+  function aoMover(e) {
+    if (!ponteiros.current.has(e.pointerId)) return;
+    ponteiros.current.set(e.pointerId, {
+      x: e.clientX,
+      y: e.clientY
+    });
+    const g = gesto.current;
+    if (!g) return;
+    if (g.tipo === 'pinca' && ponteiros.current.size >= 2) {
+      const [a, b] = [...ponteiros.current.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const meio = pontoRelativo((a.x + b.x) / 2, (a.y + b.y) / 2);
+      const z = zoomEm(g.v0.s * d / g.d0, g.m0.px, g.m0.py, g.v0);
+      setVista(limitar({
+        s: z.s,
+        x: z.x + (meio.px - g.m0.px),
+        y: z.y + (meio.py - g.m0.py)
+      }));
+      return;
     }
-  }), /*#__PURE__*/React.createElement("button", {
+    if (g.tipo !== 'um') return;
+    const dx = e.clientX - g.x0,
+      dy = e.clientY - g.y0;
+    if (!g.moveu && Math.hypot(dx, dy) > 6) g.moveu = true;
+    if (!g.moveu) return;
+    if (g.v0.s > 1) setVista(limitar({
+      s: g.v0.s,
+      x: g.v0.x + dx,
+      y: g.v0.y + dy
+    })); // arrasta a foto ampliada
+    else if (total > 1) setArrasteX(dx); // desliza para trocar de foto
+  }
+  function aoSoltar(e) {
+    if (!ponteiros.current.has(e.pointerId)) return;
+    ponteiros.current.delete(e.pointerId);
+    const g = gesto.current;
+    if (g && g.tipo === 'pinca') {
+      if (ponteiros.current.size === 1) {
+        const [p] = [...ponteiros.current.values()];
+        gesto.current = {
+          tipo: 'um',
+          x0: p.x,
+          y0: p.y,
+          v0: vistaRef.current,
+          moveu: true
+        };
+      } else gesto.current = null;
+      if (vistaRef.current.s < 1.02) {
+        setAnimando(true);
+        setVista({
+          s: 1,
+          x: 0,
+          y: 0
+        });
+      }
+      return;
+    }
+    gesto.current = null;
+    if (!g || e.type === 'pointercancel') {
+      setArrasteX(0);
+      return;
+    }
+    const dx = e.clientX - g.x0;
+    if (g.moveu) {
+      if (g.v0.s <= 1 && total > 1) {
+        const rapido = Math.abs(dx) / Math.max(1, Date.now() - g.t0) > 0.5;
+        const limite = Math.min(90, (palcoRef.current ? palcoRef.current.clientWidth : 300) * 0.18);
+        if (dx < -limite || rapido && dx < -30) return proxima();
+        if (dx > limite || rapido && dx > 30) return anterior();
+      }
+      setAnimando(true);
+      setArrasteX(0);
+      return;
+    }
+    // toque/clique simples
+    if (!g.sobreFoto) {
+      if (vistaRef.current.s <= 1) aoFechar();
+      return;
+    }
+    setAnimando(true);
+    if (vistaRef.current.s > 1) setVista({
+      s: 1,
+      x: 0,
+      y: 0
+    });else {
+      const {
+        px,
+        py
+      } = pontoRelativo(e.clientX, e.clientY);
+      setVista(zoomEm(GALERIA_ZOOM_TOQUE, px, py, {
+        s: 1,
+        x: 0,
+        y: 0
+      }));
+    }
+  }
+  const zoomPct = Math.round(vista.s * 100);
+  const conteudo = /*#__PURE__*/React.createElement("div", {
+    className: "galeria",
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-label": "Galeria de fotos",
+    onClick: e => e.stopPropagation(),
+    onMouseDown: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "galeria-topo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "galeria-contador",
+    "aria-live": "polite"
+  }, total > 1 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("strong", null, atual + 1), " de ", total) : 'Foto'), /*#__PURE__*/React.createElement("div", {
+    className: "galeria-ferramentas"
+  }, /*#__PURE__*/React.createElement("button", {
     type: "button",
+    className: "galeria-btn",
+    onClick: () => mudarZoom(1 / 1.5),
+    disabled: vista.s <= 1,
+    title: "Diminuir zoom (−)",
+    "aria-label": "Diminuir zoom"
+  }, /*#__PURE__*/React.createElement(IconeGaleria, {
+    nome: "menos"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "galeria-zoom-valor"
+  }, zoomPct, "%"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "galeria-btn",
+    onClick: () => mudarZoom(1.5),
+    disabled: vista.s >= GALERIA_ZOOM_MAX,
+    title: "Aumentar zoom (+)",
+    "aria-label": "Aumentar zoom"
+  }, /*#__PURE__*/React.createElement(IconeGaleria, {
+    nome: "mais"
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "galeria-btn",
+    onClick: restaurar,
+    disabled: vista.s === 1 && !vista.x && !vista.y,
+    title: "Tamanho original (0)",
+    "aria-label": "Restaurar tamanho original"
+  }, /*#__PURE__*/React.createElement(IconeGaleria, {
+    nome: "restaurar"
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "galeria-btn galeria-fechar",
     onClick: aoFechar,
+    title: "Fechar (Esc)",
+    "aria-label": "Fechar galeria"
+  }, /*#__PURE__*/React.createElement(IconeGaleria, {
+    nome: "fechar"
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: `galeria-palco ${vista.s > 1 ? 'ampliada' : ''}`,
+    ref: palcoRef,
+    onPointerDown: aoPressionar,
+    onPointerMove: aoMover,
+    onPointerUp: aoSoltar,
+    onPointerCancel: aoSoltar,
+    onDragStart: e => e.preventDefault()
+  }, /*#__PURE__*/React.createElement("img", {
+    key: atual,
+    src: foto.src,
+    alt: foto.legenda || `Foto ${atual + 1} de ${total}`,
+    draggable: false,
+    className: `galeria-imagem ${direcao ? 'entra-' + direcao : ''}`,
+    onLoad: e => setNatural({
+      w: e.currentTarget.naturalWidth,
+      h: e.currentTarget.naturalHeight
+    }),
     style: {
-      position: 'absolute',
-      top: 16,
-      right: 16,
-      width: 36,
-      height: 36,
-      borderRadius: '50%',
-      background: 'rgba(255,255,255,.15)',
-      color: '#fff',
-      border: '1px solid rgba(255,255,255,.4)',
-      fontSize: 18,
-      lineHeight: 1
+      transform: `translate3d(${vista.x + arrasteX}px, ${vista.y}px, 0) scale(${vista.s})`,
+      transition: animando ? 'transform .22s ease' : 'none',
+      cursor: vista.s > 1 ? 'grab' : 'zoom-in'
     }
-  }, "×"));
+  }), total > 1 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "galeria-seta esq",
+    onPointerDown: e => e.stopPropagation(),
+    onClick: anterior,
+    "aria-label": "Foto anterior",
+    title: "Anterior (←)"
+  }, /*#__PURE__*/React.createElement(IconeGaleria, {
+    nome: "esq"
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "galeria-seta dir",
+    onPointerDown: e => e.stopPropagation(),
+    onClick: proxima,
+    "aria-label": "Próxima foto",
+    title: "Próxima (→)"
+  }, /*#__PURE__*/React.createElement(IconeGaleria, {
+    nome: "dir"
+  })))), (foto.legenda || total > 1) && /*#__PURE__*/React.createElement("div", {
+    className: "galeria-rodape"
+  }, foto.legenda && /*#__PURE__*/React.createElement("div", {
+    className: "galeria-legenda"
+  }, foto.legenda), total > 1 && /*#__PURE__*/React.createElement("div", {
+    className: "galeria-miniaturas",
+    ref: miniRef
+  }, lista.map((f, i) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    key: i,
+    "data-atual": i === atual ? '1' : '0',
+    className: `galeria-mini ${i === atual ? 'atual' : ''}`,
+    onClick: () => i !== atual && irPara(i),
+    "aria-label": `Ver foto ${i + 1}`
+  }, /*#__PURE__*/React.createElement("img", {
+    src: f.src,
+    alt: "",
+    draggable: false
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "galeria-dica"
+  }, total > 1 ? 'Deslize para os lados ou use as setas · ' : '', "toque na foto ou use a pinça para ampliar")));
+  return ReactDOM.createPortal(conteudo, document.body);
+}
+function FotoAmpliada({
+  url,
+  fotos,
+  indice,
+  aoFechar
+}) {
+  if (fotos) return /*#__PURE__*/React.createElement(GaleriaFotos, {
+    fotos: fotos,
+    indice: indice,
+    aoFechar: aoFechar
+  });
+  if (!url) return null;
+  if (typeof url === 'string') return /*#__PURE__*/React.createElement(GaleriaFotos, {
+    fotos: [url],
+    indice: 0,
+    aoFechar: aoFechar
+  });
+  return /*#__PURE__*/React.createElement(GaleriaFotos, {
+    key: (url.fotos || []).length + ':' + (url.indice || 0),
+    fotos: url.fotos,
+    indice: url.indice,
+    aoFechar: aoFechar
+  });
+}
+// Miniatura com contador de fotos (abre a galeria)
+function MiniaturaFotos({
+  fotos,
+  aoAbrir,
+  className,
+  style,
+  tamanho
+}) {
+  const n = (fotos || []).filter(Boolean).length;
+  if (!n) return null;
+  return /*#__PURE__*/React.createElement("span", {
+    className: "mini-fotos",
+    style: style
+  }, /*#__PURE__*/React.createElement("img", {
+    src: fotos[0],
+    className: className || 'foto-thumb foto-clicavel',
+    alt: n > 1 ? `${n} fotos` : 'Foto',
+    onClick: e => {
+      e.stopPropagation();
+      aoAbrir(0);
+    },
+    style: tamanho ? {
+      width: tamanho,
+      height: tamanho
+    } : undefined
+  }), n > 1 && /*#__PURE__*/React.createElement("span", {
+    className: "mini-fotos-qtd",
+    "aria-hidden": "true"
+  }, n));
+}
+// Fotos + quem registrou (mesma posição do array), para a legenda da galeria
+function fotosComRegistro(fotos, registros) {
+  return (fotos || []).map((src, i) => {
+    const r = (registros || [])[i];
+    return {
+      src,
+      legenda: r && r.registradoPor ? `Registrada por ${r.registradoPor}${r.dataRegistro ? ' · ' + formatDataHora(r.dataRegistro) : ''}` : ''
+    };
+  });
 }
 function AbaLotes({
   usuario,
@@ -5129,10 +5724,12 @@ function AbaLotes({
     onClick: () => setLoteSelecionadoId(l.id)
   }, /*#__PURE__*/React.createElement("td", {
     onClick: e => e.stopPropagation()
-  }, l.fotos && l.fotos[0] ? /*#__PURE__*/React.createElement("img", {
-    src: l.fotos[0],
-    className: "foto-thumb foto-clicavel",
-    onClick: () => setFotoAmpliada(l.fotos[0])
+  }, l.fotos && l.fotos[0] ? /*#__PURE__*/React.createElement(MiniaturaFotos, {
+    fotos: l.fotos,
+    aoAbrir: i => setFotoAmpliada({
+      fotos: fotosComRegistro(l.fotos, l.fotosRegistro),
+      indice: i
+    })
   }) : /*#__PURE__*/React.createElement("div", {
     className: "foto-thumb",
     style: {
@@ -5263,6 +5860,7 @@ function ModalNovoLote({
   const [fotosLote, setFotosLote] = useState([]);
   // Quem registrou cada foto e quando — mesma posição do array fotosLote.
   const [fotosRegistro, setFotosRegistro] = useState([]);
+  const [fotoAmpliadaNova, setFotoAmpliadaNova] = useState(null);
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const inputCameraRef = useRef();
@@ -5385,6 +5983,11 @@ function ModalNovoLote({
     }
   }, /*#__PURE__*/React.createElement("img", {
     src: foto,
+    className: "foto-clicavel",
+    onClick: () => setFotoAmpliadaNova({
+      fotos: fotosLote,
+      indice: i
+    }),
     style: {
       width: 84,
       height: 84,
@@ -5409,7 +6012,10 @@ function ModalNovoLote({
       lineHeight: '20px',
       padding: 0
     }
-  }, "×"))), fotosLote.length < 3 && /*#__PURE__*/React.createElement("button", {
+  }, "×"))), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: fotoAmpliadaNova,
+    aoFechar: () => setFotoAmpliadaNova(null)
+  }), fotosLote.length < 3 && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     disabled: processandoFoto,
@@ -5755,7 +6361,10 @@ function ModalLoteDetalhe({
       borderRadius: 8,
       border: '1px solid var(--borda)'
     },
-    onClick: () => setFotoAmpliada(foto)
+    onClick: () => setFotoAmpliada({
+      fotos: fotosComRegistro(lote.fotos, lote.fotosRegistro),
+      indice: i
+    })
   }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(ClienteResumo, {
     cliente: clienteObj,
     aoClicar: () => setClienteParaVer(clienteObj),
@@ -11687,6 +12296,7 @@ function ModalNovoAviso({
   const [dataFim, setDataFim] = useState(aviso?.dataFim ? aviso.dataFim.slice(0, 16) : '');
   const [processando, setProcessando] = useState(false);
   const [processandoImagem, setProcessandoImagem] = useState(false);
+  const [imagemAmpliada, setImagemAmpliada] = useState(null);
   const inputImagemRef = useRef();
   async function selecionarImagem(file) {
     if (!file) return;
@@ -11773,6 +12383,8 @@ function ModalNovoAviso({
     }
   }, /*#__PURE__*/React.createElement("img", {
     src: imagem,
+    className: "foto-clicavel",
+    onClick: () => setImagemAmpliada(imagem),
     style: {
       width: 70,
       height: 70,
@@ -11784,7 +12396,10 @@ function ModalNovoAviso({
     type: "button",
     className: "btn secundario pequeno",
     onClick: () => setImagem('')
-  }, "Remover imagem")) : /*#__PURE__*/React.createElement("button", {
+  }, "Remover imagem"), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: imagemAmpliada,
+    aoFechar: () => setImagemAmpliada(null)
+  })) : /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     disabled: processandoImagem,
