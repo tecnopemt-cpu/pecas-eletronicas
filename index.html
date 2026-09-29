@@ -328,6 +328,108 @@
     .apu-rodape{margin:14px -14px -16px;padding:12px 14px 14px;bottom:-16px;}
     .modal-apuracao::before{width:90%;top:auto;bottom:40px;}
   }
+
+  /* ---- Comissão: celular e tablet (o computador não usa nada daqui) ---- */
+  .so-mobile,.so-mobile-inline,.regra-salvar-mobile{display:none !important;}
+  .func-cards{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px;}
+  .func-card{background:#fff;border:1px solid #DCE3EA;border-radius:14px;padding:14px 14px 10px;box-shadow:0 1px 3px rgba(15,42,71,.05);min-width:0;}
+  .func-card-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-bottom:10px;border-bottom:1px solid #E6EBF0;}
+  .func-card-nome{font-size:16.5px;font-weight:800;color:#0F2A47;line-height:1.25;word-break:break-word;}
+  .func-card-sub{font-size:12px;color:#5B6778;margin-top:2px;}
+  .func-card-topo .badge{flex-shrink:0;}
+  .func-card-pares{display:grid;grid-template-columns:minmax(0,1fr) auto;margin:0;}
+  .func-card-pares dt,.func-card-pares dd{padding:8px 0;border-bottom:1px dashed #E6EBF0;font-size:14px;}
+  .func-card-pares dt{color:#4A5568;}
+  .func-card-pares dd{margin:0;text-align:right;font-weight:700;color:#1F2B3D;padding-left:10px;max-width:62vw;word-break:break-word;}
+  .func-card-final{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 0 6px;}
+  .func-card-final span{font-weight:700;color:#0F2A47;font-size:14.5px;}
+  .func-card-final strong{font-size:21px;font-weight:800;color:var(--laranja);}
+  .func-card-acoes{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px;}
+  .func-card-acoes .btn{flex:1 1 30%;min-height:42px;justify-content:center;}
+  .func-card-ver{display:block;width:100%;margin-top:6px;padding:10px 0 4px;background:none;border:none;border-top:1px solid #E6EBF0;color:#1E5AA8;font-weight:700;font-size:13.5px;text-align:center;}
+  .func-card-memoria{margin-top:8px;overflow-x:auto;}
+  .func-card-memoria table{min-width:520px;}
+
+  @media (max-width:900px){
+    .so-desktop{display:none !important;}
+    .so-mobile{display:block !important;}
+    .func-cards.so-mobile{display:grid !important;}
+    .so-mobile-inline{display:inline !important;}
+  }
+  @media (min-width:600px) and (max-width:900px){ .func-cards{grid-template-columns:repeat(2,minmax(0,1fr));} }
+
+  @media (max-width:760px){
+    /* Análise: cabeçalho e filtros */
+    .com-cabecalho h2{width:100%;}
+    .com-cabecalho-botoes{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:8px !important;}
+    .com-cabecalho-botoes .btn{width:100%;justify-content:center;font-size:13.5px;padding:10px 8px;min-height:44px;}
+    .com-cabecalho-botoes .btn:last-child:nth-child(odd){grid-column:1 / -1;}
+    .com-filtros{flex-direction:column;align-items:stretch !important;gap:12px !important;padding:14px;}
+    .com-filtros select{max-width:none !important;width:100%;}
+    .com-periodo-sel{padding-top:10px;border-top:1px solid var(--borda);}
+    /* Seletor de período: De e Até em linhas próprias, setas lado a lado */
+    .seletor-periodo{display:grid !important;grid-template-columns:1fr 1fr;gap:8px !important;width:100%;}
+    .seletor-periodo .sp-de,.seletor-periodo .sp-ate{grid-column:1 / -1;}
+    .seletor-periodo .sp-de{order:1;} .seletor-periodo .sp-ate{order:2;}
+    .seletor-periodo .sp-ant{order:3;} .seletor-periodo .sp-prox{order:4;}
+    .seletor-periodo .btn{width:100%;min-height:42px;justify-content:center;}
+    .seletor-periodo input[type=date]{width:100%;min-width:0 !important;font-size:15px;}
+    /* Cartões de indicadores: 2 colunas, valores sempre dentro do cartão */
+    .com-cards{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:10px !important;}
+    .com-cards .card{padding:12px !important;min-width:0;}
+    .com-cards .card > div:first-child{font-size:12.5px !important;line-height:1.3;color:#4A5568 !important;}
+    .com-cards .card > div:last-child{font-size:clamp(16px,4.8vw,20px) !important;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;}
+    .com-lancamentos table{min-width:560px;}
+    /* Regras: cada informação em bloco (título em cima, valor embaixo) */
+    .regra-consulta{flex-direction:column;align-items:stretch !important;}
+    .regra-consulta input[type=date]{width:100%;}
+    .regra-secao{padding:16px 14px;}
+    .regra-secao-topo{flex-wrap:nowrap !important;align-items:flex-start !important;}
+    .regra-secao-topo h3{flex:1;min-width:0;font-size:16px !important;line-height:1.3;color:#0F2A47;}
+    .regra-secao-topo .btn{flex-shrink:0;min-height:40px;padding:8px 12px;}
+    .regra-secao.editando .regra-salvar-topo{display:none !important;}
+    .regra-linha{flex-direction:column !important;gap:2px !important;padding:9px 0 !important;border-bottom:1px solid #EEF1F4;}
+    .regra-linha:last-child{border-bottom:none;}
+    .regra-linha-rotulo{min-width:0 !important;font-size:12.5px;color:#5B6778 !important;}
+    .regra-linha-valor{font-size:15px;color:#0F2A47;line-height:1.35;}
+    .regra-secao .grid2{grid-template-columns:1fr !important;}
+    .regra-faixas-resumo{max-width:none !important;}
+    .regra-faixas-resumo th{white-space:normal;font-size:12px;padding:8px 6px;}
+    .regra-faixas-resumo td{padding:10px 6px;font-size:14px;}
+    .regra-faixas-resumo tr.inativa td{color:#8A94A3;}
+    .regra-faixas-resumo td.celula-pct{font-weight:700;color:#0F2A47;}
+    /* Tabelas de edição, versões e histórico viram cartões */
+    .tabela-cartoes thead{display:none;}
+    .tabela-cartoes,.tabela-cartoes tbody{display:block;width:100%;}
+    .tabela-cartoes tr{display:block;border:1px solid #DCE3EA;border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff;}
+    .tabela-cartoes td{display:block;border:none;padding:6px 0;background:transparent;}
+    .tabela-cartoes tr:hover td{background:transparent;}
+    .tabela-cartoes td[data-rotulo]::before{content:attr(data-rotulo);display:block;font-size:12.5px;font-weight:600;color:#4A5568;margin-bottom:4px;}
+    .tabela-cartoes td input,.tabela-cartoes td select{width:100%;}
+    .tabela-cartoes td.celula-check{display:flex;align-items:center;justify-content:space-between;text-align:left !important;}
+    .tabela-cartoes td.celula-check::before{margin:0;}
+    .tabela-cartoes td.celula-check input{width:22px;height:22px;}
+    .tabela-cartoes td.celula-acao .btn{width:100%;min-height:42px;justify-content:center;}
+    .tabela-cartoes td.celula-acao:empty{display:none;}
+    .tabela-historico td{display:grid !important;grid-template-columns:96px minmax(0,1fr);gap:8px;align-items:baseline;white-space:normal !important;font-size:13.5px;}
+    .tabela-historico td[data-rotulo]::before{margin:0;font-size:12px;}
+    .tabela-historico td.celula-destaque{font-weight:700;color:#0F2A47;}
+    .regra-salvar-mobile{display:flex !important;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid #E6EBF0;}
+    .regra-salvar-mobile .btn{flex:1;min-height:46px;justify-content:center;}
+    /* Período de Apuração: modal com margens laterais */
+    .modal-fundo:has(.modal-apuracao){align-items:flex-start !important;padding:10px 8px !important;}
+    .modal-apuracao{border-radius:14px !important;max-height:calc(100dvh - 20px) !important;}
+    .modal-apuracao .apu-periodo input[type=date]{min-width:0;}
+    .modal-apuracao .apu-topo{padding-right:0;}
+    .modal-apuracao .apu-titulo{padding-right:40px;}
+    .modal-apuracao .apu-acoes{width:100%;}
+    .modal-apuracao .apu-acoes .btn{flex:1 1 100%;min-height:44px;justify-content:center;}
+  }
+  @media (max-width:360px){
+    .com-cards{grid-template-columns:1fr !important;}
+    .com-cabecalho-botoes{grid-template-columns:1fr;}
+    .apu-cards{grid-template-columns:1fr !important;}
+  }
 </style>
 </head>
 <body>
@@ -8027,6 +8129,7 @@ function SeletorPeriodo({
     aoMudar(p.inicioStr, p.fimStr);
   }
   return /*#__PURE__*/React.createElement("div", {
+    className: "seletor-periodo",
     style: {
       display: 'flex',
       gap: 8,
@@ -8035,10 +8138,14 @@ function SeletorPeriodo({
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "btn secundario pequeno",
+    className: "btn secundario pequeno sp-ant",
     onClick: () => mover(-1),
     title: "Período anterior"
-  }, "◀"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+  }, "◀", /*#__PURE__*/React.createElement("span", {
+    className: "so-mobile-inline"
+  }, " Anterior")), /*#__PURE__*/React.createElement("div", {
+    className: "sp-de"
+  }, /*#__PURE__*/React.createElement("label", {
     style: {
       margin: 0
     }
@@ -8046,7 +8153,9 @@ function SeletorPeriodo({
     type: "date",
     value: inicio,
     onChange: e => aoMudar(e.target.value, fim)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "sp-ate"
+  }, /*#__PURE__*/React.createElement("label", {
     style: {
       margin: 0
     }
@@ -8056,10 +8165,12 @@ function SeletorPeriodo({
     onChange: e => aoMudar(inicio, e.target.value)
   })), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "btn secundario pequeno",
+    className: "btn secundario pequeno sp-prox",
     onClick: () => mover(1),
     title: "Próximo período"
-  }, "▶"));
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "so-mobile-inline"
+  }, "Próximo "), "▶"));
 }
 function CartoesApuracao({
   res,
@@ -8069,6 +8180,7 @@ function CartoesApuracao({
   const base = resumoLinhas ? resumoLinhas.reduce((s, l) => s + l.base, 0) : res.totalBase;
   const final = resumoLinhas ? resumoLinhas.reduce((s, l) => s + l.final, 0) : res.totalFinal;
   return /*#__PURE__*/React.createElement("div", {
+    className: "com-cards",
     style: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit,minmax(165px,1fr))',
@@ -8218,11 +8330,53 @@ function MemoriaCalculo({
     key: l.id
   }, /*#__PURE__*/React.createElement("td", null, formatarDataBr(l.data)), /*#__PURE__*/React.createElement("td", null, "#", l.numero), /*#__PURE__*/React.createElement("td", null, l.pecas), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.valorOrcamento)), /*#__PURE__*/React.createElement("td", null, l.percentual !== null ? formatarPct(l.percentual) : '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.valor)))))));
 }
+// Celular: cada funcionário vira um cartão com pares "informação / valor".
+function CartaoFuncionarioComissao({
+  l,
+  tiposFalta,
+  situacao,
+  expandido,
+  aoExpandir,
+  acoes,
+  memoria
+}) {
+  const faltasTxt = (tiposFalta || []).filter(t => (l.faltas || {})[t.id] !== undefined).map(t => `${l.faltas[t.id] || 0} ${t.nome.toLowerCase().replace('falta ', '')}`).join(' · ') || String(l.qtdFaltas || 0);
+  const pares = [['Comissão (Equipe)', formatarPct(l.percentualFicha)], ['Peças elegíveis', l.pecas], ['Comissão base', formatMoeda(l.base)], ['Faixa e demais regras', l.deltaFaixa === 0 && Math.abs(l.descontos + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0)) < 0.005 ? '—' : sinalMoedaTela(l.final - l.base + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) - (l.totalAjustes || 0))], ['Atrasos', l.atrasos ? `${l.atrasos} (−${formatarPct(l.pctReducaoAtrasos)})${l.minutosAtraso ? ` · ${formatarMinutos(l.minutosAtraso)}` : ''}` : '0'], ['Faltas', l.qtdFaltas ? faltasTxt : '0'], ['Descontos (atrasos/faltas)', (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) > 0 ? `− ${formatMoeda((l.descontoAtrasos || 0) + (l.descontoFaltas || 0))}` : '—'], ['Ajustes', l.totalAjustes ? sinalMoedaTela(l.totalAjustes) : '—']];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "func-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "func-card-topo"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "func-card-nome"
+  }, l.nome), l.inativo && /*#__PURE__*/React.createElement("div", {
+    className: "func-card-sub"
+  }, "desligado")), /*#__PURE__*/React.createElement("span", {
+    className: `badge ${situacao.badge}`
+  }, situacao.rotulo)), /*#__PURE__*/React.createElement("dl", {
+    className: "func-card-pares"
+  }, pares.map(([r, v]) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: r
+  }, /*#__PURE__*/React.createElement("dt", null, r), /*#__PURE__*/React.createElement("dd", null, v)))), /*#__PURE__*/React.createElement("div", {
+    className: "func-card-final"
+  }, /*#__PURE__*/React.createElement("span", null, "Valor final"), /*#__PURE__*/React.createElement("strong", null, formatMoeda(l.final))), acoes && /*#__PURE__*/React.createElement("div", {
+    className: "func-card-acoes"
+  }, acoes), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "func-card-ver",
+    onClick: () => aoExpandir(expandido ? null : l.funcionarioId)
+  }, expandido ? '▲ Ocultar cálculo' : '▼ Ver cálculo'), expandido && /*#__PURE__*/React.createElement("div", {
+    className: "func-card-memoria"
+  }, memoria));
+}
+function sinalMoedaTela(v) {
+  return Math.abs(v) < 0.005 ? '—' : `${v > 0 ? '+' : '−'} ${formatMoeda(Math.abs(v))}`;
+}
 function TabelaApuracao({
   linhas,
   fechamento,
   expandido,
-  aoExpandir
+  aoExpandir,
+  tiposFalta
 }) {
   if (!linhas.length) return /*#__PURE__*/React.createElement("div", {
     className: "card",
@@ -8231,8 +8385,21 @@ function TabelaApuracao({
       textAlign: 'center'
     }
   }, "Nenhuma comissão elegível neste período (só entram orçamentos Entregue/Faturado).");
-  return /*#__PURE__*/React.createElement("div", {
-    className: "card",
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "so-mobile func-cards"
+  }, linhas.map(l => /*#__PURE__*/React.createElement(CartaoFuncionarioComissao, {
+    key: l.funcionarioId,
+    l: l,
+    tiposFalta: tiposFalta,
+    situacao: situacaoPagamento(fechamento, l.funcionarioId),
+    expandido: expandido === l.funcionarioId,
+    aoExpandir: aoExpandir,
+    memoria: /*#__PURE__*/React.createElement(MemoriaCalculo, {
+      linha: l,
+      tiposFalta: tiposFalta
+    })
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "card so-desktop",
     style: {
       padding: 0,
       overflowX: 'auto',
@@ -8265,9 +8432,10 @@ function TabelaApuracao({
     }, st.rotulo))), expandido === l.funcionarioId && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
       colSpan: "9"
     }, /*#__PURE__*/React.createElement(MemoriaCalculo, {
-      linha: l
+      linha: l,
+      tiposFalta: tiposFalta
     }))));
-  }))));
+  })))));
 }
 // Congela o resultado para gravar no fechamento (sem objetos do Firestore).
 function resultadoParaGravar(res) {
@@ -8351,6 +8519,7 @@ function AnaliseComissao({
     });
   }
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "com-cabecalho",
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -8364,6 +8533,7 @@ function AnaliseComissao({
       margin: 0
     }
   }, escopo === 'propria' ? 'Minha Comissão' : 'Análise de comissão'), /*#__PURE__*/React.createElement("div", {
+    className: "com-cabecalho-botoes",
     style: {
       display: 'flex',
       gap: 8,
@@ -8382,7 +8552,7 @@ function AnaliseComissao({
     className: "btn",
     onClick: () => setModalApuracao(true)
   }, "📅 Período de Apuração"))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
+    className: "card com-filtros",
     style: {
       marginBottom: 14,
       display: 'flex',
@@ -8410,6 +8580,7 @@ function AnaliseComissao({
     key: f.id,
     value: f.id
   }, f.nome, f.status === 'inativo' ? ' (desligado)' : ''))), /*#__PURE__*/React.createElement("div", {
+    className: "com-periodo-sel",
     style: {
       fontSize: 13
     }
@@ -8445,13 +8616,14 @@ function AnaliseComissao({
     linhas: linhas,
     fechamento: fechamento,
     expandido: expandido,
-    aoExpandir: setExpandido
+    aoExpandir: setExpandido,
+    tiposFalta: (res.regras || regras).faltas.tipos
   }), /*#__PURE__*/React.createElement("h3", {
     style: {
       marginBottom: 10
     }
   }, "Lançamentos do período"), /*#__PURE__*/React.createElement("div", {
-    className: "card",
+    className: "card com-lancamentos",
     style: {
       overflowX: 'auto',
       padding: 0
@@ -8831,7 +9003,44 @@ function ModalApuracao({
     nome: "pessoa",
     tamanho: 20
   }), "Por funcionário"), /*#__PURE__*/React.createElement("div", {
-    className: "apu-tabela-wrap"
+    className: "so-mobile func-cards"
+  }, linhasTabela.map(l => {
+    const st = situacaoLinha(l);
+    return /*#__PURE__*/React.createElement(CartaoFuncionarioComissao, {
+      key: l.funcionarioId,
+      l: l,
+      tiposFalta: tiposFalta,
+      situacao: {
+        rotulo: st.rotulo,
+        badge: st.cls === 'ok' ? 'entregue' : st.cls === 'aviso' ? 'pendente' : 'estoque'
+      },
+      expandido: expandido === l.funcionarioId,
+      aoExpandir: setExpandido,
+      memoria: /*#__PURE__*/React.createElement(MemoriaCalculo, {
+        linha: l,
+        tiposFalta: tiposFalta,
+        aoRemoverOcorrencia: editavel ? o => removerOcorrencia(l, o) : null
+      }),
+      acoes: (editavel || fechamento && gerir) && /*#__PURE__*/React.createElement(React.Fragment, null, editavel && /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn secundario pequeno",
+        onClick: () => setOcorrenciaDe({
+          funcionarioId: l.funcionarioId
+        })
+      }, "+ Ocorrência"), editavel && /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn secundario pequeno",
+        onClick: () => setAjusteDe(l)
+      }, "± Ajuste"), fechamento && gerir && /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: `btn pequeno ${st.rotulo === 'Pago' ? 'verde' : 'secundario'}`,
+        onClick: () => alternarPago(l)
+      }, st.rotulo === 'Pago' ? '✓ Pago' : 'Marcar pago'))
+    });
+  }), !carregandoRegistros && linhasTabela.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "apu-vazio"
+  }, "Nenhuma comissão elegível neste período.")), /*#__PURE__*/React.createElement("div", {
+    className: "apu-tabela-wrap so-desktop"
   }, /*#__PURE__*/React.createElement("table", {
     className: "apu-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Percentual", /*#__PURE__*/React.createElement("small", null, "Comissão (Equipe)")), /*#__PURE__*/React.createElement("th", null, "Peças com conserto"), /*#__PURE__*/React.createElement("th", null, "Faturamento"), /*#__PURE__*/React.createElement("th", null, "Comissão base"), /*#__PURE__*/React.createElement("th", null, "Ajustes / Descontos"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhasTabela.map(l => {
@@ -9704,11 +9913,12 @@ function AbaRegrasComissao({
     return c;
   });
   const secao = (id, titulo, resumo, editor) => /*#__PURE__*/React.createElement("div", {
-    className: "card",
+    className: `card regra-secao ${editando === id ? 'editando' : ''}`,
     style: {
       marginBottom: 14
     }
   }, /*#__PURE__*/React.createElement("div", {
+    className: "regra-secao-topo",
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -9727,6 +9937,7 @@ function AbaRegrasComissao({
     disabled: !!editando,
     onClick: () => editar(id)
   }, "✏️ Editar"), editando === id && /*#__PURE__*/React.createElement("div", {
+    className: "regra-salvar-topo",
     style: {
       display: 'flex',
       gap: 8
@@ -9740,11 +9951,23 @@ function AbaRegrasComissao({
     className: "btn pequeno",
     onClick: pedirSalvar
   }, "Salvar"))), /*#__PURE__*/React.createElement("div", {
+    className: "regra-secao-corpo",
     style: {
       marginTop: 10
     }
-  }, editando === id ? editor() : resumo()));
+  }, editando === id ? editor() : resumo()), editando === id && /*#__PURE__*/React.createElement("div", {
+    className: "regra-salvar-mobile"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: cancelar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: pedirSalvar
+  }, "Salvar")));
   const linhaResumo = (rot, val) => /*#__PURE__*/React.createElement("div", {
+    className: "regra-linha",
     style: {
       display: 'flex',
       gap: 8,
@@ -9752,11 +9975,14 @@ function AbaRegrasComissao({
       padding: '3px 0'
     }
   }, /*#__PURE__*/React.createElement("span", {
+    className: "regra-linha-rotulo",
     style: {
       color: 'var(--texto-fraco)',
       minWidth: 260
     }
-  }, rot), /*#__PURE__*/React.createElement("strong", null, val));
+  }, rot), /*#__PURE__*/React.createElement("strong", {
+    className: "regra-linha-valor"
+  }, val));
   const seletor = (campo, valor, onChange, desabilitadas) => /*#__PURE__*/React.createElement("select", {
     value: valor,
     onChange: e => onChange(e.target.value)
@@ -9767,7 +9993,7 @@ function AbaRegrasComissao({
   }, t, (desabilitadas || []).includes(k) ? ' (indisponível)' : '')));
   const histFiltrado = historico.filter(h => !filtroHist || h.tipo === filtroHist);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "card",
+    className: "card regra-consulta",
     style: {
       marginBottom: 14,
       display: 'flex',
@@ -9798,41 +10024,58 @@ function AbaRegrasComissao({
       marginTop: 4
     }
   }, "Somente o Master e administradores com permissão de edição em Comissão podem alterar as regras."))), secao('faixas', '1. Faixas de produção e bonificação', () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
+    className: "regra-faixas-resumo",
     style: {
       maxWidth: 520
     }
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Produção no período"), /*#__PURE__*/React.createElement("th", null, "Paga da comissão"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, r.faixas.map(f => /*#__PURE__*/React.createElement("tr", {
-    key: f.id
-  }, /*#__PURE__*/React.createElement("td", null, descreverFaixa(f)), /*#__PURE__*/React.createElement("td", null, formatarPct(f.percentual)), /*#__PURE__*/React.createElement("td", null, f.ativa === false ? 'Desativada' : 'Ativa'))))), linhaResumo('Peças consideradas', OPCOES_REGRA.contagemFaixa[r.contagemFaixa]), /*#__PURE__*/React.createElement("div", {
+    key: f.id,
+    className: f.ativa === false ? 'inativa' : ''
+  }, /*#__PURE__*/React.createElement("td", null, descreverFaixa(f)), /*#__PURE__*/React.createElement("td", {
+    className: "celula-pct"
+  }, formatarPct(f.percentual)), /*#__PURE__*/React.createElement("td", null, f.ativa === false ? 'Desativada' : 'Ativa'))))), linhaResumo('Peças consideradas', OPCOES_REGRA.contagemFaixa[r.contagemFaixa]), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: 'var(--texto-fraco)'
     }
-  }, "O percentual indica quanto da comissão é pago: 70% = recebe 0,7× a comissão; 150% = 1,5×.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "De (peças)"), /*#__PURE__*/React.createElement("th", null, "Até (vazio = sem limite)"), /*#__PURE__*/React.createElement("th", null, "Paga (%)"), /*#__PURE__*/React.createElement("th", null, "Ativa"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faixas.map((f, i) => /*#__PURE__*/React.createElement("tr", {
+  }, "O percentual indica quanto da comissão é pago: 70% = recebe 0,7× a comissão; 150% = 1,5×.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "De (peças)"), /*#__PURE__*/React.createElement("th", null, "Até (vazio = sem limite)"), /*#__PURE__*/React.createElement("th", null, "Paga (%)"), /*#__PURE__*/React.createElement("th", null, "Ativa"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faixas.map((f, i) => /*#__PURE__*/React.createElement("tr", {
     key: f.id
-  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "De (peças)"
+  }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
+    inputMode: "numeric",
     value: f.min,
     onChange: e => set(c => {
       c.faixas[i].min = e.target.value;
     })
-  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+  })), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Até (vazio = sem limite)"
+  }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
+    inputMode: "numeric",
     value: f.max === null ? '' : f.max,
     onChange: e => set(c => {
       c.faixas[i].max = e.target.value === '' ? null : e.target.value;
     })
-  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+  })), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Paga da comissão (%)"
+  }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
     step: "0.01",
+    inputMode: "decimal",
     value: f.percentual,
     onChange: e => set(c => {
       c.faixas[i].percentual = e.target.value;
     })
   })), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Faixa ativa",
+    className: "celula-check",
     style: {
       textAlign: 'center'
     }
@@ -9842,13 +10085,17 @@ function AbaRegrasComissao({
     onChange: e => set(c => {
       c.faixas[i].ativa = e.target.checked;
     })
-  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+  })), /*#__PURE__*/React.createElement("td", {
+    className: "celula-acao"
+  }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn perigo pequeno",
     onClick: () => set(c => {
       c.faixas.splice(i, 1);
     })
-  }, "×")))))), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "so-mobile-inline"
+  }, "Remover faixa "), "×")))))), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     style: {
@@ -9946,14 +10193,20 @@ function AbaRegrasComissao({
     style: {
       marginTop: 14
     }
-  }, "Tipos de ausência considerados"), /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Efeito"), /*#__PURE__*/React.createElement("th", null, "Desconto (%)"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faltas.tipos.map((t, i) => /*#__PURE__*/React.createElement("tr", {
+  }, "Tipos de ausência considerados"), /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Efeito"), /*#__PURE__*/React.createElement("th", null, "Desconto (%)"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faltas.tipos.map((t, i) => /*#__PURE__*/React.createElement("tr", {
     key: t.id
-  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tipo de ausência"
+  }, /*#__PURE__*/React.createElement("input", {
     value: t.nome,
     onChange: e => set(c => {
       c.faltas.tipos[i].nome = e.target.value;
     })
-  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
+  })), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Efeito"
+  }, /*#__PURE__*/React.createElement("select", {
     value: t.efeito,
     onChange: e => set(c => {
       c.faltas.tipos[i].efeito = e.target.value;
@@ -9961,16 +10214,21 @@ function AbaRegrasComissao({
   }, Object.entries(OPCOES_REGRA.efeitoFalta).map(([k, v]) => /*#__PURE__*/React.createElement("option", {
     key: k,
     value: k
-  }, v)))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
+  }, v)))), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Desconto por ocorrência (p.p.)"
+  }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
     max: "100",
+    inputMode: "decimal",
     value: t.descontoPct,
     disabled: t.efeito !== 'desconto',
     onChange: e => set(c => {
       c.faltas.tipos[i].descontoPct = e.target.value;
     })
-  })), /*#__PURE__*/React.createElement("td", null, !['nao_justificada', 'justificada'].includes(t.id) && /*#__PURE__*/React.createElement("button", {
+  })), /*#__PURE__*/React.createElement("td", {
+    className: "celula-acao"
+  }, !['nao_justificada', 'justificada'].includes(t.id) && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn perigo pequeno",
     onClick: () => set(c => {
@@ -10062,9 +10320,17 @@ function AbaRegrasComissao({
       fontSize: 13,
       color: 'var(--texto-fraco)'
     }
-  }, "Nenhuma versão salva — valem as regras padrão.") : /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Vigente a partir de"), /*#__PURE__*/React.createElement("th", null, "Salva por"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, versoes.slice().sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? 1 : -1).map(v => /*#__PURE__*/React.createElement("tr", {
+  }, "Nenhuma versão salva — valem as regras padrão.") : /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Vigente a partir de"), /*#__PURE__*/React.createElement("th", null, "Salva por"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, versoes.slice().sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? 1 : -1).map(v => /*#__PURE__*/React.createElement("tr", {
     key: v.id
-  }, /*#__PURE__*/React.createElement("td", null, formatarDataBr(v.vigenciaInicio)), /*#__PURE__*/React.createElement("td", null, v.salvoPor || '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Vigente a partir de"
+  }, formatarDataBr(v.vigenciaInicio)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Salva por"
+  }, v.salvoPor || '-'), /*#__PURE__*/React.createElement("td", {
+    className: "celula-acao"
+  }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     onClick: () => {
@@ -10117,13 +10383,27 @@ function AbaRegrasComissao({
       maxHeight: 420,
       overflowY: 'auto'
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data e hora"), /*#__PURE__*/React.createElement("th", null, "Usuário"), /*#__PURE__*/React.createElement("th", null, "Alteração"), /*#__PURE__*/React.createElement("th", null, "Anterior"), /*#__PURE__*/React.createElement("th", null, "Novo"), /*#__PURE__*/React.createElement("th", null, "Vigência"))), /*#__PURE__*/React.createElement("tbody", null, histFiltrado.map(h => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes tabela-historico"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data e hora"), /*#__PURE__*/React.createElement("th", null, "Usuário"), /*#__PURE__*/React.createElement("th", null, "Alteração"), /*#__PURE__*/React.createElement("th", null, "Anterior"), /*#__PURE__*/React.createElement("th", null, "Novo"), /*#__PURE__*/React.createElement("th", null, "Vigência"))), /*#__PURE__*/React.createElement("tbody", null, histFiltrado.map(h => /*#__PURE__*/React.createElement("tr", {
     key: h.id
   }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Data e hora",
     style: {
       whiteSpace: 'nowrap'
     }
-  }, h.em?.toDate ? h.em.toDate().toLocaleString('pt-BR') : '-'), /*#__PURE__*/React.createElement("td", null, h.usuario), /*#__PURE__*/React.createElement("td", null, h.descricao), /*#__PURE__*/React.createElement("td", null, h.valorAnterior || '—'), /*#__PURE__*/React.createElement("td", null, h.valorNovo || '—'), /*#__PURE__*/React.createElement("td", null, h.vigenciaInicio ? formatarDataBr(h.vigenciaInicio) : '—'))), histFiltrado.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+  }, h.em?.toDate ? h.em.toDate().toLocaleString('pt-BR') : '-'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Usuário"
+  }, h.usuario), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Alteração",
+    className: "celula-destaque"
+  }, h.descricao), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Anterior"
+  }, h.valorAnterior || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Novo"
+  }, h.valorNovo || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Vigência"
+  }, h.vigenciaInicio ? formatarDataBr(h.vigenciaInicio) : '—'))), histFiltrado.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "6",
     style: {
       color: 'var(--texto-fraco)',
