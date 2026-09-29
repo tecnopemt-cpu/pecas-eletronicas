@@ -149,27 +149,30 @@
 
   /* ---- Telas de acesso (Login / Criar conta / Primeiro acesso) ---- */
   .acesso{min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);background:linear-gradient(135deg,#0A1D33 0%,#0F2A47 55%,#12345A 100%);color:#fff;position:relative;overflow:hidden;}
-  .acesso-marca{position:relative;overflow:hidden;background:linear-gradient(160deg,rgba(255,255,255,.04),rgba(255,255,255,0) 60%);clip-path:polygon(0 0,100% 0,88% 100%,0 100%);}
-  .acesso-circuito{position:absolute;inset:0;width:100%;height:100%;color:#5E86B3;opacity:.15;-webkit-mask-image:linear-gradient(100deg,#000 25%,rgba(0,0,0,.35) 75%,transparent);mask-image:linear-gradient(100deg,#000 25%,rgba(0,0,0,.35) 75%,transparent);}
-  .acesso-acento{position:absolute;z-index:0;fill:none;stroke:var(--laranja);stroke-width:2;opacity:.75;pointer-events:none;}
+  .acesso-marca{position:relative;overflow:hidden;background:#0A1D33;clip-path:polygon(0 0,100% 0,88% 100%,0 100%);}
+  /* Foto ilustrativa de placa: suave e transparente, só como textura de fundo */
+  .acesso-marca::before{content:'';position:absolute;inset:0;background:url(icons/fundo-placa.jpg) 78% center/cover no-repeat;opacity:.72;}
+  /* Véu escuro atrás dos textos (mais forte à esquerda) para dar contraste */
+  .acesso-marca::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,20,36,.9) 0%,rgba(7,20,36,.78) 32%,rgba(7,20,36,.38) 62%,rgba(7,20,36,.12) 100%),linear-gradient(180deg,rgba(7,20,36,.35),rgba(7,20,36,0) 30%,rgba(7,20,36,0) 70%,rgba(7,20,36,.45));}
+  .acesso-acento{position:absolute;z-index:3;fill:none;stroke:var(--laranja);stroke-width:2;opacity:.75;pointer-events:none;}
   .acesso-acento-1{top:0;left:0;width:200px;height:200px;}
   .acesso-acento-2{bottom:0;left:0;width:260px;height:260px;opacity:.55;}
   .acesso-acento-3{bottom:0;right:0;width:200px;height:200px;opacity:.45;}
-  .acesso-marca-conteudo{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;justify-content:center;gap:44px;padding:56px 14% 40px 8%;}
+  .acesso-marca-conteudo{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center;gap:44px;padding:56px 14% 40px 8%;}
   .acesso-logo{display:flex;align-items:center;gap:16px;}
   .acesso-logo img{width:64px;height:64px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.08);}
-  .acesso-logo-nome{font-size:22px;font-weight:800;letter-spacing:1.5px;}
-  .acesso-logo-sub{font-size:13.5px;color:#A9BCD2;letter-spacing:.3px;margin-top:2px;}
-  .acesso-titulo{margin:0;font-size:clamp(30px,3.2vw,42px);line-height:1.12;font-weight:800;letter-spacing:-.5px;position:relative;padding-left:20px;}
+  .acesso-logo-nome{font-size:22px;font-weight:800;letter-spacing:1.5px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.4);}
+  .acesso-logo-sub{font-size:13.5px;color:#C7D5E6;letter-spacing:.3px;margin-top:2px;}
+  .acesso-titulo{margin:0;font-size:clamp(30px,3.2vw,42px);line-height:1.12;font-weight:800;letter-spacing:-.5px;position:relative;padding-left:20px;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.45);}
   .acesso-titulo::before{content:'';position:absolute;left:0;top:.18em;bottom:.18em;width:5px;border-radius:3px;background:var(--laranja);transform:skewX(-12deg);}
   .acesso-titulo span{color:var(--laranja);}
-  .acesso-subtitulo{margin:10px 0 0 20px;font-size:17px;color:#C9D6E5;}
+  .acesso-subtitulo{margin:10px 0 0 20px;font-size:17.5px;color:#EAF0F7;text-shadow:0 1px 8px rgba(0,0,0,.45);}
   .acesso-destaques{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:22px;}
   .acesso-destaques li{display:flex;gap:14px;align-items:flex-start;}
-  .acesso-destaque-icone{width:42px;height:42px;flex-shrink:0;border-radius:11px;display:flex;align-items:center;justify-content:center;color:var(--laranja);background:rgba(233,115,7,.1);border:1px solid rgba(233,115,7,.28);}
-  .acesso-destaques strong{display:block;font-size:15.5px;margin-bottom:2px;}
-  .acesso-destaques li div span{font-size:13.5px;color:#A9BCD2;}
-  .acesso-rodape{font-size:12px;color:#6F87A3;line-height:1.6;letter-spacing:.2px;}
+  .acesso-destaque-icone{width:42px;height:42px;flex-shrink:0;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#FF8A1F;background:rgba(10,24,42,.75);border:1px solid rgba(233,115,7,.45);box-shadow:0 4px 14px rgba(0,0,0,.25);}
+  .acesso-destaques strong{display:block;font-size:16px;margin-bottom:3px;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.45);}
+  .acesso-destaques li div span{font-size:14px;color:#D3DEEB;text-shadow:0 1px 6px rgba(0,0,0,.45);}
+  .acesso-rodape{font-size:12.5px;color:#9FB3CB;line-height:1.6;letter-spacing:.2px;}
   .acesso-painel{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:40px 6% 40px 2%;color:var(--texto);}
   .acesso-card{width:100%;max-width:460px;background:#F8FAFC;border-radius:18px;padding:40px 40px 32px;box-shadow:0 24px 60px rgba(3,12,24,.45),0 2px 6px rgba(3,12,24,.2);border:1px solid rgba(255,255,255,.6);}
   .acesso-painel .card{width:100% !important;max-width:460px;border-radius:18px;padding:32px;background:#F8FAFC;box-shadow:0 24px 60px rgba(3,12,24,.45),0 2px 6px rgba(3,12,24,.2);border:1px solid rgba(255,255,255,.6);}
@@ -209,12 +212,12 @@
   @keyframes acessoGiro{to{transform:rotate(360deg);}}
   @keyframes acessoTremor{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
   @keyframes acessoSobe{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
-  @keyframes acessoAparece{from{opacity:0;}to{opacity:1;}}
+  @keyframes acessoAparece{from{opacity:0;}}
   .acesso-card,.acesso-painel .card{animation:acessoSobe .5s cubic-bezier(.2,.7,.2,1) both;}
   .acesso-marca-conteudo>*{animation:acessoSobe .55s cubic-bezier(.2,.7,.2,1) both;}
   .acesso-marca-conteudo>*:nth-child(2){animation-delay:.07s;}
   .acesso-marca-conteudo>*:nth-child(3){animation-delay:.14s;}
-  .acesso-circuito{animation:acessoAparece 1.2s ease both;}
+  .acesso-marca::before{animation:acessoAparece 1.2s ease both;}
   @media (prefers-reduced-motion:reduce){ .acesso *{animation:none !important;transition:none !important;} }
   /* Notebook com pouca altura */
   @media (max-height:720px) and (min-width:901px){
@@ -227,6 +230,7 @@
   @media (max-width:900px){
     .acesso{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
     .acesso-marca{clip-path:none;}
+    .acesso-marca::after{background:linear-gradient(180deg,rgba(7,20,36,.6),rgba(7,20,36,.85));}
     .acesso-marca-conteudo{padding:22px 20px 18px;gap:0;flex-direction:row;align-items:center;justify-content:center;}
     .acesso-marca-conteudo>*:not(.acesso-logo){display:none;}
     .acesso-logo img{width:44px;height:44px;border-radius:12px;}
@@ -2534,68 +2538,6 @@ function IconeAcesso({
   }));
   return null;
 }
-// Trilhas de placa eletrônica (traço fino) — referência ao conserto de eletrônicos, sem foto.
-function DesenhoCircuito() {
-  return /*#__PURE__*/React.createElement("svg", {
-    className: "acesso-circuito",
-    viewBox: "0 0 600 800",
-    preserveAspectRatio: "xMidYMid slice",
-    "aria-hidden": "true"
-  }, /*#__PURE__*/React.createElement("g", {
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "1.4"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M-10 120h140l40 40h120l30-30h300"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M-10 200h90l30 30v90l40 40h160"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M620 260H470l-40 40v120l-30 30H300"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M60 820V640l40-40h110l40-40V470"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M620 520H520l-50 50v90l-40 40H330"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M200 -10v70l30 30h90l30 30v60"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M420 -10v90l-30 30v70"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M-10 470h70l30-30h80"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M620 700h-80l-30 30v90"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M140 820v-60l30-30h70"
-  })), /*#__PURE__*/React.createElement("g", {
-    fill: "currentColor"
-  }, [[170, 160], [290, 160], [120, 230], [280, 360], [430, 300], [300, 450], [100, 600], [250, 470], [470, 570], [330, 700], [320, 120], [350, 210], [390, 190], [160, 440], [510, 730], [240, 730]].map(([x, y], i) => /*#__PURE__*/React.createElement("circle", {
-    key: i,
-    cx: x,
-    cy: y,
-    r: "4"
-  }))), /*#__PURE__*/React.createElement("g", {
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "1.4"
-  }, /*#__PURE__*/React.createElement("rect", {
-    x: "330",
-    y: "560",
-    width: "70",
-    height: "46",
-    rx: "4"
-  }), /*#__PURE__*/React.createElement("rect", {
-    x: "110",
-    y: "300",
-    width: "44",
-    height: "30",
-    rx: "3"
-  }), /*#__PURE__*/React.createElement("rect", {
-    x: "440",
-    y: "380",
-    width: "56",
-    height: "56",
-    rx: "4"
-  })));
-}
 function LayoutAcesso({
   children
 }) {
@@ -2621,7 +2563,7 @@ function LayoutAcesso({
     d: "M200 60 60 200"
   })), /*#__PURE__*/React.createElement("aside", {
     className: "acesso-marca"
-  }, /*#__PURE__*/React.createElement(DesenhoCircuito, null), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
     className: "acesso-marca-conteudo"
   }, /*#__PURE__*/React.createElement("div", {
     className: "acesso-logo"
