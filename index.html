@@ -376,6 +376,67 @@
   /* miniatura com contador de fotos */
   .mini-fotos{position:relative;display:inline-block;line-height:0;vertical-align:middle;}
   .mini-fotos-qtd{position:absolute;right:-5px;bottom:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--laranja);color:#fff;font-size:11px;font-weight:700;line-height:20px;text-align:center;border:2px solid #fff;pointer-events:none;}
+  /* ---- Comissão: períodos de apuração ---- */
+  .sub-abas{display:inline-flex;gap:4px;padding:4px;margin-bottom:16px;background:#EEF2F6;border-radius:12px;max-width:100%;overflow-x:auto;}
+  .sub-abas button{border:none;background:transparent;padding:8px 14px;border-radius:9px;font-size:13.5px;font-weight:700;color:#4A5568;cursor:pointer;white-space:nowrap;}
+  .sub-abas button.ativa{background:#fff;color:#0F2A47;box-shadow:0 1px 3px rgba(15,42,71,.12);}
+  .per-status{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap;vertical-align:middle;}
+  .per-status.futuro{background:#EEF3FA;border-color:#C9D7EA;color:#1E4B84;}
+  .per-status.atual{background:#FFF1E3;border-color:#F6C38E;color:#B45309;}
+  .per-status.encerrado{background:#FFF8DB;border-color:#EBD27A;color:#7A5B00;}
+  .per-status.fechado{background:#E7F6EC;border-color:#BFE3CD;color:#1E7A45;}
+  .per-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:14px;}
+  .per-resumo-card{border-left:4px solid #C9D7EA;margin:0;}
+  .per-resumo-card.atual{border-left-color:var(--laranja);}
+  .per-resumo-card.pendente{border-left-color:#EBD27A;}
+  .per-resumo-card.vencido{border-left-color:var(--vermelho);}
+  .per-resumo-rotulo{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#5B6778;}
+  .per-resumo-nome{font-size:20px;font-weight:800;color:#0F2A47;margin-top:2px;}
+  .per-resumo-datas{font-size:14px;font-weight:600;color:#2F3B4C;}
+  .per-resumo-sub{font-size:12.5px;color:#4A5568;margin:6px 0 8px;line-height:1.5;}
+  .per-prazo{font-size:13px;font-weight:700;color:#7A5B00;margin-bottom:8px;}
+  .per-prazo.vencido{color:var(--vermelho);}
+  .per-alerta{font-size:12.5px;line-height:1.5;border-radius:10px;padding:9px 12px;margin:8px 0;}
+  .per-alerta.vermelho{background:#FDECEC;color:#9B1C1C;border:1px solid #F5C2C2;}
+  .per-alerta.laranja{background:#FFF4E5;color:#8A4B06;border:1px solid #F9D2A4;}
+  .per-cabecalho{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 16px 12px;border-bottom:1px solid var(--borda);}
+  .per-botoes{display:flex;gap:8px;flex-wrap:wrap;}
+  .per-tabela td{vertical-align:middle;}
+  .per-linha-atual td{background:#FFF8F0;}
+  .per-tag{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#5B6778;background:#EEF2F6;border-radius:6px;padding:1px 6px;vertical-align:middle;}
+  .per-mini{font-size:12px;color:#4A5568;line-height:1.45;}
+  .per-mini.laranja{color:#8A4B06;font-weight:600;}
+  .per-mini.vermelho{color:var(--vermelho);font-weight:700;}
+  .per-acoes{white-space:nowrap;}
+  .per-acoes .btn{margin:2px 0 2px 4px;}
+  .per-ver-todos{display:block;width:100%;border:none;border-bottom:1px solid var(--borda);background:#F7F9FB;padding:9px;font-size:12.5px;font-weight:700;color:#1E4B84;cursor:pointer;}
+  .per-info{font-size:12.5px;line-height:1.5;color:#2F4A6D;background:#F1F6FC;border:1px solid #D6E3F3;border-radius:10px;padding:9px 12px;margin:8px 0 10px;}
+  .per-check{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;font-weight:600;margin-top:10px;line-height:1.45;}
+  .per-check input{width:18px;height:18px;flex-shrink:0;margin-top:1px;}
+  .per-link{border:none;background:none;color:#1E4B84;font-size:12px;padding:4px 0;cursor:pointer;text-decoration:underline;}
+  .per-previa{max-height:300px;overflow:auto;border:1px solid var(--borda);border-radius:10px;margin-top:10px;}
+  .per-feriados{display:flex;flex-direction:column;gap:6px;margin:6px 0 8px;max-height:220px;overflow:auto;}
+  .per-feriado{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;padding:6px 8px;background:#F7F9FB;border-radius:8px;}
+  .per-feriado-novo{display:grid;grid-template-columns:160px 1fr auto;gap:8px;align-items:center;}
+  .per-prazo-linha{font-size:12.5px;line-height:1.5;color:#7A5B00;background:#FFF8DB;border:1px solid #EBD27A;border-radius:10px;padding:8px 12px;margin:0 0 12px;}
+  .per-prazo-linha.vencido{color:#9B1C1C;background:#FDECEC;border-color:#F5C2C2;}
+  .per-prazo-linha.neutro{color:#2F4A6D;background:#F1F6FC;border-color:#D6E3F3;}
+  .per-vencido{color:var(--vermelho);font-weight:700;}
+  .apu-periodo-info .per-prazo-linha{margin:6px 0 0;}
+  .sp-lista{display:flex;flex-direction:column;min-width:230px;}
+  .sp-lista select{min-width:230px;}
+  @media (max-width:760px){
+    .per-resumo{grid-template-columns:1fr;}
+    .per-botoes{width:100%;display:grid;grid-template-columns:1fr;}
+    .per-botoes .btn{width:100%;justify-content:center;min-height:44px;}
+    .per-acoes{white-space:normal;display:flex !important;gap:8px;flex-wrap:wrap;}
+    .per-acoes .btn{flex:1 1 120px;margin:0;min-height:42px;}
+    .per-feriado-novo{grid-template-columns:1fr;}
+    .seletor-periodo .sp-lista{grid-column:1 / -1;order:0;min-width:0;}
+    .seletor-periodo .sp-lista select{min-width:0;width:100%;}
+    .per-linha-atual td{background:transparent;}
+    .per-tabela tr.per-linha-atual{border-color:var(--laranja);box-shadow:0 0 0 1px var(--laranja);}
+  }
   /* ---- Comissão: celular e tablet (o computador não usa nada daqui) ---- */
   .so-mobile,.so-mobile-inline,.regra-salvar-mobile{display:none !important;}
   .func-cards{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px;}
@@ -7139,6 +7200,8 @@ function AbaOrcamentos({
     // Data de faturamento: define em qual período de comissão o orçamento entra.
     if (status === 'Entregue/Faturado' && o.status !== 'Entregue/Faturado') dados.dataFaturamento = firebase.firestore.FieldValue.serverTimestamp();
     if (status !== 'Entregue/Faturado' && o.dataFaturamento) dados.dataFaturamento = firebase.firestore.FieldValue.delete();
+    // Saiu de Entregue/Faturado: deixa de pertencer ao período (se ainda não foi consolidado num fechamento).
+    if (status !== 'Entregue/Faturado' && o.periodoApuracaoId && !o.periodoConsolidadoId) dados.periodoApuracaoId = firebase.firestore.FieldValue.delete();
     if (status === 'Teste' && !o.resultadoTeste) {
       dados.resultadoTeste = 'pendente';
     }
@@ -7160,6 +7223,8 @@ function AbaOrcamentos({
     }
     await db.collection('orcamentos').doc(o.id).update(dados);
     if (status === 'Entregue/Faturado' && o.status !== 'Entregue/Faturado') {
+      // Vincula o cartão ao período de apuração que contém a data de faturamento (periodoApuracaoId).
+      if (!o.periodoConsolidadoId) await vincularPeriodoAoFaturar(o.id, new Date());
       // % vigente na data do faturamento (respeita alterações de % com vigência).
       await recalcularLancamentosOrcamento({
         ...o,
@@ -8289,38 +8354,299 @@ function validarFaixas(faixas) {
 }
 
 // ---------- Datas ----------
-// Período de apuração padrão da empresa: dia 25 do mês anterior ao dia 24 do mês de referência.
-function periodoApuracao(chave) {
-  // chave = 'YYYY-MM', mês de referência (ex: '2026-09' = 25/08 a 24/09)
-  const [ano, mes] = chave.split('-').map(Number);
-  let anoAnterior = ano,
-    mesAnterior = mes - 1;
-  if (mesAnterior === 0) {
-    mesAnterior = 12;
-    anoAnterior = ano - 1;
-  }
-  const inicio = new Date(anoAnterior, mesAnterior - 1, 25);
-  const fim = new Date(ano, mes - 1, 24);
-  return {
-    inicioStr: formatarDataInput(inicio),
-    fimStr: formatarDataInput(fim)
-  };
-}
-// Data que define o período de um orçamento: a data de faturamento (gravada a partir de
-// agora ao mudar para Entregue/Faturado). Orçamentos antigos, sem essa data, usam a criação.
+// Data que define o período de um orçamento: a data de faturamento (gravada ao mudar para
+// Entregue/Faturado). Orçamentos antigos, sem essa data, usam a criação.
 function dataReferenciaOrcamento(o) {
   return dataDe(o?.dataFaturamento) || dataDe(o?.criadoEm);
 }
-function periodoApuracaoDeslocado(inicioStr, meses) {
-  const d = new Date(inicioStr + 'T00:00:00');
-  // período começa no dia 25: chave = mês em que ele TERMINA
-  const fimMes = new Date(d.getFullYear(), d.getMonth() + 1 + meses, 1);
-  return periodoApuracao(`${fimMes.getFullYear()}-${String(fimMes.getMonth() + 1).padStart(2, '0')}`);
-}
-function periodoDaData(dataStr) {
+function somarDias(dataStr, n) {
   const d = new Date(dataStr + 'T12:00:00');
-  const fimMes = d.getDate() >= 25 ? new Date(d.getFullYear(), d.getMonth() + 1, 1) : new Date(d.getFullYear(), d.getMonth(), 1);
-  return periodoApuracao(`${fimMes.getFullYear()}-${String(fimMes.getMonth() + 1).padStart(2, '0')}`);
+  d.setDate(d.getDate() + n);
+  return formatarDataInput(d);
+}
+function diasEntre(a, b) {
+  return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
+}
+// Data de corte num mês (dia pedido; em meses mais curtos, o último dia do mês).
+function dataDeCorteNoMes(ano, mes0, dia) {
+  const ultimo = new Date(ano, mes0 + 1, 0).getDate();
+  return formatarDataInput(new Date(ano, mes0, Math.min(dia, ultimo), 12));
+}
+const MESES_CURTOS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+// Identificação automática: "Set/Out/26" (mês de início / mês do corte / ano do corte).
+function nomePeriodoAuto(inicio, fim) {
+  if (!inicio || !fim) return '';
+  const a = new Date(inicio + 'T12:00:00'),
+    b = new Date(fim + 'T12:00:00');
+  const ano = String(b.getFullYear()).slice(2);
+  if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) return `${MESES_CURTOS[b.getMonth()]}/${ano}`;
+  return `${MESES_CURTOS[a.getMonth()]}/${MESES_CURTOS[b.getMonth()]}/${ano}`;
+}
+// ---------- Calendário de períodos de apuração ----------
+// Os períodos ficam cadastrados na coleção "periodosApuracao" (dataInicial, dataFinal = data de
+// corte). Nada de dia fixo no código: a geração automática usa o dia de corte informado pelo
+// administrador (por padrão, o mesmo do último período cadastrado).
+const PERIODO_MIN_DIAS = 14; // evita gerar um "período" de poucos dias ao seguir o dia de corte
+function periodoSeguintePorCorte(fimAnterior, diaCorte) {
+  const inicio = somarDias(fimAnterior, 1);
+  const d = new Date(inicio + 'T12:00:00');
+  for (let k = 0; k < 3; k++) {
+    const corte = dataDeCorteNoMes(d.getFullYear(), d.getMonth() + k, diaCorte);
+    if (diasEntre(inicio, corte) >= PERIODO_MIN_DIAS - 1) return {
+      dataInicial: inicio,
+      dataFinal: corte
+    };
+  }
+  return {
+    dataInicial: inicio,
+    dataFinal: dataDeCorteNoMes(d.getFullYear(), d.getMonth() + 1, diaCorte)
+  };
+}
+function periodoAnteriorPorCorte(inicioSeguinte, diaCorte) {
+  const fim = somarDias(inicioSeguinte, -1);
+  const d = new Date(fim + 'T12:00:00');
+  for (let k = 1; k < 4; k++) {
+    const corteAnt = dataDeCorteNoMes(d.getFullYear(), d.getMonth() - k + 1, diaCorte);
+    if (corteAnt < fim && diasEntre(corteAnt, fim) >= PERIODO_MIN_DIAS) return {
+      dataInicial: somarDias(corteAnt, 1),
+      dataFinal: fim
+    };
+  }
+  return {
+    dataInicial: somarDias(dataDeCorteNoMes(d.getFullYear(), d.getMonth() - 1, diaCorte), 1),
+    dataFinal: fim
+  };
+}
+function diaDeCorteDe(dataStr) {
+  return Number(String(dataStr).slice(8, 10));
+}
+// Gera N períodos seguidos a partir do dia seguinte a "fimAnterior".
+function gerarPeriodosSeguintes(fimAnterior, quantidade, diaCorte) {
+  const out = [];
+  let fim = fimAnterior;
+  for (let i = 0; i < quantidade; i++) {
+    const p = periodoSeguintePorCorte(fim, diaCorte);
+    out.push({
+      ...p,
+      nome: nomePeriodoAuto(p.dataInicial, p.dataFinal)
+    });
+    fim = p.dataFinal;
+  }
+  return out;
+}
+// Calendário = períodos cadastrados + fechamentos antigos que ainda não viraram cadastro.
+function montarCalendario(periodos, fechamentos) {
+  const cad = (periodos || []).filter(p => p && p.dataInicial && p.dataFinal && !p.excluido).map(p => ({
+    ...p,
+    cadastrado: true
+  }));
+  (fechamentos || []).forEach(f => {
+    if (!f.inicio || !f.fim) return;
+    if (cad.some(p => p.dataInicial === f.inicio && p.dataFinal === f.fim)) return;
+    if (cad.some(p => p.dataInicial <= f.fim && f.inicio <= p.dataFinal)) return;
+    cad.push({
+      id: 'fech_' + f.id,
+      dataInicial: f.inicio,
+      dataFinal: f.fim,
+      nome: nomePeriodoAuto(f.inicio, f.fim),
+      origem: 'fechamento',
+      cadastrado: false
+    });
+  });
+  return cad.sort((a, b) => a.dataInicial < b.dataInicial ? -1 : a.dataInicial > b.dataInicial ? 1 : 0);
+}
+// Período de uma data. Se a data não estiver em nenhum período cadastrado, o sistema segue o
+// dia de corte do período mais próximo (sem gravar nada) e avisa que o período não está cadastrado.
+function periodoDaDataNoCalendario(cal, dataStr) {
+  cal = cal || [];
+  const achado = cal.find(p => p.dataInicial <= dataStr && dataStr <= p.dataFinal);
+  const saida = (p, extra) => ({
+    inicioStr: p.dataInicial,
+    fimStr: p.dataFinal,
+    nome: p.nome || nomePeriodoAuto(p.dataInicial, p.dataFinal),
+    periodo: p.cadastrado ? p : null,
+    cadastrado: !!p.cadastrado,
+    ...(extra || {})
+  });
+  if (achado) return saida(achado);
+  if (!cal.length) {
+    const d = new Date(dataStr + 'T12:00:00');
+    const ini = formatarDataInput(new Date(d.getFullYear(), d.getMonth(), 1, 12)),
+      fim = formatarDataInput(new Date(d.getFullYear(), d.getMonth() + 1, 0, 12));
+    return saida({
+      dataInicial: ini,
+      dataFinal: fim
+    }, {
+      semCalendario: true
+    });
+  }
+  const antes = cal.filter(p => p.dataFinal < dataStr).pop();
+  const depois = cal.find(p => p.dataInicial > dataStr);
+  if (antes && depois) return saida({
+    dataInicial: somarDias(antes.dataFinal, 1),
+    dataFinal: somarDias(depois.dataInicial, -1)
+  }, {
+    lacuna: true
+  });
+  if (antes) {
+    let p = {
+      dataFinal: antes.dataFinal
+    };
+    const corte = diaDeCorteDe(antes.dataFinal);
+    for (let i = 0; i < 600 && p.dataFinal < dataStr; i++) p = periodoSeguintePorCorte(p.dataFinal, corte);
+    return saida(p, {
+      projetado: true
+    });
+  }
+  let p = {
+    dataInicial: depois.dataInicial
+  };
+  const corte = diaDeCorteDe(somarDias(depois.dataInicial, -1));
+  for (let i = 0; i < 600 && p.dataInicial > dataStr; i++) p = periodoAnteriorPorCorte(p.dataInicial, corte);
+  return saida(p, {
+    projetado: true
+  });
+}
+function periodoAtualNoCalendario(cal, hoje) {
+  return periodoDaDataNoCalendario(cal, hoje || formatarDataInput(new Date()));
+}
+// Período vizinho (delta = −1 anterior, +1 próximo) de um intervalo qualquer.
+function periodoVizinhoNoCalendario(cal, inicioStr, fimStr, delta) {
+  if (delta > 0) return periodoDaDataNoCalendario(cal, somarDias(fimStr, 1));
+  return periodoDaDataNoCalendario(cal, somarDias(inicioStr, -1));
+}
+// FUTURO → ATUAL → ENCERRADO → FECHADO (comissão conferida e finalizada).
+const STATUS_PERIODO = {
+  futuro: {
+    rotulo: 'Futuro',
+    cls: 'futuro'
+  },
+  atual: {
+    rotulo: 'Atual',
+    cls: 'atual'
+  },
+  encerrado: {
+    rotulo: 'Encerrado',
+    cls: 'encerrado'
+  },
+  fechado: {
+    rotulo: 'Fechado',
+    cls: 'fechado'
+  }
+};
+function statusDoPeriodo(p, hoje, fechamentos) {
+  const fech = (fechamentos || []).find(f => f.id === idFechamentoComissao(p.dataInicial, p.dataFinal));
+  if (fech) return 'fechado';
+  hoje = hoje || formatarDataInput(new Date());
+  if (hoje < p.dataInicial) return 'futuro';
+  if (hoje > p.dataFinal) return 'encerrado';
+  return 'atual';
+}
+// ---------- Prazo de fechamento (dias úteis após o corte) ----------
+const CONFIG_PERIODOS_PADRAO = {
+  prazoDiasUteis: 5,
+  feriados: []
+};
+function normalizarConfigPeriodos(c) {
+  const out = {
+    ...CONFIG_PERIODOS_PADRAO,
+    ...(c || {})
+  };
+  out.prazoDiasUteis = Math.max(1, Math.floor(Number(out.prazoDiasUteis) || CONFIG_PERIODOS_PADRAO.prazoDiasUteis));
+  out.feriados = Array.isArray(out.feriados) ? out.feriados.filter(f => f && f.data) : [];
+  return out;
+}
+function ehDiaUtil(dataStr, feriadosSet) {
+  const dow = new Date(dataStr + 'T12:00:00').getDay();
+  return dow !== 0 && dow !== 6 && !(feriadosSet && feriadosSet.has(dataStr));
+}
+// Data limite: conta N dias úteis a partir do dia seguinte ao corte (o 1º dia do novo período).
+function dataLimiteFechamento(dataCorte, config) {
+  const cfg = normalizarConfigPeriodos(config);
+  const fer = new Set(cfg.feriados.map(f => f.data));
+  let d = dataCorte,
+    n = 0;
+  for (let i = 0; i < 60 && n < cfg.prazoDiasUteis; i++) {
+    d = somarDias(d, 1);
+    if (ehDiaUtil(d, fer)) n++;
+  }
+  return d;
+}
+function diasUteisEntre(deStr, ateStr, config) {
+  // dias úteis em (de, ate] — quantos ainda faltam até a data limite
+  const fer = new Set(normalizarConfigPeriodos(config).feriados.map(f => f.data));
+  let n = 0,
+    d = deStr;
+  for (let i = 0; i < 400 && d < ateStr; i++) {
+    d = somarDias(d, 1);
+    if (ehDiaUtil(d, fer)) n++;
+  }
+  return n;
+}
+function prazoFechamentoPeriodo(p, config, hoje) {
+  hoje = hoje || formatarDataInput(new Date());
+  const cfg = normalizarConfigPeriodos(config);
+  const limite = dataLimiteFechamento(p.dataFinal, cfg);
+  const fer = new Set(cfg.feriados.map(f => f.data));
+  // hoje conta como dia útil disponível enquanto não passou da data limite
+  const restantes = hoje > limite ? 0 : diasUteisEntre(hoje, limite, cfg) + (ehDiaUtil(hoje, fer) && hoje > p.dataFinal ? 1 : 0);
+  return {
+    dias: cfg.prazoDiasUteis,
+    dataLimite: limite,
+    restantes,
+    vencido: hoje > limite,
+    emPrazo: hoje > p.dataFinal && hoje <= limite
+  };
+}
+// ---------- Validação ----------
+function validarPeriodoApuracao(cand, outros) {
+  const erros = [],
+    avisos = [];
+  const re = /^\d{4}-\d{2}-\d{2}$/;
+  if (!cand.dataInicial || !re.test(cand.dataInicial) || isNaN(new Date(cand.dataInicial + 'T12:00:00'))) erros.push('Data inicial inválida.');
+  if (!cand.dataFinal || !re.test(cand.dataFinal) || isNaN(new Date(cand.dataFinal + 'T12:00:00'))) erros.push('Data final inválida.');
+  if (erros.length) return {
+    erros,
+    avisos
+  };
+  if (cand.dataFinal < cand.dataInicial) erros.push('A data final (data de corte) é anterior à data inicial.');
+  const lista = (outros || []).filter(p => p.id !== cand.id);
+  lista.forEach(p => {
+    if (p.dataInicial <= cand.dataFinal && cand.dataInicial <= p.dataFinal) erros.push(`Conflito com o período ${p.nome || nomePeriodoAuto(p.dataInicial, p.dataFinal)} (${formatarDataBr(p.dataInicial)} a ${formatarDataBr(p.dataFinal)}): as datas se sobrepõem.`);
+  });
+  if (!erros.length) {
+    const ant = lista.filter(p => p.dataFinal < cand.dataInicial).sort((a, b) => a.dataFinal < b.dataFinal ? 1 : -1)[0];
+    const prox = lista.filter(p => p.dataInicial > cand.dataFinal).sort((a, b) => a.dataInicial < b.dataInicial ? -1 : 1)[0];
+    if (ant && somarDias(ant.dataFinal, 1) !== cand.dataInicial) avisos.push(`Lacuna: nenhum período cobre de ${formatarDataBr(somarDias(ant.dataFinal, 1))} a ${formatarDataBr(somarDias(cand.dataInicial, -1))} (depois de ${ant.nome || nomePeriodoAuto(ant.dataInicial, ant.dataFinal)}).`);
+    if (prox && somarDias(cand.dataFinal, 1) !== prox.dataInicial) avisos.push(`Lacuna: nenhum período cobre de ${formatarDataBr(somarDias(cand.dataFinal, 1))} a ${formatarDataBr(somarDias(prox.dataInicial, -1))} (antes de ${prox.nome || nomePeriodoAuto(prox.dataInicial, prox.dataFinal)}).`);
+    if (diasEntre(cand.dataInicial, cand.dataFinal) > 62) avisos.push('O período tem mais de dois meses.');
+  }
+  return {
+    erros,
+    avisos
+  };
+}
+// Continuidade do calendário inteiro: lacunas e sobreposições.
+function verificarContinuidadePeriodos(periodos) {
+  const l = (periodos || []).slice().sort((a, b) => a.dataInicial < b.dataInicial ? -1 : 1);
+  const problemas = [];
+  for (let i = 1; i < l.length; i++) {
+    const a = l[i - 1],
+      b = l[i];
+    if (b.dataInicial <= a.dataFinal) problemas.push({
+      tipo: 'sobreposicao',
+      texto: `${a.nome || nomePeriodoAuto(a.dataInicial, a.dataFinal)} e ${b.nome || nomePeriodoAuto(b.dataInicial, b.dataFinal)} se sobrepõem (${formatarDataBr(b.dataInicial)} a ${formatarDataBr(a.dataFinal < b.dataFinal ? a.dataFinal : b.dataFinal)}).`
+    });else if (somarDias(a.dataFinal, 1) !== b.dataInicial) problemas.push({
+      tipo: 'lacuna',
+      texto: `Lacuna entre ${a.nome || nomePeriodoAuto(a.dataInicial, a.dataFinal)} e ${b.nome || nomePeriodoAuto(b.dataInicial, b.dataFinal)}: nenhum período cobre de ${formatarDataBr(somarDias(a.dataFinal, 1))} a ${formatarDataBr(somarDias(b.dataInicial, -1))}.`
+    });
+  }
+  return problemas;
+}
+// Início do período em apuração hoje (sugestão de vigência para regras e % da Equipe).
+function inicioPeriodoAbertoHoje(cal) {
+  if (!cal) iniciarCalendarioPeriodos();
+  return periodoAtualNoCalendario(cal || CALENDARIO_CACHE.calendario).inicioStr;
 }
 // Minutos entre o horário previsto e a chegada ("HH:MM"). Só informativo — não entra no cálculo.
 function minutosDeAtraso(previsto, chegada) {
@@ -8389,6 +8715,11 @@ function podeGerirComissao(u) {
 }
 
 // ---------- Motor de cálculo do período ----------
+function orcamentoNoPeriodo(o, inicio, fim, chave) {
+  if (!o || o.status !== 'Entregue/Faturado') return false;
+  if (o.periodoConsolidadoId) return o.periodoConsolidadoId === (chave || idFechamentoComissao(inicio, fim));
+  return dentroDoIntervalo(dataReferenciaOrcamento(o), inicio, fim);
+}
 // Entrada: período, regras vigentes, funcionários, lançamentos (coleção comissoes),
 // orçamentos e registros do período (atrasos, faltas, ajustes por funcionário).
 // Saída: indicadores da equipe + uma linha por funcionário com a memória de cálculo.
@@ -8402,7 +8733,9 @@ function calcularApuracaoComissao({
   registros
 }) {
   regras = normalizarRegras(regras);
-  const faturados = (orcamentos || []).filter(o => o.status === 'Entregue/Faturado' && dentroDoIntervalo(dataReferenciaOrcamento(o), inicio, fim));
+  // Cartão consolidado num fechamento pertence só àquele período (não entra em dois períodos).
+  const chavePeriodo = idFechamentoComissao(inicio, fim);
+  const faturados = (orcamentos || []).filter(o => orcamentoNoPeriodo(o, inicio, fim, chavePeriodo));
   const idsFaturados = new Set(faturados.map(o => o.id));
   const orcPorId = {};
   (orcamentos || []).forEach(o => {
@@ -8582,6 +8915,7 @@ function calcularApuracaoComissao({
     fim,
     regras,
     orcamentosFaturados: faturados.length,
+    idsOrcamentos: faturados.map(o => o.id),
     qtdConsertadas,
     qtdGarantia,
     qtdFaixa,
@@ -8627,6 +8961,10 @@ async function recalcularLancamentosOrcamento(orcamento, funcionarios, fechament
   if (fech && orcamento.status === 'Entregue/Faturado') return {
     recalculado: false,
     fechamento: fech
+  };
+  if (orcamento.periodoConsolidadoId && orcamento.status === 'Entregue/Faturado') return {
+    recalculado: false,
+    fechamento: (fechamentos || []).find(f => f.id === orcamento.periodoConsolidadoId) || null
   };
   const antigas = await db.collection('comissoes').where('orcamentoId', '==', orcamento.id).get();
   const idsAnteriores = antigas.docs.map(d => d.data().funcionarioId);
@@ -8690,26 +9028,50 @@ function AbasInternas({
     }
   }, label)));
 }
+// Registros do período por funcionário: ajustes e contagens antigas ficam no documento do
+// período; as ocorrências (atraso/falta) seguem a DATA delas — entram no período que contém a data.
+function montarRegistrosPeriodo(docs, inicio, fim) {
+  const porF = {};
+  (docs || []).forEach(d => {
+    const fid = d.funcionarioId;
+    if (!fid) return;
+    const r = porF[fid] = porF[fid] || {
+      funcionarioId: fid,
+      ocorrencias: [],
+      ajustes: [],
+      _docId: `${inicio}_${fim}_${fid}`
+    };
+    (d.ocorrencias || []).forEach(o => {
+      if (o && o.data && inicio <= o.data && o.data <= fim) r.ocorrencias.push({
+        ...o,
+        _docId: d.id
+      });
+    });
+    if (d.periodoInicio === inicio && d.periodoFim === fim) {
+      r.ajustes = d.ajustes || [];
+      if (d.atrasos !== undefined) r.atrasos = d.atrasos;
+      if (d.faltas !== undefined) r.faltas = d.faltas;
+      if (d.faltaNaoJustificada !== undefined) r.faltaNaoJustificada = d.faltaNaoJustificada;
+      r._docId = d.id;
+    }
+  });
+  return Object.values(porF);
+}
 function useRegistrosApuracao(inicio, fim) {
-  const [registros, setRegistros] = useState([]);
+  const [docs, setDocs] = useState([]);
   const [carregando, setCarregando] = useState(true);
   useEffect(() => {
-    if (!inicio || !fim) return;
-    setCarregando(true);
-    const unsub = db.collection('apuracaoRegistros').where('periodoInicio', '==', inicio).onSnapshot(snap => {
-      setRegistros(snap.docs.map(d => ({
+    const unsub = db.collection('apuracaoRegistros').onSnapshot(snap => {
+      setDocs(snap.docs.map(d => ({
         id: d.id,
         ...d.data()
-      })).filter(r => r.periodoFim === fim));
+      })));
       setCarregando(false);
     }, () => setCarregando(false));
     return unsub;
-  }, [inicio, fim]);
+  }, []);
+  const registros = useMemo(() => inicio && fim ? montarRegistrosPeriodo(docs, inicio, fim) : [], [docs, inicio, fim]);
   return [registros, carregando];
-}
-function periodoApuracaoPadrao() {
-  const hoje = new Date();
-  return periodoApuracao(`${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`);
 }
 function situacaoPagamento(fechamento, funcionarioId) {
   if (!fechamento) return {
@@ -8731,12 +9093,22 @@ function situacaoPagamento(fechamento, funcionarioId) {
 function SeletorPeriodo({
   inicio,
   fim,
-  aoMudar
+  aoMudar,
+  calendario
 }) {
-  function mover(meses) {
-    const p = periodoApuracaoDeslocado(inicio, meses);
+  const cal = calendario || CALENDARIO_CACHE.calendario;
+  const hoje = formatarDataInput(new Date());
+  function mover(delta) {
+    const p = periodoVizinhoNoCalendario(cal, inicio, fim, delta);
     aoMudar(p.inicioStr, p.fimStr);
   }
+  const cadastrados = cal.filter(p => p.cadastrado);
+  const sel = cadastrados.find(p => p.dataInicial === inicio && p.dataFinal === fim);
+  const curta = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit'
+  });
   return /*#__PURE__*/React.createElement("div", {
     className: "seletor-periodo",
     style: {
@@ -8752,7 +9124,24 @@ function SeletorPeriodo({
     title: "Período anterior"
   }, "◀", /*#__PURE__*/React.createElement("span", {
     className: "so-mobile-inline"
-  }, " Anterior")), /*#__PURE__*/React.createElement("div", {
+  }, " Anterior")), cadastrados.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "sp-lista"
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      margin: 0
+    }
+  }, "Período"), /*#__PURE__*/React.createElement("select", {
+    value: sel ? sel.id : '',
+    onChange: e => {
+      const p = cadastrados.find(x => x.id === e.target.value);
+      if (p) aoMudar(p.dataInicial, p.dataFinal);
+    }
+  }, !sel && /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Datas personalizadas"), cadastrados.map(p => /*#__PURE__*/React.createElement("option", {
+    key: p.id,
+    value: p.id
+  }, p.nome, " (", curta(p.dataInicial), " a ", curta(p.dataFinal), ") · ", STATUS_PERIODO[statusDoPeriodo(p, hoje, CALENDARIO_CACHE.fechamentos)].rotulo)))), /*#__PURE__*/React.createElement("div", {
     className: "sp-de"
   }, /*#__PURE__*/React.createElement("label", {
     style: {
@@ -8780,6 +9169,40 @@ function SeletorPeriodo({
   }, /*#__PURE__*/React.createElement("span", {
     className: "so-mobile-inline"
   }, "Próximo "), "▶"));
+}
+// Situação do intervalo escolhido no calendário (nome, status, prazo de fechamento).
+function situacaoPeriodoSelecionado(cal, inicio, fim, fechamentos, config) {
+  const hoje = formatarDataInput(new Date());
+  const per = (cal || []).find(p => p.dataInicial === inicio && p.dataFinal === fim);
+  const base = per || {
+    dataInicial: inicio,
+    dataFinal: fim
+  };
+  const status = statusDoPeriodo(base, hoje, fechamentos);
+  return {
+    per,
+    inicio,
+    fim,
+    nome: per ? per.nome : null,
+    status,
+    prazo: prazoFechamentoPeriodo(base, config, hoje)
+  };
+}
+function InfoPrazoPeriodo({
+  sit,
+  compacto
+}) {
+  if (!sit) return null;
+  const pz = sit.prazo;
+  if (sit.status === 'encerrado') return /*#__PURE__*/React.createElement("div", {
+    className: `per-prazo-linha ${pz.vencido ? 'vencido' : ''}`
+  }, "⏳ Período encerrado em ", formatarDataBr(sit.fim), " — Prazo para fechamento: ", /*#__PURE__*/React.createElement("strong", null, pz.dias, " dias úteis"), ", até ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(pz.dataLimite)), " ", pz.vencido ? /*#__PURE__*/React.createElement("span", {
+    className: "per-vencido"
+  }, "(prazo vencido)") : `(restam ${pz.restantes})`);
+  if (sit.status === 'atual' && !compacto) return /*#__PURE__*/React.createElement("div", {
+    className: "per-prazo-linha neutro"
+  }, "Data de corte: ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(sit.fim)), " — novos faturamentos entram aqui até o fim desse dia. Depois, ", pz.dias, " dias úteis para fechar (até ", formatarDataBr(pz.dataLimite), ").");
+  return null;
 }
 function CartoesApuracao({
   res,
@@ -9055,6 +9478,7 @@ function AbaComissoes({
   funcionarios
 }) {
   const [aba, setAba] = useState('analise');
+  const [selecao, setSelecao] = useState(null); // período escolhido na Análise (mantido ao trocar de aba)
   const gerir = podeGerirComissao(usuario);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(AbasInternas, {
     abas: [['analise', '📊 Análise de comissão'], ['regras', '⚙️ Regras de comissão']],
@@ -9063,25 +9487,41 @@ function AbaComissoes({
   }), aba === 'analise' && /*#__PURE__*/React.createElement(AnaliseComissao, {
     usuario: usuario,
     funcionarios: funcionarios,
-    gerir: gerir
+    gerir: gerir,
+    selecao: selecao,
+    aoSelecionar: setSelecao
   }), aba === 'regras' && /*#__PURE__*/React.createElement(AbaRegrasComissao, {
     usuario: usuario,
-    gerir: gerir
+    gerir: gerir,
+    funcionarios: funcionarios
   }));
 }
 function AnaliseComissao({
   usuario,
   funcionarios,
-  gerir
+  gerir,
+  selecao,
+  aoSelecionar
 }) {
   const [comissoes, carregando] = useColecao('comissoes', 'data');
   const [orcamentos] = useColecao('orcamentos');
   const [versoes] = useColecao('regrasComissao');
   const [fechamentos] = useColecao('comissaoFechamentos');
   const escopo = comissaoEscopoDe(usuario);
-  const padrao = periodoApuracaoPadrao();
-  const [inicio, setInicio] = useState(padrao.inicioStr);
-  const [fim, setFim] = useState(padrao.fimStr);
+  const cal = useCalendarioPeriodos();
+  // Sem escolha do usuário, mostra sempre o período ATUAL (vira sozinho no dia seguinte ao corte).
+  const atual = periodoAtualNoCalendario(cal.calendario);
+  const [selLocal, setSelLocal] = useState(null);
+  const sel = aoSelecionar ? selecao : selLocal;
+  const setSel = aoSelecionar || setSelLocal;
+  const inicio = sel ? sel.inicio : atual.inicioStr;
+  const fim = sel ? sel.fim : atual.fimStr;
+  const mudarPeriodo = (i, f) => setSel({
+    inicio: i,
+    fim: f
+  });
+  useSincronizacaoPeriodos(gerir, orcamentos);
+  const sit = situacaoPeriodoSelecionado(cal.calendario, inicio, fim, fechamentos, cal.config);
   const [filtroFunc, setFiltroFunc] = useState(escopo === 'propria' ? usuario.id : '');
   const [expandido, setExpandido] = useState(null);
   const [modalApuracao, setModalApuracao] = useState(false);
@@ -9115,7 +9555,13 @@ function AnaliseComissao({
     orcPorId[o.id] = o;
   });
   // Lançamentos dos orçamentos com data de referência no período (liberados + aguardando).
-  const lancPeriodo = comissoes.filter(c => idsElegiveis.has(c.funcionarioId) && (!filtroEfetivo || c.funcionarioId === filtroEfetivo) && dentroDoIntervalo(dataReferenciaOrcamento(orcPorId[c.orcamentoId]) || dataDe(c.data), inicio, fim));
+  const chavePer = idFechamentoComissao(inicio, fim);
+  const lancPeriodo = comissoes.filter(c => {
+    if (!idsElegiveis.has(c.funcionarioId) || filtroEfetivo && c.funcionarioId !== filtroEfetivo) return false;
+    const o = orcPorId[c.orcamentoId];
+    if (o && o.periodoConsolidadoId) return o.periodoConsolidadoId === chavePer;
+    return dentroDoIntervalo(dataReferenciaOrcamento(o) || dataDe(c.data), inicio, fim);
+  });
   const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
   function abrirRelatorio(tipo) {
     setRelatorio({
@@ -9173,10 +9619,8 @@ function AnaliseComissao({
   }, /*#__PURE__*/React.createElement(SeletorPeriodo, {
     inicio: inicio,
     fim: fim,
-    aoMudar: (i, f) => {
-      setInicio(i);
-      setFim(f);
-    }
+    aoMudar: mudarPeriodo,
+    calendario: cal.calendario
   }), verTudo && /*#__PURE__*/React.createElement("select", {
     value: filtroFunc,
     onChange: e => setFiltroFunc(e.target.value),
@@ -9198,11 +9642,25 @@ function AnaliseComissao({
       color: 'var(--texto-fraco)',
       fontSize: 12
     }
-  }, "Período selecionado"), /*#__PURE__*/React.createElement("strong", null, formatarDataBr(inicio), " a ", formatarDataBr(fim)), ' ', fechamento ? /*#__PURE__*/React.createElement("span", {
+  }, "Período selecionado", sit.nome ? /*#__PURE__*/React.createElement(React.Fragment, null, " · ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: 'var(--texto)'
+    }
+  }, sit.nome)) : ''), /*#__PURE__*/React.createElement("strong", null, formatarDataBr(inicio), " a ", formatarDataBr(fim)), ' ', /*#__PURE__*/React.createElement(SeloStatusPeriodo, {
+    status: sit.status,
+    pago: fechamento?.status === 'pago'
+  }), ' ', fechamento ? /*#__PURE__*/React.createElement("span", {
     className: `badge ${fechamento.status === 'pago' ? 'entregue' : 'pendente'}`
   }, fechamento.status === 'pago' ? 'Pago' : 'Fechado') : /*#__PURE__*/React.createElement("span", {
     className: "badge estoque"
-  }, "Aberto — valores provisórios"))), fechamento && /*#__PURE__*/React.createElement("div", {
+  }, "Aberto — valores provisórios"))), verTudo && /*#__PURE__*/React.createElement(InfoPrazoPeriodo, {
+    sit: sit
+  }), verTudo && !sit.per && !fechamento && /*#__PURE__*/React.createElement("div", {
+    className: "per-prazo-linha neutro"
+  }, "ℹ️ Este intervalo não é um período cadastrado", (() => {
+    const p = periodoDaDataNoCalendario(cal.calendario, inicio);
+    return p.cadastrado ? '' : ' — cadastre os períodos em Regras de comissão → Períodos de apuração';
+  })(), "."), fechamento && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: 'var(--texto-fraco)',
@@ -9257,6 +9715,7 @@ function AnaliseComissao({
       padding: 20
     }
   }, "Nenhum lançamento neste período."))))), modalApuracao && /*#__PURE__*/React.createElement(ModalApuracao, {
+    aoMudarPeriodo: mudarPeriodo,
     usuario: usuario,
     gerir: gerir,
     funcionarios: funcionarios,
@@ -9296,10 +9755,14 @@ function ModalApuracao({
   inicioInicial,
   fimInicial,
   aoFechar,
-  aoGerarRelatorio
+  aoGerarRelatorio,
+  aoMudarPeriodo
 }) {
   const [inicio, setInicio] = useState(inicioInicial);
   const [fim, setFim] = useState(fimInicial);
+  const [pedirReabertura, setPedirReabertura] = useState(false);
+  const cal = useCalendarioPeriodos();
+  const sit = situacaoPeriodoSelecionado(cal.calendario, inicio, fim, fechamentos, cal.config);
   const [registros, carregandoRegistros] = useRegistrosApuracao(inicio, fim);
   const [expandido, setExpandido] = useState(null);
   const [ajusteDe, setAjusteDe] = useState(null);
@@ -9336,16 +9799,21 @@ function ModalApuracao({
   async function removerOcorrencia(l, o) {
     const motivo = prompt(`Remover ${o.tipo === 'atraso' ? 'o atraso' : 'a falta'} de ${l.nome} em ${formatarDataBr(o.data)}? Informe o motivo:`);
     if (!motivo || !motivo.trim()) return;
-    const reg = regDe(l.funcionarioId);
-    const novas = (reg.ocorrencias || []).map(x => x.id === o.id ? {
+    // a ocorrência fica no documento onde foi registrada (segue a data dela)
+    const ref = db.collection('apuracaoRegistros').doc(o._docId || `${inicio}_${fim}_${l.funcionarioId}`);
+    const snap = await ref.get();
+    const lista = snap.exists ? snap.data().ocorrencias || [] : [];
+    const novas = lista.map(x => x.id === o.id ? {
       ...x,
       removido: true,
       removidoPor: usuario.nome,
       removidoEm: new Date().toISOString(),
       motivoRemocao: motivo.trim()
     } : x);
-    await salvarRegistro(l.funcionarioId, {
+    await ref.set({
       ocorrencias: novas
+    }, {
+      merge: true
     });
     const nome = o.tipo === 'atraso' ? 'Atraso' : tiposFalta.find(x => x.id === o.tipo)?.nome || 'Falta';
     await registrarHistoricoComissao({
@@ -9360,6 +9828,9 @@ function ModalApuracao({
       alert(`Não dá para fechar: este intervalo cruza o período já fechado de ${formatarDataBr(cruzado.inicio)} a ${formatarDataBr(cruzado.fim)}.`);
       return;
     }
+    const hojeF = formatarDataInput(new Date());
+    if (hojeF <= fim && !confirm(`Atenção: o período ainda está em andamento — a data de corte é ${formatarDataBr(fim)}. Faturamentos até essa data ainda entrariam nele.\n\nFechar agora mesmo assim?`)) return;
+    if (!sit.per && !confirm(`Este intervalo não é um período cadastrado. Ao fechar, ele será cadastrado como período (${formatarDataBr(inicio)} a ${formatarDataBr(fim)}). Continuar?`)) return;
     if (!confirm(`Fechar o período ${formatarDataBr(inicio)} a ${formatarDataBr(fim)}?\n\nTotal: ${formatMoeda(resVivo.totalFinal)} para ${resVivo.linhas.length} funcionário(s).\n\nDepois de fechado, os valores ficam congelados: mudanças de regras, percentuais ou lançamentos não alteram mais este período (só um recálculo autorizado).`)) return;
     setProcessando(true);
     await db.collection('comissaoFechamentos').doc(idFechamentoComissao(inicio, fim)).set({
@@ -9373,6 +9844,11 @@ function ModalApuracao({
       pagamentos: {},
       recalculos: []
     });
+    const periodoId = await garantirPeriodoCadastrado(inicio, fim, usuario);
+    await db.collection('comissaoFechamentos').doc(idFechamentoComissao(inicio, fim)).update({
+      periodoId
+    });
+    await consolidarCartoesDoPeriodo(resVivo, idFechamentoComissao(inicio, fim), periodoId);
     await registrarHistoricoComissao({
       tipo: 'fechamento',
       descricao: `Fechou o período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
@@ -9403,18 +9879,8 @@ function ModalApuracao({
     }, usuario);
     setProcessando(false);
   }
-  async function reabrirPeriodo() {
-    const pagos = Object.values(fechamento.pagamentos || {}).filter(p => p.pago).length;
-    if (!confirm(`Reabrir o período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}? Os valores voltam a ser calculados ao vivo e podem mudar.`)) return;
-    if (pagos > 0 && !confirm(`Atenção: ${pagos} funcionário(s) já foram marcados como PAGOS. Reabrir mesmo assim?`)) return;
-    setProcessando(true);
-    await db.collection('comissaoFechamentos').doc(fechamento.id).delete();
-    await registrarHistoricoComissao({
-      tipo: 'reabertura',
-      descricao: `Reabriu o período ${formatarDataBr(inicio)}–${formatarDataBr(fim)}`,
-      valorAnterior: formatMoeda(fechamento.resultado.totalFinal)
-    }, usuario);
-    setProcessando(false);
+  function reabrirPeriodo() {
+    setPedirReabertura(true);
   }
   async function alternarPago(l) {
     const pago = !fechamento.pagamentos?.[l.funcionarioId]?.pago;
@@ -9514,16 +9980,24 @@ function ModalApuracao({
     aoMudar: (i, f) => {
       setInicio(i);
       setFim(f);
-    }
+      if (aoMudarPeriodo) aoMudarPeriodo(i, f);
+    },
+    calendario: cal.calendario
   }), /*#__PURE__*/React.createElement("div", {
     className: "apu-periodo-info"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Período:"), " ", formatarDataBr(inicio), " a ", formatarDataBr(fim)), /*#__PURE__*/React.createElement("div", null, fechamento ? /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Período", sit.nome ? ` ${sit.nome}` : '', ":"), " ", formatarDataBr(inicio), " a ", formatarDataBr(fim), " ", /*#__PURE__*/React.createElement(SeloStatusPeriodo, {
+    status: sit.status,
+    pago: fechamento?.status === 'pago'
+  })), /*#__PURE__*/React.createElement("div", null, fechamento ? /*#__PURE__*/React.createElement("span", {
     className: `apu-status ${fechamento.status === 'pago' ? 'ok' : 'aviso'}`
   }, "🔒 ", fechamento.status === 'pago' ? 'Período fechado e pago' : `Período fechado por ${fechamento.fechadoPor}`, (fechamento.recalculos || []).length > 0 ? ` · recalculado ${fechamento.recalculos.length}x` : '') : /*#__PURE__*/React.createElement("span", {
     className: "apu-status aberto"
   }, "● Período aberto — recalculado a cada mudança"), /*#__PURE__*/React.createElement("span", {
     className: "apu-regras-versao"
-  }, "Regras: ", versao ? `vigentes desde ${formatarDataBr(versao.vigenciaInicio)}` : 'padrão')))), /*#__PURE__*/React.createElement("div", {
+  }, "Regras: ", versao ? `vigentes desde ${formatarDataBr(versao.vigenciaInicio)}` : 'padrão')), /*#__PURE__*/React.createElement(InfoPrazoPeriodo, {
+    sit: sit,
+    compacto: true
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "apu-cards"
   }, /*#__PURE__*/React.createElement("div", {
     className: "apu-card"
@@ -9736,6 +10210,11 @@ function ModalApuracao({
     funcionarioInicial: ocorrenciaDe.funcionarioId,
     dataInicial: inicio <= formatarDataInput(new Date()) && formatarDataInput(new Date()) <= fim ? formatarDataInput(new Date()) : fim,
     aoFechar: () => setOcorrenciaDe(null)
+  }), pedirReabertura && fechamento && /*#__PURE__*/React.createElement(ModalReabrirPeriodo, {
+    periodo: sit.per,
+    fechamento: fechamento,
+    usuario: usuario,
+    aoFechar: () => setPedirReabertura(false)
   }), ajusteDe && /*#__PURE__*/React.createElement(ModalAjusteComissao, {
     linha: ajusteDe,
     inicio: inicio,
@@ -10061,7 +10540,8 @@ function ModalOcorrencia({
 }) {
   const [fid, setFid] = useState(funcionarioInicial || '');
   const [data, setData] = useState(dataInicial || formatarDataInput(new Date()));
-  const perSel = data ? periodoDaData(data) : periodoApuracaoPadrao();
+  const calO = useCalendarioPeriodos();
+  const perSel = periodoDaDataNoCalendario(calO.calendario, data || formatarDataInput(new Date()));
   const ativos = funcionariosElegiveisComissao(funcionarios, perSel.inicioStr, perSel.fimStr).filter(f => funcionarioAtivoEm(f, new Date(data + 'T12:00:00')) && !['recusado', 'pendente'].includes(f.status));
   const [tipo, setTipo] = useState('atraso');
   const [previsto, setPrevisto] = useState(() => {
@@ -10074,7 +10554,7 @@ function ModalOcorrencia({
   const [chegada, setChegada] = useState('');
   const [obs, setObs] = useState('');
   const [salvando, setSalvando] = useState(false);
-  const per = data ? periodoDaData(data) : null;
+  const per = data ? perSel : null;
   const regras = regrasVigentesEm(versoes, per ? per.inicioStr : formatarDataInput(new Date()));
   const tiposFalta = regras.faltas.tipos || [];
   const minutos = tipo === 'atraso' ? minutosDeAtraso(previsto, chegada) : 0;
@@ -10204,7 +10684,7 @@ function ModalOcorrencia({
       color: fechado ? 'var(--vermelho)' : 'var(--texto-fraco)',
       marginTop: 10
     }
-  }, fechado ? `⚠️ Período ${formatarDataBr(fechado.inicio)}–${formatarDataBr(fechado.fim)} fechado: reabra para registrar.` : `Entra no período de ${formatarDataBr(per.inicioStr)} a ${formatarDataBr(per.fimStr)}. A comissão é recalculada na hora e o funcionário recebe uma notificação.`), /*#__PURE__*/React.createElement("div", {
+  }, fechado ? `⚠️ Período ${formatarDataBr(fechado.inicio)}–${formatarDataBr(fechado.fim)} fechado: reabra para registrar.` : `Entra no período ${per.nome ? per.nome + ' ' : ''}(${formatarDataBr(per.inicioStr)} a ${formatarDataBr(per.fimStr)}), pela data da ocorrência. A comissão é recalculada na hora e o funcionário recebe uma notificação.`), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'flex-end',
@@ -10312,6 +10792,1146 @@ function NotificacoesPessoais({
   }, dataDe(n.criadoEm) ? dataDe(n.criadoEm).toLocaleString('pt-BR') : ''))));
 }
 
+// ======================= COMISSÃO — PERÍODOS DE APURAÇÃO =======================
+// Calendário compartilhado por todas as telas (uma única escuta no banco).
+const CALENDARIO_CACHE = {
+  periodos: [],
+  fechamentos: [],
+  config: normalizarConfigPeriodos(null),
+  calendario: [],
+  carregado: false,
+  iniciado: false,
+  versao: 0,
+  ouvintes: new Set()
+};
+function iniciarCalendarioPeriodos() {
+  const c = CALENDARIO_CACHE;
+  if (c.iniciado || typeof db === 'undefined') return;
+  c.iniciado = true;
+  let prontos = {
+    p: false,
+    f: false
+  };
+  const avisar = () => {
+    c.calendario = montarCalendario(c.periodos, c.fechamentos);
+    c.carregado = prontos.p && prontos.f;
+    c.versao++;
+    c.ouvintes.forEach(fn => fn(c.versao));
+  };
+  db.collection('periodosApuracao').onSnapshot(s => {
+    c.periodos = s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    })).filter(p => !p.excluido);
+    prontos.p = true;
+    avisar();
+  }, () => {
+    prontos.p = true;
+    avisar();
+  });
+  db.collection('comissaoFechamentos').onSnapshot(s => {
+    c.fechamentos = s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+    prontos.f = true;
+    avisar();
+  }, () => {
+    prontos.f = true;
+    avisar();
+  });
+  db.collection('config').doc('periodosApuracao').onSnapshot(s => {
+    c.config = normalizarConfigPeriodos(s.exists ? s.data() : null);
+    avisar();
+  }, () => {});
+}
+function useCalendarioPeriodos() {
+  iniciarCalendarioPeriodos();
+  const [, setV] = useState(CALENDARIO_CACHE.versao);
+  useEffect(() => {
+    const fn = v => setV(v);
+    CALENDARIO_CACHE.ouvintes.add(fn);
+    setV(CALENDARIO_CACHE.versao);
+    return () => CALENDARIO_CACHE.ouvintes.delete(fn);
+  }, []);
+  const c = CALENDARIO_CACHE;
+  return {
+    periodos: c.periodos,
+    fechamentos: c.fechamentos,
+    config: c.config,
+    calendario: c.calendario,
+    carregado: c.carregado
+  };
+}
+
+// ---------- Vínculo cartão → período (periodoApuracaoId) ----------
+// Ao faturar: o cartão é ligado ao período cadastrado que contém a data de faturamento.
+async function vincularPeriodoAoFaturar(orcamentoId, dataRef) {
+  try {
+    iniciarCalendarioPeriodos();
+    let cal = CALENDARIO_CACHE.calendario;
+    if (!CALENDARIO_CACHE.carregado) {
+      const [ps, fs] = await Promise.all([db.collection('periodosApuracao').get(), db.collection('comissaoFechamentos').get()]);
+      cal = montarCalendario(ps.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })).filter(p => !p.excluido), fs.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })));
+    }
+    const per = periodoDaDataNoCalendario(cal, chaveDia(dataRef || new Date()));
+    await db.collection('orcamentos').doc(orcamentoId).update({
+      periodoApuracaoId: per.periodo ? per.periodo.id : firebase.firestore.FieldValue.delete()
+    });
+  } catch (e) {
+    console.error('vínculo do período', e);
+  }
+}
+// Mantém o vínculo certo para todos os cartões faturados ainda não consolidados (datas editadas,
+// períodos gerados depois, cartões antigos). Grava só o que mudou.
+function vinculosPendentes(orcamentos, cal) {
+  const mudancas = [];
+  (orcamentos || []).forEach(o => {
+    if (!o || o.periodoConsolidadoId) return;
+    let alvo = null;
+    if (o.status === 'Entregue/Faturado') {
+      const d = chaveDia(dataReferenciaOrcamento(o));
+      if (d) {
+        const per = periodoDaDataNoCalendario(cal, d);
+        alvo = per.periodo ? per.periodo.id : null;
+      }
+    }
+    if ((o.periodoApuracaoId || null) !== alvo) mudancas.push({
+      id: o.id,
+      alvo
+    });
+  });
+  return mudancas;
+}
+async function sincronizarVinculosPeriodos(orcamentos, cal) {
+  const mud = vinculosPendentes(orcamentos, cal);
+  for (let i = 0; i < mud.length; i += 400) {
+    const lote = db.batch();
+    mud.slice(i, i + 400).forEach(m => lote.update(db.collection('orcamentos').doc(m.id), {
+      periodoApuracaoId: m.alvo || firebase.firestore.FieldValue.delete()
+    }));
+    await lote.commit();
+  }
+  return mud.length;
+}
+// Fechamentos feitos antes do calendário viram períodos cadastrados (histórico preservado).
+async function registrarFechamentosNoCalendario(fechamentos, periodos) {
+  const cal = montarCalendario(periodos, []);
+  const faltando = (fechamentos || []).filter(f => f.inicio && f.fim && !cal.some(p => p.dataInicial <= f.fim && f.inicio <= p.dataFinal));
+  for (const f of faltando) {
+    await db.collection('periodosApuracao').doc(`hist_${f.inicio}_${f.fim}`).set({
+      nome: nomePeriodoAuto(f.inicio, f.fim),
+      dataInicial: f.inicio,
+      dataFinal: f.fim,
+      origem: 'historico',
+      editadoManualmente: false,
+      criadoPor: 'Sistema (fechamento existente)',
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      alteradoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }, {
+      merge: true
+    });
+  }
+  return faltando.length;
+}
+function useSincronizacaoPeriodos(ativo, orcamentos) {
+  const cal = useCalendarioPeriodos();
+  const assinatura = ativo && cal.carregado ? vinculosPendentes(orcamentos, cal.calendario).map(m => m.id + ':' + m.alvo).join('|') : '';
+  const fechSemCadastro = ativo && cal.carregado ? cal.calendario.filter(p => !p.cadastrado).map(p => p.id).join('|') : '';
+  const rodando = useRef(false);
+  useEffect(() => {
+    if (!ativo || !cal.carregado || rodando.current) return;
+    if (!assinatura && !fechSemCadastro) return;
+    rodando.current = true;
+    (async () => {
+      try {
+        if (fechSemCadastro) await registrarFechamentosNoCalendario(cal.fechamentos, cal.periodos);else if (assinatura) await sincronizarVinculosPeriodos(orcamentos, cal.calendario);
+      } catch (e) {
+        console.error('sincronização de períodos', e);
+      }
+      rodando.current = false;
+    })();
+  }, [ativo, assinatura, fechSemCadastro]);
+}
+// ---------- Fechar / reabrir ----------
+async function garantirPeriodoCadastrado(inicio, fim, usuario) {
+  const existente = CALENDARIO_CACHE.periodos.find(p => p.dataInicial === inicio && p.dataFinal === fim);
+  if (existente) return existente.id;
+  const ref = await db.collection('periodosApuracao').add({
+    nome: nomePeriodoAuto(inicio, fim),
+    dataInicial: inicio,
+    dataFinal: fim,
+    origem: 'fechamento',
+    editadoManualmente: false,
+    criadoPor: usuario?.nome || '-',
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+    alteradoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  return ref.id;
+}
+// Consolida: cada cartão do fechamento fica marcado com o período — não entra em outro.
+async function consolidarCartoesDoPeriodo(res, chave, periodoId) {
+  const ids = res.idsOrcamentos || [];
+  for (let i = 0; i < ids.length; i += 400) {
+    const lote = db.batch();
+    ids.slice(i, i + 400).forEach(id => lote.update(db.collection('orcamentos').doc(id), {
+      periodoConsolidadoId: chave,
+      periodoApuracaoId: periodoId
+    }));
+    await lote.commit();
+  }
+}
+async function reabrirFechamentoComissao(fechamento, usuario, motivo) {
+  await db.collection('comissaoFechamentos').doc(fechamento.id).delete();
+  const snap = await db.collection('orcamentos').where('periodoConsolidadoId', '==', fechamento.id).get();
+  for (let i = 0; i < snap.docs.length; i += 400) {
+    const lote = db.batch();
+    snap.docs.slice(i, i + 400).forEach(d => lote.update(d.ref, {
+      periodoConsolidadoId: firebase.firestore.FieldValue.delete()
+    }));
+    await lote.commit();
+  }
+  const per = CALENDARIO_CACHE.periodos.find(p => p.dataInicial === fechamento.inicio && p.dataFinal === fechamento.fim);
+  const agora = new Date();
+  if (per) await db.collection('periodosApuracao').doc(per.id).update({
+    reaberturas: firebase.firestore.FieldValue.arrayUnion({
+      por: usuario.nome,
+      em: agora.toISOString(),
+      motivo
+    }),
+    alteradoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await registrarHistoricoComissao({
+    tipo: 'reabertura',
+    descricao: `Reabriu o período ${per?.nome || nomePeriodoAuto(fechamento.inicio, fechamento.fim)} (${formatarDataBr(fechamento.inicio)}–${formatarDataBr(fechamento.fim)}) em ${agora.toLocaleString('pt-BR')} — motivo: ${motivo}`,
+    motivo,
+    periodoInicio: fechamento.inicio,
+    periodoFim: fechamento.fim,
+    valorAnterior: formatMoeda(fechamento.resultado?.totalFinal || 0)
+  }, usuario);
+}
+// Ao mudar as datas de um período, ajustes e contagens antigas (gravados por período) acompanham.
+// As ocorrências (atraso/falta) já seguem a data delas, então continuam no período certo.
+async function moverRegistrosPeriodo(antIni, antFim, novoIni, novoFim) {
+  if (antIni === novoIni && antFim === novoFim) return;
+  const snap = await db.collection('apuracaoRegistros').where('periodoInicio', '==', antIni).get();
+  const docs = snap.docs.filter(d => d.data().periodoFim === antFim);
+  if (!docs.length) return;
+  const lote = db.batch();
+  docs.forEach(d => {
+    const dados = d.data();
+    lote.set(db.collection('apuracaoRegistros').doc(`${novoIni}_${novoFim}_${dados.funcionarioId}`), {
+      ...dados,
+      periodoInicio: novoIni,
+      periodoFim: novoFim
+    }, {
+      merge: true
+    });
+    lote.delete(d.ref);
+  });
+  await lote.commit();
+}
+
+// ---------- Telas ----------
+function SeloStatusPeriodo({
+  status,
+  pago
+}) {
+  const s = STATUS_PERIODO[status] || STATUS_PERIODO.futuro;
+  return /*#__PURE__*/React.createElement("span", {
+    className: `per-status ${s.cls}`
+  }, status === 'fechado' && pago ? 'Fechado · pago' : s.rotulo);
+}
+function textoPrazo(p, config, hoje) {
+  const pz = prazoFechamentoPeriodo(p, config, hoje);
+  return pz;
+}
+function movimentacaoDoPeriodo(p, orcamentos, registrosDocs) {
+  const chave = idFechamentoComissao(p.dataInicial, p.dataFinal);
+  const cartoes = (orcamentos || []).filter(o => orcamentoNoPeriodo(o, p.dataInicial, p.dataFinal, chave));
+  const faturamento = cartoes.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  let ocorrencias = 0,
+    ajustes = 0;
+  (registrosDocs || []).forEach(d => {
+    ocorrencias += (d.ocorrencias || []).filter(o => o && !o.removido && o.data >= p.dataInicial && o.data <= p.dataFinal).length;
+    if (d.periodoInicio === p.dataInicial && d.periodoFim === p.dataFinal) ajustes += (d.ajustes || []).filter(a => !a.removido).length;
+  });
+  return {
+    cartoes: cartoes.length,
+    faturamento,
+    ocorrencias,
+    ajustes,
+    tem: cartoes.length + ocorrencias + ajustes > 0
+  };
+}
+const MSG_PERIODO_COM_MOVIMENTO = 'Este período já possui movimentações vinculadas. Alterar as datas pode modificar quais registros pertencem a esta apuração. Deseja continuar?';
+function AbaPeriodosApuracao({
+  usuario,
+  gerir,
+  funcionarios
+}) {
+  const cal = useCalendarioPeriodos();
+  const [orcamentos] = useColecao('orcamentos');
+  const [comissoes] = useColecao('comissoes', 'data');
+  const [versoes] = useColecao('regrasComissao');
+  const [registrosDocs] = useColecao('apuracaoRegistros');
+  const [historico] = useColecao('comissaoHistorico', 'em');
+  const [modal, setModal] = useState(null); // {tipo:'novo'|'editar'|'gerar'|'config'|'reabrir'|'ver', periodo}
+  const [relatorio, setRelatorio] = useState(null);
+  const [mostrarTodos, setMostrarTodos] = useState(false);
+  useSincronizacaoPeriodos(gerir, orcamentos);
+  const hoje = formatarDataInput(new Date());
+  const lista = cal.calendario;
+  const atual = periodoAtualNoCalendario(lista, hoje);
+  const fechDe = p => cal.fechamentos.find(f => f.id === idFechamentoComissao(p.dataInicial, p.dataFinal));
+  const linhas = lista.map(p => ({
+    p,
+    status: statusDoPeriodo(p, hoje, cal.fechamentos),
+    fech: fechDe(p),
+    mov: movimentacaoDoPeriodo(p, orcamentos, registrosDocs)
+  }));
+  const pendentes = linhas.filter(x => x.status === 'encerrado');
+  const futuros = linhas.filter(x => x.status === 'futuro');
+  const problemas = verificarContinuidadePeriodos(lista);
+  // Lista: encerrados/fechados mais antigos ficam recolhidos
+  const idxAtual = linhas.findIndex(x => x.status === 'atual');
+  const corte = idxAtual >= 0 ? Math.max(0, idxAtual - 3) : Math.max(0, linhas.findIndex(x => x.status === 'futuro') - 3);
+  const visiveis = mostrarTodos ? linhas : linhas.slice(corte);
+  const ultimo = lista[lista.length - 1];
+  const histPeriodos = historico.filter(h => ['periodo', 'reabertura', 'fechamento'].includes(h.tipo)).slice(0, 30);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "periodos-apuracao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "per-resumo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card per-resumo-card atual"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "per-resumo-rotulo"
+  }, "Período atual"), /*#__PURE__*/React.createElement("div", {
+    className: "per-resumo-nome"
+  }, atual.nome, atual.cadastrado ? '' : ' *'), /*#__PURE__*/React.createElement("div", {
+    className: "per-resumo-datas"
+  }, formatarDataBr(atual.inicioStr), " a ", formatarDataBr(atual.fimStr)), /*#__PURE__*/React.createElement("div", {
+    className: "per-resumo-sub"
+  }, "Data de corte: ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(atual.fimStr)), " · próximo período começa em ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(somarDias(atual.fimStr, 1)))), !atual.cadastrado && /*#__PURE__*/React.createElement("div", {
+    className: "per-alerta vermelho"
+  }, "* Hoje não está em nenhum período cadastrado", atual.lacuna ? ' (lacuna no calendário)' : '', ". O sistema está seguindo o dia de corte do período mais próximo — cadastre ou gere os períodos.")), pendentes.slice(-2).map(x => {
+    const pz = prazoFechamentoPeriodo(x.p, cal.config, hoje);
+    return /*#__PURE__*/React.createElement("div", {
+      key: x.p.id,
+      className: `card per-resumo-card ${pz.vencido ? 'vencido' : 'pendente'}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "per-resumo-rotulo"
+    }, "Fechamento pendente"), /*#__PURE__*/React.createElement("div", {
+      className: "per-resumo-nome"
+    }, x.p.nome), /*#__PURE__*/React.createElement("div", {
+      className: "per-resumo-datas"
+    }, formatarDataBr(x.p.dataInicial), " a ", formatarDataBr(x.p.dataFinal)), /*#__PURE__*/React.createElement("div", {
+      className: "per-resumo-sub"
+    }, "Prazo para fechamento: ", /*#__PURE__*/React.createElement("strong", null, pz.dias, " dias úteis"), " — até ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(pz.dataLimite))), /*#__PURE__*/React.createElement("div", {
+      className: `per-prazo ${pz.vencido ? 'vencido' : ''}`
+    }, pz.vencido ? `⚠️ Prazo vencido em ${formatarDataBr(pz.dataLimite)}` : `⏳ Restam ${pz.restantes} dia(s) útil(eis)`), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn pequeno",
+      onClick: () => setModal({
+        tipo: 'ver',
+        periodo: x.p
+      })
+    }, "Conferir e fechar"));
+  })), problemas.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "per-alerta vermelho"
+  }, /*#__PURE__*/React.createElement("strong", null, "⚠️ Calendário com problema de continuidade:"), problemas.map((pr, i) => /*#__PURE__*/React.createElement("div", {
+    key: i
+  }, "• ", pr.texto))), lista.length > 0 && futuros.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "per-alerta laranja"
+  }, "Nenhum período futuro cadastrado depois de ", formatarDataBr(ultimo.dataFinal), ". Use “Gerar próximos períodos” para deixar os próximos meses planejados."), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "per-cabecalho"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      fontSize: 16
+    }
+  }, "Períodos de Apuração"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 3
+    }
+  }, "Data final = data de corte. No dia seguinte começa o próximo período. Prazo de fechamento: ", cal.config.prazoDiasUteis, " dias úteis após o corte (não é um novo período).")), gerir && /*#__PURE__*/React.createElement("div", {
+    className: "per-botoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => setModal({
+      tipo: 'novo'
+    })
+  }, "+ Novo período"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setModal({
+      tipo: 'gerar'
+    })
+  }, "⚡ Gerar próximos períodos"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setModal({
+      tipo: 'config'
+    })
+  }, "📆 Prazo e feriados"))), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 24,
+      textAlign: 'center',
+      color: 'var(--texto-fraco)'
+    }
+  }, "Nenhum período cadastrado ainda.", gerir ? ' Crie o período atual em “+ Novo período” e depois gere os próximos.' : '') : /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: 'auto'
+    }
+  }, !mostrarTodos && corte > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "per-ver-todos",
+    onClick: () => setMostrarTodos(true)
+  }, "▲ Mostrar ", corte, " período(s) anterior(es)"), /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes per-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Período"), /*#__PURE__*/React.createElement("th", null, "Início"), /*#__PURE__*/React.createElement("th", null, "Final (corte)"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Prazo de fechamento"), /*#__PURE__*/React.createElement("th", null, "Movimentação"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, visiveis.map(({
+    p,
+    status,
+    fech,
+    mov
+  }) => {
+    const pz = prazoFechamentoPeriodo(p, cal.config, hoje);
+    return /*#__PURE__*/React.createElement("tr", {
+      key: p.id,
+      className: status === 'atual' ? 'per-linha-atual' : ''
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Período",
+      className: "celula-destaque"
+    }, /*#__PURE__*/React.createElement("strong", null, p.nome || nomePeriodoAuto(p.dataInicial, p.dataFinal)), p.editadoManualmente && /*#__PURE__*/React.createElement("span", {
+      className: "per-tag",
+      title: "Datas alteradas manualmente — a geração automática não mexe neste período"
+    }, "editado"), !p.cadastrado && /*#__PURE__*/React.createElement("span", {
+      className: "per-tag"
+    }, "sem cadastro")), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Início"
+    }, formatarDataBr(p.dataInicial)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Final (corte)"
+    }, formatarDataBr(p.dataFinal)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Status"
+    }, /*#__PURE__*/React.createElement(SeloStatusPeriodo, {
+      status: status,
+      pago: fech?.status === 'pago'
+    })), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Prazo de fechamento"
+    }, status === 'fechado' ? /*#__PURE__*/React.createElement("span", {
+      className: "per-mini"
+    }, "Fechado por ", fech?.fechadoPor || '-') : status === 'encerrado' ? /*#__PURE__*/React.createElement("span", {
+      className: `per-mini ${pz.vencido ? 'vermelho' : 'laranja'}`
+    }, pz.dias, " dias úteis · até ", formatarDataBr(pz.dataLimite), /*#__PURE__*/React.createElement("br", null), pz.vencido ? 'prazo vencido' : `restam ${pz.restantes} dia(s) útil(eis)`) : /*#__PURE__*/React.createElement("span", {
+      className: "per-mini"
+    }, pz.dias, " dias úteis após o corte · até ", formatarDataBr(pz.dataLimite))), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Movimentação"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "per-mini"
+    }, mov.cartoes, " cartão(ões) · ", formatMoeda(mov.faturamento), mov.ocorrencias ? ` · ${mov.ocorrencias} ocorrência(s)` : '')), /*#__PURE__*/React.createElement("td", {
+      className: "celula-acao per-acoes"
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => setModal({
+        tipo: 'ver',
+        periodo: p
+      })
+    }, "Visualizar"), gerir && p.cadastrado && status !== 'fechado' && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => setModal({
+        tipo: 'editar',
+        periodo: p
+      })
+    }, "Editar"), gerir && status === 'fechado' && fech && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn perigo pequeno",
+      onClick: () => setModal({
+        tipo: 'reabrir',
+        periodo: p,
+        fechamento: fech
+      })
+    }, "Reabrir período")));
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 10px',
+      fontSize: 16
+    }
+  }, "Histórico dos períodos"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: 'auto',
+      maxHeight: 320,
+      overflowY: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes tabela-historico"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data e hora"), /*#__PURE__*/React.createElement("th", null, "Usuário"), /*#__PURE__*/React.createElement("th", null, "Alteração"), /*#__PURE__*/React.createElement("th", null, "Anterior"), /*#__PURE__*/React.createElement("th", null, "Novo"))), /*#__PURE__*/React.createElement("tbody", null, histPeriodos.map(h => /*#__PURE__*/React.createElement("tr", {
+    key: h.id
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Data e hora",
+    style: {
+      whiteSpace: 'nowrap'
+    }
+  }, h.em?.toDate ? h.em.toDate().toLocaleString('pt-BR') : '-'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Usuário"
+  }, h.usuario), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Alteração",
+    className: "celula-destaque"
+  }, h.descricao), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Anterior"
+  }, h.valorAnterior || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Novo"
+  }, h.valorNovo || '—'))), histPeriodos.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "5",
+    style: {
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 16
+    }
+  }, "Nenhum registro.")))))), (modal?.tipo === 'novo' || modal?.tipo === 'editar') && /*#__PURE__*/React.createElement(ModalPeriodoApuracao, {
+    periodo: modal.periodo,
+    calendario: lista,
+    periodos: cal.periodos,
+    fechamentos: cal.fechamentos,
+    config: cal.config,
+    orcamentos: orcamentos,
+    registrosDocs: registrosDocs,
+    usuario: usuario,
+    aoFechar: () => setModal(null)
+  }), modal?.tipo === 'gerar' && /*#__PURE__*/React.createElement(ModalGerarPeriodos, {
+    periodos: cal.periodos,
+    calendario: lista,
+    usuario: usuario,
+    aoFechar: () => setModal(null)
+  }), modal?.tipo === 'config' && /*#__PURE__*/React.createElement(ModalConfigPeriodos, {
+    config: cal.config,
+    usuario: usuario,
+    aoFechar: () => setModal(null)
+  }), modal?.tipo === 'reabrir' && /*#__PURE__*/React.createElement(ModalReabrirPeriodo, {
+    periodo: modal.periodo,
+    fechamento: modal.fechamento,
+    usuario: usuario,
+    aoFechar: () => setModal(null)
+  }), modal?.tipo === 'ver' && /*#__PURE__*/React.createElement(ModalApuracao, {
+    usuario: usuario,
+    gerir: gerir,
+    funcionarios: funcionarios,
+    comissoes: comissoes,
+    orcamentos: orcamentos,
+    versoes: versoes,
+    fechamentos: cal.fechamentos,
+    inicioInicial: modal.periodo.dataInicial,
+    fimInicial: modal.periodo.dataFinal,
+    aoFechar: () => setModal(null),
+    aoGerarRelatorio: (tipo, r, fech) => setRelatorio({
+      tipo,
+      res: r,
+      fechamento: fech
+    })
+  }), relatorio && /*#__PURE__*/React.createElement(ModalRelatorioComissao, {
+    relatorio: relatorio,
+    usuario: usuario,
+    aoFechar: () => setRelatorio(null)
+  }));
+}
+function ModalPeriodoApuracao({
+  periodo,
+  calendario,
+  periodos,
+  fechamentos,
+  config,
+  orcamentos,
+  registrosDocs,
+  usuario,
+  aoFechar
+}) {
+  const editando = !!periodo;
+  const ultimo = periodos.slice().sort((a, b) => a.dataFinal < b.dataFinal ? -1 : 1).pop();
+  const sugestao = !editando && ultimo ? periodoSeguintePorCorte(ultimo.dataFinal, diaDeCorteDe(ultimo.dataFinal)) : null;
+  const [ini, setIni] = useState(editando ? periodo.dataInicial : sugestao?.dataInicial || '');
+  const [fim, setFim] = useState(editando ? periodo.dataFinal : sugestao?.dataFinal || '');
+  const [nome, setNome] = useState(editando ? periodo.nome || '' : '');
+  const [nomeManual, setNomeManual] = useState(editando && periodo.nome && periodo.nome !== nomePeriodoAuto(periodo.dataInicial, periodo.dataFinal));
+  const [ajustarVizinhos, setAjustarVizinhos] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const nomeFinal = nomeManual ? nome : nomePeriodoAuto(ini, fim);
+  const hoje = formatarDataInput(new Date());
+  const outros = periodos.filter(p => !editando || p.id !== periodo.id);
+  const ordenados = outros.slice().sort((a, b) => a.dataInicial < b.dataInicial ? -1 : 1);
+  const refIni = editando ? periodo.dataInicial : ini,
+    refFim = editando ? periodo.dataFinal : fim;
+  const anterior = ordenados.filter(p => p.dataFinal < refIni).pop();
+  const seguinte = ordenados.find(p => p.dataInicial > refFim);
+  const fechado = p => p && fechamentos.some(f => f.id === idFechamentoComissao(p.dataInicial, p.dataFinal));
+  // Vizinhos que podem acompanhar a mudança (mantendo o calendário contínuo)
+  const ajustes = [];
+  if (editando && ini && fim && fim >= ini) {
+    if (anterior && !fechado(anterior) && somarDias(anterior.dataFinal, 1) !== ini && somarDias(ini, -1) >= anterior.dataInicial) ajustes.push({
+      p: anterior,
+      campo: 'dataFinal',
+      valor: somarDias(ini, -1)
+    });
+    if (seguinte && !fechado(seguinte) && somarDias(fim, 1) !== seguinte.dataInicial && somarDias(fim, 1) <= seguinte.dataFinal) ajustes.push({
+      p: seguinte,
+      campo: 'dataInicial',
+      valor: somarDias(fim, 1)
+    });
+  }
+  const aplicarVizinhos = editando && ajustarVizinhos && ajustes.length > 0;
+  const outrosAjustados = outros.map(p => {
+    const a = aplicarVizinhos && ajustes.find(x => x.p.id === p.id);
+    return a ? {
+      ...p,
+      [a.campo]: a.valor
+    } : p;
+  });
+  const cand = {
+    id: periodo?.id,
+    dataInicial: ini,
+    dataFinal: fim,
+    nome: nomeFinal
+  };
+  const {
+    erros,
+    avisos
+  } = validarPeriodoApuracao(cand, outrosAjustados);
+  const pz = ini && fim && !erros.length ? prazoFechamentoPeriodo({
+    dataInicial: ini,
+    dataFinal: fim
+  }, config, hoje) : null;
+  const mov = editando ? movimentacaoDoPeriodo(periodo, orcamentos, registrosDocs) : null;
+  const statusAtual = editando ? statusDoPeriodo(periodo, hoje, fechamentos) : null;
+  async function salvar(e) {
+    e.preventDefault();
+    if (erros.length) {
+      alert('Corrija antes de salvar:\n\n' + erros.join('\n'));
+      return;
+    }
+    if (!nomeFinal.trim()) {
+      alert('Informe a identificação do período.');
+      return;
+    }
+    const mudouDatas = editando && (ini !== periodo.dataInicial || fim !== periodo.dataFinal);
+    if (editando && !mudouDatas && nomeFinal === (periodo.nome || '')) {
+      aoFechar();
+      return;
+    }
+    if (avisos.length && !confirm('Atenção:\n\n' + avisos.join('\n') + '\n\nSalvar assim mesmo?')) return;
+    const vizinhosMudados = aplicarVizinhos ? ajustes : [];
+    if (mudouDatas) {
+      const movViz = vizinhosMudados.some(a => movimentacaoDoPeriodo(a.p, orcamentos, registrosDocs).tem);
+      if (mov && mov.tem || movViz) {
+        if (!confirm(MSG_PERIODO_COM_MOVIMENTO)) return;
+      }
+    }
+    setSalvando(true);
+    const carimbo = {
+      alteradoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      alteradoPor: usuario.nome
+    };
+    if (!editando) {
+      await db.collection('periodosApuracao').add({
+        nome: nomeFinal.trim(),
+        dataInicial: ini,
+        dataFinal: fim,
+        origem: 'manual',
+        editadoManualmente: true,
+        criadoPor: usuario.nome,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        ...carimbo
+      });
+      await registrarHistoricoComissao({
+        tipo: 'periodo',
+        descricao: `Criou o período de apuração ${nomeFinal.trim()}`,
+        valorNovo: `${formatarDataBr(ini)} a ${formatarDataBr(fim)}`
+      }, usuario);
+    } else {
+      await db.collection('periodosApuracao').doc(periodo.id).update({
+        nome: nomeFinal.trim(),
+        dataInicial: ini,
+        dataFinal: fim,
+        ...(mudouDatas ? {
+          editadoManualmente: true
+        } : {}),
+        ...carimbo
+      });
+      await moverRegistrosPeriodo(periodo.dataInicial, periodo.dataFinal, ini, fim);
+      await registrarHistoricoComissao({
+        tipo: 'periodo',
+        descricao: `Alterou o período ${periodo.nome || nomePeriodoAuto(periodo.dataInicial, periodo.dataFinal)}${nomeFinal !== periodo.nome ? ` (agora ${nomeFinal})` : ''}${mov && mov.tem && mudouDatas ? ` — confirmado com ${mov.cartoes} cartão(ões) e ${mov.ocorrencias} ocorrência(s) vinculados` : ''}`,
+        valorAnterior: `${formatarDataBr(periodo.dataInicial)} a ${formatarDataBr(periodo.dataFinal)}`,
+        valorNovo: `${formatarDataBr(ini)} a ${formatarDataBr(fim)}`
+      }, usuario);
+      for (const a of vizinhosMudados) {
+        const novo = {
+          ...a.p,
+          [a.campo]: a.valor
+        };
+        await db.collection('periodosApuracao').doc(a.p.id).update({
+          [a.campo]: a.valor,
+          nome: a.p.nome === nomePeriodoAuto(a.p.dataInicial, a.p.dataFinal) ? nomePeriodoAuto(novo.dataInicial, novo.dataFinal) : a.p.nome,
+          editadoManualmente: true,
+          ...carimbo
+        });
+        await moverRegistrosPeriodo(a.p.dataInicial, a.p.dataFinal, novo.dataInicial, novo.dataFinal);
+        await registrarHistoricoComissao({
+          tipo: 'periodo',
+          descricao: `Ajustou o período vizinho ${a.p.nome} para manter a continuidade`,
+          valorAnterior: `${formatarDataBr(a.p.dataInicial)} a ${formatarDataBr(a.p.dataFinal)}`,
+          valorNovo: `${formatarDataBr(novo.dataInicial)} a ${formatarDataBr(novo.dataFinal)}`
+        }, usuario);
+      }
+    }
+    setSalvando(false);
+    aoFechar();
+  }
+  async function excluir() {
+    if (!confirm(`Excluir o período futuro ${periodo.nome}? Ele ainda não começou e não tem movimentação.`)) return;
+    setSalvando(true);
+    await db.collection('periodosApuracao').doc(periodo.id).update({
+      excluido: true,
+      alteradoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      alteradoPor: usuario.nome
+    });
+    await registrarHistoricoComissao({
+      tipo: 'periodo',
+      descricao: `Excluiu o período futuro ${periodo.nome}`,
+      valorAnterior: `${formatarDataBr(periodo.dataInicial)} a ${formatarDataBr(periodo.dataFinal)}`
+    }, usuario);
+    setSalvando(false);
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("form", {
+    className: "modal modal-periodo",
+    style: {
+      maxWidth: 520
+    },
+    onSubmit: salvar
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, editando ? `Editar período ${periodo.nome}` : 'Novo período de apuração'), editando && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      marginBottom: 8
+    }
+  }, "Status: ", /*#__PURE__*/React.createElement(SeloStatusPeriodo, {
+    status: statusAtual
+  }), " · ", mov.cartoes, " cartão(ões) faturado(s) · ", mov.ocorrencias, " ocorrência(s)"), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data inicial"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: ini,
+    onChange: e => setIni(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data final (data de corte)"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: fim,
+    onChange: e => setFim(e.target.value)
+  }))), /*#__PURE__*/React.createElement("label", null, "Identificação do período"), /*#__PURE__*/React.createElement("input", {
+    value: nomeFinal,
+    onChange: e => {
+      setNome(e.target.value);
+      setNomeManual(true);
+    },
+    placeholder: "Ex.: Set/Out/26"
+  }), nomeManual && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "per-link",
+    onClick: () => setNomeManual(false)
+  }, "usar a identificação automática (", nomePeriodoAuto(ini, fim), ")"), pz && /*#__PURE__*/React.createElement("div", {
+    className: "per-info"
+  }, "Faturamentos de ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(ini)), " até o fim de ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(fim)), " entram neste período (", diasEntre(ini, fim) + 1, " dias). Prazo para fechamento: ", /*#__PURE__*/React.createElement("strong", null, pz.dias, " dias úteis"), " — até ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(pz.dataLimite)), "."), ajustes.length > 0 && /*#__PURE__*/React.createElement("label", {
+    className: "per-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: ajustarVizinhos,
+    onChange: e => setAjustarVizinhos(e.target.checked)
+  }), " Ajustar também ", ajustes.map(a => `${a.p.nome} (${a.campo === 'dataInicial' ? `passa a começar em ${formatarDataBr(a.valor)}` : `passa a terminar em ${formatarDataBr(a.valor)}`})`).join(' e '), " para não deixar lacuna nem sobreposição"), erros.map((m, i) => /*#__PURE__*/React.createElement("div", {
+    key: 'e' + i,
+    className: "per-alerta vermelho"
+  }, "⛔ ", m)), avisos.map((m, i) => /*#__PURE__*/React.createElement("div", {
+    key: 'a' + i,
+    className: "per-alerta laranja"
+  }, "⚠️ ", m)), editando && mov.tem && (ini !== periodo.dataInicial || fim !== periodo.dataFinal) && /*#__PURE__*/React.createElement("div", {
+    className: "per-alerta laranja"
+  }, "Este período já possui movimentações vinculadas — será pedida uma confirmação e a alteração fica registrada no histórico."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginTop: 16,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, editando && statusAtual === 'futuro' && !mov.tem && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    disabled: salvando,
+    onClick: excluir
+  }, "Excluir período")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: salvando || erros.length > 0
+  }, salvando ? 'Salvando...' : 'Salvar período')))));
+}
+function ModalGerarPeriodos({
+  periodos,
+  calendario,
+  usuario,
+  aoFechar
+}) {
+  const ultimo = calendario.slice().sort((a, b) => a.dataFinal < b.dataFinal ? -1 : 1).pop();
+  const [qtd, setQtd] = useState(12);
+  const [diaCorte, setDiaCorte] = useState(ultimo ? diaDeCorteDe(ultimo.dataFinal) : '');
+  const [primeiroIni, setPrimeiroIni] = useState('');
+  const [primeiroFim, setPrimeiroFim] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const n = Math.max(1, Math.min(36, Math.floor(Number(qtd) || 0)));
+  const dia = Math.floor(Number(diaCorte) || 0);
+  let previa = [],
+    erro = '';
+  if (ultimo) {
+    if (!(dia >= 1 && dia <= 31)) erro = 'Informe o dia de corte (1 a 31).';else previa = gerarPeriodosSeguintes(ultimo.dataFinal, n, dia);
+  } else {
+    if (!primeiroIni || !primeiroFim) erro = 'Informe as datas do primeiro período.';else if (primeiroFim < primeiroIni) erro = 'A data de corte do primeiro período é anterior ao início.';else previa = [{
+      dataInicial: primeiroIni,
+      dataFinal: primeiroFim,
+      nome: nomePeriodoAuto(primeiroIni, primeiroFim)
+    }, ...gerarPeriodosSeguintes(primeiroFim, n - 1, diaDeCorteDe(primeiroFim))];
+  }
+  if (!erro && previa.length) {
+    const conflito = previa.find(p => validarPeriodoApuracao(p, periodos).erros.length);
+    if (conflito) erro = validarPeriodoApuracao(conflito, periodos).erros[0];
+  }
+  async function gerar() {
+    if (erro || !previa.length) return;
+    setSalvando(true);
+    const lote = db.batch();
+    previa.forEach(p => lote.set(db.collection('periodosApuracao').doc(), {
+      ...p,
+      origem: 'gerado',
+      editadoManualmente: false,
+      criadoPor: usuario.nome,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      alteradoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      alteradoPor: usuario.nome
+    }));
+    await lote.commit();
+    await registrarHistoricoComissao({
+      tipo: 'periodo',
+      descricao: `Gerou ${previa.length} período(s) automaticamente${ultimo ? ` (dia de corte ${dia})` : ''}`,
+      valorNovo: `${formatarDataBr(previa[0].dataInicial)} a ${formatarDataBr(previa[previa.length - 1].dataFinal)}`
+    }, usuario);
+    setSalvando(false);
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal modal-periodo",
+    style: {
+      maxWidth: 560
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Gerar próximos períodos"), ultimo ? /*#__PURE__*/React.createElement("div", {
+    className: "per-info"
+  }, "Os novos períodos começam em ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(somarDias(ultimo.dataFinal, 1))), ", dia seguinte ao corte de ", ultimo.nome, " (", formatarDataBr(ultimo.dataFinal), "). Períodos já cadastrados — inclusive os editados manualmente — não são alterados.") : /*#__PURE__*/React.createElement("div", {
+    className: "per-info"
+  }, "Ainda não há períodos. Informe o primeiro; os seguintes seguem o mesmo dia de corte."), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Quantidade de períodos"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "1",
+    max: "36",
+    inputMode: "numeric",
+    value: qtd,
+    onChange: e => setQtd(e.target.value)
+  })), ultimo && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Dia de corte (data final de cada mês)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "1",
+    max: "31",
+    inputMode: "numeric",
+    value: diaCorte,
+    onChange: e => setDiaCorte(e.target.value)
+  }))), !ultimo && /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Início do primeiro período"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: primeiroIni,
+    onChange: e => setPrimeiroIni(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de corte do primeiro período"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: primeiroFim,
+    onChange: e => setPrimeiroFim(e.target.value)
+  }))), ultimo && dia > 28 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "Em meses sem o dia ", dia, ", o corte fica no último dia do mês."), erro && /*#__PURE__*/React.createElement("div", {
+    className: "per-alerta vermelho"
+  }, "⛔ ", erro), !erro && previa.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "per-previa"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Período"), /*#__PURE__*/React.createElement("th", null, "Início"), /*#__PURE__*/React.createElement("th", null, "Final (corte)"), /*#__PURE__*/React.createElement("th", null, "Dias"))), /*#__PURE__*/React.createElement("tbody", null, previa.map((p, i) => /*#__PURE__*/React.createElement("tr", {
+    key: i
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Período",
+    className: "celula-destaque"
+  }, p.nome), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Início"
+  }, formatarDataBr(p.dataInicial)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Final (corte)"
+  }, formatarDataBr(p.dataFinal)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Dias"
+  }, diasEntre(p.dataInicial, p.dataFinal) + 1)))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando || !!erro || !previa.length,
+    onClick: gerar
+  }, salvando ? 'Gerando...' : `Gerar ${previa.length || ''} período(s)`))));
+}
+function ModalConfigPeriodos({
+  config,
+  usuario,
+  aoFechar
+}) {
+  const [prazo, setPrazo] = useState(config.prazoDiasUteis);
+  const [feriados, setFeriados] = useState(config.feriados.slice().sort((a, b) => a.data < b.data ? -1 : 1));
+  const [novaData, setNovaData] = useState('');
+  const [novaDesc, setNovaDesc] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  function adicionar() {
+    if (!novaData) return;
+    if (feriados.some(f => f.data === novaData)) {
+      alert('Essa data já está na lista.');
+      return;
+    }
+    setFeriados([...feriados, {
+      data: novaData,
+      descricao: novaDesc.trim()
+    }].sort((a, b) => a.data < b.data ? -1 : 1));
+    setNovaData('');
+    setNovaDesc('');
+  }
+  async function salvar() {
+    const p = Math.floor(Number(prazo));
+    if (!(p >= 1 && p <= 30)) {
+      alert('O prazo deve ser de 1 a 30 dias úteis.');
+      return;
+    }
+    setSalvando(true);
+    await db.collection('config').doc('periodosApuracao').set({
+      prazoDiasUteis: p,
+      feriados,
+      alteradoPor: usuario.nome,
+      alteradoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }, {
+      merge: true
+    });
+    await registrarHistoricoComissao({
+      tipo: 'periodo',
+      descricao: `Atualizou prazo de fechamento e feriados (${feriados.length} feriado(s))`,
+      valorAnterior: `${config.prazoDiasUteis} dias úteis`,
+      valorNovo: `${p} dias úteis`
+    }, usuario);
+    setSalvando(false);
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal modal-periodo",
+    style: {
+      maxWidth: 520
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Prazo de fechamento e feriados"), /*#__PURE__*/React.createElement("label", null, "Prazo para fechar a comissão (dias úteis após a data de corte)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "1",
+    max: "30",
+    inputMode: "numeric",
+    value: prazo,
+    onChange: e => setPrazo(e.target.value)
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "Contam só segunda a sexta, sem os feriados abaixo. O prazo não é um novo período: o período seguinte já está acumulando normalmente."), /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 14
+    }
+  }, "Feriados"), /*#__PURE__*/React.createElement("div", {
+    className: "per-feriados"
+  }, feriados.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "Nenhum feriado cadastrado."), feriados.map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.data,
+    className: "per-feriado"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, formatarDataBr(f.data)), f.descricao ? ` — ${f.descricao}` : ''), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: () => setFeriados(feriados.filter(x => x.data !== f.data))
+  }, "Remover")))), /*#__PURE__*/React.createElement("div", {
+    className: "per-feriado-novo"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: novaData,
+    onChange: e => setNovaData(e.target.value)
+  }), /*#__PURE__*/React.createElement("input", {
+    value: novaDesc,
+    onChange: e => setNovaDesc(e.target.value),
+    placeholder: "Descrição (ex.: Finados)"
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: adicionar,
+    disabled: !novaData
+  }, "+ Adicionar")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: salvar
+  }, salvando ? 'Salvando...' : 'Salvar'))));
+}
+function ModalReabrirPeriodo({
+  periodo,
+  fechamento,
+  usuario,
+  aoFechar,
+  aoReabrir
+}) {
+  const [motivo, setMotivo] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const pagos = Object.values(fechamento.pagamentos || {}).filter(p => p.pago).length;
+  const nome = periodo?.nome || nomePeriodoAuto(fechamento.inicio, fechamento.fim);
+  async function reabrir(e) {
+    e.preventDefault();
+    if (motivo.trim().length < 5) {
+      alert('Informe o motivo da reabertura.');
+      return;
+    }
+    if (!confirm(`Reabrir o período ${nome} (${formatarDataBr(fechamento.inicio)} a ${formatarDataBr(fechamento.fim)})?\n\nOs valores voltam a ser calculados ao vivo e podem mudar.${pagos ? `\n\nAtenção: ${pagos} funcionário(s) já foram marcados como PAGOS.` : ''}`)) return;
+    setSalvando(true);
+    await reabrirFechamentoComissao(fechamento, usuario, motivo.trim());
+    setSalvando(false);
+    if (aoReabrir) aoReabrir();
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("form", {
+    className: "modal modal-periodo",
+    style: {
+      maxWidth: 480
+    },
+    onSubmit: reabrir
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Reabrir período ", nome), /*#__PURE__*/React.createElement("div", {
+    className: "per-info"
+  }, formatarDataBr(fechamento.inicio), " a ", formatarDataBr(fechamento.fim), " · fechado por ", fechamento.fechadoPor, " · total ", formatMoeda(fechamento.resultado?.totalFinal || 0)), pagos > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "per-alerta vermelho"
+  }, "⚠️ ", pagos, " funcionário(s) já foram marcados como pagos neste período."), /*#__PURE__*/React.createElement("label", null, "Motivo da reabertura (obrigatório)"), /*#__PURE__*/React.createElement("textarea", {
+    rows: "3",
+    value: motivo,
+    onChange: e => setMotivo(e.target.value),
+    placeholder: "Ex.: correção de um cartão faturado com data errada"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "Ficam registrados: usuário (", usuario.nome, "), data, hora, período e motivo."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    className: "btn perigo",
+    disabled: salvando
+  }, salvando ? 'Reabrindo...' : 'Reabrir período'))));
+}
+
 // ======================= COMISSÃO — ABA REGRAS =======================
 const ROTULOS_REGRA = {
   faixas: 'Faixas de produção',
@@ -10389,12 +12009,37 @@ function diferencasRegras(antes, depois) {
     depois: textoValorRegra(c, pegar(depois, c))
   }));
 }
-function inicioPeriodoAbertoHoje() {
-  const h = new Date();
-  const d = h.getDate() >= 25 ? new Date(h.getFullYear(), h.getMonth(), 25) : new Date(h.getFullYear(), h.getMonth() - 1, 25);
-  return formatarDataInput(d);
-}
 function AbaRegrasComissao({
+  usuario,
+  gerir,
+  funcionarios
+}) {
+  const [sub, setSub] = useState('regras');
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "sub-abas",
+    role: "tablist"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    role: "tab",
+    "aria-selected": sub === 'regras',
+    className: sub === 'regras' ? 'ativa' : '',
+    onClick: () => setSub('regras')
+  }, "Regras de cálculo"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    role: "tab",
+    "aria-selected": sub === 'periodos',
+    className: sub === 'periodos' ? 'ativa' : '',
+    onClick: () => setSub('periodos')
+  }, "📅 Períodos de apuração")), sub === 'regras' ? /*#__PURE__*/React.createElement(AbaRegrasCalculo, {
+    usuario: usuario,
+    gerir: gerir
+  }) : /*#__PURE__*/React.createElement(AbaPeriodosApuracao, {
+    usuario: usuario,
+    gerir: gerir,
+    funcionarios: funcionarios || []
+  }));
+}
+function AbaRegrasCalculo({
   usuario,
   gerir
 }) {
@@ -10986,7 +12631,9 @@ function AbaRegrasComissao({
     value: "reabertura"
   }, "Reaberturas"), /*#__PURE__*/React.createElement("option", {
     value: "pagamento"
-  }, "Pagamentos"))), /*#__PURE__*/React.createElement("div", {
+  }, "Pagamentos"), /*#__PURE__*/React.createElement("option", {
+    value: "periodo"
+  }, "Períodos de apuração"))), /*#__PURE__*/React.createElement("div", {
     style: {
       overflowX: 'auto',
       maxHeight: 420,
@@ -11034,8 +12681,10 @@ function ModalVigenciaRegra({
   aoConfirmar,
   aoFechar
 }) {
-  const atual = inicioPeriodoAbertoHoje();
-  const proximo = periodoApuracaoDeslocado(atual, 1).inicioStr;
+  const calV = useCalendarioPeriodos();
+  const perAtual = periodoAtualNoCalendario(calV.calendario);
+  const atual = perAtual.inicioStr;
+  const proximo = periodoVizinhoNoCalendario(calV.calendario, perAtual.inicioStr, perAtual.fimStr, 1).inicioStr;
   const [data, setData] = useState(atual);
   const [salvando, setSalvando] = useState(false);
   const posteriores = versoes.filter(v => v.vigenciaInicio > data).sort((a, b) => a.vigenciaInicio < b.vigenciaInicio ? -1 : 1);
@@ -13055,7 +14704,10 @@ function AbaDadosPessoaisFuncionario({
   // % de comissão: só Master ou administrador com permissão de edição em Comissão
   // (o próprio funcionário não altera o seu percentual).
   const podeEditarPercentual = podeEditar && podeGerirComissao(usuarioLogado);
-  const [vigenciaPct, setVigenciaPct] = useState(inicioPeriodoAbertoHoje());
+  const calPct = useCalendarioPeriodos();
+  const [vigenciaPctEscolhida, setVigenciaPct] = useState(null);
+  // Sugestão: início do período de apuração atual (do calendário cadastrado).
+  const vigenciaPct = vigenciaPctEscolhida ?? inicioPeriodoAbertoHoje(calPct.calendario);
   const [recalculando, setRecalculando] = useState('');
   const [f, setF] = useState({
     nome: funcionario.nome || '',
