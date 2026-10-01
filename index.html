@@ -437,6 +437,21 @@
     .per-linha-atual td{background:transparent;}
     .per-tabela tr.per-linha-atual{border-color:var(--laranja);box-shadow:0 0 0 1px var(--laranja);}
   }
+  /* ---- Kanban de orçamentos: ordem dos cartões (arrastar e soltar) ---- */
+  .kanban-cartao{-webkit-touch-callout:none;}
+  .kanban-cartao.kanban-arrastando{transform:rotate(1.2deg) scale(1.02);box-shadow:0 16px 34px rgba(15,42,71,.28) !important;outline:2px solid var(--laranja);cursor:grabbing;opacity:.97;}
+  .kanban-marcador{flex-shrink:0;border:2px dashed var(--laranja);border-radius:10px;background:rgba(233,115,7,.08);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;color:var(--laranja-escuro);animation:kanbanMarcador .15s ease-out;}
+  @keyframes kanbanMarcador{from{opacity:.3;transform:scaleY(.85)}}
+  body.kanban-arrastando-ativo,body.kanban-arrastando-ativo *{-webkit-user-select:none !important;user-select:none !important;cursor:grabbing !important;}
+  @media (hover:hover) and (pointer:fine){ .kanban-cartao:active{cursor:grab;} }
+  .kanban-posicao{margin-top:14px;padding:12px;border:1px solid var(--borda);border-radius:10px;background:var(--fundo);}
+  .kanban-posicao-titulo{font-size:13px;margin-bottom:8px;}
+  .kanban-posicao-botoes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .kanban-posicao-botoes .btn{justify-content:center;min-height:38px;}
+  .kanban-posicao-exata{display:grid;grid-template-columns:1fr 80px auto;gap:6px;align-items:center;margin-top:8px;}
+  .kanban-posicao-exata label{margin:0;font-size:12.5px;}
+  .kanban-posicao-exata input{min-width:0;padding:7px 8px;}
+  .kanban-posicao-dica{font-size:11.5px;color:var(--texto-fraco);margin-top:8px;line-height:1.4;}
   /* ---- Comissão: celular e tablet (o computador não usa nada daqui) ---- */
   .so-mobile,.so-mobile-inline,.regra-salvar-mobile{display:none !important;}
   .func-cards{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px;}
@@ -7024,6 +7039,7 @@ function ModalCopiarOrcamento({
 }
 function ModalMenuOrcamento({
   orcamento,
+  posicaoKanban,
   cliente,
   aoExcluir,
   aoCopiar,
@@ -7089,7 +7105,12 @@ function ModalMenuOrcamento({
       justifyContent: 'flex-start'
     },
     onClick: aoExcluir
-  }, "🗑️ Excluir")), /*#__PURE__*/React.createElement("div", {
+  }, "🗑️ Excluir")), posicaoKanban && posicaoKanban.total > 1 && posicaoKanban.posicao > 0 && /*#__PURE__*/React.createElement(PosicaoKanbanMenu, {
+    key: posicaoKanban.posicao,
+    posicao: posicaoKanban.posicao,
+    total: posicaoKanban.total,
+    aoPosicionar: posicaoKanban.aoPosicionar
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'flex-end',
@@ -7100,6 +7121,334 @@ function ModalMenuOrcamento({
     className: "btn secundario",
     onClick: aoFechar
   }, "Fechar"))));
+}
+// ======================= KANBAN DE ORÇAMENTOS — ORDEM DOS CARTÕES =======================
+// Cada cartão tem uma chave de ordem (campo "ordemKanban"): maior = mais acima na coluna.
+// Cartões antigos, sem o campo, usam a data de criação — a ordem de hoje (mais novo em cima)
+// continua igual sem precisar migrar nada.
+function chaveOrdemKanban(o) {
+  if (o && typeof o.ordemKanban === 'number' && isFinite(o.ordemKanban)) return o.ordemKanban;
+  const d = dataDe(o?.criadoEm);
+  return d ? d.getTime() : Date.now();
+}
+function ordenarColunaKanban(lista) {
+  return (lista || []).slice().sort((a, b) => chaveOrdemKanban(b) - chaveOrdemKanban(a) || (Number(b.numero) || 0) - (Number(a.numero) || 0));
+}
+// Chave para entrar em 1º lugar numa coluna (mudança de coluna).
+function chaveTopoKanban(coluna, excetoId) {
+  const chaves = (coluna || []).filter(o => o.id !== excetoId).map(chaveOrdemKanban);
+  return Math.max(Date.now(), chaves.length ? Math.max(...chaves) + 1 : 0);
+}
+async function renumerarColunaKanban(ordemFinal) {
+  const base = Math.max(Date.now(), ...ordemFinal.map(chaveOrdemKanban));
+  for (let i = 0; i < ordemFinal.length; i += 400) {
+    const lote = db.batch();
+    ordemFinal.slice(i, i + 400).forEach((o, j) => lote.update(db.collection('orcamentos').doc(o.id), {
+      ordemKanban: base - (i + j) * 1000
+    }));
+    await lote.commit();
+  }
+}
+// Grava a posição escolhida dentro da mesma coluna. "lista" = ordem que o usuário vê
+// (pode estar filtrada pela busca); "colunaCompleta" = todos os cartões da coluna.
+async function salvarPosicaoKanban(o, lista, indice, colunaCompleta) {
+  const outros = lista.filter(x => x.id !== o.id);
+  indice = Math.max(0, Math.min(indice, outros.length));
+  const ant = outros[indice - 1],
+    prox = outros[indice];
+  let chave;
+  if (!ant && !prox) return;
+  if (!ant) chave = Math.max(Date.now(), chaveOrdemKanban(prox) + 1);else if (!prox) chave = chaveOrdemKanban(ant) - 1000;else {
+    const a = chaveOrdemKanban(ant),
+      b = chaveOrdemKanban(prox);
+    chave = a - b > 0.001 ? (a + b) / 2 : null;
+  }
+  if (chave !== null) {
+    await db.collection('orcamentos').doc(o.id).update({
+      ordemKanban: chave
+    });
+    return;
+  }
+  // chaves coladas: renumera a coluna inteira mantendo a posição escolhida
+  const resto = ordenarColunaKanban(colunaCompleta).filter(x => x.id !== o.id);
+  let pos = prox ? resto.findIndex(x => x.id === prox.id) : resto.findIndex(x => x.id === ant.id) + 1;
+  if (pos < 0) pos = resto.length;
+  resto.splice(pos, 0, o);
+  await renumerarColunaKanban(resto);
+}
+// Lista para desenhar a coluna durante o arraste: marcador na posição de destino e o
+// cartão arrastado (flutuando, fora do fluxo) no fim.
+function listaComMarcadorKanban(lista, drag, status) {
+  if (!drag || drag.status !== status) return lista;
+  const arrastado = lista.find(o => o.id === drag.id);
+  if (!arrastado) return lista;
+  const arr = lista.filter(o => o.id !== drag.id);
+  arr.splice(drag.indice, 0, {
+    __marcador: true,
+    id: '__marcador'
+  });
+  arr.push(arrastado);
+  return arr;
+}
+function estiloCartaoArrastado(d) {
+  return {
+    position: 'fixed',
+    left: d.left,
+    top: d.y - d.offY,
+    width: d.width,
+    zIndex: 400,
+    pointerEvents: 'none',
+    margin: 0
+  };
+}
+function MarcadorKanban({
+  altura,
+  posicao
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "kanban-marcador",
+    style: {
+      height: Math.max(48, altura)
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Soltar aqui · ", posicao, "º lugar"));
+}
+// Arrastar e soltar dentro da coluna: mouse (arrasta ao mover) e toque (segurar ~0,4 s e arrastar,
+// para não atrapalhar a rolagem). Botões, seletores e links do cartão continuam funcionando.
+function useArrastarKanban(ativo, aoSoltar) {
+  const [drag, setDrag] = useState(null);
+  const ref = useRef({
+    pend: null,
+    drag: null,
+    suprimir: 0,
+    raf: 0
+  });
+  const aoSoltarRef = useRef(aoSoltar);
+  aoSoltarRef.current = aoSoltar;
+  const ativoRef = useRef(ativo);
+  ativoRef.current = ativo;
+  // Funções criadas uma vez só (os listeners adicionados e removidos são sempre os mesmos)
+  const api = useMemo(() => {
+    function indiceDe(d) {
+      const y = d.y + (d.colunaEl.scrollTop - d.scroll0);
+      return d.mids.filter(m => m < y).length;
+    }
+    function ativar(p) {
+      if (ref.current.pend !== p) return;
+      const els = [...p.colunaEl.children].filter(el => el.dataset && el.dataset.orcId);
+      const rects = els.map(el => ({
+        id: el.dataset.orcId,
+        r: el.getBoundingClientRect()
+      }));
+      const meu = rects.find(x => x.id === p.id);
+      if (!meu) return;
+      const gap = rects.length > 1 ? Math.max(0, rects[1].r.top - rects[0].r.bottom) : 9;
+      const mids = rects.filter(x => x.id !== p.id).map(x => {
+        const depois = x.r.top > meu.r.top;
+        return x.r.top - (depois ? meu.r.height + gap : 0) + x.r.height / 2;
+      });
+      const idxOrig = p.lista.findIndex(x => x.id === p.id);
+      const d = {
+        id: p.id,
+        status: p.status,
+        lista: p.lista,
+        idxOrig,
+        indice: idxOrig,
+        mids,
+        scroll0: p.colunaEl.scrollTop,
+        colunaEl: p.colunaEl,
+        offY: p.y - meu.r.top,
+        left: meu.r.left,
+        width: meu.r.width,
+        height: meu.r.height,
+        x: p.x,
+        y: p.y
+      };
+      d.indice = indiceDe(d);
+      ref.current.pend = null;
+      ref.current.drag = d;
+      setDrag({
+        ...d
+      });
+      document.body.classList.add('kanban-arrastando-ativo');
+      try {
+        if (p.toque && navigator.vibrate) navigator.vibrate(20);
+      } catch (e) {}
+      const passo = () => {
+        const dd = ref.current.drag;
+        if (!dd) return;
+        const r = dd.colunaEl.getBoundingClientRect();
+        const borda = 48;
+        let v = 0;
+        if (dd.y < r.top + borda) v = -Math.ceil((r.top + borda - dd.y) / 5);else if (dd.y > r.bottom - borda) v = Math.ceil((dd.y - (r.bottom - borda)) / 5);
+        if (v) {
+          const antes = dd.colunaEl.scrollTop;
+          dd.colunaEl.scrollTop = antes + v;
+          if (dd.colunaEl.scrollTop !== antes) {
+            dd.indice = indiceDe(dd);
+            setDrag({
+              ...dd
+            });
+          }
+        }
+        ref.current.raf = requestAnimationFrame(passo);
+      };
+      ref.current.raf = requestAnimationFrame(passo);
+    }
+    function mover(e) {
+      const c = ref.current;
+      if (c.drag) {
+        if (e.cancelable) e.preventDefault();
+        c.drag.x = e.clientX;
+        c.drag.y = e.clientY;
+        c.drag.indice = indiceDe(c.drag);
+        setDrag({
+          ...c.drag
+        });
+        return;
+      }
+      const p = c.pend;
+      if (!p || e.pointerId !== p.pointerId) return;
+      p.x = e.clientX;
+      p.y = e.clientY;
+      const dist = Math.hypot(p.x - p.x0, p.y - p.y0);
+      if (p.toque) {
+        if (dist > 10) limpar();
+      } // é rolagem, não arraste
+      else if (dist > 6) ativar(p);
+    }
+    function soltar(e) {
+      const c = ref.current;
+      const d = c.drag;
+      if (d) {
+        c.suprimir = Date.now();
+        const valido = e.type !== 'pointercancel';
+        limpar();
+        if (valido && d.indice !== d.idxOrig) {
+          const o = d.lista.find(x => x.id === d.id);
+          if (o) Promise.resolve(aoSoltarRef.current(o, d.status, d.indice, d.lista)).catch(err => {
+            console.error(err);
+            alert('Não consegui salvar a nova posição do cartão.');
+          });
+        }
+        return;
+      }
+      limpar();
+    }
+    function limpar() {
+      const c = ref.current;
+      if (c.pend && c.pend.timer) clearTimeout(c.pend.timer);
+      c.pend = null;
+      if (c.drag) {
+        c.drag = null;
+        setDrag(null);
+      }
+      cancelAnimationFrame(c.raf);
+      document.body.classList.remove('kanban-arrastando-ativo');
+      window.removeEventListener('pointermove', mover, true);
+      window.removeEventListener('pointerup', soltar, true);
+      window.removeEventListener('pointercancel', soltar, true);
+    }
+    function iniciar(e, o, status, lista) {
+      if (!ativoRef.current || e.button !== undefined && e.button > 0 || e.isPrimary === false || lista.length < 2) return;
+      if (e.target.closest && e.target.closest('button,select,input,textarea,a,label,.nome-cliente-clicavel,.mini-fotos,[data-sem-arraste]')) return;
+      limpar();
+      const p = {
+        id: o.id,
+        status,
+        lista,
+        x0: e.clientX,
+        y0: e.clientY,
+        x: e.clientX,
+        y: e.clientY,
+        colunaEl: e.currentTarget.parentElement,
+        toque: e.pointerType === 'touch' || e.pointerType === 'pen',
+        pointerId: e.pointerId,
+        timer: null
+      };
+      ref.current.pend = p;
+      if (p.toque) p.timer = setTimeout(() => ativar(p), 380);
+      window.addEventListener('pointermove', mover, true);
+      window.addEventListener('pointerup', soltar, true);
+      window.addEventListener('pointercancel', soltar, true);
+    }
+    return {
+      iniciar,
+      limpar
+    };
+  }, []);
+  useEffect(() => {
+    // Com o arraste ativo no celular, o dedo não rola a página
+    const bloquear = e => {
+      if (ref.current.drag) e.preventDefault();
+    };
+    document.addEventListener('touchmove', bloquear, {
+      passive: false
+    });
+    return () => {
+      document.removeEventListener('touchmove', bloquear);
+      api.limpar();
+    };
+  }, []);
+  return {
+    drag,
+    iniciar: api.iniciar,
+    cliqueSuprimido: () => Date.now() - ref.current.suprimir < 450
+  };
+}
+// Posição exata pelo menu "⋮" do cartão (subir, descer, topo, fim ou número da posição).
+function PosicaoKanbanMenu({
+  posicao,
+  total,
+  aoPosicionar
+}) {
+  const [valor, setValor] = useState(String(posicao));
+  const [salvando, setSalvando] = useState(false);
+  async function ir(n) {
+    n = Math.max(1, Math.min(total, Math.floor(Number(n) || 0)));
+    if (!n || n === posicao) return;
+    setSalvando(true);
+    await aoPosicionar(n);
+    setSalvando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "kanban-posicao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "kanban-posicao-titulo"
+  }, "Posição na coluna: ", /*#__PURE__*/React.createElement("strong", null, posicao, "º de ", total)), /*#__PURE__*/React.createElement("div", {
+    className: "kanban-posicao-botoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: salvando || posicao <= 1,
+    onClick: () => ir(1),
+    title: "Primeiro lugar"
+  }, "⤒ Topo"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: salvando || posicao <= 1,
+    onClick: () => ir(posicao - 1)
+  }, "▲ Subir"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    disabled: salvando || posicao >= total,
+    onClick: () => ir(posicao + 1)
+  }, "▼ Descer")), /*#__PURE__*/React.createElement("div", {
+    className: "kanban-posicao-exata"
+  }, /*#__PURE__*/React.createElement("label", null, "Ir para a posição"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "1",
+    max: total,
+    inputMode: "numeric",
+    value: valor,
+    onChange: e => setValor(e.target.value)
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    disabled: salvando,
+    onClick: () => ir(valor)
+  }, "Mover")), /*#__PURE__*/React.createElement("div", {
+    className: "kanban-posicao-dica"
+  }, "Dica: no quadro, arraste o cartão (no celular, segure e arraste) para mudar a posição."));
 }
 function AbaOrcamentos({
   usuario
@@ -7118,6 +7467,9 @@ function AbaOrcamentos({
   const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
   const [resultadoArquivado, setResultadoArquivado] = useState(null);
   const [clienteParaVer, setClienteParaVer] = useState(null);
+  // Ordem manual dos cartões dentro da coluna (arrastar e soltar)
+  const colunaCompletaKanban = status => ordenarColunaKanban(orcamentos.filter(x => x.status === status));
+  const arrastar = useArrastarKanban(podeEditar(usuario, 'orcamentos'), (o, status, indice, lista) => salvarPosicaoKanban(o, lista, indice, colunaCompletaKanban(status)));
   const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
   const buscaTrim = busca.trim();
   const buscaLower = buscaTrim.toLowerCase();
@@ -7197,6 +7549,8 @@ function AbaOrcamentos({
     const dados = {
       status
     };
+    // Mudou de coluna: o cartão entra em 1º lugar na nova coluna.
+    if (status !== o.status) dados.ordemKanban = chaveTopoKanban(orcamentos.filter(x => x.status === status), o.id);
     // Data de faturamento: define em qual período de comissão o orçamento entra.
     if (status === 'Entregue/Faturado' && o.status !== 'Entregue/Faturado') dados.dataFaturamento = firebase.firestore.FieldValue.serverTimestamp();
     if (status !== 'Entregue/Faturado' && o.dataFaturamento) dados.dataFaturamento = firebase.firestore.FieldValue.delete();
@@ -7361,7 +7715,7 @@ function AbaOrcamentos({
       paddingBottom: 12
     }
   }, STATUS_ORCAMENTO.filter(status => colunaPermitida(usuario, status)).map(status => {
-    const itensDoStatus = orcamentosFiltrados.filter(o => o.status === status);
+    const itensDoStatus = ordenarColunaKanban(orcamentosFiltrados.filter(o => o.status === status));
     return /*#__PURE__*/React.createElement("div", {
       key: status,
       style: {
@@ -7408,17 +7762,27 @@ function AbaOrcamentos({
         minHeight: 0,
         paddingRight: 3
       }
-    }, itensDoStatus.map(o => {
+    }, listaComMarcadorKanban(itensDoStatus, arrastar.drag, status).map(o => {
+      if (o.__marcador) return /*#__PURE__*/React.createElement(MarcadorKanban, {
+        key: "__marcador",
+        altura: arrastar.drag.height,
+        posicao: arrastar.drag.indice + 1
+      });
+      const arrastandoEste = !!arrastar.drag && arrastar.drag.id === o.id;
       const clienteDoOrcamento = clientes.find(c => c.id === o.clienteId);
       const linhaCliente = clienteLinhaResumo(clienteDoOrcamento);
       return /*#__PURE__*/React.createElement("div", {
         key: o.id,
-        className: "card clicavel",
+        "data-orc-id": o.id,
+        className: `card clicavel kanban-cartao${arrastandoEste ? ' kanban-arrastando' : ''}`,
         style: {
           padding: 13,
-          boxShadow: '0 1px 2px rgba(69,59,60,.08)'
+          boxShadow: '0 1px 2px rgba(69,59,60,.08)',
+          ...(arrastandoEste ? estiloCartaoArrastado(arrastar.drag) : {})
         },
+        onPointerDown: e => arrastar.iniciar(e, o, status, itensDoStatus),
         onClick: () => {
+          if (arrastar.cliqueSuprimido()) return;
           setEditando(o);
           setModalAberto(true);
         }
@@ -7625,6 +7989,15 @@ function AbaOrcamentos({
     aoFechar: () => setTesteParaConfirmar(null)
   }), menuOrcamento && /*#__PURE__*/React.createElement(ModalMenuOrcamento, {
     orcamento: menuOrcamento,
+    posicaoKanban: (() => {
+      const col = colunaCompletaKanban(menuOrcamento.status);
+      const atual = orcamentos.find(x => x.id === menuOrcamento.id) || menuOrcamento;
+      return {
+        posicao: col.findIndex(x => x.id === atual.id) + 1,
+        total: col.length,
+        aoPosicionar: n => salvarPosicaoKanban(atual, col, n - 1, col)
+      };
+    })(),
     cliente: clientes.find(c => c.id === menuOrcamento.clienteId),
     aoExcluir: () => {
       const o = menuOrcamento;
@@ -7989,6 +8362,7 @@ function ModalOrcamento({
       await db.collection('orcamentos').doc(orcamento.id).update({
         arquivado: false,
         status: orcamento.statusAnterior || orcamento.status,
+        ordemKanban: Date.now(),
         dataArquivamento: null,
         arquivadoPor: null
       });
