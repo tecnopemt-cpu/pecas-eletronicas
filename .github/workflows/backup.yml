@@ -1,0 +1,76 @@
+name: Backup do Controle de Peças
+
+# Backup automático todo dia às 23:00 (Brasília). Lê o banco (Firestore) e o código, cifra com a
+# chave pública cadastrada no sistema e guarda no ramo "backups" deste repositório (fora do Firebase).
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: 'completo = backup oficial · teste = teste de recuperação sem gravar nada'
+        type: choice
+        options: [completo, teste]
+        default: completo
+  push:
+    branches: [main]
+    paths: ['backup/**', '.github/workflows/backup.yml']
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MODO: ${{ github.event_name == 'push' && 'teste' || inputs.modo || 'completo' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Gerar backup (banco + fotos + assinaturas + código) e testar a recuperação
+        id: gerar
+        run: node backup/gerar-backup.mjs --modo "$MODO" --saida saida
+
+      - name: Guardar no ramo "backups" (cópia externa, com retenção)
+        id: publicar
+        if: steps.gerar.outputs.publicar == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          mkdir ramo && cd ramo
+          git init -q
+          git config user.name "backup-automatico"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git fetch -q --depth 1 origin backups; then git checkout -q -b atual FETCH_HEAD; fi
+          cp ../saida/*.tpbak* .
+          node ../backup/retencao.mjs . ../saida/meta.json
+          git checkout -q --orphan publicado
+          git add -A
+          git commit -q -m "Backup ${{ steps.gerar.outputs.arquivo }}"
+          git push -q -f origin publicado:backups
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+
+      - name: Registrar no histórico do sistema
+        if: always() && env.MODO != 'teste'
+        run: node backup/registrar.mjs saida "${{ steps.publicar.outputs.ok == 'true' }}"
+
+      - name: Manter a rotina ativa (o GitHub pausa agendamentos após 60 dias sem atividade)
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -sS -X PUT -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/backup.yml/enable" -o /dev/null -w "%{http_code}\n"
