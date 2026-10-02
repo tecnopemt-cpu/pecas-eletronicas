@@ -31,11 +31,11 @@ jobs:
     env:
       MODO: ${{ github.event_name == 'push' && 'teste' || inputs.modo || 'completo' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Gerar backup (banco + fotos + assinaturas + código) e testar a recuperação
         id: gerar

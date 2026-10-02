@@ -452,6 +452,63 @@
   .kanban-posicao-exata label{margin:0;font-size:12.5px;}
   .kanban-posicao-exata input{min-width:0;padding:7px 8px;}
   .kanban-posicao-dica{font-size:11.5px;color:var(--texto-fraco);margin-top:8px;line-height:1.4;}
+  /* ---- Configurações: Backup e Segurança ---- */
+  .bk-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:14px;}
+  .bk-card{margin:0;border-left:4px solid #C9D7EA;}
+  .bk-card.ok{border-left-color:var(--verde);}
+  .bk-card.alerta{border-left-color:var(--laranja);}
+  .bk-card-rotulo{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#5B6778;}
+  .bk-card-valor{font-size:18px;font-weight:800;color:#0F2A47;margin-top:3px;}
+  .bk-card-sub{font-size:12px;color:#4A5568;margin-top:4px;line-height:1.45;}
+  .bk-alerta{font-size:13px;line-height:1.5;background:#FFF4E5;color:#7A3E00;border:1px solid #F9D2A4;border-radius:10px;padding:11px 13px;margin:0 0 14px;}
+  .bk-acoes{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .bk-botoes{display:flex;gap:8px;flex-wrap:wrap;}
+  .bk-hist-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--borda);}
+  .bk-tabela td{vertical-align:middle;}
+  .bk-status{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:20px;border:1px solid;}
+  .bk-status.ok{background:#E7F6EC;border-color:#BFE3CD;color:#1E7A45;}
+  .bk-status.erro{background:#FDECEC;border-color:#F5C2C2;color:#9B1C1C;}
+  .bk-mini{font-size:11.5px;color:#5B6778;line-height:1.4;margin-top:2px;}
+  .bk-mini.vermelho{color:#9B1C1C;} .bk-mini.laranja{color:#8A4B06;}
+  .bk-acoes-linha{white-space:nowrap;}
+  .bk-acoes-linha .btn{margin:2px 0 2px 4px;text-decoration:none;display:inline-flex;}
+  .bk-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:14px;}
+  .bk-grade .card{margin:0;}
+  .bk-lista{margin:0 0 10px;padding-left:4px;list-style:none;font-size:13px;line-height:1.55;}
+  .bk-lista li{margin-bottom:4px;}
+  .bk-lista li.nao{color:#5B6778;}
+  .bk-contagens{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin:8px 0;color:#2F3B4C;}
+  .bk-chave{margin-top:12px;padding-top:10px;border-top:1px solid var(--borda);font-size:12.5px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .bk-modal{max-width:560px;}
+  .bk-modal.largo{max-width:680px;}
+  .bk-linha{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--borda);}
+  .bk-linha strong{text-align:right;word-break:break-word;}
+  .bk-progresso{margin:14px 0 4px;}
+  .bk-progresso-barra{height:12px;background:#E6EBF0;border-radius:8px;overflow:hidden;}
+  .bk-progresso-barra div{height:100%;background:linear-gradient(90deg,var(--laranja),#F59E0B);border-radius:8px;transition:width .3s ease;}
+  .bk-progresso-texto{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-top:6px;color:#2F3B4C;}
+  .bk-resultado{font-size:13px;font-weight:700;border-radius:10px;padding:10px 12px;margin:10px 0;line-height:1.45;}
+  .bk-resultado.ok{background:#E7F6EC;color:#1E7A45;border:1px solid #BFE3CD;}
+  .bk-resultado.erro{background:#FDECEC;color:#9B1C1C;border:1px solid #F5C2C2;}
+  .bk-info{font-size:12.5px;line-height:1.5;color:#2F4A6D;background:#F1F6FC;border:1px solid #D6E3F3;border-radius:10px;padding:9px 12px;margin:6px 0;}
+  .bk-passo{display:flex;gap:12px;margin:12px 0;}
+  .bk-passo>span{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#0F2A47;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .bk-passo>div{flex:1;min-width:0;}
+  .bk-passo input[type=file]{margin-top:6px;width:100%;}
+  .bk-check{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;font-weight:600;margin-top:10px;}
+  .bk-check input{width:18px;height:18px;flex-shrink:0;}
+  .bk-vinculos{font-size:12px;margin:8px 0;width:100%;}
+  .bk-vinculos td{padding:3px 6px;border-bottom:1px solid #EEF2F6;}
+  .bk-vinculos td:last-child{text-align:right;white-space:nowrap;}
+  @media (max-width:760px){
+    .bk-cards{grid-template-columns:1fr 1fr;}
+    .bk-botoes{width:100%;display:grid;grid-template-columns:1fr;}
+    .bk-botoes .btn{width:100%;justify-content:center;min-height:44px;}
+    .bk-acoes-linha{white-space:normal;display:flex !important;gap:8px;flex-wrap:wrap;}
+    .bk-acoes-linha .btn{flex:1 1 100px;margin:0;justify-content:center;min-height:40px;}
+    .bk-grade{grid-template-columns:1fr;}
+  }
+  @media (max-width:420px){ .bk-cards{grid-template-columns:1fr;} }
   /* ---- Comissão: celular e tablet (o computador não usa nada daqui) ---- */
   .so-mobile,.so-mobile-inline,.regra-salvar-mobile{display:none !important;}
   .func-cards{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px;}
@@ -567,6 +624,328 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Caveat:wght@700&display=swap" rel="stylesheet">
 
+<script id="tpbackup-nucleo">
+/* TPBACKUP-NUCLEO-INICIO */
+// Núcleo do backup do Controle de Peças — o MESMO código roda no navegador (index.html),
+// na rotina automática (GitHub Actions) e no script de recuperação (Node 20+).
+// Formato do arquivo .tpbak:
+//   "TPBAK001" (8 bytes) + tamanho do cabeçalho (4 bytes, big-endian) + cabeçalho JSON + dados cifrados
+// Dados = JSON do backup, compactado (gzip) e cifrado com AES-256-GCM. A chave AES de cada
+// backup é cifrada com a chave PÚBLICA RSA-OAEP da empresa; só o arquivo da chave privada
+// (protegido por senha, guardado pelo administrador) consegue abrir o backup.
+(function (raiz) {
+  'use strict';
+  const MAGICO = 'TPBAK001';
+  const FORMATO = 'tecnopemt-backup';
+  const VERSAO = 1;
+  // Coleções do sistema (as que o código usa). A rotina também tenta descobrir coleções extras.
+  const COLECOES = ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'funcionarios', 'comissoes', 'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao', 'avisos', 'notificacoes', 'config', 'pecas'];
+  // Coleções do próprio backup: nunca entram num backup nem são apagadas por uma restauração.
+  const COLECOES_DO_BACKUP = ['backups', 'backupsCopias'];
+  // Documentos que a restauração mantém como estão (configuração da chave de backup).
+  const DOCS_PRESERVADOS = { config: ['backup'] };
+  const subtle = () => (raiz.crypto && raiz.crypto.subtle) || null;
+  const te = new TextEncoder(), td = new TextDecoder();
+
+  // ---------- utilidades ----------
+  function paraBase64(bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  function deBase64(b64) {
+    const s = atob(b64);
+    const out = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+    return out;
+  }
+  async function sha256Hex(bytes) {
+    const h = new Uint8Array(await subtle().digest('SHA-256', bytes));
+    return Array.from(h, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function transformar(bytes, stream) {
+    const r = new Response(new Blob([bytes]).stream().pipeThrough(stream));
+    return new Uint8Array(await r.arrayBuffer());
+  }
+  const temCompressao = () => typeof raiz.CompressionStream === 'function' && typeof raiz.DecompressionStream === 'function';
+  const gzip = b => transformar(b, new raiz.CompressionStream('gzip'));
+  const gunzip = b => transformar(b, new raiz.DecompressionStream('gzip'));
+  function juntar(partes) {
+    const total = partes.reduce((s, p) => s + p.length, 0);
+    const out = new Uint8Array(total);
+    let o = 0;
+    partes.forEach(p => { out.set(p, o); o += p.length; });
+    return out;
+  }
+  // JSON estável (chaves ordenadas) — para hash de documentos
+  function jsonEstavel(v) {
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (Array.isArray(v)) return '[' + v.map(jsonEstavel).join(',') + ']';
+    return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + jsonEstavel(v[k])).join(',') + '}';
+  }
+
+  // ---------- chaves ----------
+  const RSA = { name: 'RSA-OAEP', modulusLength: 3072, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' };
+  async function idDaChave(jwkPublica) {
+    return (await sha256Hex(te.encode(jwkPublica.n + '.' + jwkPublica.e))).slice(0, 16);
+  }
+  async function chaveDeSenha(senha, sal, usos) {
+    const base = await subtle().importKey('raw', te.encode(senha), 'PBKDF2', false, ['deriveKey']);
+    return subtle().deriveKey({ name: 'PBKDF2', salt: sal, iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, usos);
+  }
+  // Gera o par de chaves. Devolve o ARQUIVO DA CHAVE (para o administrador guardar) e a chave pública.
+  async function gerarChaves(senha, info) {
+    if (!senha || senha.length < 8) throw new Error('A senha da chave precisa ter pelo menos 8 caracteres.');
+    const par = await subtle().generateKey(RSA, true, ['encrypt', 'decrypt']);
+    const publica = await subtle().exportKey('jwk', par.publicKey);
+    const privada = new Uint8Array(await subtle().exportKey('pkcs8', par.privateKey));
+    const sal = raiz.crypto.getRandomValues(new Uint8Array(16)), iv = raiz.crypto.getRandomValues(new Uint8Array(12));
+    const k = await chaveDeSenha(senha, sal, ['encrypt']);
+    const cifrada = new Uint8Array(await subtle().encrypt({ name: 'AES-GCM', iv }, k, privada));
+    const chaveId = await idDaChave(publica);
+    const pub = { kty: publica.kty, n: publica.n, e: publica.e, alg: 'RSA-OAEP-256', ext: true };
+    return {
+      chaveId,
+      chavePublica: pub,
+      arquivoChave: { formato: 'tecnopemt-chave-backup', versao: 1, chaveId, criadaEm: new Date().toISOString(), ...(info || {}), chavePublica: pub, privadaCifrada: { kdf: 'PBKDF2-SHA256', iteracoes: 250000, sal: paraBase64(sal), iv: paraBase64(iv), dados: paraBase64(cifrada) }, aviso: 'Guarde este arquivo e a senha em dois lugares seguros. Sem eles não é possível abrir os backups.' }
+    };
+  }
+  async function abrirChavePrivada(arquivoChave, senha) {
+    if (!arquivoChave || arquivoChave.formato !== 'tecnopemt-chave-backup') throw new Error('Este arquivo não é uma chave de backup do Controle de Peças.');
+    const p = arquivoChave.privadaCifrada;
+    const k = await chaveDeSenha(senha || '', deBase64(p.sal), ['decrypt']);
+    let pkcs8;
+    try { pkcs8 = await subtle().decrypt({ name: 'AES-GCM', iv: deBase64(p.iv) }, k, deBase64(p.dados)); } catch (e) { throw new Error('Senha da chave incorreta.'); }
+    const chave = await subtle().importKey('pkcs8', pkcs8, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
+    return { chave, chaveId: arquivoChave.chaveId, chavePublica: arquivoChave.chavePublica };
+  }
+  async function importarPublica(jwk) {
+    return subtle().importKey('jwk', { kty: jwk.kty, n: jwk.n, e: jwk.e, alg: 'RSA-OAEP-256', ext: true }, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']);
+  }
+
+  // ---------- empacotar / abrir ----------
+  // plano = objeto do backup (documentos, código, resumo...). meta = informações visíveis sem a chave.
+  async function empacotar(plano, chavePublicaJwk, meta) {
+    const json = te.encode(JSON.stringify(plano));
+    const shaPlano = await sha256Hex(json);
+    const comp = temCompressao() ? await gzip(json) : json;
+    const aes = await subtle().generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+    const aesBruta = new Uint8Array(await subtle().exportKey('raw', aes));
+    const pub = await importarPublica(chavePublicaJwk);
+    const chaveCifrada = new Uint8Array(await subtle().encrypt({ name: 'RSA-OAEP' }, pub, aesBruta));
+    const iv = raiz.crypto.getRandomValues(new Uint8Array(12));
+    const cab = {
+      formato: FORMATO, versao: VERSAO, alg: 'RSA-OAEP-256+A256GCM', chaveId: await idDaChave(chavePublicaJwk),
+      chaveCifrada: paraBase64(chaveCifrada), iv: paraBase64(iv), compressao: temCompressao() ? 'gzip' : 'nenhuma',
+      tamanhoDados: json.length, sha256Dados: shaPlano, ...(meta || {})
+    };
+    const cabBytes = te.encode(JSON.stringify(cab));
+    const cifrado = new Uint8Array(await subtle().encrypt({ name: 'AES-GCM', iv, additionalData: cabBytes }, aes, comp));
+    const tam = new Uint8Array(4);
+    new DataView(tam.buffer).setUint32(0, cabBytes.length, false);
+    return juntar([te.encode(MAGICO), tam, cabBytes, cifrado]);
+  }
+  function lerCabecalho(bytes) {
+    if (!bytes || bytes.length < 12 || td.decode(bytes.subarray(0, 8)) !== MAGICO) throw new Error('Arquivo inválido: não é um backup do Controle de Peças (.tpbak).');
+    const n = new DataView(bytes.buffer, bytes.byteOffset + 8, 4).getUint32(0, false);
+    if (12 + n > bytes.length) throw new Error('Arquivo de backup incompleto (cortado).');
+    const cabBytes = bytes.subarray(12, 12 + n);
+    const cab = JSON.parse(td.decode(cabBytes));
+    if (cab.formato !== FORMATO) throw new Error('Formato de backup desconhecido.');
+    return { cab, cabBytes, corpo: bytes.subarray(12 + n) };
+  }
+  async function abrir(bytes, chavePrivada) {
+    const { cab, cabBytes, corpo } = lerCabecalho(bytes);
+    if (chavePrivada.chaveId && cab.chaveId !== chavePrivada.chaveId) throw new Error(`Este backup foi cifrado com outra chave (${cab.chaveId}). A chave informada é ${chavePrivada.chaveId}.`);
+    let aesBruta, comp;
+    try { aesBruta = await subtle().decrypt({ name: 'RSA-OAEP' }, chavePrivada.chave, deBase64(cab.chaveCifrada)); } catch (e) { throw new Error('A chave não abre este backup.'); }
+    const aes = await subtle().importKey('raw', aesBruta, { name: 'AES-GCM' }, false, ['decrypt']);
+    try { comp = new Uint8Array(await subtle().decrypt({ name: 'AES-GCM', iv: deBase64(cab.iv), additionalData: cabBytes }, aes, corpo)); } catch (e) { throw new Error('Backup corrompido ou alterado: a verificação de integridade falhou.'); }
+    const json = cab.compressao === 'gzip' ? await gunzip(comp) : comp;
+    const sha = await sha256Hex(json);
+    if (sha !== cab.sha256Dados) throw new Error('Backup corrompido: o conteúdo não confere com o código de verificação (SHA-256).');
+    return { cab, plano: JSON.parse(td.decode(json)) };
+  }
+
+  // ---------- valores do Firestore (formato tipado da API REST) ----------
+  // O backup guarda cada documento no formato tipado do Firestore ({ stringValue: ... }), que é
+  // exato: datas, números, mapas e listas voltam iguais.
+  function paraTipado(v, ad) {
+    if (v === null || v === undefined) return { nullValue: null };
+    if (typeof v === 'boolean') return { booleanValue: v };
+    if (typeof v === 'number') {
+      if (Number.isInteger(v) && Math.abs(v) <= Number.MAX_SAFE_INTEGER) return { integerValue: String(v) };
+      return { doubleValue: Number.isFinite(v) ? v : String(v) };
+    }
+    if (typeof v === 'string') return { stringValue: v };
+    if (ad && ad.ehTimestamp && ad.ehTimestamp(v)) return { timestampValue: new Date(v.toMillis ? v.toMillis() : v.toDate().getTime()).toISOString() };
+    if (v instanceof Date) return { timestampValue: v.toISOString() };
+    if (ad && ad.ehGeo && ad.ehGeo(v)) return { geoPointValue: { latitude: v.latitude, longitude: v.longitude } };
+    if (ad && ad.ehRef && ad.ehRef(v)) return { referenceValue: ad.nomeRef(v) };
+    if (ad && ad.ehBytes && ad.ehBytes(v)) return { bytesValue: v.toBase64() };
+    if (Array.isArray(v)) return { arrayValue: { values: v.map(x => paraTipado(x, ad)) } };
+    if (typeof v === 'object') { const fields = {}; Object.keys(v).forEach(k => { fields[k] = paraTipado(v[k], ad); }); return { mapValue: { fields } }; }
+    return { stringValue: String(v) };
+  }
+  function deTipado(t, ad) {
+    if (!t || typeof t !== 'object') return null;
+    if ('nullValue' in t) return null;
+    if ('booleanValue' in t) return t.booleanValue;
+    if ('integerValue' in t) return Number(t.integerValue);
+    if ('doubleValue' in t) return Number(t.doubleValue);
+    if ('stringValue' in t) return t.stringValue;
+    if ('timestampValue' in t) return ad && ad.criarTimestamp ? ad.criarTimestamp(t.timestampValue) : t.timestampValue;
+    if ('geoPointValue' in t) return ad && ad.criarGeo ? ad.criarGeo(t.geoPointValue) : t.geoPointValue;
+    if ('referenceValue' in t) return ad && ad.criarRef ? ad.criarRef(t.referenceValue) : t.referenceValue;
+    if ('bytesValue' in t) return ad && ad.criarBytes ? ad.criarBytes(t.bytesValue) : t.bytesValue;
+    if ('arrayValue' in t) return ((t.arrayValue && t.arrayValue.values) || []).map(x => deTipado(x, ad));
+    if ('mapValue' in t) { const o = {}; const f = (t.mapValue && t.mapValue.fields) || {}; Object.keys(f).forEach(k => { o[k] = deTipado(f[k], ad); }); return o; }
+    return null;
+  }
+  const camposParaObjeto = (fields, ad) => deTipado({ mapValue: { fields: fields || {} } }, ad);
+  const objetoParaCampos = (obj, ad) => paraTipado(obj || {}, ad).mapValue.fields;
+  // Forma canônica para comparar documentos (números como número, datas em milissegundos).
+  function canonico(t) {
+    if (!t || typeof t !== 'object') return null;
+    if ('nullValue' in t) return null;
+    if ('booleanValue' in t) return t.booleanValue;
+    if ('integerValue' in t || 'doubleValue' in t) return Number('integerValue' in t ? t.integerValue : t.doubleValue);
+    if ('stringValue' in t) return t.stringValue;
+    if ('timestampValue' in t) return { __ts: new Date(t.timestampValue).getTime() };
+    if ('geoPointValue' in t) return { __geo: [t.geoPointValue.latitude || 0, t.geoPointValue.longitude || 0] };
+    if ('referenceValue' in t) return { __ref: String(t.referenceValue).replace(/^projects\/[^/]+\/databases\/[^/]+\/documents\//, '') };
+    if ('bytesValue' in t) return { __bytes: t.bytesValue };
+    if ('arrayValue' in t) return ((t.arrayValue && t.arrayValue.values) || []).map(canonico);
+    if ('mapValue' in t) { const o = {}; const f = (t.mapValue && t.mapValue.fields) || {}; Object.keys(f).forEach(k => { o[k] = canonico(f[k]); }); return o; }
+    return null;
+  }
+  const assinaturaDocumento = fields => jsonEstavel(canonico({ mapValue: { fields: fields || {} } }));
+
+  // ---------- montar o backup ----------
+  // docsPorColecao: { colecao: { id: fields(tipado) } }
+  function montarPlano({ docsPorColecao, tipo, origem, projeto, codigo, colecoesNaoEncontradas, observacoes }) {
+    const documentos = {};
+    Object.keys(docsPorColecao).sort().forEach(c => { if (!COLECOES_DO_BACKUP.includes(c)) documentos[c] = docsPorColecao[c]; });
+    return {
+      formato: FORMATO, versao: VERSAO, criadoEm: new Date().toISOString(), tipo, origem, projeto,
+      colecoes: Object.keys(documentos), colecoesNaoEncontradas: colecoesNaoEncontradas || [],
+      documentos, codigo: codigo || null, observacoes: observacoes || []
+    };
+  }
+  function resumoDoPlano(plano) {
+    const colecoes = {};
+    let total = 0;
+    Object.keys(plano.documentos || {}).forEach(c => { const n = Object.keys(plano.documentos[c]).length; colecoes[c] = n; total += n; });
+    const img = contarImagens(plano);
+    return { colecoes, totalDocumentos: total, imagens: img.qtd, bytesImagens: img.bytes, assinaturas: img.assinaturas, arquivosCodigo: plano.codigo && plano.codigo.arquivos ? Object.keys(plano.codigo.arquivos).length : 0 };
+  }
+  function contarImagens(plano) {
+    let qtd = 0, bytes = 0, assinaturas = 0, invalidas = [];
+    function andar(t, caminho) {
+      if (!t || typeof t !== 'object') return;
+      if ('stringValue' in t) {
+        const s = t.stringValue;
+        if (typeof s === 'string' && s.startsWith('data:')) {
+          qtd++; bytes += s.length;
+          if (/assinatura/i.test(caminho)) assinaturas++;
+          if (!/^data:[\w.+/-]+;base64,[A-Za-z0-9+/]/.test(s.slice(0, 80)) || s.length < 40) invalidas.push(caminho);
+        }
+        return;
+      }
+      if (t.arrayValue) (t.arrayValue.values || []).forEach((x, i) => andar(x, caminho + '[' + i + ']'));
+      if (t.mapValue) Object.keys(t.mapValue.fields || {}).forEach(k => andar(t.mapValue.fields[k], caminho + '.' + k));
+    }
+    Object.keys(plano.documentos || {}).forEach(c => Object.keys(plano.documentos[c]).forEach(id => andar({ mapValue: { fields: plano.documentos[c][id] } }, `${c}/${id}`)));
+    return { qtd, bytes, assinaturas, invalidas };
+  }
+
+  // ---------- verificação de integridade ----------
+  // Vínculos entre os dados (Entrada → Cliente → Peças → Orçamento → Comissão ...).
+  const VINCULOS = [
+    { de: 'orcamentos', campo: 'clienteId', para: 'clientes', nome: 'Orçamento → Cliente' },
+    { de: 'orcamentos', campo: 'loteId', para: 'lotes', nome: 'Orçamento → Entrada de peças' },
+    { de: 'orcamentos', campo: 'periodoApuracaoId', para: 'periodosApuracao', nome: 'Orçamento → Período de apuração' },
+    { de: 'lotes', campo: 'clienteId', para: 'clientes', nome: 'Entrada → Cliente' },
+    { de: 'lotes', campo: 'orcamentoId', para: 'orcamentos', nome: 'Entrada → Orçamento' },
+    { de: 'lotes', lista: 'itens', campo: 'pecaCatalogoId', para: 'catalogoPecas', nome: 'Entrada → Peça do cadastro' },
+    { de: 'orcamentos', lista: 'itens', campo: 'pecaCatalogoId', para: 'catalogoPecas', nome: 'Orçamento → Peça do cadastro' },
+    { de: 'comissoes', campo: 'orcamentoId', para: 'orcamentos', nome: 'Comissão → Orçamento' },
+    { de: 'comissoes', campo: 'funcionarioId', para: 'funcionarios', nome: 'Comissão → Funcionário' },
+    { de: 'apuracaoRegistros', campo: 'funcionarioId', para: 'funcionarios', nome: 'Atrasos/faltas → Funcionário' },
+    { de: 'notificacoes', campo: 'funcionarioId', para: 'funcionarios', nome: 'Notificação → Funcionário' }
+  ];
+  function verificarPlano(plano) {
+    const erros = [], avisos = [], vinculos = [];
+    if (!plano || plano.formato !== FORMATO) erros.push('Formato do backup não reconhecido.');
+    const docs = (plano && plano.documentos) || {};
+    const ids = {};
+    Object.keys(docs).forEach(c => { ids[c] = new Set(Object.keys(docs[c])); });
+    COLECOES.forEach(c => { if (!docs[c] && !(plano.colecoesNaoEncontradas || []).includes(c)) avisos.push(`Coleção "${c}" não está no backup (estava vazia ou não existia).`); });
+    Object.keys(docs).forEach(c => Object.keys(docs[c]).forEach(id => {
+      const f = docs[c][id];
+      if (!f || typeof f !== 'object') erros.push(`Documento inválido: ${c}/${id}`);
+    }));
+    VINCULOS.forEach(v => {
+      if (!docs[v.de]) return;
+      let total = 0, quebrados = 0;
+      const exemplos = [];
+      Object.keys(docs[v.de]).forEach(id => {
+        const obj = camposParaObjeto(docs[v.de][id]);
+        const valores = v.lista ? (Array.isArray(obj[v.lista]) ? obj[v.lista].map(x => x && x[v.campo]) : []) : [obj[v.campo]];
+        valores.forEach(val => {
+          if (val === undefined || val === null || val === '') return;
+          total++;
+          if (!ids[v.para] || !ids[v.para].has(String(val))) { quebrados++; if (exemplos.length < 3) exemplos.push(`${v.de}/${id} → ${v.para}/${val}`); }
+        });
+      });
+      vinculos.push({ nome: v.nome, total, quebrados, exemplos });
+    });
+    const img = contarImagens(plano || {});
+    if (img.invalidas.length) avisos.push(`${img.invalidas.length} imagem(ns) com formato inesperado (ex.: ${img.invalidas.slice(0, 2).join(', ')}).`);
+    if (plano && plano.codigo && plano.codigo.arquivos && !plano.codigo.arquivos['index.html']) avisos.push('O código do site (index.html) não está no backup.');
+    if (plano && !plano.codigo) avisos.push('Este backup não traz o código do site (só os dados).');
+    return { ok: erros.length === 0, erros, avisos, vinculos, resumo: plano ? resumoDoPlano(plano) : null };
+  }
+  // Diferença entre o backup e o banco atual (o que a restauração vai criar, mudar e apagar).
+  function compararComAtual(plano, atual) {
+    const r = {};
+    const cols = new Set([...Object.keys(plano.documentos || {}), ...Object.keys(atual || {})]);
+    cols.forEach(c => {
+      if (COLECOES_DO_BACKUP.includes(c)) return;
+      const b = (plano.documentos || {})[c] || {}, a = (atual || {})[c] || {};
+      const preserv = DOCS_PRESERVADOS[c] || [];
+      let criar = 0, alterar = 0, apagar = 0, iguais = 0;
+      Object.keys(b).forEach(id => { if (preserv.includes(id)) return; if (!a[id]) criar++; else if (assinaturaDocumento(a[id]) !== assinaturaDocumento(b[id])) alterar++; else iguais++; });
+      Object.keys(a).forEach(id => { if (!preserv.includes(id) && !b[id]) apagar++; });
+      r[c] = { criar, alterar, apagar, iguais };
+    });
+    return r;
+  }
+  // Confere, depois de restaurar, se o banco ficou idêntico ao backup.
+  function conferirRestauracao(plano, atual) {
+    const dif = [];
+    Object.keys(plano.documentos || {}).forEach(c => {
+      if (COLECOES_DO_BACKUP.includes(c)) return;
+      const b = plano.documentos[c], a = (atual || {})[c] || {};
+      const preserv = DOCS_PRESERVADOS[c] || [];
+      Object.keys(b).forEach(id => { if (preserv.includes(id)) return; if (!a[id]) dif.push(`faltando ${c}/${id}`); else if (assinaturaDocumento(a[id]) !== assinaturaDocumento(b[id])) dif.push(`diferente ${c}/${id}`); });
+      Object.keys(a).forEach(id => { if (!preserv.includes(id) && !b[id]) dif.push(`sobrando ${c}/${id}`); });
+    });
+    return { ok: dif.length === 0, diferencas: dif };
+  }
+  function formatarBytes(n) {
+    n = Number(n) || 0;
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1).replace('.', ',') + ' KB';
+    if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1).replace('.', ',') + ' MB';
+    return (n / 1024 / 1024 / 1024).toFixed(2).replace('.', ',') + ' GB';
+  }
+  const api = { MAGICO, FORMATO, VERSAO, COLECOES, COLECOES_DO_BACKUP, DOCS_PRESERVADOS, VINCULOS, paraBase64, deBase64, sha256Hex, gzip, gunzip, jsonEstavel, gerarChaves, abrirChavePrivada, importarPublica, idDaChave, empacotar, lerCabecalho, abrir, paraTipado, deTipado, camposParaObjeto, objetoParaCampos, assinaturaDocumento, montarPlano, resumoDoPlano, contarImagens, verificarPlano, compararComAtual, conferirRestauracao, formatarBytes, juntar };
+  raiz.TPBackup = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+/* TPBACKUP-NUCLEO-FIM */
+</script>
 <script>
 const {
   useState,
@@ -3437,6 +3816,1163 @@ function TelaCriarConta({
 }
 
 // ======================= LAYOUT =======================
+// ==== BACKUP-INICIO ====
+// ======================= BACKUP E SEGURANÇA =======================
+// Backup completo (banco + fotos + assinaturas + código), histórico, teste e restauração.
+// O núcleo (criptografia, formato, verificação) é o mesmo da rotina automática: window.TPBackup.
+const REPO_GITHUB = 'tecnopemt-cpu/pecas-eletronicas';
+const URL_RAMO_BACKUPS = `https://raw.githubusercontent.com/${REPO_GITHUB}/backups/`;
+const ARQUIVOS_DO_SITE = ['index.html', 'manifest.json', 'README.md', 'icons/apple-touch-icon.png', 'icons/fundo-placa.jpg', 'icons/icon-192-maskable.png', 'icons/icon-192.png', 'icons/icon-512-maskable.png', 'icons/icon-512.png', 'icons/logo-tecnopemt.png', 'icons/marca-plataforma.png', 'icons/timbrado-cabecalho.png', 'icons/timbrado-rodape.png', 'backup/nucleo.js', 'backup/firestore-rest.mjs', 'backup/gerar-backup.mjs', 'backup/restaurar.mjs', 'backup/registrar.mjs', 'backup/retencao.mjs', 'backup/RECUPERACAO.md', '.github/workflows/backup.yml'];
+const TAMANHO_PEDACO_COPIA = 700000; // caracteres por documento na cópia guardada no sistema
+const COPIAS_NO_SISTEMA = 3;
+const TIPOS_BACKUP = {
+  automatico: 'Automático',
+  manual: 'Manual',
+  'pre-restauracao': 'Antes de restaurar',
+  restauracao: 'Restauração',
+  teste: 'Teste'
+};
+function podeFazerBackup(u) {
+  return ehAdministrador(u);
+}
+function podeRestaurarBackup(u) {
+  return ehMaster(u);
+}
+// Conversão entre os valores do Firestore (SDK do navegador) e o formato do backup.
+function adaptadorFirestore() {
+  const FS = firebase.firestore;
+  const projeto = typeof firebaseConfig !== 'undefined' && firebaseConfig.projectId || '';
+  return {
+    ehTimestamp: v => FS.Timestamp && v instanceof FS.Timestamp || v && typeof v.toDate === 'function' && typeof v.seconds === 'number',
+    ehGeo: v => !!(FS.GeoPoint && v instanceof FS.GeoPoint),
+    ehRef: v => !!(FS.DocumentReference && v instanceof FS.DocumentReference),
+    nomeRef: v => `projects/${projeto}/databases/(default)/documents/${v.path}`,
+    ehBytes: v => !!(FS.Blob && v instanceof FS.Blob),
+    criarTimestamp: s => FS.Timestamp.fromDate(new Date(s)),
+    criarGeo: g => FS.GeoPoint ? new FS.GeoPoint(g.latitude || 0, g.longitude || 0) : g,
+    criarRef: s => db.doc(String(s).replace(/^projects\/[^/]+\/databases\/[^/]+\/documents\//, '')),
+    criarBytes: b => FS.Blob ? FS.Blob.fromBase64String(b) : b
+  };
+}
+async function lerBancoNavegador(aoProgredir) {
+  const T = window.TPBackup,
+    ad = adaptadorFirestore();
+  const docsPorColecao = {},
+    vazias = [];
+  const cols = T.COLECOES;
+  for (let i = 0; i < cols.length; i++) {
+    const c = cols[i];
+    const snap = await db.collection(c).get();
+    if (snap.docs.length) {
+      docsPorColecao[c] = {};
+      snap.docs.forEach(d => {
+        docsPorColecao[c][d.id] = T.objetoParaCampos(d.data(), ad);
+      });
+    } else vazias.push(c);
+    if (aoProgredir) aoProgredir(c, i + 1, cols.length, snap.docs.length);
+  }
+  return {
+    docsPorColecao,
+    vazias
+  };
+}
+async function lerCodigoDoSite(aoProgredir) {
+  const T = window.TPBackup,
+    arquivos = {},
+    faltando = [];
+  for (let i = 0; i < ARQUIVOS_DO_SITE.length; i++) {
+    const a = ARQUIVOS_DO_SITE[i];
+    let bytes = null;
+    for (const url of [a, `https://raw.githubusercontent.com/${REPO_GITHUB}/main/${a}`]) {
+      try {
+        const r = await fetch(url, {
+          cache: 'no-store'
+        });
+        if (r.ok) {
+          bytes = new Uint8Array(await r.arrayBuffer());
+          break;
+        }
+      } catch (e) {}
+    }
+    if (bytes) arquivos[a] = T.paraBase64(bytes);else faltando.push(a);
+    if (aoProgredir) aoProgredir(i + 1, ARQUIVOS_DO_SITE.length);
+  }
+  return {
+    commit: '',
+    repositorio: REPO_GITHUB,
+    arquivos,
+    faltando
+  };
+}
+function baixarArquivo(bytes, nome) {
+  const url = URL.createObjectURL(new Blob([bytes], {
+    type: 'application/octet-stream'
+  }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+function nomeArquivoBackup(criadoEm, tipo) {
+  const d = new Date(criadoEm);
+  const p = n => String(n).padStart(2, '0');
+  return `backup-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}-${tipo}.tpbak`;
+}
+async function obterConfigBackup() {
+  const s = await db.collection('config').doc('backup').get();
+  return s.exists ? s.data() : null;
+}
+// Guarda uma cópia cifrada dentro do sistema (para restaurar com um clique) e mantém só as últimas.
+async function guardarCopiaNoSistema(id, bytes) {
+  const b64 = window.TPBackup.paraBase64(bytes);
+  const n = Math.ceil(b64.length / TAMANHO_PEDACO_COPIA);
+  for (let i = 0; i < n; i++) {
+    await db.collection('backupsCopias').doc(`${id}_${String(i).padStart(4, '0')}`).set({
+      backupId: id,
+      parte: i,
+      total: n,
+      dados: b64.slice(i * TAMANHO_PEDACO_COPIA, (i + 1) * TAMANHO_PEDACO_COPIA)
+    });
+  }
+  // remove cópias antigas (mantém as últimas COPIAS_NO_SISTEMA)
+  const hist = await db.collection('backups').get();
+  const comCopia = hist.docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  })).filter(b => b.copiaNoSistema && b.id !== id).sort((a, b) => (dataDe(b.criadoEm) || 0) - (dataDe(a.criadoEm) || 0));
+  for (const velho of comCopia.slice(COPIAS_NO_SISTEMA - 1)) {
+    const partes = await db.collection('backupsCopias').where('backupId', '==', velho.id).get();
+    const lote = db.batch();
+    partes.docs.forEach(p => lote.delete(p.ref));
+    lote.update(db.collection('backups').doc(velho.id), {
+      copiaNoSistema: false
+    });
+    await lote.commit();
+  }
+  return n;
+}
+async function lerCopiaDoSistema(id) {
+  const partes = await db.collection('backupsCopias').where('backupId', '==', id).get();
+  if (!partes.docs.length) throw new Error('A cópia deste backup não está mais guardada no sistema. Use o arquivo baixado no computador.');
+  const ord = partes.docs.map(d => d.data()).sort((a, b) => a.parte - b.parte);
+  if (ord.length !== ord[0].total) throw new Error('A cópia guardada no sistema está incompleta.');
+  return window.TPBackup.deBase64(ord.map(p => p.dados).join(''));
+}
+async function baixarDoGithub(arquivo, partes) {
+  const lista = partes && partes.length ? partes : [arquivo];
+  const pedacos = [];
+  for (const p of lista) {
+    const r = await fetch(URL_RAMO_BACKUPS + encodeURIComponent(p), {
+      cache: 'no-store'
+    });
+    if (!r.ok) throw new Error(`Não consegui baixar ${p} do GitHub (${r.status}).`);
+    pedacos.push(new Uint8Array(await r.arrayBuffer()));
+  }
+  return window.TPBackup.juntar(pedacos);
+}
+// Backup completo feito pelo navegador (manual ou antes de restaurar).
+async function fazerBackupNavegador({
+  tipo,
+  usuario,
+  aoEtapa,
+  baixar = true,
+  dadosAtuais
+}) {
+  const T = window.TPBackup;
+  const id = `${tipo === 'manual' ? 'man' : 'pre'}-${Date.now()}`;
+  const etapa = (nome, pct, extra) => aoEtapa && aoEtapa({
+    nome,
+    pct,
+    ...extra
+  });
+  const inicio = new Date();
+  try {
+    etapa('Conferindo a chave de backup', 2);
+    const cfg = await obterConfigBackup();
+    if (!cfg || !cfg.chavePublica) throw new Error('A chave de backup ainda não foi configurada.');
+    const banco = dadosAtuais || (await lerBancoNavegador((c, i, n, qtd) => etapa(`Lendo ${c} (${qtd})`, 5 + Math.round(i / n * 55))));
+    etapa('Copiando o código do site', 62);
+    const codigo = await lerCodigoDoSite();
+    etapa('Verificando a integridade e os vínculos', 72);
+    const plano = T.montarPlano({
+      docsPorColecao: banco.docsPorColecao,
+      tipo,
+      origem: 'navegador',
+      projeto: firebaseConfig.projectId,
+      codigo,
+      colecoesNaoEncontradas: banco.vazias,
+      observacoes: codigo.faltando.length ? [`Arquivos do site não copiados: ${codigo.faltando.join(', ')}`] : []
+    });
+    const verificacao = T.verificarPlano(plano);
+    const resumo = T.resumoDoPlano(plano);
+    etapa('Cifrando e compactando', 80);
+    const bytes = await T.empacotar(plano, cfg.chavePublica, {
+      criadoEm: plano.criadoEm,
+      tipo,
+      origem: 'navegador',
+      projeto: firebaseConfig.projectId,
+      por: usuario?.nome || '',
+      resumo: {
+        totalDocumentos: resumo.totalDocumentos,
+        colecoes: Object.keys(resumo.colecoes).length,
+        imagens: resumo.imagens
+      }
+    });
+    const arquivo = nomeArquivoBackup(plano.criadoEm, tipo);
+    if (baixar) {
+      etapa('Baixando o arquivo no computador', 86);
+      baixarArquivo(bytes, arquivo);
+    }
+    etapa('Guardando uma cópia no sistema', 90);
+    const partesCopia = await guardarCopiaNoSistema(id, bytes);
+    etapa('Registrando no histórico', 97);
+    const registro = {
+      tipo,
+      origem: 'navegador',
+      criadoEm: firebase.firestore.Timestamp.fromDate(new Date(plano.criadoEm)),
+      por: usuario?.nome || '',
+      porId: usuario?.id || '',
+      status: 'sucesso',
+      mensagem: baixar ? 'Arquivo baixado no computador e cópia guardada no sistema.' : 'Cópia guardada no sistema.',
+      tamanho: bytes.length,
+      tamanhoDados: T.lerCabecalho(bytes).cab.tamanhoDados,
+      chaveId: T.lerCabecalho(bytes).cab.chaveId,
+      sha256Arquivo: await T.sha256Hex(bytes),
+      arquivo,
+      copiaNoSistema: true,
+      partesCopia,
+      resumo,
+      verificacao: {
+        ok: verificacao.ok,
+        avisos: verificacao.avisos,
+        erros: verificacao.erros,
+        vinculos: verificacao.vinculos
+      },
+      duracaoSegundos: Math.round((Date.now() - inicio) / 1000)
+    };
+    await db.collection('backups').doc(id).set(registro);
+    etapa('Concluído', 100);
+    return {
+      ok: true,
+      id,
+      bytes,
+      arquivo,
+      registro,
+      verificacao,
+      resumo,
+      plano
+    };
+  } catch (e) {
+    await db.collection('backups').doc(id).set({
+      tipo,
+      origem: 'navegador',
+      criadoEm: firebase.firestore.Timestamp.fromDate(inicio),
+      por: usuario?.nome || '',
+      status: 'erro',
+      mensagem: e.message
+    }).catch(() => {});
+    return {
+      ok: false,
+      erro: e.message
+    };
+  }
+}
+// Grava o backup no banco: apaga o que não existe no backup e grava cada documento como era.
+async function aplicarRestauracao(plano, atual, aoEtapa) {
+  const T = window.TPBackup,
+    ad = adaptadorFirestore();
+  const ops = [];
+  const cols = new Set([...Object.keys(plano.documentos), ...Object.keys(atual)]);
+  cols.forEach(c => {
+    if (T.COLECOES_DO_BACKUP.includes(c)) return;
+    const preserv = T.DOCS_PRESERVADOS[c] || [];
+    const b = plano.documentos[c] || {},
+      a = atual[c] || {};
+    Object.keys(a).forEach(id => {
+      if (!preserv.includes(id) && !b[id]) ops.push({
+        tipo: 'apagar',
+        c,
+        id
+      });
+    });
+    Object.keys(b).forEach(id => {
+      if (!preserv.includes(id)) ops.push({
+        tipo: 'gravar',
+        c,
+        id,
+        f: b[id],
+        tam: JSON.stringify(b[id]).length
+      });
+    });
+  });
+  let lote = db.batch(),
+    n = 0,
+    bytes = 0,
+    feitas = 0;
+  const enviar = async () => {
+    if (!n) return;
+    await lote.commit();
+    feitas += n;
+    aoEtapa && aoEtapa(feitas, ops.length);
+    lote = db.batch();
+    n = 0;
+    bytes = 0;
+  };
+  for (const op of ops) {
+    if (n >= 400 || bytes + (op.tam || 0) > 7000000 && n) await enviar();
+    const ref = db.collection(op.c).doc(op.id);
+    if (op.tipo === 'apagar') lote.delete(ref);else lote.set(ref, T.camposParaObjeto(op.f, ad));
+    n++;
+    bytes += op.tam || 0;
+  }
+  await enviar();
+  return ops.length;
+}
+
+// ---------- Telas ----------
+function AbaConfiguracoes({
+  usuario
+}) {
+  const [aba, setAba] = useState('backup');
+  if (!ehAdministrador(usuario)) return /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, "Acesso restrito a administradores.");
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(AbasInternas, {
+    abas: [['backup', '🛡️ Backup e Segurança']],
+    ativa: aba,
+    aoMudar: setAba
+  }), aba === 'backup' && /*#__PURE__*/React.createElement(PainelBackup, {
+    usuario: usuario
+  }));
+}
+function useIndiceGithub() {
+  const [estado, setEstado] = useState({
+    carregando: true,
+    lista: [],
+    erro: ''
+  });
+  const recarregar = () => {
+    setEstado(e => ({
+      ...e,
+      carregando: true
+    }));
+    fetch(URL_RAMO_BACKUPS + 'indice.json', {
+      cache: 'no-store'
+    }).then(r => r.ok ? r.json() : r.status === 404 ? {
+      backups: []
+    } : Promise.reject(new Error('HTTP ' + r.status))).then(j => setEstado({
+      carregando: false,
+      lista: j.backups || [],
+      erro: ''
+    })).catch(e => setEstado({
+      carregando: false,
+      lista: [],
+      erro: 'Não consegui consultar os backups no GitHub agora.'
+    }));
+  };
+  useEffect(recarregar, []);
+  return [estado, recarregar];
+}
+function PainelBackup({
+  usuario
+}) {
+  const [historico] = useColecao('backups', 'criadoEm');
+  const [cfg, setCfg] = useState(undefined);
+  const [github, recarregarGithub] = useIndiceGithub();
+  const [modal, setModal] = useState(null); // {tipo:'agora'|'chave'|'restaurar'|'testar', origem}
+  const [contagens, setContagens] = useState(null);
+  useEffect(() => db.collection('config').doc('backup').onSnapshot(s => setCfg(s.exists ? s.data() : null), () => setCfg(null)), []);
+  const gerir = podeFazerBackup(usuario),
+    restaurar = podeRestaurarBackup(usuario);
+  // Histórico: registros do sistema + backups encontrados no GitHub (mesmo que o banco tenha sido apagado)
+  const linhas = useMemo(() => {
+    const porArquivo = {};
+    const lista = historico.map(h => ({
+      ...h,
+      data: dataDe(h.criadoEm)
+    }));
+    lista.forEach(h => {
+      if (h.arquivo) porArquivo[h.arquivo] = h;
+    });
+    (github.lista || []).forEach(g => {
+      const h = porArquivo[g.arquivo];
+      if (h) h.noGithub = g;else lista.push({
+        id: 'gh-' + g.arquivo,
+        tipo: g.tipo || 'automatico',
+        origem: 'github-actions',
+        data: new Date(g.criadoEm),
+        status: 'sucesso',
+        tamanho: g.tamanho,
+        arquivo: g.arquivo,
+        partes: g.partes,
+        chaveId: g.chaveId,
+        resumo: {
+          totalDocumentos: g.totalDocumentos,
+          imagens: g.imagens
+        },
+        noGithub: g,
+        soNoGithub: true
+      });
+    });
+    lista.forEach(h => {
+      if (h.local && h.local.tipo === 'github' && !h.noGithub && !github.carregando && !github.erro) h.foraDoGithub = true;
+    });
+    return lista.sort((a, b) => (b.data || 0) - (a.data || 0));
+  }, [historico, github]);
+  const ultimoOk = linhas.find(l => l.status === 'sucesso' && l.tipo !== 'restauracao');
+  const ultimoAuto = linhas.find(l => l.tipo === 'automatico' && l.status === 'sucesso');
+  const horasDesdeAuto = ultimoAuto ? (Date.now() - ultimoAuto.data) / 3600000 : null;
+  const automaticoAtrasado = horasDesdeAuto === null || horasDesdeAuto > 36;
+  async function contarAgora() {
+    setContagens({
+      carregando: true
+    });
+    const r = {};
+    for (const c of window.TPBackup.COLECOES) r[c] = (await db.collection(c).get()).size;
+    setContagens(r);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "painel-backup"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-cards"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `card bk-card ${ultimoOk ? 'ok' : 'alerta'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-rotulo"
+  }, "Último backup"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-valor"
+  }, ultimoOk ? ultimoOk.data.toLocaleString('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }) : 'Nenhum ainda'), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-sub"
+  }, ultimoOk ? `${TIPOS_BACKUP[ultimoOk.tipo] || ultimoOk.tipo} · ${window.TPBackup.formatarBytes(ultimoOk.tamanho)}` : 'Faça o primeiro backup abaixo.')), /*#__PURE__*/React.createElement("div", {
+    className: `card bk-card ${automaticoAtrasado ? 'alerta' : 'ok'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-rotulo"
+  }, "Backup automático"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-valor"
+  }, "Todo dia às 23:00"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-sub"
+  }, ultimoAuto ? `Último: ${ultimoAuto.data.toLocaleString('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  })}` : 'Ainda não registrou nenhum backup automático.', automaticoAtrasado && cfg ? ' — verifique a rotina no GitHub.' : '')), /*#__PURE__*/React.createElement("div", {
+    className: `card bk-card ${github.lista.length ? 'ok' : 'alerta'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-rotulo"
+  }, "Cópia externa (GitHub)"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-valor"
+  }, github.carregando ? '...' : `${github.lista.length} backup(s)`), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-sub"
+  }, github.erro || 'Fora do Firebase: continuam disponíveis se o banco ou o site caírem.')), /*#__PURE__*/React.createElement("div", {
+    className: `card bk-card ${cfg && cfg.chavePublica ? 'ok' : 'alerta'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-rotulo"
+  }, "Chave de criptografia"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-valor"
+  }, cfg === undefined ? '...' : cfg && cfg.chavePublica ? 'Configurada' : 'Não configurada'), /*#__PURE__*/React.createElement("div", {
+    className: "bk-card-sub"
+  }, cfg && cfg.chavePublica ? `Código ${cfg.chaveId} · criada por ${cfg.criadaPor || '-'}` : 'Sem a chave, nenhum backup é gerado.'))), cfg === null && /*#__PURE__*/React.createElement("div", {
+    className: "bk-alerta"
+  }, /*#__PURE__*/React.createElement("strong", null, "Passo 1 — configure a chave de backup."), " Todos os backups são cifrados: só abre quem tiver o arquivo da chave e a senha. ", restaurar ? '' : 'Peça ao Master para gerar a chave.', restaurar && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => setModal({
+      tipo: 'chave'
+    })
+  }, "🔑 Gerar chave de backup"))), /*#__PURE__*/React.createElement("div", {
+    className: "card bk-acoes"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 4px',
+      fontSize: 16
+    }
+  }, "Backup e restauração"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, "O backup inclui o banco completo (clientes, peças, entradas, orçamentos, funcionários, comissões, histórico), as fotos, as assinaturas e o código do site.")), /*#__PURE__*/React.createElement("div", {
+    className: "bk-botoes"
+  }, gerir && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: !cfg || !cfg.chavePublica,
+    onClick: () => setModal({
+      tipo: 'agora'
+    })
+  }, "💾 Fazer backup agora"), gerir && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setModal({
+      tipo: 'testar'
+    })
+  }, "🧪 Testar um backup"), restaurar && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setModal({
+      tipo: 'restaurar'
+    })
+  }, "♻️ Restaurar de um arquivo"))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-hist-topo"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      fontSize: 16
+    }
+  }, "Histórico de backups"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: recarregarGithub
+  }, "↻ Atualizar")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-cartoes bk-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Horário"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Tamanho"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Onde está"), /*#__PURE__*/React.createElement("th", null, "Ação"))), /*#__PURE__*/React.createElement("tbody", null, linhas.map(l => {
+    const onde = [l.noGithub && 'GitHub', l.copiaNoSistema && 'Sistema', l.origem === 'navegador' && l.tipo !== 'restauracao' && 'Computador (arquivo baixado)'].filter(Boolean);
+    const restauravel = l.status === 'sucesso' && l.tipo !== 'restauracao' && (l.noGithub || l.copiaNoSistema || l.origem === 'navegador');
+    return /*#__PURE__*/React.createElement("tr", {
+      key: l.id
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Data"
+    }, l.data ? l.data.toLocaleDateString('pt-BR') : '-'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Horário"
+    }, l.data ? l.data.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }) : '-'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Tipo",
+      className: "celula-destaque"
+    }, TIPOS_BACKUP[l.tipo] || l.tipo, l.por ? /*#__PURE__*/React.createElement("div", {
+      className: "bk-mini"
+    }, "por ", l.por) : null), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Tamanho"
+    }, l.tamanho ? window.TPBackup.formatarBytes(l.tamanho) : '—'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Status"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `bk-status ${l.status === 'sucesso' ? 'ok' : 'erro'}`
+    }, l.status === 'sucesso' ? 'Sucesso' : 'Erro'), l.mensagem && l.status !== 'sucesso' ? /*#__PURE__*/React.createElement("div", {
+      className: "bk-mini vermelho"
+    }, l.mensagem) : null, l.verificacao && l.verificacao.vinculos && l.verificacao.vinculos.some(v => v.quebrados) ? /*#__PURE__*/React.createElement("div", {
+      className: "bk-mini"
+    }, "vínculos já quebrados no banco: ", l.verificacao.vinculos.filter(v => v.quebrados).map(v => `${v.nome} (${v.quebrados})`).join(', ')) : null), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Onde está"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bk-mini"
+    }, onde.join(' · ') || (l.foraDoGithub ? 'removido pela retenção' : '—'))), /*#__PURE__*/React.createElement("td", {
+      className: "celula-acao bk-acoes-linha"
+    }, restauravel && gerir && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => setModal({
+        tipo: 'testar',
+        origem: l
+      })
+    }, "Testar"), restauravel && restaurar && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn pequeno",
+      onClick: () => setModal({
+        tipo: 'restaurar',
+        origem: l
+      })
+    }, "Restaurar"), l.noGithub && /*#__PURE__*/React.createElement("a", {
+      className: "btn secundario pequeno",
+      href: URL_RAMO_BACKUPS + encodeURIComponent(l.partes && l.partes[0] || l.arquivo),
+      download: true
+    }, "Baixar")));
+  }), !linhas.length && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "7",
+    style: {
+      textAlign: 'center',
+      color: 'var(--texto-fraco)',
+      padding: 18
+    }
+  }, "Nenhum backup registrado ainda.")))))), /*#__PURE__*/React.createElement("div", {
+    className: "bk-grade"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 8px',
+      fontSize: 16
+    }
+  }, "O que entra no backup"), /*#__PURE__*/React.createElement("ul", {
+    className: "bk-lista"
+  }, /*#__PURE__*/React.createElement("li", null, "✔ Banco de dados completo: ", window.TPBackup.COLECOES.join(', ')), /*#__PURE__*/React.createElement("li", null, "✔ Fotos das peças, das entradas, das entregas e dos testes; imagens dos avisos (ficam dentro do banco)"), /*#__PURE__*/React.createElement("li", null, "✔ Assinaturas (imagem, nome, CPF, IP e data) e históricos"), /*#__PURE__*/React.createElement("li", null, "✔ Código do site (index.html, ícones, manifesto) e os scripts de backup e recuperação"), /*#__PURE__*/React.createElement("li", {
+    className: "nao"
+  }, "• PDFs: não ficam guardados — o sistema gera cada PDF na hora, a partir dos dados (que estão no backup)"), /*#__PURE__*/React.createElement("li", {
+    className: "nao"
+  }, "• Vídeos dos avisos: são links externos (YouTube etc.); o link entra no backup, o vídeo não"), /*#__PURE__*/React.createElement("li", {
+    className: "nao"
+  }, "• Preferências do navegador (sessão aberta, último horário digitado): ficam só em cada aparelho")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: contarAgora
+  }, "Contar documentos agora"), contagens && !contagens.carregando && /*#__PURE__*/React.createElement("div", {
+    className: "bk-contagens"
+  }, Object.entries(contagens).map(([c, n]) => /*#__PURE__*/React.createElement("span", {
+    key: c
+  }, c, ": ", /*#__PURE__*/React.createElement("strong", null, n))))), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 8px',
+      fontSize: 16
+    }
+  }, "Onde ficam os backups"), /*#__PURE__*/React.createElement("ul", {
+    className: "bk-lista"
+  }, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "GitHub (automático, diário):"), " ramo “backups” do repositório, separado do banco do Firebase. Mantém os últimos 30 dias e um backup por mês dos últimos 12 meses."), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "Seu computador:"), " cada “Fazer backup agora” baixa o arquivo .tpbak — guarde também num pen drive ou na nuvem."), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "Dentro do sistema:"), " as últimas ", COPIAS_NO_SISTEMA, " cópias manuais/antes de restaurar, para voltar atrás com um clique.")), /*#__PURE__*/React.createElement("div", {
+    className: "bk-mini",
+    style: {
+      marginTop: 6
+    }
+  }, "Se o site ficar fora do ar: siga o guia ", /*#__PURE__*/React.createElement("a", {
+    href: `https://github.com/${REPO_GITHUB}/blob/main/backup/RECUPERACAO.md`,
+    target: "_blank",
+    rel: "noreferrer"
+  }, "RECUPERACAO.md"), " — dá para recuperar tudo com o arquivo do backup e a chave, sem o site."), cfg && cfg.chavePublica && /*#__PURE__*/React.createElement("div", {
+    className: "bk-chave"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Chave de backup:"), " código ", cfg.chaveId, ", criada em ", dataDe(cfg.criadaEm) ? dataDe(cfg.criadaEm).toLocaleDateString('pt-BR') : '-', " por ", cfg.criadaPor || '-', "."), restaurar && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setModal({
+      tipo: 'chave'
+    })
+  }, "Gerar nova chave")))), modal?.tipo === 'agora' && /*#__PURE__*/React.createElement(ModalBackupAgora, {
+    usuario: usuario,
+    aoFechar: () => setModal(null)
+  }), modal?.tipo === 'chave' && /*#__PURE__*/React.createElement(ModalChaveBackup, {
+    usuario: usuario,
+    cfg: cfg,
+    aoFechar: () => setModal(null)
+  }), (modal?.tipo === 'restaurar' || modal?.tipo === 'testar') && /*#__PURE__*/React.createElement(ModalRestaurarBackup, {
+    usuario: usuario,
+    modo: modal.tipo,
+    origem: modal.origem,
+    podeRestaurar: restaurar,
+    aoFechar: () => setModal(null)
+  }));
+}
+function BarraProgresso({
+  pct,
+  texto
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bk-progresso"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-progresso-barra"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: `${Math.max(0, Math.min(100, pct))}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "bk-progresso-texto"
+  }, /*#__PURE__*/React.createElement("span", null, texto), /*#__PURE__*/React.createElement("strong", null, Math.round(pct), "%")));
+}
+function ModalBackupAgora({
+  usuario,
+  aoFechar
+}) {
+  const [inicio] = useState(new Date());
+  const [etapa, setEtapa] = useState({
+    nome: 'Iniciando o backup',
+    pct: 0
+  });
+  const [res, setRes] = useState(null);
+  useEffect(() => {
+    fazerBackupNavegador({
+      tipo: 'manual',
+      usuario,
+      aoEtapa: setEtapa
+    }).then(setRes);
+  }, []);
+  const T = window.TPBackup;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bk-modal",
+    role: "dialog",
+    "aria-label": "Backup"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "💾 Backup agora"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-linha"
+  }, /*#__PURE__*/React.createElement("span", null, "Início"), /*#__PURE__*/React.createElement("strong", null, inicio.toLocaleString('pt-BR'))), !res && /*#__PURE__*/React.createElement(BarraProgresso, {
+    pct: etapa.pct,
+    texto: etapa.nome
+  }), res && res.ok && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "bk-resultado ok"
+  }, "✔ Backup concluído com sucesso"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-linha"
+  }, /*#__PURE__*/React.createElement("span", null, "Data e hora"), /*#__PURE__*/React.createElement("strong", null, new Date(res.plano.criadoEm).toLocaleString('pt-BR'))), /*#__PURE__*/React.createElement("div", {
+    className: "bk-linha"
+  }, /*#__PURE__*/React.createElement("span", null, "Tamanho"), /*#__PURE__*/React.createElement("strong", null, T.formatarBytes(res.bytes.length))), /*#__PURE__*/React.createElement("div", {
+    className: "bk-linha"
+  }, /*#__PURE__*/React.createElement("span", null, "Conteúdo"), /*#__PURE__*/React.createElement("strong", null, res.resumo.totalDocumentos, " documentos · ", res.resumo.imagens, " fotos/assinaturas · ", res.resumo.arquivosCodigo, " arquivos do site")), /*#__PURE__*/React.createElement("div", {
+    className: "bk-linha"
+  }, /*#__PURE__*/React.createElement("span", null, "Arquivo"), /*#__PURE__*/React.createElement("strong", null, res.arquivo)), /*#__PURE__*/React.createElement("div", {
+    className: "bk-linha"
+  }, /*#__PURE__*/React.createElement("span", null, "Integridade"), /*#__PURE__*/React.createElement("strong", null, res.verificacao.ok ? 'OK' : 'Com erros', res.verificacao.vinculos.some(v => v.quebrados) ? ' (há vínculos que já estavam quebrados no banco)' : '')), /*#__PURE__*/React.createElement("div", {
+    className: "bk-mini",
+    style: {
+      marginTop: 8
+    }
+  }, "O arquivo foi baixado no seu computador e uma cópia ficou guardada no sistema. Guarde o arquivo também num pen drive ou na nuvem."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 8
+    },
+    onClick: () => baixarArquivo(res.bytes, res.arquivo)
+  }, "⬇️ Baixar de novo")), res && !res.ok && /*#__PURE__*/React.createElement("div", {
+    className: "bk-resultado erro"
+  }, "⛔ Erro no backup: ", res.erro), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: !res,
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+function ModalChaveBackup({
+  usuario,
+  cfg,
+  aoFechar
+}) {
+  const [senha, setSenha] = useState('');
+  const [senha2, setSenha2] = useState('');
+  const [gerando, setGerando] = useState(false);
+  const [gerada, setGerada] = useState(null);
+  const [guardou, setGuardou] = useState(false);
+  async function gerar(e) {
+    e.preventDefault();
+    if (senha.length < 8) {
+      alert('A senha precisa ter pelo menos 8 caracteres.');
+      return;
+    }
+    if (senha !== senha2) {
+      alert('As senhas não conferem.');
+      return;
+    }
+    if (cfg && cfg.chavePublica && !confirm(`Gerar uma NOVA chave? Os próximos backups usarão a nova chave. Os backups antigos continuam precisando da chave antiga (código ${cfg.chaveId}) — não descarte o arquivo antigo.`)) return;
+    setGerando(true);
+    try {
+      const k = await window.TPBackup.gerarChaves(senha, {
+        criadaPor: usuario.nome,
+        sistema: 'Controle de Peças — Tecnopemt'
+      });
+      baixarArquivo(new TextEncoder().encode(JSON.stringify(k.arquivoChave, null, 2)), `chave-backup-tecnopemt-${k.chaveId}.json`);
+      setGerada(k);
+    } catch (err) {
+      alert(err.message);
+    }
+    setGerando(false);
+  }
+  async function ativar() {
+    const anteriores = [...(cfg && cfg.chavesAnteriores || []), ...(cfg && cfg.chavePublica ? [{
+      chaveId: cfg.chaveId,
+      criadaPor: cfg.criadaPor || '',
+      substituidaEm: new Date().toISOString()
+    }] : [])];
+    await db.collection('config').doc('backup').set({
+      chavePublica: gerada.chavePublica,
+      chaveId: gerada.chaveId,
+      criadaEm: firebase.firestore.FieldValue.serverTimestamp(),
+      criadaPor: usuario.nome,
+      chavesAnteriores: anteriores
+    });
+    aoFechar();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bk-modal",
+    role: "dialog",
+    "aria-label": "Chave de backup"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "🔑 Chave de backup"), !gerada ? /*#__PURE__*/React.createElement("form", {
+    onSubmit: gerar
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bk-info"
+  }, "Os backups ficam cifrados. Para abrir um backup é preciso o ", /*#__PURE__*/React.createElement("strong", null, "arquivo da chave"), " (baixado agora) e a ", /*#__PURE__*/React.createElement("strong", null, "senha"), " abaixo. Sem os dois, nem a Tecnopemt consegue recuperar os dados."), /*#__PURE__*/React.createElement("label", null, "Senha da chave (mínimo 8 caracteres)"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: senha,
+    onChange: e => setSenha(e.target.value),
+    autoComplete: "new-password"
+  }), /*#__PURE__*/React.createElement("label", null, "Repita a senha"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: senha2,
+    onChange: e => setSenha2(e.target.value),
+    autoComplete: "new-password"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: gerando
+  }, gerando ? 'Gerando...' : 'Gerar e baixar a chave'))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "bk-resultado ok"
+  }, "✔ Chave gerada (código ", gerada.chaveId, ") — o arquivo foi baixado."), /*#__PURE__*/React.createElement("div", {
+    className: "bk-info"
+  }, /*#__PURE__*/React.createElement("strong", null, "Antes de ativar:"), " guarde o arquivo ", /*#__PURE__*/React.createElement("em", null, "chave-backup-tecnopemt-", gerada.chaveId, ".json"), " em pelo menos dois lugares (ex.: pen drive e Google Drive/e-mail) e anote a senha num local seguro."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => baixarArquivo(new TextEncoder().encode(JSON.stringify(gerada.arquivoChave, null, 2)), `chave-backup-tecnopemt-${gerada.chaveId}.json`)
+  }, "⬇️ Baixar a chave de novo"), /*#__PURE__*/React.createElement("label", {
+    className: "bk-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: guardou,
+    onChange: e => setGuardou(e.target.checked)
+  }), " Guardei o arquivo da chave e a senha em local seguro"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: !guardou,
+    onClick: ativar
+  }, "Ativar esta chave")))));
+}
+// Teste (só abre e confere) ou restauração completa.
+function ModalRestaurarBackup({
+  usuario,
+  modo,
+  origem,
+  podeRestaurar,
+  aoFechar
+}) {
+  const T = window.TPBackup;
+  const [bytes, setBytes] = useState(null);
+  const [cab, setCab] = useState(null);
+  const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(false);
+  const [arqChave, setArqChave] = useState(null);
+  const [senha, setSenha] = useState('');
+  const [aberto, setAberto] = useState(null); // { plano, verificacao, dif }
+  const [confirmacao, setConfirmacao] = useState('');
+  const [entendi, setEntendi] = useState(false);
+  const [execucao, setExecucao] = useState(null); // { etapa, pct } | { fim }
+  const restaurar = modo === 'restaurar';
+  useEffect(() => {
+    if (!origem) return;
+    (async () => {
+      setCarregando(true);
+      try {
+        let b = null;
+        if (origem.copiaNoSistema) b = await lerCopiaDoSistema(origem.id).catch(() => null);
+        if (!b && origem.noGithub) b = await baixarDoGithub(origem.noGithub.arquivo, origem.noGithub.partes);
+        if (b) carregarBytes(b);else setErro('Este backup está no arquivo baixado no computador. Selecione o arquivo abaixo.');
+      } catch (e) {
+        setErro(e.message);
+      }
+      setCarregando(false);
+    })();
+  }, []);
+  function carregarBytes(b) {
+    try {
+      const {
+        cab
+      } = T.lerCabecalho(b);
+      setBytes(b);
+      setCab(cab);
+      setErro('');
+      setAberto(null);
+    } catch (e) {
+      setErro(e.message);
+    }
+  }
+  async function lerArquivo(f) {
+    if (!f) return;
+    const b = new Uint8Array(await f.arrayBuffer());
+    carregarBytes(b);
+  }
+  async function lerChave(f) {
+    if (!f) return;
+    try {
+      setArqChave(JSON.parse(await f.text()));
+      setErro('');
+    } catch (e) {
+      setErro('Arquivo de chave inválido.');
+    }
+  }
+  async function abrir() {
+    setCarregando(true);
+    setErro('');
+    try {
+      const chave = await T.abrirChavePrivada(arqChave, senha);
+      const {
+        plano
+      } = await T.abrir(bytes, chave);
+      const verificacao = T.verificarPlano(plano);
+      const atual = await lerBancoNavegador();
+      const dif = T.compararComAtual(plano, atual.docsPorColecao);
+      // teste de restauração simulado: converte cada documento como a restauração grava e confere
+      const ad = adaptadorFirestore();
+      const simulado = {};
+      Object.keys(plano.documentos).forEach(c => {
+        simulado[c] = {};
+        Object.keys(plano.documentos[c]).forEach(id => {
+          simulado[c][id] = T.objetoParaCampos(T.camposParaObjeto(plano.documentos[c][id], ad), ad);
+        });
+      });
+      const simulacao = T.conferirRestauracao(plano, simulado);
+      setAberto({
+        plano,
+        verificacao,
+        dif,
+        simulacao,
+        atual
+      });
+      if (!restaurar) await db.collection('backups').doc('teste-' + Date.now()).set({
+        tipo: 'teste',
+        origem: 'navegador',
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        por: usuario.nome,
+        status: verificacao.ok && simulacao.ok ? 'sucesso' : 'erro',
+        mensagem: `Teste do backup de ${new Date(cab.criadoEm).toLocaleString('pt-BR')}: ${verificacao.resumo.totalDocumentos} documentos, ${simulacao.ok ? 'restauração simulada OK' : 'diferenças na simulação'}`,
+        backupTestado: cab.criadoEm
+      });
+    } catch (e) {
+      setErro(e.message);
+    }
+    setCarregando(false);
+  }
+  async function executar() {
+    if (!podeRestaurar) return;
+    setExecucao({
+      etapa: 'Fazendo um backup do estado atual (para poder voltar atrás)',
+      pct: 2
+    });
+    const pre = await fazerBackupNavegador({
+      tipo: 'pre-restauracao',
+      usuario,
+      dadosAtuais: aberto.atual,
+      aoEtapa: e => setExecucao({
+        etapa: 'Backup do estado atual: ' + e.nome,
+        pct: 2 + e.pct * 0.3
+      })
+    });
+    if (!pre.ok) {
+      setExecucao({
+        fim: true,
+        ok: false,
+        mensagem: 'Restauração cancelada: não foi possível fazer o backup do estado atual (' + pre.erro + '). Nada foi alterado.'
+      });
+      return;
+    }
+    try {
+      setExecucao({
+        etapa: 'Restaurando os dados',
+        pct: 35
+      });
+      const total = await aplicarRestauracao(aberto.plano, aberto.atual.docsPorColecao, (f, t) => setExecucao({
+        etapa: `Restaurando os dados (${f}/${t})`,
+        pct: 35 + f / Math.max(1, t) * 50
+      }));
+      setExecucao({
+        etapa: 'Conferindo o resultado',
+        pct: 90
+      });
+      const depois = await lerBancoNavegador();
+      const conf = T.conferirRestauracao(aberto.plano, depois.docsPorColecao);
+      await db.collection('backups').doc('rest-' + Date.now()).set({
+        tipo: 'restauracao',
+        origem: 'navegador',
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        por: usuario.nome,
+        porId: usuario.id,
+        status: conf.ok ? 'sucesso' : 'erro',
+        mensagem: conf.ok ? `Restaurado o backup de ${new Date(cab.criadoEm).toLocaleString('pt-BR')} (${total} gravações). Banco conferido: idêntico ao backup.` : `Diferenças após restaurar: ${conf.diferencas.slice(0, 5).join(', ')}`,
+        backupRestaurado: cab.criadoEm,
+        backupPrevioId: pre.id
+      });
+      setExecucao({
+        fim: true,
+        ok: conf.ok,
+        mensagem: conf.ok ? `Restauração concluída e conferida: o banco ficou idêntico ao backup de ${new Date(cab.criadoEm).toLocaleString('pt-BR')}.` : `A restauração terminou com diferenças: ${conf.diferencas.slice(0, 5).join(', ')}`,
+        preArquivo: pre.arquivo
+      });
+    } catch (e) {
+      setExecucao({
+        fim: true,
+        ok: false,
+        mensagem: `Erro durante a restauração: ${e.message}. Use o backup "Antes de restaurar" (${pre.arquivo}) para voltar ao estado anterior.`
+      });
+    }
+  }
+  const difTotal = aberto ? Object.values(aberto.dif).reduce((s, d) => ({
+    criar: s.criar + d.criar,
+    alterar: s.alterar + d.alterar,
+    apagar: s.apagar + d.apagar
+  }), {
+    criar: 0,
+    alterar: 0,
+    apagar: 0
+  }) : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bk-modal largo",
+    role: "dialog",
+    "aria-label": restaurar ? 'Restaurar backup' : 'Testar backup'
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, restaurar ? '♻️ Restaurar backup' : '🧪 Testar backup (teste de recuperação)'), !execucao && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "bk-passo"
+  }, /*#__PURE__*/React.createElement("span", null, "1"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Backup"), cab ? /*#__PURE__*/React.createElement("div", {
+    className: "bk-info"
+  }, "Backup de ", /*#__PURE__*/React.createElement("strong", null, new Date(cab.criadoEm).toLocaleString('pt-BR')), " · ", TIPOS_BACKUP[cab.tipo] || cab.tipo, " · ", T.formatarBytes(bytes.length), " · ", cab.resumo ? `${cab.resumo.totalDocumentos} documentos` : '', " · chave ", cab.chaveId) : carregando ? /*#__PURE__*/React.createElement("div", {
+    className: "bk-info"
+  }, "Carregando o backup...") : null, (!origem || !cab) && /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".tpbak,application/octet-stream",
+    onChange: e => lerArquivo(e.target.files[0])
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "bk-passo"
+  }, /*#__PURE__*/React.createElement("span", null, "2"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Chave de backup"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-mini"
+  }, "Arquivo chave-backup-tecnopemt-….json e a senha dele."), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".json,application/json",
+    onChange: e => lerChave(e.target.files[0])
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    placeholder: "Senha da chave",
+    value: senha,
+    onChange: e => setSenha(e.target.value),
+    style: {
+      marginTop: 6
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    style: {
+      marginTop: 8
+    },
+    disabled: !bytes || !arqChave || !senha || carregando,
+    onClick: abrir
+  }, carregando ? 'Abrindo...' : 'Abrir e verificar'))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "bk-resultado erro"
+  }, "⛔ ", erro), aberto && /*#__PURE__*/React.createElement("div", {
+    className: "bk-passo"
+  }, /*#__PURE__*/React.createElement("span", null, "3"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Verificação"), /*#__PURE__*/React.createElement("div", {
+    className: `bk-resultado ${aberto.verificacao.ok && aberto.simulacao.ok ? 'ok' : 'erro'}`
+  }, aberto.verificacao.ok && aberto.simulacao.ok ? '✔ Backup íntegro: abriu com a chave, o código de verificação confere e a restauração simulada devolve todos os documentos iguais.' : '⛔ Problemas encontrados no backup.'), /*#__PURE__*/React.createElement("div", {
+    className: "bk-contagens"
+  }, Object.entries(aberto.verificacao.resumo.colecoes).map(([c, n]) => /*#__PURE__*/React.createElement("span", {
+    key: c
+  }, c, ": ", /*#__PURE__*/React.createElement("strong", null, n)))), /*#__PURE__*/React.createElement("div", {
+    className: "bk-mini"
+  }, aberto.verificacao.resumo.imagens, " fotos/imagens (", aberto.verificacao.resumo.assinaturas, " assinaturas) · ", aberto.verificacao.resumo.arquivosCodigo, " arquivos do site"), /*#__PURE__*/React.createElement("table", {
+    className: "bk-vinculos"
+  }, /*#__PURE__*/React.createElement("tbody", null, aberto.verificacao.vinculos.map(v => /*#__PURE__*/React.createElement("tr", {
+    key: v.nome
+  }, /*#__PURE__*/React.createElement("td", null, v.quebrados ? '⚠️' : '✔', " ", v.nome), /*#__PURE__*/React.createElement("td", null, v.total - v.quebrados, "/", v.total))))), aberto.verificacao.vinculos.some(v => v.quebrados) && /*#__PURE__*/React.createElement("div", {
+    className: "bk-mini"
+  }, "⚠️ = referências que já apontavam para registros apagados no banco quando o backup foi feito (o backup copia o banco exatamente como estava)."), aberto.verificacao.avisos.map((a, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "bk-mini laranja"
+  }, "⚠️ ", a)), aberto.verificacao.erros.map((a, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "bk-mini vermelho"
+  }, "⛔ ", a)), /*#__PURE__*/React.createElement("div", {
+    className: "bk-info",
+    style: {
+      marginTop: 8
+    }
+  }, "Comparado com o banco atual, restaurar este backup vai: ", /*#__PURE__*/React.createElement("strong", null, "criar ", difTotal.criar), ", ", /*#__PURE__*/React.createElement("strong", null, "alterar ", difTotal.alterar), " e ", /*#__PURE__*/React.createElement("strong", null, "apagar ", difTotal.apagar), " documento(s)."))), aberto && restaurar && aberto.verificacao.ok && aberto.simulacao.ok && /*#__PURE__*/React.createElement("div", {
+    className: "bk-passo"
+  }, /*#__PURE__*/React.createElement("span", null, "4"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Confirmar a restauração"), /*#__PURE__*/React.createElement("div", {
+    className: "bk-alerta"
+  }, "Antes de restaurar, o sistema faz automaticamente um ", /*#__PURE__*/React.createElement("strong", null, "backup do estado atual"), " (baixado no computador e guardado no sistema) para você poder voltar atrás. Peça para os outros usuários não usarem o sistema durante a restauração. Senhas e permissões voltam a ser as do backup."), /*#__PURE__*/React.createElement("label", {
+    className: "bk-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: entendi,
+    onChange: e => setEntendi(e.target.checked)
+  }), " Entendo que os dados atuais serão substituídos pelos do backup"), /*#__PURE__*/React.createElement("label", null, "Digite RESTAURAR para confirmar"), /*#__PURE__*/React.createElement("input", {
+    value: confirmacao,
+    onChange: e => setConfirmacao(e.target.value)
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    style: {
+      marginTop: 8
+    },
+    disabled: !entendi || confirmacao.trim() !== 'RESTAURAR',
+    onClick: executar
+  }, "♻️ Restaurar agora")))), execucao && !execucao.fim && /*#__PURE__*/React.createElement(BarraProgresso, {
+    pct: execucao.pct,
+    texto: execucao.etapa
+  }), execucao && execucao.fim && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: `bk-resultado ${execucao.ok ? 'ok' : 'erro'}`
+  }, execucao.ok ? '✔ ' : '⛔ ', execucao.mensagem), execucao.preArquivo && /*#__PURE__*/React.createElement("div", {
+    className: "bk-mini"
+  }, "Backup do estado anterior: ", execucao.preArquivo, " (baixado e guardado no sistema — use “Restaurar” nele para desfazer)."), execucao.ok && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    style: {
+      marginTop: 10
+    },
+    onClick: () => window.location.reload()
+  }, "Recarregar o sistema")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: execucao && !execucao.fim,
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+// ==== BACKUP-FIM ====
 function App() {
   const paramsUrl = new URLSearchParams(window.location.search);
   const assinarTipo = paramsUrl.get('assinar');
@@ -3652,7 +5188,11 @@ function App() {
     id: 'avisos',
     nome: 'Avisos',
     icone: '📢'
-  }, ...abasTodas.filter(a => podeVisualizar(usuario, a.id))];
+  }, ...abasTodas.filter(a => podeVisualizar(usuario, a.id)), ...(ehAdministrador(usuario) ? [{
+    id: 'configuracoes',
+    nome: 'Configurações',
+    icone: '⚙️'
+  }] : [])];
   const {
     hoje: aniversariantesHoje,
     proximos: todosProximosAniversarios
@@ -3847,7 +5387,7 @@ function App() {
     className: "cargo"
   }, usuario.cargo)))), /*#__PURE__*/React.createElement("div", {
     className: "conteudo-principal"
-  }, aba !== 'avisos' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
+  }, aba !== 'avisos' && !(aba === 'configuracoes' ? ehAdministrador(usuario) : podeVisualizar(usuario, aba)) ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -3894,6 +5434,8 @@ function App() {
   }), aba === 'funcionarios' && /*#__PURE__*/React.createElement(AbaFuncionarios, {
     usuario: usuario,
     funcionarios: funcionarios
+  }), aba === 'configuracoes' && /*#__PURE__*/React.createElement(AbaConfiguracoes, {
+    usuario: usuario
   })))), modalMinhaSenhaAberto && /*#__PURE__*/React.createElement(ModalMinhaSenha, {
     usuario: usuario,
     aoFechar: () => setModalMinhaSenhaAberto(false)
