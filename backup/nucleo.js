@@ -1,6 +1,6 @@
 /* TPBACKUP-NUCLEO-INICIO */
-// Núcleo do backup do Controle de Peças — o MESMO código roda no navegador (index.html),
-// na rotina automática (GitHub Actions) e no script de recuperação (Node 20+).
+// Núcleo do backup do Controle de Peças — usado pela rotina automática (GitHub Actions) e pelo
+// script de recuperação (Node 20+). Não faz parte do site: o backup funciona fora do sistema.
 // Formato do arquivo .tpbak:
 //   "TPBAK001" (8 bytes) + tamanho do cabeçalho (4 bytes, big-endian) + cabeçalho JSON + dados cifrados
 // Dados = JSON do backup, compactado (gzip) e cifrado com AES-256-GCM. A chave AES de cada
@@ -13,7 +13,8 @@
   const VERSAO = 1;
   // Coleções do sistema (as que o código usa). A rotina também tenta descobrir coleções extras.
   const COLECOES = ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'funcionarios', 'comissoes', 'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao', 'avisos', 'notificacoes', 'config', 'pecas'];
-  // Coleções do próprio backup: nunca entram num backup nem são apagadas por uma restauração.
+  // Coleções de uma versão anterior do backup (já removida do site): nunca entram num backup nem
+  // são gravadas por uma restauração.
   const COLECOES_DO_BACKUP = ['backups', 'backupsCopias'];
   // Documentos que a restauração mantém como estão (configuração da chave de backup).
   const DOCS_PRESERVADOS = { config: ['backup'] };

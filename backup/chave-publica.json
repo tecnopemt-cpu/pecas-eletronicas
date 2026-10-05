@@ -1,0 +1,12 @@
+{
+  "formato": "tecnopemt-chave-publica",
+  "chaveId": "debc1ea75db10968",
+  "criadaEm": "2026-10-05T11:16:17.513Z",
+  "chavePublica": {
+    "kty": "RSA",
+    "n": "txFlvIlviDhdH8DZCffoo9MZFaMr88IsG1hyJ2SbP059lf59Q89ODmMDsTEIHG-_b3WldJ7W2Gn89S7Ht-XS1Sq5rNR8RQfgRluvAjuT81g30H5YZlRksfrHYWguOpQbRVwuRgOOoXLYMd9zZfJC32mTPXnTru_LveZvU9dXON6YdzynErersjKCLaUQTCvZ0C9sTguvjgvN2rUJiHiWnPkKaL49IBo3RloD7tPkZ-wJ5KygOs8sWSRYUJDLHHcsPOW9PAxDl8Tox2ishYZR8hc605pLDyj-CNMiRwM96PAbFh0llgNxHHm7I2SbD4Y1G6ObRCLIei5EEadq6KLnx4JHS4d447ta-I59cuJkyQzp56vUzyr8GmUHJuFFniP_pW1vMFS8QZSJlHBRcqsb7Tqi-q10qi0NZV6Tz0uVRfWj-CT6kXb_ooagO1e7ifsqGLozH7sn8Au7IOELNKaOL9fU2u8u4s3tLafLT04JuyY6i9Yag-j-g-eU5CSEi2gF",
+    "e": "AQAB",
+    "alg": "RSA-OAEP-256",
+    "ext": true
+  }
+}

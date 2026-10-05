@@ -1,7 +1,10 @@
 name: Backup do Controle de Peças
 
-# Backup automático todo dia às 23:00 (Brasília). Lê o banco (Firestore) e o código, cifra com a
-# chave pública cadastrada no sistema e guarda no ramo "backups" deste repositório (fora do Firebase).
+# Backup automático e externo — funciona fora do sistema (não existe tela de backup no site).
+# Todo dia às 23:00 (Brasília): lê o banco do Firebase (Firestore: dados, fotos, assinaturas) e o código,
+# cifra com a chave pública (backup/chave-publica.json) e guarda no ramo "backups" deste repositório.
+# Opcional: segunda cópia fora do GitHub (Google Drive, OneDrive, S3...) via rclone, se os segredos
+# RCLONE_CONFIG e RCLONE_DESTINO estiverem configurados no repositório.
 on:
   schedule:
     - cron: '0 2 * * *'
@@ -30,6 +33,7 @@ jobs:
     timeout-minutes: 60
     env:
       MODO: ${{ github.event_name == 'push' && 'teste' || inputs.modo || 'completo' }}
+      TEM_COPIA_EXTRA: ${{ secrets.RCLONE_CONFIG != '' && secrets.RCLONE_DESTINO != '' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -42,7 +46,6 @@ jobs:
         run: node backup/gerar-backup.mjs --modo "$MODO" --saida saida
 
       - name: Guardar no ramo "backups" (cópia externa, com retenção)
-        id: publicar
         if: steps.gerar.outputs.publicar == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,11 +63,23 @@ jobs:
           git add -A
           git commit -q -m "Backup ${{ steps.gerar.outputs.arquivo }}"
           git push -q -f origin publicado:backups
-          echo "ok=true" >> "$GITHUB_OUTPUT"
 
-      - name: Registrar no histórico do sistema
-        if: always() && env.MODO != 'teste'
-        run: node backup/registrar.mjs saida "${{ steps.publicar.outputs.ok == 'true' }}"
+      - name: Segunda cópia fora do GitHub (opcional, rclone)
+        if: steps.gerar.outputs.publicar == 'true' && env.TEM_COPIA_EXTRA == 'true'
+        env:
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
+          RCLONE_DESTINO: ${{ secrets.RCLONE_DESTINO }}
+        run: |
+          set -e
+          curl -fsSL https://rclone.org/install.sh | sudo bash >/dev/null
+          mkdir -p ~/.config/rclone && printf '%s\n' "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+          rclone copy saida/ "$RCLONE_DESTINO" --include "*.tpbak*"
+          echo "::notice::Segunda cópia enviada para o armazenamento externo configurado."
+
+      - name: Remover registros da antiga tela de backup do banco
+        if: env.MODO != 'teste'
+        continue-on-error: true
+        run: node backup/limpar-legado.mjs
 
       - name: Manter a rotina ativa (o GitHub pausa agendamentos após 60 dias sem atividade)
         if: github.event_name == 'schedule'

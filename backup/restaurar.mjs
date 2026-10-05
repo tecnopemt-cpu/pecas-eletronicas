@@ -120,7 +120,7 @@ async function principal() {
     const depois = await lerBancoCompleto(fsCli, T.COLECOES, T.COLECOES_DO_BACKUP);
     const conf = T.conferirRestauracao(plano, depois.docsPorColecao);
     console.log(conf.ok ? '✔ Restauração conferida: o banco ficou idêntico ao backup.' : `⛔ Diferenças após restaurar: ${conf.diferencas.slice(0, 10).join(', ')}`);
-    await fsCli.gravarDocumento('backups', 'restauracao-' + Date.now(), T.objetoParaCampos({ tipo: 'restauracao', origem: 'computador', criadoEm: new Date(), status: conf.ok ? 'sucesso' : 'erro', backupRestaurado: cab.criadoEm, backupPrevio: nomePre, mensagem: conf.ok ? 'Restaurado pelo script de recuperação' : conf.diferencas.slice(0, 5).join(', ') }, { ehTimestamp: () => false })).catch(() => {});
+    // (o registro da restauração fica neste terminal e no arquivo pré-restauração — nada é gravado no sistema)
     if (!conf.ok) process.exitCode = 2;
   }
 }

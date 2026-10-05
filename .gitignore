@@ -1,0 +1,4 @@
+chave-backup*.json
+*.tpbak
+*.tpbak.parte*
+saida-backup/

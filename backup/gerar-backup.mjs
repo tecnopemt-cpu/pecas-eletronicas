@@ -4,7 +4,9 @@
 //   node backup/gerar-backup.mjs --modo teste              teste de ponta a ponta com uma chave temporária:
 //                                                          lê o banco real, cifra, abre de novo, confere tudo
 //                                                          e simula a restauração — sem gravar nada
-// Opções: --chave-publica arquivo.json (usa o arquivo da chave em vez de config/backup)
+// A chave PÚBLICA fica em backup/chave-publica.json (versionada no repositório). A chave privada,
+// que abre os backups, fica só com o administrador (arquivo + senha), fora do sistema e do GitHub.
+// Opções: --chave-publica arquivo.json (usa outra chave pública)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
@@ -57,29 +59,20 @@ async function principal() {
       chaveTemp = await T.gerarChaves(senha, { observacao: 'chave temporária do teste automático' });
       chaveTemp.senha = senha;
       chavePublica = chaveTemp.chavePublica;
-    } else if (opt('chave-publica')) {
-      const arq = JSON.parse(fs.readFileSync(opt('chave-publica'), 'utf8'));
-      chavePublica = arq.chavePublica || arq;
     } else {
-      const c = await fsCli.obterDocumento('config', 'backup');
-      const obj = c ? T.camposParaObjeto(c) : null;
-      if (!obj || !obj.chavePublica || !obj.chavePublica.n) {
-        meta.mensagem = 'Chave de backup não configurada. Gere a chave em Configurações → Backup e Segurança.';
+      const arqPub = opt('chave-publica') || path.join(AQUI, 'chave-publica.json');
+      if (!fs.existsSync(arqPub)) {
+        meta.mensagem = 'Chave pública de backup não encontrada (backup/chave-publica.json). Gere com: node backup/gerar-chave.mjs';
         throw new Error(meta.mensagem);
       }
-      chavePublica = obj.chavePublica;
+      const arq = JSON.parse(fs.readFileSync(arqPub, 'utf8'));
+      chavePublica = arq.chavePublica || arq;
+      if (!chavePublica || !chavePublica.n) { meta.mensagem = 'Arquivo de chave pública inválido.'; throw new Error(meta.mensagem); }
     }
     // 2) banco completo
     const banco = await lerBancoCompleto(fsCli, T.COLECOES, T.COLECOES_DO_BACKUP, (c, i, n, qtd) => console.log(`  ${i}/${n} ${c}: ${qtd} documento(s)`));
     const codigo = lerCodigo();
     const observacoes = [];
-    // o núcleo embutido no site precisa ser o mesmo desta rotina (senão o site não abriria os backups)
-    try {
-      const html = fs.readFileSync(path.join(RAIZ, 'index.html'), 'utf8');
-      const embutido = /<script id="tpbackup-nucleo">\n([\s\S]*?)\n<\/script>/.exec(html)?.[1]?.trim();
-      const arquivo = fs.readFileSync(path.join(AQUI, 'nucleo.js'), 'utf8').trim();
-      if (embutido !== arquivo) observacoes.push('ATENÇÃO: o núcleo de backup dentro do index.html é diferente de backup/nucleo.js.');
-    } catch (e) {}
     if (!banco.listaDoBanco) observacoes.push('A lista de coleções do Firestore não está disponível com a chave pública; foram copiadas as coleções conhecidas do sistema.');
     if (banco.extras.length) observacoes.push(`Coleções extras encontradas e incluídas: ${banco.extras.join(', ')}.`);
     const plano = T.montarPlano({ docsPorColecao: banco.docsPorColecao, tipo, origem: meta.origem, projeto: cfg.projeto, codigo, colecoesNaoEncontradas: banco.vazias, observacoes });

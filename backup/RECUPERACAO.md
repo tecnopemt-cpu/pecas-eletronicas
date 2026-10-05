@@ -1,112 +1,105 @@
-# Guia de recuperação — Controle de Peças (Tecnopemt)
+# Backup e recuperação — Controle de Peças (Tecnopemt)
 
-Este guia explica como recuperar o sistema e os dados **mesmo se o site estiver fora do ar**.
+O backup funciona **fora do sistema**: não existe tela, menu ou botão de backup no site.
+Tudo roda nos bastidores (GitHub Actions) e a recuperação é feita por script, sem depender do site estar no ar.
 
-## Onde o sistema fica
+## Onde está cada parte do sistema
 
-| Parte | Onde está | Backup |
+| Parte | Onde está armazenada | Como é protegida |
 |---|---|---|
-| Código do site (`index.html`, ícones, manifesto) | GitHub `tecnopemt-cpu/pecas-eletronicas`, ramo `main`, publicado pelo GitHub Pages | Histórico do Git + uma cópia dentro de cada backup |
-| Banco de dados (clientes, peças, entradas, orçamentos, equipe, comissões, períodos, avisos, notificações, históricos) | Firebase Firestore, projeto `controle-processos-a2f99` | Todo backup |
-| Fotos (peças, entradas, entregas, testes) e imagens dos avisos | Dentro dos próprios documentos do Firestore (imagem embutida) | Todo backup |
-| Assinaturas (imagem, nome, CPF, IP, data) | Dentro dos documentos de entradas e orçamentos | Todo backup |
-| PDFs (recibos, orçamentos, relatórios) | **Não ficam guardados**: o sistema gera cada PDF na hora a partir dos dados | Os dados que geram os PDFs estão no backup |
+| Código do site (`index.html`, ícones, manifesto) | GitHub `tecnopemt-cpu/pecas-eletronicas`, ramo `main` (publicado pelo GitHub Pages) | Versionamento do Git (todo o histórico de alterações) + uma cópia dentro de cada backup |
+| Banco de dados (clientes, peças, entradas, orçamentos, equipe, comissões, períodos, avisos, notificações, históricos) | Google Firebase — Cloud Firestore, projeto `controle-processos-a2f99` | Backup automático diário |
+| Fotos das peças, das entradas, das entregas e dos testes; imagens dos avisos | **Dentro dos documentos do Firestore** (imagem embutida no próprio registro) | Backup automático diário (junto com o banco) |
+| Assinaturas (imagem, nome, CPF, IP, data) | Dentro dos registros de entradas e orçamentos no Firestore | Backup automático diário |
+| PDFs (recibos, orçamentos, relatórios) | Não ficam armazenados: o sistema gera cada PDF na hora a partir dos dados | Os dados que geram os PDFs estão no backup |
+| Arquivos enviados pelos usuários | Não existe armazenamento de arquivos separado: o que é enviado (fotos) vira imagem dentro do banco. O Firebase Storage está configurado, mas não é usado | Backup do banco |
 | Vídeos dos avisos | Links externos (YouTube etc.) | Só o link |
-| Sessão aberta e preferências do navegador | Em cada aparelho | Não precisa |
 
-O Firebase Storage está configurado no projeto, mas o sistema **não usa** — não há arquivos fora do banco.
+Resumo: **os dados (inclusive fotos e assinaturas) estão no Firestore, no Google; o código está no GitHub.**
+O backup copia o Firestore para fora do Google, e o código já está versionado.
 
-## Onde ficam os backups
+## Mecanismo de backup (automático e externo)
 
-1. **GitHub (automático, todo dia às 23:00)** — ramo `backups`: <https://github.com/tecnopemt-cpu/pecas-eletronicas/tree/backups>
-   Fica fora do Firebase. Mantém os últimos 30 dias e um backup por mês dos últimos 12 meses.
-   A rotina está em *Actions → Backup do Controle de Peças* (dá para rodar na hora em “Run workflow”).
-2. **Seu computador** — cada “Fazer backup agora” baixa um arquivo `.tpbak`. Guarde também num pen drive ou na nuvem
-   (Google Drive, e-mail): se o GitHub inteiro sumir, esse arquivo traz o código **e** os dados.
-3. **Dentro do sistema** — as últimas 3 cópias manuais/“antes de restaurar”, para voltar atrás com um clique.
+- **Rotina**: GitHub Actions, arquivo `.github/workflows/backup.yml`, **todo dia às 23:00 (Brasília)**.
+  Lê o Firestore inteiro direto da API do Google (não passa pelo site), junta o código, cifra e grava.
+- **Onde ficam os backups**: ramo `backups` do repositório —
+  <https://github.com/tecnopemt-cpu/pecas-eletronicas/tree/backups>.
+  Fica fora do Firebase e do site. Retenção: últimos 30 dias + 1 por mês dos últimos 12 meses.
+  O arquivo `indice.json`/`LEIAME.md` do ramo lista todos os backups (data, tamanho, quantidade de documentos).
+- **Segunda cópia fora do GitHub (opcional)**: se os segredos `RCLONE_CONFIG` e `RCLONE_DESTINO` forem configurados
+  no repositório (*Settings → Secrets and variables → Actions*), cada backup também é enviado para um armazenamento
+  externo (Google Drive, OneDrive, Amazon S3, Backblaze etc.) via [rclone](https://rclone.org).
+- **Criptografia**: o repositório é público, então todo backup sai cifrado (RSA-3072 + AES-256-GCM).
+  A rotina usa a chave **pública** (`backup/chave-publica.json`). Abrir um backup exige o **arquivo da chave privada
+  (`chave-backup-tecnopemt-XXXX.json`) + a senha** — guardados pelo administrador, fora do sistema e fora do GitHub.
+  **Guarde os dois em pelo menos dois lugares** (ex.: pen drive e Google Drive). Sem eles os backups não abrem.
+- **Teste de recuperação automático**: toda alteração na pasta `backup/` roda no GitHub um teste completo com os dados reais
+  (lê o banco, cifra, abre de novo, confere documento por documento e simula a restauração), sem gravar nada.
+- **Aviso de falha**: se a rotina falhar, o GitHub envia e-mail para a conta dona do repositório.
+  Dá para ver todas as execuções em *Actions → Backup do Controle de Peças* e rodar na hora em *Run workflow*.
 
-Todos os arquivos são **cifrados**. Para abrir é preciso o arquivo `chave-backup-tecnopemt-XXXX.json` **e a senha** dele,
-criados em *Configurações → Backup e Segurança*. Guarde os dois em pelo menos dois lugares seguros.
+## Como recuperar (sem precisar do site)
 
----
+Precisa de um computador com [Node.js 20+](https://nodejs.org), a pasta `backup/` deste repositório (ou de dentro de
+qualquer backup extraído), o arquivo do backup e a chave + senha.
 
-## Situação 1 — alguém apagou ou alterou dados por engano (site funcionando)
+Baixe o backup desejado em <https://github.com/tecnopemt-cpu/pecas-eletronicas/tree/backups> (ou use o link direto
+`https://raw.githubusercontent.com/tecnopemt-cpu/pecas-eletronicas/backups/ARQUIVO.tpbak`).
 
-1. Entre como **Master** → *Configurações → Backup e Segurança*.
-2. No histórico, clique em **Testar** no backup desejado para conferir (não altera nada).
-3. Clique em **Restaurar**, informe o arquivo da chave e a senha, confira o resumo (o que será criado, alterado e apagado),
-   marque a confirmação e digite `RESTAURAR`.
-4. Antes de gravar, o sistema faz sozinho um backup do estado atual (aparece como “Antes de restaurar”). Se precisar
-   desfazer, restaure esse backup.
-
-## Situação 2 — o site saiu do ar, mas o banco está bom
-
-Opção A — reverter uma atualização com erro: no GitHub, abra o histórico do ramo `main` e reverta o último commit
-(o GitHub Pages publica de novo em 1–2 minutos).
-
-Opção B — publicar o site a partir de um backup (em qualquer computador com [Node.js 20+](https://nodejs.org)):
+### 1) Conferir um backup (não altera nada)
 
 ```bash
-node backup/restaurar.mjs backup-AAAAMMDD-HHMM-automatico.tpbak --chave chave-backup-tecnopemt-XXXX.json --extrair recuperado
+node backup/restaurar.mjs backup-AAAAMMDD-HHMM-automatico.tpbak --chave chave-backup-tecnopemt-XXXX.json
 ```
 
-A pasta `recuperado/site` tem o sistema completo (`index.html`, ícones, manifesto). Publique essa pasta em qualquer
-hospedagem estática (outro repositório no GitHub Pages, Netlify, Cloudflare Pages, Firebase Hosting…). Ela continua
-usando o mesmo banco do Firebase.
+Mostra a data, a quantidade de documentos por coleção, fotos e assinaturas, e confere os vínculos entre os dados
+(orçamento → cliente → entrada → peças → comissão).
 
-> Não tem o repositório? O próprio backup traz os scripts: depois do `--extrair`, eles estão em `recuperado/site/backup/`.
-> Para extrair pela primeira vez, baixe só a pasta `backup/` do GitHub ou peça a alguém com Node para rodar o comando.
-
-## Situação 3 — o banco foi apagado ou corrompido
-
-Se o site abre: siga a Situação 1 (o histórico mostra os backups do GitHub mesmo com o banco vazio).
-
-Sem o site, num computador com Node.js 20+:
+### 2) Dados apagados ou corrompidos → restaurar o banco
 
 ```bash
-# 1) conferir (não grava nada)
-node backup/restaurar.mjs backup-AAAAMMDD-HHMM-automatico.tpbak --chave chave-backup-tecnopemt-XXXX.json
-# 2) restaurar (salva antes um backup do estado atual e pede para digitar RESTAURAR)
 node backup/restaurar.mjs backup-AAAAMMDD-HHMM-automatico.tpbak --chave chave-backup-tecnopemt-XXXX.json --aplicar
 ```
 
-No fim o script relê o banco e confirma “o banco ficou idêntico ao backup”. Também aceita um link direto
-(`https://raw.githubusercontent.com/tecnopemt-cpu/pecas-eletronicas/backups/ARQUIVO.tpbak`) e backups divididos
-em partes (`.parte01`, `.parte02`…).
+Antes de gravar, o script salva um backup do estado atual (`...-pre-restauracao.tpbak`) para poder voltar atrás.
+Pede para digitar `RESTAURAR`, grava tudo e no fim relê o banco e confirma: “o banco ficou idêntico ao backup”.
+Para desfazer, rode o mesmo comando com o arquivo `...-pre-restauracao.tpbak`.
 
-## Situação 4 — o projeto do Firebase foi excluído
+### 3) Site fora do ar → publicar o sistema de novo
 
-1. Crie um projeto novo no [console do Firebase](https://console.firebase.google.com), ative o **Cloud Firestore**
-   e configure as regras de acesso.
-2. Copie a configuração web do projeto novo (`apiKey`, `projectId`…) para o `firebaseConfig` do `index.html`.
-3. Restaure os dados no projeto novo:
+- Se foi uma atualização com erro: reverta o último commit do ramo `main` no GitHub (o Pages republica em 1–2 minutos).
+- Ou extraia o site de um backup e publique em qualquer hospedagem estática (outro repositório no GitHub Pages,
+  Netlify, Cloudflare Pages, Firebase Hosting):
 
 ```bash
-node backup/restaurar.mjs BACKUP.tpbak --chave CHAVE.json --aplicar --projeto ID-DO-PROJETO-NOVO --api-key CHAVE-WEB-NOVA
+node backup/restaurar.mjs BACKUP.tpbak --chave CHAVE.json --extrair recuperado
 ```
 
-4. Publique o `index.html` atualizado (Situação 2).
+`recuperado/site` = sistema completo; `recuperado/dados` = todos os dados em JSON legível.
 
-## Situação 5 — o repositório do GitHub foi apagado
+### 4) Projeto do Firebase excluído → banco novo
 
-Use um arquivo `.tpbak` guardado no computador/nuvem: ele tem o código e os dados. Crie um repositório novo, extraia o
-site (`--extrair`), envie a pasta `site/` para o repositório e ative o GitHub Pages. Para voltar a ter backup automático,
-copie também a pasta `.github/` que está dentro de `site/`.
+1. Crie um projeto no [console do Firebase](https://console.firebase.google.com) e ative o Cloud Firestore.
+2. Coloque a configuração web do projeto novo no `firebaseConfig` do `index.html`.
+3. `node backup/restaurar.mjs BACKUP.tpbak --chave CHAVE.json --aplicar --projeto ID-NOVO --api-key CHAVE-WEB-NOVA`
+4. Publique o site atualizado (item 3).
 
----
+### 5) Repositório do GitHub perdido
 
-## Testes de recuperação
+Cada backup também guarda o código. Com um arquivo `.tpbak` salvo fora do GitHub (segunda cópia via rclone, ou
+baixado e guardado), extraia (`--extrair`) e publique a pasta `site/` num repositório novo; a pasta
+`site/.github` reativa o backup automático.
 
-- **Automático**: toda mudança na pasta `backup/` roda no GitHub um teste completo com os dados reais. O teste lê o banco,
-  cifra, abre de novo, confere documento por documento e simula a restauração, sem gravar nada.
-- **Manual (recomendado uma vez por mês)**: *Configurações → Backup e Segurança → Testar*, com o arquivo da chave.
+## Trocar a chave de backup
 
-## Observações de segurança
+```bash
+node backup/gerar-chave.mjs --saida chave-backup-tecnopemt-NOVA.json
+```
 
-- O repositório é público, por isso os backups só saem cifrados (RSA-3072 + AES-256-GCM). O banco guarda apenas a chave
-  **pública**; a chave privada fica no arquivo do administrador, protegida pela senha.
-- O sistema não usa o login do Firebase. Por isso as regras do Firestore precisam permitir acesso direto, e
-  qualquer pessoa com a configuração pública do site consegue ler e gravar no banco. Os backups protegem contra perda.
-  Para fechar esse acesso seria preciso migrar o login para o Firebase Authentication (mudança grande, fora deste escopo).
-- O GitHub pausa rotinas agendadas de repositórios sem atividade por 60 dias; a própria rotina se reativa a cada execução.
-  Mesmo assim, se o card “Backup automático” ficar em alerta, abra *Actions* no GitHub e confira.
+Envie o `backup/chave-publica.json` atualizado ao repositório. Backups novos usam a chave nova; os antigos continuam
+abrindo só com a chave antiga (não descarte o arquivo antigo).
+
+## Observação de segurança
+
+O sistema não usa o login do Firebase, então as regras do Firestore permitem acesso direto com a configuração pública
+do site. O backup diário protege contra perda; fechar esse acesso exigiria migrar o login para o Firebase Authentication.
