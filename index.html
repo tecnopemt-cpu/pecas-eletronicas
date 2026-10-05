@@ -281,6 +281,8 @@
   .apu-card-rotulo small{font-size:10.5px;color:#5B6778;font-weight:500;}
   .apu-card-valor{font-size:clamp(18px,1.9vw,24px);font-weight:800;color:#0F2A47;margin-top:6px;line-height:1.15;word-break:break-word;}
   .apu-card-valor.final{color:var(--laranja);}
+  td.celula-num-faixa{font-weight:700;white-space:nowrap;width:1%;}
+  .apu-card-valor.apu-faixa{font-size:clamp(14px,1.25vw,17px);word-break:normal;}
   .apu-card-valor.alerta{color:#E0531F;}
   .apu-card-sub{font-size:13px;color:#4A5568;font-weight:600;margin-top:4px;}
   .apu-card-sub.alerta{color:#C2410C;}
@@ -8675,33 +8677,34 @@ function ModalArquivados({
 // data de vigência). Os valores abaixo são só o PADRÃO inicial, iguais às regras que o
 // sistema já aplicava — usados enquanto nenhuma versão tiver sido salva.
 const REGRAS_COMISSAO_PADRAO = {
-  faixas: [{
-    id: 'f1',
+  // Faixas de bonificação definidas EXCLUSIVAMENTE pelo FATURAMENTO do período (soma dos orçamentos
+  // Concluídos no período), em reais. A quantidade de peças é só informativa e não define faixa.
+  // (As faixas antigas por quantidade de peças — chave "faixas" — não são mais usadas.)
+  faixasFaturamento: [{
+    id: 'ff1',
     min: 0,
-    max: 120,
-    percentual: 70,
+    max: 69999.99,
+    percentual: 0,
     ativa: true
   }, {
-    id: 'f2',
-    min: 121,
-    max: 160,
+    id: 'ff2',
+    min: 70000,
+    max: 100000,
     percentual: 100,
     ativa: true
   }, {
-    id: 'f3',
-    min: 161,
-    max: 180,
+    id: 'ff3',
+    min: 100000.01,
+    max: 130000,
     percentual: 120,
     ativa: true
   }, {
-    id: 'f4',
-    min: 181,
+    id: 'ff4',
+    min: 130000.01,
     max: null,
     percentual: 150,
     ativa: true
   }],
-  // Quais peças contam para a faixa: só consertadas, ou consertadas + garantia.
-  contagemFaixa: 'consertadas',
   faturamento: {
     valorMinimo: 70000,
     comparacao: 'maior',
@@ -8741,12 +8744,12 @@ const REGRAS_COMISSAO_PADRAO = {
   base: {
     producao: 'equipe',
     // 'equipe' (única disponível hoje — o sistema não registra o técnico de cada peça)
-    ordem: ['faixa', 'faturamento', 'garantia', 'atrasosFaltas']
+    // O faturamento mínimo deixou de ser uma etapa: a faixa de 0% (abaixo de R$ 70.000,00) já zera a comissão.
+    ordem: ['faixa', 'garantia', 'atrasosFaltas']
   }
 };
 const ETAPAS_COMISSAO = {
-  faixa: 'Faixa de produção',
-  faturamento: 'Faturamento mínimo',
+  faixa: 'Faixa de faturamento',
   garantia: 'Índice de garantia',
   atrasosFaltas: 'Atrasos e faltas'
 };
@@ -8767,9 +8770,15 @@ function normalizarRegras(r) {
       ...(r[k] || {})
     };
   });
-  if (!Array.isArray(out.faixas) || !out.faixas.length) out.faixas = p.faixas;
+  if (!Array.isArray(out.faixasFaturamento) || !out.faixasFaturamento.length) out.faixasFaturamento = p.faixasFaturamento;
+  // regra antiga por quantidade de peças: descartada (não participa mais do cálculo)
+  delete out.faixas;
+  delete out.contagemFaixa;
+  // fonte do faturamento: sempre o total dos orçamentos Concluídos no período
+  out.faturamento.fonte = 'totalFaturado';
   if (!Array.isArray(out.faltas.tipos)) out.faltas.tipos = p.faltas.tipos;
-  if (!Array.isArray(out.base.ordem) || out.base.ordem.length !== 4) out.base.ordem = p.base.ordem;
+  const ordem = Array.isArray(out.base.ordem) ? out.base.ordem.filter(e => e !== 'faturamento') : [];
+  out.base.ordem = ordem.length === 3 && ['faixa', 'garantia', 'atrasosFaltas'].every(e => ordem.includes(e)) ? ordem : p.base.ordem;
   // "Acumulativo sobre o saldo" não é a regra da empresa: qualquer versão salva assim passa a valer por ocorrência.
   if (!['simples', 'unico'].includes(out.atrasos.modo)) out.atrasos.modo = 'simples';
   return out;
@@ -8783,35 +8792,55 @@ function regrasVigentesEm(versoes, dataStr) {
   const v = versaoRegrasVigente(versoes, dataStr);
   return normalizarRegras(v ? v.regras : null);
 }
+// Valores das faixas tratados em CENTAVOS inteiros: evita que somas com casas decimais
+// (ex.: 69.999,99000001) mudem de faixa por arredondamento.
+function centavos(v) {
+  return Math.round((Number(v) || 0) * 100);
+}
+function semLimiteFaixa(fx) {
+  return fx.max === null || fx.max === undefined || fx.max === '';
+}
 function descreverFaixa(fx) {
   if (!fx) return 'Nenhuma faixa';
-  if (fx.max === null || fx.max === undefined || fx.max === '') return `Acima de ${Number(fx.min) - 1} peças`;
+  if (semLimiteFaixa(fx)) return `A partir de ${formatMoeda(Number(fx.min) || 0)}`;
+  return `${formatMoeda(Number(fx.min) || 0)} a ${formatMoeda(Number(fx.max) || 0)}`;
+}
+// Faixas antigas (por quantidade de peças) — só para exibir históricos e períodos fechados antes da mudança.
+function descreverFaixaPecas(fx) {
+  if (!fx) return 'Nenhuma faixa';
+  if (semLimiteFaixa(fx)) return `Acima de ${Number(fx.min) - 1} peças`;
   return `${fx.min} a ${fx.max} peças`;
 }
-function faixaDaQuantidade(regras, qtd) {
-  return (regras.faixas || []).filter(f => f.ativa !== false).find(f => qtd >= Number(f.min) && (f.max === null || f.max === undefined || f.max === '' || qtd <= Number(f.max))) || null;
+// Texto da faixa de um resultado de apuração (inclusive resultados congelados em fechamentos antigos).
+function textoFaixaResultado(res) {
+  if (!res || !res.faixa) return 'Nenhuma faixa';
+  return res.criterioFaixa === 'faturamento' ? descreverFaixa(res.faixa) : descreverFaixaPecas(res.faixa);
 }
-// Conferência das faixas antes de salvar: sobreposição e buracos entre faixas ativas.
+function faixaDoFaturamento(regras, faturamento) {
+  const c = centavos(faturamento);
+  return (regras.faixasFaturamento || []).filter(f => f.ativa !== false).find(f => c >= centavos(f.min) && (semLimiteFaixa(f) || c <= centavos(f.max))) || null;
+}
+// Conferência das faixas antes de salvar: sobreposição e buracos (de 1 centavo) entre faixas ativas.
 function validarFaixas(faixas) {
   const ativas = faixas.filter(f => f.ativa !== false).map(f => ({
     ...f,
-    min: Number(f.min),
-    max: f.max === '' || f.max === null || f.max === undefined ? null : Number(f.max)
+    min: f.min === '' || f.min === null || f.min === undefined ? NaN : Number(f.min),
+    max: semLimiteFaixa(f) ? null : Number(f.max)
   })).sort((a, b) => a.min - b.min);
   const erros = [],
     avisos = [];
   if (!ativas.length) erros.push('Deixe pelo menos uma faixa ativa.');
   ativas.forEach((f, i) => {
-    if (isNaN(f.min) || f.min < 0) erros.push(`Faixa ${i + 1}: início inválido.`);
-    if (f.max !== null && f.max < f.min) erros.push(`Faixa ${descreverFaixa(f)}: o fim é menor que o início.`);
-    if (isNaN(Number(f.percentual)) || Number(f.percentual) < 0) erros.push(`Faixa ${descreverFaixa(f)}: percentual inválido.`);
+    if (isNaN(f.min) || f.min < 0) erros.push(`Faixa ${i + 1}: faturamento mínimo inválido.`);
+    if (f.max !== null && (isNaN(f.max) || centavos(f.max) < centavos(f.min))) erros.push(`Faixa ${descreverFaixa(f)}: o máximo é menor que o mínimo.`);
+    if (isNaN(Number(f.percentual)) || Number(f.percentual) < 0) erros.push(`Faixa ${descreverFaixa(f)}: bonificação inválida.`);
     const prox = ativas[i + 1];
     if (prox) {
-      if (f.max === null) erros.push(`A faixa ${descreverFaixa(f)} não tem limite e há outra faixa depois dela.`);else if (prox.min <= f.max) erros.push(`As faixas ${descreverFaixa(f)} e ${descreverFaixa(prox)} se sobrepõem.`);else if (prox.min > f.max + 1) avisos.push(`Nenhuma faixa cobre de ${f.max + 1} a ${prox.min - 1} peças (nesse caso a comissão fica em 0%).`);
+      if (f.max === null) erros.push(`A faixa ${descreverFaixa(f)} não tem limite e há outra faixa depois dela.`);else if (centavos(prox.min) <= centavos(f.max)) erros.push(`As faixas ${descreverFaixa(f)} e ${descreverFaixa(prox)} se sobrepõem.`);else if (centavos(prox.min) > centavos(f.max) + 1) avisos.push(`Nenhuma faixa cobre de ${formatMoeda((centavos(f.max) + 1) / 100)} a ${formatMoeda((centavos(prox.min) - 1) / 100)} (nesse caso a comissão fica em 0%).`);
     }
   });
-  if (ativas.length && ativas[0].min > 0) avisos.push(`Nenhuma faixa cobre de 0 a ${ativas[0].min - 1} peças.`);
-  if (ativas.length && ativas[ativas.length - 1].max !== null) avisos.push(`Acima de ${ativas[ativas.length - 1].max} peças nenhuma faixa se aplica.`);
+  if (ativas.length && centavos(ativas[0].min) > 0) avisos.push(`Nenhuma faixa cobre de R$ 0,00 a ${formatMoeda((centavos(ativas[0].min) - 1) / 100)} (nesse caso a comissão fica em 0%).`);
+  if (ativas.length && ativas[ativas.length - 1].max !== null) avisos.push(`Acima de ${formatMoeda(ativas[ativas.length - 1].max)} nenhuma faixa se aplica (comissão em 0%).`);
   return {
     erros,
     avisos
@@ -9210,14 +9239,14 @@ function calcularApuracaoComissao({
   const itens = faturados.flatMap(o => o.itens || []);
   const qtdConsertadas = somaTipo(itens, 'consertada');
   const qtdGarantia = somaTipo(itens, 'garantia');
-  const qtdFaixa = regras.contagemFaixa === 'consertadasGarantia' ? qtdConsertadas + qtdGarantia : qtdConsertadas;
   let pctGarantia = 0;
   if (regras.garantia.formula === 'sobreTotal') pctGarantia = qtdConsertadas + qtdGarantia > 0 ? qtdGarantia / (qtdConsertadas + qtdGarantia) * 100 : 0;else pctGarantia = qtdConsertadas > 0 ? qtdGarantia / qtdConsertadas * 100 : 0;
-  const faturamento = regras.faturamento.fonte === 'somenteConserto' ? itens.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0) * (Number(i.valorUnit) || 0), 0) : faturados.reduce((s, o) => s + (Number(o.total) || 0), 0);
-  const minimo = Number(regras.faturamento.valorMinimo) || 0;
-  const faturamentoOk = regras.faturamento.comparacao === 'maiorIgual' ? faturamento >= minimo : faturamento > minimo;
-  const faixa = faixaDaQuantidade(regras, qtdFaixa);
+  // Faturamento do período = soma dos orçamentos Concluídos no período (em centavos exatos). É ele — e só ele — que define a faixa.
+  const faturamento = faturados.reduce((s, o) => s + centavos(o.total), 0) / 100;
+  const faixa = faixaDoFaturamento(regras, faturamento);
   const pctFaixa = faixa ? Number(faixa.percentual) || 0 : 0;
+  const ativasOrd = (regras.faixasFaturamento || []).filter(f => f.ativa !== false).slice().sort((a, b) => centavos(a.min) - centavos(b.min));
+  const proximaFaixa = ativasOrd.find(f => centavos(f.min) > centavos(faturamento) && Number(f.percentual) > pctFaixa) || null;
   const garantiaEstourada = pctGarantia > (Number(regras.garantia.limitePct) || 0);
 
   // Lançamentos elegíveis: só de orçamentos Concluídos no período (garantia e sem
@@ -9283,17 +9312,10 @@ function calcularApuracaoComissao({
       let descricao = '';
       if (etapa === 'faixa') {
         v = v * pctFaixa / 100;
-        descricao = faixa ? `${qtdFaixa} peças → faixa ${descreverFaixa(faixa)}: paga ${formatarPct(pctFaixa)} da comissão` : `${qtdFaixa} peças → nenhuma faixa ativa cobre essa quantidade (0%)`;
-      } else if (etapa === 'faturamento') {
-        const cond = regras.faturamento.comparacao === 'maiorIgual' ? 'igual ou acima de' : 'acima de';
-        if (faturamentoOk) descricao = `Faturamento ${formatMoeda(faturamento)} ${cond} ${formatMoeda(minimo)}: liberado`;else if (regras.faturamento.acao === 'reduzir') {
-          const r = Number(regras.faturamento.reducaoPct) || 0;
-          v = v - v * r / 100;
-          descricao = `Faturamento ${formatMoeda(faturamento)} não ficou ${cond} ${formatMoeda(minimo)}: redução de ${formatarPct(r)}`;
-        } else {
-          v = 0;
-          descricao = `Faturamento ${formatMoeda(faturamento)} não ficou ${cond} ${formatMoeda(minimo)}: comissão não liberada`;
-        }
+        descricao = faixa ? `Faturamento do período ${formatMoeda(faturamento)} → faixa ${descreverFaixa(faixa)}: bonificação de ${formatarPct(pctFaixa)} (comissão base × ${(pctFaixa / 100).toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })})` : `Faturamento do período ${formatMoeda(faturamento)} → nenhuma faixa ativa cobre esse valor (0%)`;
       } else if (etapa === 'garantia') {
         const lim = Number(regras.garantia.limitePct) || 0;
         if (garantiaEstourada) {
@@ -9383,13 +9405,12 @@ function calcularApuracaoComissao({
     idsOrcamentos: faturados.map(o => o.id),
     qtdConsertadas,
     qtdGarantia,
-    qtdFaixa,
     pctGarantia,
     faturamento,
-    faturamentoMinimo: minimo,
-    faturamentoOk,
+    criterioFaixa: 'faturamento',
     faixa,
     pctFaixa,
+    proximaFaixa,
     garantiaEstourada,
     linhas,
     totalBase: linhas.reduce((s, l) => s + l.base, 0),
@@ -9676,6 +9697,10 @@ function CartoesApuracao({
 }) {
   const base = resumoLinhas ? resumoLinhas.reduce((s, l) => s + l.base, 0) : res.totalBase;
   const final = resumoLinhas ? resumoLinhas.reduce((s, l) => s + l.final, 0) : res.totalFinal;
+  const ls = resumoLinhas || res.linhas || [];
+  const descontos = ls.reduce((s, l) => s + (l.descontos || 0), 0);
+  const ajustes = ls.reduce((s, l) => s + (l.totalAjustes || 0), 0);
+  const zerada = res.criterioFaixa === 'faturamento' && !res.pctFaixa;
   return /*#__PURE__*/React.createElement("div", {
     className: "com-cards",
     style: {
@@ -9684,20 +9709,17 @@ function CartoesApuracao({
       gap: 10,
       marginBottom: 14
     }
-  }, /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Peças elegíveis",
-    valor: res.qtdFaixa
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: res.faixa ? `Faixa: ${descreverFaixa(res.faixa)}` : 'Faixa: nenhuma',
-    valor: formatarPct(res.pctFaixa)
-  }), mostrarFaturamento ? /*#__PURE__*/React.createElement(CartaoMetrica, {
+  }, mostrarFaturamento && /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "Faturamento do período",
     valor: formatMoeda(res.faturamento),
-    cor: res.faturamentoOk ? undefined : 'var(--vermelho)'
-  }) : /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Faturamento mínimo",
-    valor: res.faturamentoOk ? 'Atingido' : 'Não atingido',
-    cor: res.faturamentoOk ? undefined : 'var(--vermelho)'
+    cor: zerada ? 'var(--vermelho)' : undefined
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: `Faixa de faturamento: ${textoFaixaResultado(res)}`,
+    valor: `Bonificação: ${formatarPct(res.pctFaixa)}`,
+    cor: zerada ? 'var(--vermelho)' : undefined
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Peças consertadas (informativo)",
+    valor: res.qtdConsertadas ?? res.qtdFaixa ?? 0
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "% de garantia",
     valor: `${formatarPct(res.pctGarantia.toFixed(1))}`,
@@ -9705,6 +9727,12 @@ function CartoesApuracao({
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "Comissão base",
     valor: formatMoeda(base)
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Descontos",
+    valor: sinalMoedaTela(descontos)
+  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
+    titulo: "Ajustes",
+    valor: sinalMoedaTela(ajustes)
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "Valor final",
     valor: formatMoeda(final),
@@ -9716,13 +9744,19 @@ function AvisosApuracao({
   mostrarFaturamento
 }) {
   const r = res.regras;
-  return /*#__PURE__*/React.createElement(React.Fragment, null, !res.faturamentoOk && /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, res.criterioFaixa === 'faturamento' && !res.pctFaixa && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: 'var(--vermelho)',
       marginBottom: 8
     }
-  }, "⚠️ Faturamento ", mostrarFaturamento ? `de ${formatMoeda(res.faturamento)} ` : '', "não ficou ", r.faturamento.comparacao === 'maiorIgual' ? 'igual ou acima de' : 'acima de', " ", formatMoeda(res.faturamentoMinimo), " — ", r.faturamento.acao === 'reduzir' ? `comissão reduzida em ${formatarPct(r.faturamento.reducaoPct)}` : 'comissão não liberada neste período', "."), res.garantiaEstourada && /*#__PURE__*/React.createElement("div", {
+  }, "⚠️ Faturamento do período ", mostrarFaturamento ? `de ${formatMoeda(res.faturamento)} ` : '', "na faixa de 0% — comissão zerada neste período", mostrarFaturamento && res.proximaFaixa ? ` (faltam ${formatMoeda((centavos(res.proximaFaixa.min) - centavos(res.faturamento)) / 100)} para a faixa de ${formatarPct(res.proximaFaixa.percentual)})` : '', "."), mostrarFaturamento && res.criterioFaixa === 'faturamento' && res.pctFaixa > 0 && res.proximaFaixa && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      marginBottom: 8
+    }
+  }, "ℹ️ Faltam ", formatMoeda((centavos(res.proximaFaixa.min) - centavos(res.faturamento)) / 100), " de faturamento para a próxima faixa (", descreverFaixa(res.proximaFaixa), ": bonificação de ", formatarPct(res.proximaFaixa.percentual), ")."), res.garantiaEstourada && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: 'var(--laranja-escuro)',
@@ -9838,7 +9872,7 @@ function CartaoFuncionarioComissao({
   memoria
 }) {
   const faltasTxt = (tiposFalta || []).filter(t => (l.faltas || {})[t.id] !== undefined).map(t => `${l.faltas[t.id] || 0} ${t.nome.toLowerCase().replace('falta ', '')}`).join(' · ') || String(l.qtdFaltas || 0);
-  const pares = [['Comissão (Equipe)', formatarPct(l.percentualFicha)], ['Peças elegíveis', l.pecas], ['Comissão base', formatMoeda(l.base)], ['Faixa e demais regras', l.deltaFaixa === 0 && Math.abs(l.descontos + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0)) < 0.005 ? '—' : sinalMoedaTela(l.final - l.base + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) - (l.totalAjustes || 0))], ['Atrasos', l.atrasos ? `${l.atrasos} (−${formatarPct(l.pctReducaoAtrasos)})${l.minutosAtraso ? ` · ${formatarMinutos(l.minutosAtraso)}` : ''}` : '0'], ['Faltas', l.qtdFaltas ? faltasTxt : '0'], ['Descontos (atrasos/faltas)', (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) > 0 ? `− ${formatMoeda((l.descontoAtrasos || 0) + (l.descontoFaltas || 0))}` : '—'], ['Ajustes', l.totalAjustes ? sinalMoedaTela(l.totalAjustes) : '—']];
+  const pares = [['Comissão (Equipe)', formatarPct(l.percentualFicha)], ['Peças consertadas', l.pecas], ['Comissão base', formatMoeda(l.base)], ['Faixa e demais regras', l.deltaFaixa === 0 && Math.abs(l.descontos + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0)) < 0.005 ? '—' : sinalMoedaTela(l.final - l.base + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) - (l.totalAjustes || 0))], ['Atrasos', l.atrasos ? `${l.atrasos} (−${formatarPct(l.pctReducaoAtrasos)})${l.minutosAtraso ? ` · ${formatarMinutos(l.minutosAtraso)}` : ''}` : '0'], ['Faltas', l.qtdFaltas ? faltasTxt : '0'], ['Descontos (atrasos/faltas)', (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) > 0 ? `− ${formatMoeda((l.descontoAtrasos || 0) + (l.descontoFaltas || 0))}` : '—'], ['Ajustes', l.totalAjustes ? sinalMoedaTela(l.totalAjustes) : '—']];
   return /*#__PURE__*/React.createElement("div", {
     className: "func-card"
   }, /*#__PURE__*/React.createElement("div", {
@@ -9902,7 +9936,7 @@ function TabelaApuracao({
       overflowX: 'auto',
       marginBottom: 18
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "% (Equipe)"), /*#__PURE__*/React.createElement("th", null, "Peças"), /*#__PURE__*/React.createElement("th", null, "Comissão base"), /*#__PURE__*/React.createElement("th", null, "Faixa"), /*#__PURE__*/React.createElement("th", null, "Descontos"), /*#__PURE__*/React.createElement("th", null, "Ajustes"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhas.map(l => {
+  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "% (Equipe)"), /*#__PURE__*/React.createElement("th", null, "Peças"), /*#__PURE__*/React.createElement("th", null, "Comissão base"), /*#__PURE__*/React.createElement("th", null, "Bonificação (faixa)"), /*#__PURE__*/React.createElement("th", null, "Descontos"), /*#__PURE__*/React.createElement("th", null, "Ajustes"), /*#__PURE__*/React.createElement("th", null, "Valor final"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, linhas.map(l => {
     const st = situacaoPagamento(fechamento, l.funcionarioId);
     return /*#__PURE__*/React.createElement(React.Fragment, {
       key: l.funcionarioId
@@ -10374,7 +10408,8 @@ function ModalApuracao({
   const extraLinha = l => ({
     faturamento: [...new Map(l.lancamentos.map(x => [x.orcamentoId, x.valorOrcamento])).values()].reduce((s, v) => s + v, 0)
   });
-  const faixaCurta = res.faixa ? res.faixa.max === null || res.faixa.max === undefined || res.faixa.max === '' ? `Acima de ${Number(res.faixa.min) - 1}` : `${res.faixa.min}–${res.faixa.max}` : 'Nenhuma';
+  const faixaCurta = textoFaixaResultado(res);
+  const faixaZerada = res.criterioFaixa === 'faturamento' && !res.pctFaixa;
   const multFaixa = (res.pctFaixa || 0) / 100;
   const situacaoLinha = l => {
     if (fechamento) return fechamento.pagamentos?.[l.funcionarioId]?.pago ? {
@@ -10472,9 +10507,9 @@ function ModalApuracao({
     nome: "engrenagem"
   })), /*#__PURE__*/React.createElement("div", {
     className: "apu-card-rotulo"
-  }, "Peças com conserto"), /*#__PURE__*/React.createElement("div", {
+  }, "Peças com conserto ", /*#__PURE__*/React.createElement("small", null, "(informativo)")), /*#__PURE__*/React.createElement("div", {
     className: "apu-card-valor"
-  }, res.qtdFaixa)), /*#__PURE__*/React.createElement("div", {
+  }, res.qtdConsertadas ?? res.qtdFaixa ?? 0)), /*#__PURE__*/React.createElement("div", {
     className: "apu-card"
   }, /*#__PURE__*/React.createElement("span", {
     className: "apu-card-icone azul"
@@ -10482,11 +10517,11 @@ function ModalApuracao({
     nome: "barras"
   })), /*#__PURE__*/React.createElement("div", {
     className: "apu-card-rotulo"
-  }, "Faixa de volume"), /*#__PURE__*/React.createElement("div", {
-    className: "apu-card-valor"
+  }, "Faixa de faturamento"), /*#__PURE__*/React.createElement("div", {
+    className: `apu-card-valor apu-faixa ${faixaZerada ? 'alerta' : ''}`
   }, faixaCurta), /*#__PURE__*/React.createElement("div", {
-    className: "apu-card-sub"
-  }, "(paga ", formatarPct(res.pctFaixa), ")")), /*#__PURE__*/React.createElement("div", {
+    className: `apu-card-sub ${faixaZerada ? 'alerta' : ''}`
+  }, "Bonificação: ", formatarPct(res.pctFaixa))), /*#__PURE__*/React.createElement("div", {
     className: "apu-card"
   }, /*#__PURE__*/React.createElement("span", {
     className: "apu-card-icone verde"
@@ -10495,10 +10530,10 @@ function ModalApuracao({
   })), /*#__PURE__*/React.createElement("div", {
     className: "apu-card-rotulo"
   }, "Faturamento"), /*#__PURE__*/React.createElement("div", {
-    className: `apu-card-valor ${res.faturamentoOk ? '' : 'alerta'}`
-  }, formatMoeda(res.faturamento)), !res.faturamentoOk && /*#__PURE__*/React.createElement("div", {
-    className: "apu-card-sub alerta"
-  }, "mínimo ", formatMoeda(res.faturamentoMinimo))), /*#__PURE__*/React.createElement("div", {
+    className: `apu-card-valor ${faixaZerada ? 'alerta' : ''}`
+  }, formatMoeda(res.faturamento)), /*#__PURE__*/React.createElement("div", {
+    className: "apu-card-sub"
+  }, "do período (Concluídos)")), /*#__PURE__*/React.createElement("div", {
     className: "apu-card"
   }, /*#__PURE__*/React.createElement("span", {
     className: "apu-card-icone vermelho"
@@ -10535,12 +10570,12 @@ function ModalApuracao({
     className: "apu-card-rotulo"
   }, "Valor final"), /*#__PURE__*/React.createElement("div", {
     className: "apu-card-valor final"
-  }, formatMoeda(res.totalFinal)))), !res.faturamentoOk && /*#__PURE__*/React.createElement("div", {
+  }, formatMoeda(res.totalFinal)))), faixaZerada && /*#__PURE__*/React.createElement("div", {
     className: "apu-alerta"
   }, /*#__PURE__*/React.createElement(IconeApu, {
     nome: "alerta",
     tamanho: 20
-  }), /*#__PURE__*/React.createElement("span", null, "Faturamento do período é ", formatMoeda(res.faturamento), " — ", r.faturamento.comparacao === 'maiorIgual' ? 'abaixo de' : 'igual ou abaixo de', " ", formatMoeda(res.faturamentoMinimo), ": ", r.faturamento.acao === 'reduzir' ? `comissão reduzida em ${formatarPct(r.faturamento.reducaoPct)} neste período.` : 'sem pagamento de comissão neste período.')), res.garantiaEstourada && /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("span", null, "Faturamento do período é ", formatMoeda(res.faturamento), " — faixa de 0%: sem pagamento de comissão neste período", res.proximaFaixa ? ` (faltam ${formatMoeda((centavos(res.proximaFaixa.min) - centavos(res.faturamento)) / 100)} para a faixa de ${formatarPct(res.proximaFaixa.percentual)})` : '', ".")), res.garantiaEstourada && /*#__PURE__*/React.createElement("div", {
     className: "apu-alerta laranja"
   }, /*#__PURE__*/React.createElement(IconeApu, {
     nome: "alerta",
@@ -12399,13 +12434,7 @@ function ModalReabrirPeriodo({
 
 // ======================= COMISSÃO — ABA REGRAS =======================
 const ROTULOS_REGRA = {
-  faixas: 'Faixas de produção',
-  contagemFaixa: 'Peças consideradas na faixa',
-  'faturamento.valorMinimo': 'Faturamento mínimo',
-  'faturamento.comparacao': 'Condição do faturamento',
-  'faturamento.acao': 'Se não atingir o faturamento',
-  'faturamento.reducaoPct': 'Redução por faturamento (%)',
-  'faturamento.fonte': 'Faturamento considerado',
+  faixasFaturamento: 'Faixas de faturamento e bonificação',
   'garantia.limitePct': 'Limite de garantia (%)',
   'garantia.reducaoPct': 'Redução por garantia (%)',
   'garantia.aplicarSobre': 'Redução de garantia aplicada sobre',
@@ -12414,7 +12443,6 @@ const ROTULOS_REGRA = {
   'atrasos.modo': 'Forma do desconto por atraso',
   'atrasos.limitePct': 'Limite máximo de desconto por atraso (%)',
   'faltas.tipos': 'Tipos de ausência',
-  'base.producao': 'Produção usada na faixa',
   'base.ordem': 'Ordem de aplicação'
 };
 const OPCOES_REGRA = {
@@ -12457,7 +12485,8 @@ const OPCOES_REGRA = {
   }
 };
 function textoValorRegra(campo, v) {
-  if (campo === 'faixas') return (v || []).map(f => `${descreverFaixa(f)}: ${formatarPct(f.percentual)}${f.ativa === false ? ' (desativada)' : ''}`).join('; ');
+  if (campo === 'faixasFaturamento') return (v || []).map(f => `${descreverFaixa(f)}: ${formatarPct(f.percentual)}${f.ativa === false ? ' (desativada)' : ''}`).join('; ');
+  if (campo === 'faixas') return (v || []).map(f => `${descreverFaixaPecas(f)}: ${formatarPct(f.percentual)}${f.ativa === false ? ' (desativada)' : ''}`).join('; ');
   if (campo === 'faltas.tipos') return (v || []).map(t => `${t.nome}: ${OPCOES_REGRA.efeitoFalta[t.efeito]}${t.efeito === 'desconto' ? ` ${formatarPct(t.descontoPct)}` : ''}`).join('; ');
   if (campo === 'base.ordem') return (v || []).map(e => ETAPAS_COMISSAO[e]).join(' → ');
   if (campo === 'faturamento.valorMinimo') return formatMoeda(v);
@@ -12532,18 +12561,14 @@ function AbaRegrasCalculo({
       const {
         erros,
         avisos
-      } = validarFaixas(rascunho.faixas);
+      } = validarFaixas(rascunho.faixasFaturamento);
       if (erros.length) {
         alert('Corrija as faixas:\n\n' + erros.join('\n'));
         return false;
       }
       if (avisos.length && !confirm('Atenção:\n\n' + avisos.join('\n') + '\n\nSalvar assim mesmo?')) return false;
     }
-    if (editando === 'faturamento' && !(Number(rascunho.faturamento.valorMinimo) >= 0)) {
-      alert('Informe o faturamento mínimo.');
-      return false;
-    }
-    const pcts = [rascunho.faturamento.reducaoPct, rascunho.garantia.limitePct, rascunho.garantia.reducaoPct, rascunho.atrasos.reducaoPct, rascunho.atrasos.limitePct, ...rascunho.faltas.tipos.map(t => t.descontoPct)];
+    const pcts = [rascunho.garantia.limitePct, rascunho.garantia.reducaoPct, rascunho.atrasos.reducaoPct, rascunho.atrasos.limitePct, ...rascunho.faltas.tipos.map(t => t.descontoPct)];
     if (pcts.some(p => isNaN(Number(p)) || Number(p) < 0 || Number(p) > 100)) {
       alert('Os percentuais de redução e limite devem ficar entre 0 e 100.');
       return false;
@@ -12566,8 +12591,7 @@ function AbaRegrasCalculo({
     // Aplica a alteração desta seção sobre as regras vigentes NA DATA DE VIGÊNCIA escolhida.
     const baseVig = regrasVigentesEm(versoes, vigenciaInicio);
     const secoes = {
-      faixas: ['faixas', 'contagemFaixa'],
-      faturamento: ['faturamento'],
+      faixas: ['faixasFaturamento'],
       garantia: ['garantia'],
       atrasosFaltas: ['atrasos', 'faltas'],
       base: ['base']
@@ -12577,16 +12601,14 @@ function AbaRegrasCalculo({
       novas[k] = clonarJson(rascunho[k]);
     });
     // normaliza números
-    novas.faixas = novas.faixas.map(f => ({
+    // valores em reais com 2 casas exatas (sem arredondar para outra faixa)
+    novas.faixasFaturamento = novas.faixasFaturamento.map(f => ({
       ...f,
-      min: Number(f.min) || 0,
-      max: f.max === '' || f.max === null || f.max === undefined ? null : Number(f.max),
+      min: centavos(f.min) / 100,
+      max: f.max === '' || f.max === null || f.max === undefined ? null : centavos(f.max) / 100,
       percentual: Number(f.percentual) || 0,
       ativa: f.ativa !== false
     }));
-    ['valorMinimo', 'reducaoPct'].forEach(k => {
-      novas.faturamento[k] = Number(novas.faturamento[k]) || 0;
-    });
     ['limitePct', 'reducaoPct'].forEach(k => {
       novas.garantia[k] = Number(novas.garantia[k]) || 0;
     });
@@ -12742,47 +12764,54 @@ function AbaRegrasCalculo({
       fontSize: 12,
       marginTop: 4
     }
-  }, "Somente o Master e administradores com permissão de edição em Comissão podem alterar as regras."))), secao('faixas', '1. Faixas de produção e bonificação', () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
+  }, "Somente o Master e administradores com permissão de edição em Comissão podem alterar as regras."))), secao('faixas', '1. Faixas de faturamento e bonificação', () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
     className: "regra-faixas-resumo",
     style: {
-      maxWidth: 520
+      maxWidth: 640
     }
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Produção no período"), /*#__PURE__*/React.createElement("th", null, "Paga da comissão"), /*#__PURE__*/React.createElement("th", null, "Situação"))), /*#__PURE__*/React.createElement("tbody", null, r.faixas.map(f => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Faixa"), /*#__PURE__*/React.createElement("th", null, "Faturamento mínimo"), /*#__PURE__*/React.createElement("th", null, "Faturamento máximo"), /*#__PURE__*/React.createElement("th", null, "Bonificação"))), /*#__PURE__*/React.createElement("tbody", null, r.faixasFaturamento.map((f, i) => /*#__PURE__*/React.createElement("tr", {
     key: f.id,
     className: f.ativa === false ? 'inativa' : ''
-  }, /*#__PURE__*/React.createElement("td", null, descreverFaixa(f)), /*#__PURE__*/React.createElement("td", {
+  }, /*#__PURE__*/React.createElement("td", null, i + 1, f.ativa === false ? ' (desativada)' : ''), /*#__PURE__*/React.createElement("td", null, formatMoeda(f.min)), /*#__PURE__*/React.createElement("td", null, semLimiteFaixa(f) ? 'Sem limite' : formatMoeda(f.max)), /*#__PURE__*/React.createElement("td", {
     className: "celula-pct"
-  }, formatarPct(f.percentual)), /*#__PURE__*/React.createElement("td", null, f.ativa === false ? 'Desativada' : 'Ativa'))))), linhaResumo('Peças consideradas', OPCOES_REGRA.contagemFaixa[r.contagemFaixa]), /*#__PURE__*/React.createElement("div", {
+  }, formatarPct(f.percentual)))))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
-      color: 'var(--texto-fraco)'
+      color: 'var(--texto-fraco)',
+      marginTop: 6
     }
-  }, "O percentual indica quanto da comissão é pago: 70% = recebe 0,7× a comissão; 150% = 1,5×.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
+  }, "A faixa é definida ", /*#__PURE__*/React.createElement("strong", null, "somente pelo faturamento do período"), " (soma dos orçamentos Concluídos no período de apuração). A bonificação multiplica a comissão base: 0% = zera; 100% = 1,00×; 120% = 1,20×; 150% = 1,50×. A quantidade de peças é só informativa.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
     className: "tabela-cartoes"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "De (peças)"), /*#__PURE__*/React.createElement("th", null, "Até (vazio = sem limite)"), /*#__PURE__*/React.createElement("th", null, "Paga (%)"), /*#__PURE__*/React.createElement("th", null, "Ativa"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faixas.map((f, i) => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Faixa"), /*#__PURE__*/React.createElement("th", null, "Faturamento mínimo (R$)"), /*#__PURE__*/React.createElement("th", null, "Faturamento máximo (R$)"), /*#__PURE__*/React.createElement("th", null, "Bonificação (%)"), /*#__PURE__*/React.createElement("th", null, "Ativa"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, r.faixasFaturamento.map((f, i) => /*#__PURE__*/React.createElement("tr", {
     key: f.id
   }, /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "De (peças)"
+    "data-rotulo": "Faixa",
+    className: "celula-num-faixa"
+  }, i + 1), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Faturamento mínimo (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
-    inputMode: "numeric",
+    step: "0.01",
+    inputMode: "decimal",
     value: f.min,
     onChange: e => set(c => {
-      c.faixas[i].min = e.target.value;
+      c.faixasFaturamento[i].min = e.target.value;
     })
   })), /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "Até (vazio = sem limite)"
+    "data-rotulo": "Faturamento máximo (R$) — vazio = sem limite"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
-    inputMode: "numeric",
-    value: f.max === null ? '' : f.max,
+    step: "0.01",
+    inputMode: "decimal",
+    placeholder: "Sem limite",
+    value: semLimiteFaixa(f) ? '' : f.max,
     onChange: e => set(c => {
-      c.faixas[i].max = e.target.value === '' ? null : e.target.value;
+      c.faixasFaturamento[i].max = e.target.value === '' ? null : e.target.value;
     })
   })), /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "Paga da comissão (%)"
+    "data-rotulo": "Bonificação (%)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: "0",
@@ -12790,7 +12819,7 @@ function AbaRegrasCalculo({
     inputMode: "decimal",
     value: f.percentual,
     onChange: e => set(c => {
-      c.faixas[i].percentual = e.target.value;
+      c.faixasFaturamento[i].percentual = e.target.value;
     })
   })), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Faixa ativa",
@@ -12802,7 +12831,7 @@ function AbaRegrasCalculo({
     type: "checkbox",
     checked: f.ativa !== false,
     onChange: e => set(c => {
-      c.faixas[i].ativa = e.target.checked;
+      c.faixasFaturamento[i].ativa = e.target.checked;
     })
   })), /*#__PURE__*/React.createElement("td", {
     className: "celula-acao"
@@ -12810,7 +12839,7 @@ function AbaRegrasCalculo({
     type: "button",
     className: "btn perigo pequeno",
     onClick: () => set(c => {
-      c.faixas.splice(i, 1);
+      c.faixasFaturamento.splice(i, 1);
     })
   }, /*#__PURE__*/React.createElement("span", {
     className: "so-mobile-inline"
@@ -12821,43 +12850,22 @@ function AbaRegrasCalculo({
       marginTop: 8
     },
     onClick: () => set(c => {
-      const ult = c.faixas[c.faixas.length - 1];
-      c.faixas.push({
-        id: 'f' + Date.now(),
-        min: ult && ult.max !== null ? Number(ult.max) + 1 : 0,
+      const ult = c.faixasFaturamento[c.faixasFaturamento.length - 1];
+      c.faixasFaturamento.push({
+        id: 'ff' + Date.now(),
+        min: ult && !semLimiteFaixa(ult) ? (centavos(ult.max) + 1) / 100 : 0,
         max: null,
         percentual: 100,
         ativa: true
       });
     })
-  }, "+ Nova faixa"), /*#__PURE__*/React.createElement("label", null, "Peças consideradas para definir a faixa"), seletor('contagemFaixa', r.contagemFaixa, v => set(c => {
-    c.contagemFaixa = v;
-  })))), secao('faturamento', '2. Faturamento mínimo', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Faturamento mínimo', formatMoeda(r.faturamento.valorMinimo)), linhaResumo('Condição', OPCOES_REGRA['faturamento.comparacao'][r.faturamento.comparacao]), linhaResumo('Se não atingir', r.faturamento.acao === 'reduzir' ? `Redução de ${formatarPct(r.faturamento.reducaoPct)}` : OPCOES_REGRA['faturamento.acao'].zerar), linhaResumo('Faturamento considerado', OPCOES_REGRA['faturamento.fonte'][r.faturamento.fonte])), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Faturamento mínimo (R$)"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    min: "0",
-    step: "0.01",
-    value: r.faturamento.valorMinimo,
-    onChange: e => set(c => {
-      c.faturamento.valorMinimo = e.target.value;
-    })
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Condição de comparação"), seletor('faturamento.comparacao', r.faturamento.comparacao, v => set(c => {
-    c.faturamento.comparacao = v;
-  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Se não atingir"), seletor('faturamento.acao', r.faturamento.acao, v => set(c => {
-    c.faturamento.acao = v;
-  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Redução (%) — se escolher \"redução\""), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    min: "0",
-    max: "100",
-    value: r.faturamento.reducaoPct,
-    disabled: r.faturamento.acao !== 'reduzir',
-    onChange: e => set(c => {
-      c.faturamento.reducaoPct = e.target.value;
-    })
-  }))), /*#__PURE__*/React.createElement("label", null, "Faturamento considerado"), seletor('faturamento.fonte', r.faturamento.fonte, v => set(c => {
-    c.faturamento.fonte = v;
-  })))), secao('garantia', '3. Percentual de garantia', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Limite de garantia', formatarPct(r.garantia.limitePct)), linhaResumo('Redução se passar do limite', formatarPct(r.garantia.reducaoPct)), linhaResumo('Redução aplicada sobre', OPCOES_REGRA['garantia.aplicarSobre'][r.garantia.aplicarSobre]), linhaResumo('Cálculo do índice', OPCOES_REGRA['garantia.formula'][r.garantia.formula])), () => /*#__PURE__*/React.createElement("div", {
+  }, "+ Nova faixa"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--texto-fraco)',
+      marginTop: 6
+    }
+  }, "Os limites valem exatamente como digitados, em centavos (ex.: até R$ 100.000,00 numa faixa e a partir de R$ 100.000,01 na seguinte). A última faixa fica sem máximo."))), secao('garantia', '2. Percentual de garantia', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Limite de garantia', formatarPct(r.garantia.limitePct)), linhaResumo('Redução se passar do limite', formatarPct(r.garantia.reducaoPct)), linhaResumo('Redução aplicada sobre', OPCOES_REGRA['garantia.aplicarSobre'][r.garantia.aplicarSobre]), linhaResumo('Cálculo do índice', OPCOES_REGRA['garantia.formula'][r.garantia.formula])), () => /*#__PURE__*/React.createElement("div", {
     className: "grid2"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Limite de garantia (%)"), /*#__PURE__*/React.createElement("input", {
     type: "number",
@@ -12881,7 +12889,7 @@ function AbaRegrasCalculo({
     c.garantia.aplicarSobre = v;
   }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Cálculo do índice de garantia"), seletor('garantia.formula', r.garantia.formula, v => set(c => {
     c.garantia.formula = v;
-  }))))), secao('atrasosFaltas', '4. Atrasos e faltas', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Redução por ocorrência de atraso', `${formatarPct(r.atrasos.reducaoPct).replace('%', '')} pontos percentuais (1 = ${formatarPct(r.atrasos.reducaoPct)}, 2 = ${formatarPct(Math.min(r.atrasos.limitePct, r.atrasos.reducaoPct * 2))}, 3 = ${formatarPct(Math.min(r.atrasos.limitePct, r.atrasos.reducaoPct * 3))}...)`), linhaResumo('Forma do desconto', OPCOES_REGRA['atrasos.modo'][r.atrasos.modo]), linhaResumo('Redução máxima por atrasos', formatarPct(r.atrasos.limitePct)), r.faltas.tipos.map(t => /*#__PURE__*/React.createElement(React.Fragment, {
+  }))))), secao('atrasosFaltas', '3. Atrasos e faltas', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Redução por ocorrência de atraso', `${formatarPct(r.atrasos.reducaoPct).replace('%', '')} pontos percentuais (1 = ${formatarPct(r.atrasos.reducaoPct)}, 2 = ${formatarPct(Math.min(r.atrasos.limitePct, r.atrasos.reducaoPct * 2))}, 3 = ${formatarPct(Math.min(r.atrasos.limitePct, r.atrasos.reducaoPct * 3))}...)`), linhaResumo('Forma do desconto', OPCOES_REGRA['atrasos.modo'][r.atrasos.modo]), linhaResumo('Redução máxima por atrasos', formatarPct(r.atrasos.limitePct)), r.faltas.tipos.map(t => /*#__PURE__*/React.createElement(React.Fragment, {
     key: t.id
   }, linhaResumo(t.nome, OPCOES_REGRA.efeitoFalta[t.efeito] + (t.efeito === 'desconto' ? ` (${formatarPct(t.descontoPct).replace('%', '')} p.p. por ocorrência)` : '')))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -12967,25 +12975,13 @@ function AbaRegrasCalculo({
         descontoPct: 10
       });
     })
-  }, "+ Tipo de ausência"))), secao('base', '5. Base de cálculo', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Comissão base', 'Soma dos lançamentos do funcionário: valor de cada orçamento Concluído × % da ficha dele na Equipe (vigente na data de conclusão)'), linhaResumo('Produção usada na faixa', OPCOES_REGRA['base.producao'][r.base.producao]), linhaResumo('Ordem de aplicação', textoValorRegra('base.ordem', r.base.ordem) + ' → ajustes manuais'), /*#__PURE__*/React.createElement("div", {
+  }, "+ Tipo de ausência"))), secao('base', '4. Base de cálculo', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Comissão base', 'Soma dos lançamentos do funcionário: valor de cada orçamento Concluído × % da ficha dele na Equipe (vigente na data de conclusão)'), linhaResumo('Faixa definida por', 'Faturamento do período (orçamentos Concluídos no período de apuração)'), linhaResumo('Ordem de aplicação', textoValorRegra('base.ordem', r.base.ordem) + ' → ajustes manuais'), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: 'var(--texto-fraco)',
       marginTop: 6
     }
-  }, "O percentual individual vem sempre da ficha do funcionário na aba Equipe — não existe um segundo cadastro de percentual aqui.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Produção usada para definir a faixa"), seletor('base.producao', r.base.producao, v => set(c => {
-    c.base.producao = v;
-  }), ['individual']), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--texto-fraco)',
-      marginTop: 4
-    }
-  }, "\"Produção individual\" fica disponível quando o sistema passar a registrar qual técnico consertou cada peça."), /*#__PURE__*/React.createElement("label", {
-    style: {
-      marginTop: 14
-    }
-  }, "Ordem de aplicação dos multiplicadores e descontos"), r.base.ordem.map((e, i) => /*#__PURE__*/React.createElement("div", {
+  }, "O percentual individual vem sempre da ficha do funcionário na aba Equipe — não existe um segundo cadastro de percentual aqui.")), () => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Ordem de aplicação dos multiplicadores e descontos"), r.base.ordem.map((e, i) => /*#__PURE__*/React.createElement("div", {
     key: e,
     style: {
       display: 'flex',
@@ -13072,7 +13068,7 @@ function AbaRegrasCalculo({
       margin: 0,
       fontSize: 16
     }
-  }, "6. Histórico de alterações"), /*#__PURE__*/React.createElement("select", {
+  }, "5. Histórico de alterações"), /*#__PURE__*/React.createElement("select", {
     value: filtroHist,
     onChange: e => setFiltroHist(e.target.value),
     style: {
@@ -13257,7 +13253,7 @@ function escHtml(s) {
 function sinalMoeda(v) {
   return v === 0 ? '—' : `${v > 0 ? '+' : '−'} ${formatMoeda(Math.abs(v))}`;
 }
-// Faixa + faturamento + garantia (tudo que não é atraso, falta ou ajuste manual) — fecha a conta da linha.
+// Faixa de faturamento + garantia (tudo que não é atraso, falta ou ajuste manual) — fecha a conta da linha.
 function outrasRegrasLinha(l) {
   return l.final - l.base + (l.descontoAtrasos || 0) + (l.descontoFaltas || 0) - (l.totalAjustes || 0);
 }
@@ -13267,13 +13263,13 @@ function nomeTipoOcorrencia(o, res) {
 function htmlRelatorioComissao(res, meta) {
   const linhas = res.linhas;
   const total = linhas.reduce((s, l) => s + l.final, 0);
-  const eq = `Peças consideradas: <b>${res.qtdFaixa}</b> · Faixa: <b>${escHtml(res.faixa ? `${descreverFaixa(res.faixa)} (${formatarPct(res.pctFaixa)})` : 'nenhuma')}</b> · Faturamento: <b>${formatMoeda(res.faturamento)}</b> (${res.faturamentoOk ? 'mínimo atingido' : 'mínimo NÃO atingido'}) · Garantia: <b>${formatarPct(res.pctGarantia.toFixed(1))}</b>${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
+  const eq = `Faturamento do período: <b>${formatMoeda(res.faturamento)}</b> · Faixa de faturamento: <b>${escHtml(textoFaixaResultado(res))}</b> · Bonificação: <b>${formatarPct(res.pctFaixa)}</b> · Peças consertadas (informativo): <b>${res.qtdConsertadas ?? res.qtdFaixa ?? 0}</b> · Garantia: <b>${formatarPct(res.pctGarantia.toFixed(1))}</b>${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
   let corpo = '';
   if (meta.tipo === 'simples') {
     corpo = `<table><thead><tr><th>Funcionário</th><th>Atrasos</th><th>Tempo de atraso*</th><th>Redução por atrasos</th><th>Faltas</th><th>Desconto por faltas</th><th>Comissão base</th><th>Faixa e demais regras</th><th>Ajustes</th><th>Valor final</th></tr></thead><tbody>${linhas.map(l => `<tr><td>${escHtml(l.nome)}<div class="kv">${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) + ' na Equipe' : '% não configurado'} · ${l.pecas} peças</div></td><td>${l.atrasos}</td><td>${l.minutosAtraso ? formatarMinutos(l.minutosAtraso) : '—'}</td><td>${l.pctReducaoAtrasos ? `${formatarPct(l.pctReducaoAtrasos)} (− ${formatMoeda(l.descontoAtrasos)})` : '—'}</td><td>${l.qtdFaltas}</td><td>${l.descontoFaltas ? `− ${formatMoeda(l.descontoFaltas)}` : '—'}</td><td>${formatMoeda(l.base)}</td><td>${sinalMoeda(outrasRegrasLinha(l))}</td><td>${sinalMoeda(l.totalAjustes)}</td><td><b>${formatMoeda(l.final)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="9"><b>Total geral das comissões</b></td><td><b>${formatMoeda(total)}</b></td></tr></tfoot></table><p class="kv">* Tempo de atraso é só informativo: a redução usa a quantidade de ocorrências (cada atraso = ${formatarPct(res.regras?.atrasos?.reducaoPct ?? 20).replace('%', '')} pontos percentuais, até ${formatarPct(res.regras?.atrasos?.limitePct ?? 100)}).</p>`;
   } else {
     corpo = linhas.map(l => `<div class="func"><h3>${escHtml(l.nome)}</h3>
-      <div class="kv">Período: <b>${meta.periodo}</b> · Peças consideradas: <b>${l.pecas}</b> · Faturamento do período: <b>${formatMoeda(res.faturamento)}</b> · Faixa: <b>${escHtml(res.faixa ? descreverFaixa(res.faixa) : 'nenhuma')} (${formatarPct(res.pctFaixa)})</b> · % na Equipe: <b>${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}</b></div>
+      <div class="kv">Período: <b>${meta.periodo}</b> · Faturamento do período: <b>${formatMoeda(res.faturamento)}</b> · Faixa: <b>${escHtml(textoFaixaResultado(res))}</b> · Bonificação: <b>${formatarPct(res.pctFaixa)}</b> · Peças consertadas: <b>${l.pecas}</b> · % na Equipe: <b>${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}</b></div>
       <table><tbody><tr><td>Comissão base</td><td>${formatMoeda(l.base)}</td></tr>${l.passos.map(p => `<tr><td>${escHtml(p.nome)}: ${escHtml(p.descricao)}</td><td>${sinalMoeda(p.delta)}</td></tr>`).join('')}${l.ajustes.map(a => `<tr><td>Ajuste manual: ${escHtml(a.justificativa)} (${escHtml(a.por)})</td><td>${sinalMoeda(Number(a.valor) || 0)}</td></tr>`).join('')}<tr><td><b>Valor final</b></td><td><b>${formatMoeda(l.final)}</b></td></tr></tbody></table>
       ${(l.ocorrencias || []).length ? `<div class="sub">Ocorrências — ${l.atrasos} atraso(s) (${formatarMinutos(l.minutosAtraso)} no total, só informativo) · ${l.qtdFaltas} falta(s)</div><table><thead><tr><th>Data</th><th>Tipo</th><th>Previsto</th><th>Chegada</th><th>Atraso</th><th>Observação</th></tr></thead><tbody>${l.ocorrencias.map(o => `<tr><td>${formatarDataBr(o.data)}</td><td>${escHtml(nomeTipoOcorrencia(o, res))}</td><td>${o.previsto || '—'}</td><td>${o.chegada || '—'}</td><td>${o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '—'}</td><td>${escHtml(o.obs || '—')}</td></tr>`).join('')}</tbody></table>` : ''}
       ${l.lancamentos.length ? `<div class="sub">Lançamentos</div><table><thead><tr><th>Data</th><th>Orçamento</th><th>Peças</th><th>Valor do orçamento</th><th>%</th><th>Comissão</th></tr></thead><tbody>${l.lancamentos.map(x => `<tr><td>${formatarDataBr(x.data)}</td><td>#${escHtml(x.numero)}</td><td>${x.pecas}</td><td>${formatMoeda(x.valorOrcamento)}</td><td>${x.percentual !== null ? formatarPct(x.percentual) : '-'}</td><td>${formatMoeda(x.valor)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`).join('') + `<div class="total">Total geral das comissões: ${formatMoeda(total)}</div>`;
@@ -13350,7 +13346,7 @@ async function gerarPdfRelatorioComissao(res, meta) {
     }
   }
   await cabecalho(false);
-  const eq = `Peças consideradas: ${res.qtdFaixa}  ·  Faixa: ${res.faixa ? `${descreverFaixa(res.faixa)} (${formatarPct(res.pctFaixa)})` : 'nenhuma'}  ·  Faturamento: ${formatMoeda(res.faturamento)} (${res.faturamentoOk ? 'mínimo atingido' : 'mínimo não atingido'})  ·  Garantia: ${formatarPct(res.pctGarantia.toFixed(1))}${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
+  const eq = `Faturamento do período: ${formatMoeda(res.faturamento)}  ·  Faixa de faturamento: ${textoFaixaResultado(res)}  ·  Bonificação: ${formatarPct(res.pctFaixa)}  ·  Peças consertadas (informativo): ${res.qtdConsertadas ?? res.qtdFaixa ?? 0}  ·  Garantia: ${formatarPct(res.pctGarantia.toFixed(1))}${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
   doc.setFontSize(8.8);
   doc.setTextColor(69, 59, 60);
   const eqL = doc.splitTextToSize(eq, larg);
@@ -13405,7 +13401,7 @@ async function gerarPdfRelatorioComissao(res, meta) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.6);
       doc.setTextColor(90, 82, 80);
-      const info = doc.splitTextToSize(`Peças consideradas: ${l.pecas}  ·  Faturamento do período: ${formatMoeda(res.faturamento)}  ·  Faixa: ${res.faixa ? descreverFaixa(res.faixa) : 'nenhuma'} (${formatarPct(res.pctFaixa)})  ·  % na Equipe: ${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}`, larg);
+      const info = doc.splitTextToSize(`Faturamento do período: ${formatMoeda(res.faturamento)}  ·  Faixa: ${textoFaixaResultado(res)}  ·  Bonificação: ${formatarPct(res.pctFaixa)}  ·  Peças consertadas: ${l.pecas}  ·  % na Equipe: ${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}`, larg);
       doc.text(info, mX, y);
       y += info.length * 3.9 + 2;
       const L2 = [larg - 34, 34];
