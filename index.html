@@ -85,6 +85,7 @@
   .badge.entregue{background:var(--verde-bg);color:var(--verde);}
   .badge.pendente{background:var(--laranja-bg);color:var(--laranja-escuro);}
   .badge.aprovado{background:var(--verde-bg);color:var(--verde);}
+  .badge.rota{background:#E8F0FB;color:#1E4B84;}
   .badge.recusado{background:var(--vermelho-bg);color:var(--vermelho);}
   ::-webkit-scrollbar{width:10px;height:10px;}
   ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:6px;}
@@ -678,7 +679,9 @@ function colunaPermitida(usuario, coluna) {
   if (!usuario) return false;
   if (usuario.perfil === 'master') return true;
   if (!usuario.colunasOrcamento) return true; // sem restrição configurada = todas liberadas
-  return usuario.colunasOrcamento.includes(coluna);
+  if (usuario.colunasOrcamento.includes(coluna)) return true;
+  // permissão salva com o nome antigo "Entregue/Faturado" vale para Rota e Concluído
+  return (coluna === 'Rota' || coluna === 'Concluído') && usuario.colunasOrcamento.includes('Entregue/Faturado');
 }
 function comissaoEscopoDe(usuario) {
   if (!usuario) return 'propria';
@@ -780,19 +783,19 @@ function loteTotalmenteClassificado(itens) {
 // o cartão seja movido depois). Fora da coluna Teste, segue como sempre funcionou.
 function comissaoElegivel(orcamento) {
   if (!orcamento) return true;
-  return orcamento.status === 'Entregue/Faturado';
+  return orcamento.status === 'Concluído';
 }
 function statusComissaoOrcamento(orcamento) {
   if (!orcamento) return {
     rotulo: '—',
     cor: 'var(--texto-fraco)'
   };
-  if (orcamento.status === 'Entregue/Faturado') return {
+  if (orcamento.status === 'Concluído') return {
     rotulo: '🟢 Liberada',
     cor: 'var(--verde)'
   };
   return {
-    rotulo: '🟡 Aguardando entrega',
+    rotulo: orcamento.status === 'Rota' ? '🟡 Em rota — aguardando conclusão' : '🟡 Aguardando conclusão',
     cor: 'var(--laranja-escuro)'
   };
 }
@@ -3518,6 +3521,43 @@ function App() {
   }, [usuario]);
   useEffect(() => {
     if (!usuario) return;
+    // A coluna "Entregue/Faturado" passou a se chamar "Rota" (e não fatura mais: só "Concluído" fatura).
+    // Muda só o nome do status nos cartões existentes; histórico, datas e vínculos ficam como estão.
+    (async () => {
+      try {
+        const configRef = db.collection('config').doc('migracaoStatusRota');
+        const configSnap = await configRef.get();
+        if (configSnap.exists) return;
+        const snap = await db.collection('orcamentos').get();
+        const alvos = snap.docs.filter(d => d.data().status === 'Entregue/Faturado' || d.data().statusAnterior === 'Entregue/Faturado');
+        for (let i = 0; i < alvos.length; i += 400) {
+          const lote = db.batch();
+          alvos.slice(i, i + 400).forEach(d => {
+            const x = d.data();
+            const upd = {
+              historico: firebase.firestore.FieldValue.arrayUnion({
+                data: new Date().toISOString(),
+                texto: 'Status "Entregue/Faturado" renomeado para "Rota". O faturamento e a comissão agora acontecem só ao chegar em "Concluído".'
+              })
+            };
+            if (x.status === 'Entregue/Faturado') upd.status = 'Rota';
+            if (x.statusAnterior === 'Entregue/Faturado') upd.statusAnterior = 'Rota';
+            lote.update(d.ref, upd);
+          });
+          await lote.commit();
+        }
+        await configRef.set({
+          feito: true,
+          cartoes: alvos.length,
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch (err) {
+        console.error('migração status Rota', err);
+      }
+    })();
+  }, [usuario]);
+  useEffect(() => {
+    if (!usuario) return;
     (async () => {
       try {
         const configRef = db.collection('config').doc('migracaoPermissoes');
@@ -4439,7 +4479,13 @@ function ModalCliente({
 // ======================= CATÁLOGO DE PEÇAS =======================
 const CATEGORIAS_PECA = ['Joystick', 'Placa', 'Módulo', 'Carregador', 'Display', 'Controle', 'Outros'];
 const STATUS_LOTE = ['Em análise', 'Concluído'];
-const STATUS_ORCAMENTO = ['Pendente orçamento', 'Teste', 'Em Análise', 'Aprovado', 'Aprovado/Aguardando pedido', 'Entregue/Faturado'];
+const STATUS_ORCAMENTO = ['Pendente orçamento', 'Teste', 'Em Análise', 'Aprovado', 'Aprovado/Aguardando pedido', 'Rota', 'Concluído'];
+// "Rota" = em processo de entrega (não fatura, não gera comissão). "Concluído" = entrega concluída:
+// só aqui o orçamento entra no faturamento e na comissão, pela DATA DE CONCLUSÃO.
+// "Entregue/Faturado" era o nome antigo da coluna Rota (cartões antigos são migrados para "Rota").
+const STATUS_ROTA = 'Rota';
+const STATUS_CONCLUIDO = 'Concluído';
+const STATUS_LEGADO_ROTA = 'Entregue/Faturado';
 const STATUS_CLASSE = {
   'Em análise': 'conserto',
   'Concluído': 'entregue',
@@ -4448,7 +4494,8 @@ const STATUS_CLASSE = {
   'Pendente orçamento': 'pendente',
   'Em Análise': 'conserto',
   'Aprovado/Aguardando pedido': 'aprovado',
-  'Entregue/Faturado': 'entregue',
+  'Entregue/Faturado': 'rota',
+  'Rota': 'rota',
   'Teste': 'estoque'
 };
 function AbaCatalogo({
@@ -6362,9 +6409,9 @@ function ModalLoteDetalhe({
     aoFechar();
   }
   async function arquivarLote() {
-    const pendentes = orcamentosVinculados.filter(o => !o.arquivado && o.status !== 'Entregue/Faturado');
+    const pendentes = orcamentosVinculados.filter(o => !o.arquivado && o.status !== 'Concluído');
     if (lote.status !== 'Concluído' || pendentes.length > 0) {
-      alert('Essa entrada só pode ser arquivada quando todas as peças já foram classificadas e todos os orçamentos vinculados estiverem em Entregue/Faturado (ou já arquivados).');
+      alert('Essa entrada só pode ser arquivada quando todas as peças já foram classificadas e todos os orçamentos vinculados estiverem em Concluído (ou já arquivados).');
       return;
     }
     if (!confirm(`Arquivar a entrada #${lote.numero}? Ela sai da lista operacional, mas continua disponível em "📁 Arquivados".`)) return;
@@ -6836,7 +6883,7 @@ function ModalConfirmarTeste({
       color: 'var(--texto-fraco)',
       marginTop: 0
     }
-  }, "Confirme se a peça foi efetivamente consertada. Isso libera (ou não) a comissão desse orçamento — o faturamento continua só acontecendo quando ele chegar em Entregue/Faturado."), /*#__PURE__*/React.createElement("div", {
+  }, "Confirme se a peça foi efetivamente consertada. Isso libera (ou não) a comissão desse orçamento — o faturamento continua só acontecendo quando ele chegar em Concluído."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -7546,22 +7593,57 @@ function AbaOrcamentos({
     await opBatch.commit();
   }
   async function mudarStatus(o, status) {
+    if (status === o.status) return;
     const dados = {
       status
     };
+    const agora = new Date();
+    const quando = `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    const quem = usuario?.nome || '-';
+    const historico = [...(o.historico || [])];
+    const entrouConcluido = status === 'Concluído' && o.status !== 'Concluído';
+    const saiuConcluido = o.status === 'Concluído' && status !== 'Concluído';
+    // Saindo de Concluído: sai do faturamento e da comissão. Se o período já foi fechado, exige reabrir.
+    if (saiuConcluido) {
+      if (o.periodoConsolidadoId) {
+        const fechamentos = await carregarFechamentosComissao();
+        const fech = fechamentos.find(f => f.id === o.periodoConsolidadoId);
+        if (fech) {
+          alert(`O orçamento #${o.numero} faz parte do período de comissão já fechado (${formatarDataBr(fech.inicio)} a ${formatarDataBr(fech.fim)}).\n\nPara tirá-lo de Concluído, reabra o período em Comissão → Período de Apuração (a reabertura pede o motivo e fica registrada).`);
+          return;
+        }
+      }
+      if (!confirm(`Tirar o orçamento #${o.numero} de Concluído e mover para "${status}"?\n\nEle sai do faturamento e da comissão enquanto não voltar para Concluído.`)) return;
+      dados.dataConclusao = firebase.firestore.FieldValue.delete();
+      dados.concluidoPor = firebase.firestore.FieldValue.delete();
+      dados.concluidoPorId = firebase.firestore.FieldValue.delete();
+      historico.push({
+        data: agora.toISOString(),
+        texto: `↩️ Saiu de Concluído para ${status} em ${quando} por ${quem} — retirado do faturamento e da comissão.`
+      });
+    }
     // Mudou de coluna: o cartão entra em 1º lugar na nova coluna.
-    if (status !== o.status) dados.ordemKanban = chaveTopoKanban(orcamentos.filter(x => x.status === status), o.id);
-    // Data de faturamento: define em qual período de comissão o orçamento entra.
-    if (status === 'Entregue/Faturado' && o.status !== 'Entregue/Faturado') dados.dataFaturamento = firebase.firestore.FieldValue.serverTimestamp();
-    if (status !== 'Entregue/Faturado' && o.dataFaturamento) dados.dataFaturamento = firebase.firestore.FieldValue.delete();
-    // Saiu de Entregue/Faturado: deixa de pertencer ao período (se ainda não foi consolidado num fechamento).
-    if (status !== 'Entregue/Faturado' && o.periodoApuracaoId && !o.periodoConsolidadoId) dados.periodoApuracaoId = firebase.firestore.FieldValue.delete();
+    dados.ordemKanban = chaveTopoKanban(orcamentos.filter(x => x.status === status), o.id);
+    // Conclusão: é o fato gerador do faturamento e da comissão. A data de conclusão define o período.
+    if (entrouConcluido) {
+      dados.dataConclusao = firebase.firestore.FieldValue.serverTimestamp();
+      dados.dataFaturamento = firebase.firestore.FieldValue.serverTimestamp();
+      dados.concluidoPor = quem;
+      dados.concluidoPorId = usuario?.id || '';
+      historico.push({
+        data: agora.toISOString(),
+        texto: `✅ Concluído em ${quando} por ${quem}.`
+      });
+    }
+    if (status !== 'Concluído' && o.dataFaturamento) dados.dataFaturamento = firebase.firestore.FieldValue.delete();
+    // Fora de Concluído não pertence a período de apuração (se ainda não foi consolidado num fechamento).
+    if (status !== 'Concluído' && o.periodoApuracaoId && !o.periodoConsolidadoId) dados.periodoApuracaoId = firebase.firestore.FieldValue.delete();
     if (status === 'Teste' && !o.resultadoTeste) {
       dados.resultadoTeste = 'pendente';
     }
     // Se a peça já foi entregue fisicamente durante o teste (com foto e assinatura),
-    // essa mesma entrega vale como a entrega definitiva — não pedir de novo ao chegar aqui.
-    if (status === 'Entregue/Faturado' && o.assinaturaTeste && !o.assinaturaEntrega) {
+    // essa mesma entrega vale como a entrega definitiva — não pedir de novo ao chegar em Rota/Concluído.
+    if ((status === 'Rota' || status === 'Concluído') && o.assinaturaTeste && !o.assinaturaEntrega) {
       dados.assinaturaEntrega = {
         ...o.assinaturaTeste,
         origemTeste: true
@@ -7570,20 +7652,22 @@ function AbaOrcamentos({
         ...o.fotoTeste,
         origemTeste: true
       };
-      dados.historico = [...(o.historico || []), {
-        data: new Date().toISOString(),
+      historico.push({
+        data: agora.toISOString(),
         texto: `✅ Entrega considerada concluída reaproveitando a foto e a assinatura da entrega para teste (${o.assinaturaTeste.nome}).`
-      }];
+      });
     }
+    if (historico.length !== (o.historico || []).length) dados.historico = historico;
     await db.collection('orcamentos').doc(o.id).update(dados);
-    if (status === 'Entregue/Faturado' && o.status !== 'Entregue/Faturado') {
-      // Vincula o cartão ao período de apuração que contém a data de faturamento (periodoApuracaoId).
-      if (!o.periodoConsolidadoId) await vincularPeriodoAoFaturar(o.id, new Date());
-      // % vigente na data do faturamento (respeita alterações de % com vigência).
+    if (entrouConcluido) {
+      // Vincula o cartão ao período de apuração que contém a data de conclusão (periodoApuracaoId).
+      if (!o.periodoConsolidadoId) await vincularPeriodoAoFaturar(o.id, agora);
+      // % vigente na data da conclusão (respeita alterações de % com vigência).
       await recalcularLancamentosOrcamento({
         ...o,
         status,
-        dataFaturamento: new Date()
+        dataConclusao: agora,
+        dataFaturamento: agora
       }, funcionarios);
     }
   }
@@ -7867,7 +7951,14 @@ function AbaOrcamentos({
           color: 'var(--texto-fraco)',
           marginTop: 5
         }
-      }, "📅 ", formatData(o.criadoEm)), podeEditar(usuario, 'orcamentos') ? /*#__PURE__*/React.createElement("div", {
+      }, "📅 ", formatData(o.criadoEm)), o.status === 'Concluído' && o.dataConclusao && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: 'var(--verde)',
+          fontWeight: 600,
+          marginTop: 3
+        }
+      }, "✅ Concluído em ", formatDataHora(o.dataConclusao), o.concluidoPor ? ` por ${o.concluidoPor}` : ''), podeEditar(usuario, 'orcamentos') ? /*#__PURE__*/React.createElement("div", {
         onClick: e => e.stopPropagation()
       }, /*#__PURE__*/React.createElement("select", {
         value: o.status,
@@ -7958,7 +8049,7 @@ function AbaOrcamentos({
         cliente: clientes.find(c => c.id === o.clienteId),
         colecao: "orcamentos",
         usuario: usuario
-      }))), status === 'Entregue/Faturado' && /*#__PURE__*/React.createElement("div", {
+      }))), (status === 'Rota' || status === 'Concluído') && /*#__PURE__*/React.createElement("div", {
         onClick: e => e.stopPropagation(),
         style: {
           marginTop: 9
@@ -8361,7 +8452,7 @@ function ModalOrcamento({
     onClick: async () => {
       await db.collection('orcamentos').doc(orcamento.id).update({
         arquivado: false,
-        status: orcamento.statusAnterior || orcamento.status,
+        status: (orcamento.statusAnterior === 'Entregue/Faturado' ? 'Rota' : orcamento.statusAnterior) || (orcamento.status === 'Entregue/Faturado' ? 'Rota' : orcamento.status),
         ordemKanban: Date.now(),
         dataArquivamento: null,
         arquivadoPor: null
@@ -8728,10 +8819,10 @@ function validarFaixas(faixas) {
 }
 
 // ---------- Datas ----------
-// Data que define o período de um orçamento: a data de faturamento (gravada ao mudar para
-// Entregue/Faturado). Orçamentos antigos, sem essa data, usam a criação.
+// Data que define o período de um orçamento: a DATA DE CONCLUSÃO (gravada ao mudar para Concluído —
+// é o fato gerador do faturamento e da comissão). Sem ela, a data de faturamento antiga; sem as duas, a criação.
 function dataReferenciaOrcamento(o) {
-  return dataDe(o?.dataFaturamento) || dataDe(o?.criadoEm);
+  return dataDe(o?.dataConclusao) || dataDe(o?.dataFaturamento) || dataDe(o?.criadoEm);
 }
 function somarDias(dataStr, n) {
   const d = new Date(dataStr + 'T12:00:00');
@@ -9090,7 +9181,7 @@ function podeGerirComissao(u) {
 
 // ---------- Motor de cálculo do período ----------
 function orcamentoNoPeriodo(o, inicio, fim, chave) {
-  if (!o || o.status !== 'Entregue/Faturado') return false;
+  if (!o || o.status !== 'Concluído') return false;
   if (o.periodoConsolidadoId) return o.periodoConsolidadoId === (chave || idFechamentoComissao(inicio, fim));
   return dentroDoIntervalo(dataReferenciaOrcamento(o), inicio, fim);
 }
@@ -9129,7 +9220,7 @@ function calcularApuracaoComissao({
   const pctFaixa = faixa ? Number(faixa.percentual) || 0 : 0;
   const garantiaEstourada = pctGarantia > (Number(regras.garantia.limitePct) || 0);
 
-  // Lançamentos elegíveis: só de orçamentos Entregue/Faturado do período (garantia e sem
+  // Lançamentos elegíveis: só de orçamentos Concluídos no período (garantia e sem
   // conserto não geram valor no orçamento, então não geram comissão).
   const lancamentos = (comissoes || []).filter(c => idsFaturados.has(c.orcamentoId));
   const porFunc = {};
@@ -9332,11 +9423,11 @@ async function recalcularLancamentosOrcamento(orcamento, funcionarios, fechament
   fechamentos = fechamentos || (await carregarFechamentosComissao());
   const dataRef = dataReferenciaOrcamento(orcamento) || new Date();
   const fech = fechamentoQueContem(fechamentos, dataRef);
-  if (fech && orcamento.status === 'Entregue/Faturado') return {
+  if (fech && orcamento.status === 'Concluído') return {
     recalculado: false,
     fechamento: fech
   };
-  if (orcamento.periodoConsolidadoId && orcamento.status === 'Entregue/Faturado') return {
+  if (orcamento.periodoConsolidadoId && orcamento.status === 'Concluído') return {
     recalculado: false,
     fechamento: (fechamentos || []).find(f => f.id === orcamento.periodoConsolidadoId) || null
   };
@@ -9790,7 +9881,7 @@ function TabelaApuracao({
       color: 'var(--texto-fraco)',
       textAlign: 'center'
     }
-  }, "Nenhuma comissão elegível neste período (só entram orçamentos Entregue/Faturado).");
+  }, "Nenhuma comissão elegível neste período (só entram orçamentos Concluídos — em Rota ainda não contam).");
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "so-mobile func-cards"
   }, linhas.map(l => /*#__PURE__*/React.createElement(CartaoFuncionarioComissao, {
@@ -11269,7 +11360,7 @@ function vinculosPendentes(orcamentos, cal) {
   (orcamentos || []).forEach(o => {
     if (!o || o.periodoConsolidadoId) return;
     let alvo = null;
-    if (o.status === 'Entregue/Faturado') {
+    if (o.status === 'Concluído') {
       const d = chaveDia(dataReferenciaOrcamento(o));
       if (d) {
         const per = periodoDaDataNoCalendario(cal, d);
@@ -12340,7 +12431,7 @@ const OPCOES_REGRA = {
     reduzir: 'Aplica uma redução'
   },
   'faturamento.fonte': {
-    totalFaturado: 'Total dos orçamentos Entregue/Faturado do período',
+    totalFaturado: 'Total dos orçamentos Concluídos no período',
     somenteConserto: 'Somente o valor das peças consertadas faturadas'
   },
   'garantia.aplicarSobre': {
@@ -12876,7 +12967,7 @@ function AbaRegrasCalculo({
         descontoPct: 10
       });
     })
-  }, "+ Tipo de ausência"))), secao('base', '5. Base de cálculo', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Comissão base', 'Soma dos lançamentos do funcionário: valor de cada orçamento Entregue/Faturado × % da ficha dele na Equipe (vigente na data de faturamento)'), linhaResumo('Produção usada na faixa', OPCOES_REGRA['base.producao'][r.base.producao]), linhaResumo('Ordem de aplicação', textoValorRegra('base.ordem', r.base.ordem) + ' → ajustes manuais'), /*#__PURE__*/React.createElement("div", {
+  }, "+ Tipo de ausência"))), secao('base', '5. Base de cálculo', () => /*#__PURE__*/React.createElement(React.Fragment, null, linhaResumo('Comissão base', 'Soma dos lançamentos do funcionário: valor de cada orçamento Concluído × % da ficha dele na Equipe (vigente na data de conclusão)'), linhaResumo('Produção usada na faixa', OPCOES_REGRA['base.producao'][r.base.producao]), linhaResumo('Ordem de aplicação', textoValorRegra('base.ordem', r.base.ordem) + ' → ajustes manuais'), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: 'var(--texto-fraco)',
@@ -15391,7 +15482,8 @@ function AbaPermissoesFuncionario({
     });
     return base;
   });
-  const [colunas, setColunas] = useState(funcionario.colunasOrcamento || STATUS_ORCAMENTO.slice());
+  // permissão antiga com "Entregue/Faturado" aparece como Rota + Concluído
+  const [colunas, setColunas] = useState(funcionario.colunasOrcamento ? [...new Set(funcionario.colunasOrcamento.flatMap(c => c === 'Entregue/Faturado' ? ['Rota', 'Concluído'] : [c]))] : STATUS_ORCAMENTO.slice());
   const [escopoComissao, setEscopoComissao] = useState(funcionario.comissaoEscopo || 'propria');
   const [salvando, setSalvando] = useState(false);
   function alternarColuna(c) {
