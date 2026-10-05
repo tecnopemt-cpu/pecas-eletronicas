@@ -1,0 +1,19 @@
+name: Limpeza de atrasos e faltas (uso único)
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        type: choice
+        options: [verificar, executar]
+        default: verificar
+permissions:
+  contents: read
+jobs:
+  limpeza:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node backup/limpeza-ocorrencias.mjs --${{ inputs.modo }}
