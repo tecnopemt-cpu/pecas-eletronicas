@@ -49,9 +49,9 @@ const igual = (a, b) => T.jsonEstavel(a) === T.jsonEstavel(b);
 //    com pré-condição impossível — se as regras do Firebase bloqueassem "midias", daria "permissão negada".
 async function testarAcesso() {
   const r = { leitura: '?', escrita: '?' };
-  try { await cli.obterComVersao(COL_MIDIA, '__teste_acesso__'); r.leitura = 'liberada'; } catch (e) { r.leitura = e.status === 403 ? 'BLOQUEADA' : 'erro ' + e.message; }
+  try { await cli.obterComVersao(COL_MIDIA, 'teste-de-acesso-inexistente'); r.leitura = 'liberada'; } catch (e) { r.leitura = e.status === 403 ? 'BLOQUEADA' : 'erro ' + e.message; }
   try {
-    await cli.commit([{ update: { name: cli.nomeDoc(COL_MIDIA, '__teste_acesso__'), fields: { x: { stringValue: 'nunca gravado' } } }, currentDocument: { exists: true } }]);
+    await cli.commit([{ update: { name: cli.nomeDoc(COL_MIDIA, 'teste-de-acesso-inexistente'), fields: { x: { stringValue: 'nunca gravado' } } }, currentDocument: { exists: true } }]);
     r.escrita = 'INESPERADO: gravou';
   } catch (e) { r.escrita = e.status === 403 ? 'BLOQUEADA' : (e.status === 404 || e.status === 400 || e.status === 409 || /NOT_FOUND|precondition|No document/i.test(e.message)) ? 'liberada' : 'erro ' + e.message; }
   return r;
