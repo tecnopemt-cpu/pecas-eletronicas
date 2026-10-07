@@ -1,5 +1,6 @@
-name: Separar fotos e assinaturas dos registros (uso único)
+name: Separar fotos e assinaturas dos registros
 
+# Pode ser rodado de novo a qualquer momento (só mexe no que ainda tiver imagem dentro do registro).
 # Copia cada foto/assinatura para a coleção "midias" (conferindo byte a byte) e deixa no registro só a
 # referência. Nada é apagado. "verificar" só mostra o que seria feito; "executar" faz e confere.
 # Antes de "executar", rode o "Backup do Controle de Peças" (modo completo).
