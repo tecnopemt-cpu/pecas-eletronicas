@@ -12,7 +12,10 @@
   const FORMATO = 'tecnopemt-backup';
   const VERSAO = 1;
   // Coleções do sistema (as que o código usa). A rotina também tenta descobrir coleções extras.
-  const COLECOES = ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'funcionarios', 'comissoes', 'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao', 'avisos', 'notificacoes', 'config', 'pecas'];
+  const COLECOES = ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'funcionarios', 'comissoes', 'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao', 'avisos', 'notificacoes', 'config', 'pecas', 'midias'];
+  // Fotos e assinaturas ficam na coleção "midias" (um documento por imagem, id = img_ + SHA-256 do conteúdo);
+  // os registros guardam só a referência "midia:img_...".
+  const PREFIXO_MIDIA = 'midia:';
   // Coleções de uma versão anterior do backup (já removida do site): nunca entram num backup nem
   // são gravadas por uma restauração.
   const COLECOES_DO_BACKUP = ['backups', 'backupsCopias'];
@@ -219,6 +222,7 @@
       if (!t || typeof t !== 'object') return;
       if ('stringValue' in t) {
         const s = t.stringValue;
+        if (typeof s === 'string' && s.startsWith(PREFIXO_MIDIA)) { if (/assinatura/i.test(caminho)) assinaturas++; return; }
         if (typeof s === 'string' && s.startsWith('data:')) {
           qtd++; bytes += s.length;
           if (/assinatura/i.test(caminho)) assinaturas++;
@@ -274,6 +278,26 @@
       });
       vinculos.push({ nome: v.nome, total, quebrados, exemplos });
     });
+    // Foto/assinatura → imagem guardada em "midias"
+    {
+      let total = 0, quebrados = 0;
+      const exemplos = [];
+      const andar = (t, onde) => {
+        if (!t || typeof t !== 'object') return;
+        if (typeof t.stringValue === 'string') {
+          if (t.stringValue.startsWith(PREFIXO_MIDIA)) {
+            total++;
+            const id = t.stringValue.slice(PREFIXO_MIDIA.length);
+            if (!ids.midias || !ids.midias.has(id)) { quebrados++; if (exemplos.length < 3) exemplos.push(`${onde} → midias/${id}`); }
+          }
+          return;
+        }
+        if (t.arrayValue) (t.arrayValue.values || []).forEach(x => andar(x, onde));
+        if (t.mapValue) Object.values(t.mapValue.fields || {}).forEach(x => andar(x, onde));
+      };
+      Object.keys(docs).forEach(c => { if (c !== 'midias') Object.keys(docs[c]).forEach(id => andar({ mapValue: { fields: docs[c][id] } }, `${c}/${id}`)); });
+      if (total || docs.midias) vinculos.push({ nome: 'Foto/assinatura → Imagem guardada', total, quebrados, exemplos });
+    }
     const img = contarImagens(plano || {});
     if (img.invalidas.length) avisos.push(`${img.invalidas.length} imagem(ns) com formato inesperado (ex.: ${img.invalidas.slice(0, 2).join(', ')}).`);
     if (plano && plano.codigo && plano.codigo.arquivos && !plano.codigo.arquivos['index.html']) avisos.push('O código do site (index.html) não está no backup.');
@@ -314,7 +338,7 @@
     if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1).replace('.', ',') + ' MB';
     return (n / 1024 / 1024 / 1024).toFixed(2).replace('.', ',') + ' GB';
   }
-  const api = { MAGICO, FORMATO, VERSAO, COLECOES, COLECOES_DO_BACKUP, DOCS_PRESERVADOS, VINCULOS, paraBase64, deBase64, sha256Hex, gzip, gunzip, jsonEstavel, gerarChaves, abrirChavePrivada, importarPublica, idDaChave, empacotar, lerCabecalho, abrir, paraTipado, deTipado, camposParaObjeto, objetoParaCampos, assinaturaDocumento, montarPlano, resumoDoPlano, contarImagens, verificarPlano, compararComAtual, conferirRestauracao, formatarBytes, juntar };
+  const api = { PREFIXO_MIDIA, MAGICO, FORMATO, VERSAO, COLECOES, COLECOES_DO_BACKUP, DOCS_PRESERVADOS, VINCULOS, paraBase64, deBase64, sha256Hex, gzip, gunzip, jsonEstavel, gerarChaves, abrirChavePrivada, importarPublica, idDaChave, empacotar, lerCabecalho, abrir, paraTipado, deTipado, camposParaObjeto, objetoParaCampos, assinaturaDocumento, montarPlano, resumoDoPlano, contarImagens, verificarPlano, compararComAtual, conferirRestauracao, formatarBytes, juntar };
   raiz.TPBackup = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

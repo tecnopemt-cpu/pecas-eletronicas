@@ -68,6 +68,23 @@ export function clienteFirestore({ projeto, apiKey, base }) {
       } while (pageToken);
       return out;
     },
+    // Igual a listarDocumentos, mas com a versão (updateTime) de cada documento — usada como
+    // pré-condição para nunca sobrescrever uma alteração feita por alguém no meio do caminho.
+    async listarComVersao(col) {
+      const out = {};
+      let pageToken;
+      do {
+        const r = await req(`${docs}/${encodeURIComponent(col)}?pageSize=100${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`);
+        (r?.documents || []).forEach(d => { out[d.name.split('/').pop()] = { fields: d.fields || {}, updateTime: d.updateTime }; });
+        pageToken = r?.nextPageToken;
+      } while (pageToken);
+      return out;
+    },
+    async obterComVersao(col, id) {
+      try { const r = await req(`${docs}/${col}/${id}`); return r ? { fields: r.fields || {}, updateTime: r.updateTime } : null; } catch (e) { if (e.status === 404) return null; throw e; }
+    },
+    // Um commit (atômico) — devolve os resultados (updateTime de cada escrita).
+    async commit(writes) { return req(`${docs}:commit`, { method: 'POST', body: JSON.stringify({ writes }) }, 1); },
     async obterDocumento(col, id) {
       try { const r = await req(`${docs}/${col}/${id}`); return r ? (r.fields || {}) : null; } catch (e) { if (e.status === 404) return null; throw e; }
     },
