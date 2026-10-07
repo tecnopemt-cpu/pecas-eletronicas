@@ -9,8 +9,8 @@ Tudo roda nos bastidores (GitHub Actions) e a recuperação é feita por script,
 |---|---|---|
 | Código do site (`index.html`, ícones, manifesto) | GitHub `tecnopemt-cpu/pecas-eletronicas`, ramo `main` (publicado pelo GitHub Pages) | Versionamento do Git (todo o histórico de alterações) + uma cópia dentro de cada backup |
 | Banco de dados (clientes, peças, entradas, orçamentos, equipe, comissões, períodos, avisos, notificações, históricos) | Google Firebase — Cloud Firestore, projeto `controle-processos-a2f99` | Backup automático diário |
-| Fotos das peças, das entradas, das entregas e dos testes; imagens dos avisos | **Dentro dos documentos do Firestore** (imagem embutida no próprio registro) | Backup automático diário (junto com o banco) |
-| Assinaturas (imagem, nome, CPF, IP, data) | Dentro dos registros de entradas e orçamentos no Firestore | Backup automático diário |
+| Fotos das peças, das entradas, das entregas e dos testes; imagens dos avisos | **No Firestore, coleção `midias`** — um documento por imagem (id = `img_` + SHA-256 do conteúdo). O registro (peça, entrada, orçamento, aviso) guarda só a referência `midia:img_...`, assim as telas carregam rápido e cada foto é baixada só quando aparece | Backup automático diário (junto com o banco); o backup confere que toda referência tem a sua imagem |
+| Assinaturas (imagem, nome, CPF, IP, data) | Nome, CPF, IP e data dentro dos registros de entradas e orçamentos; a imagem da assinatura na coleção `midias` | Backup automático diário |
 | PDFs (recibos, orçamentos, relatórios) | Não ficam armazenados: o sistema gera cada PDF na hora a partir dos dados | Os dados que geram os PDFs estão no backup |
 | Arquivos enviados pelos usuários | Não existe armazenamento de arquivos separado: o que é enviado (fotos) vira imagem dentro do banco. O Firebase Storage está configurado, mas não é usado | Backup do banco |
 | Vídeos dos avisos | Links externos (YouTube etc.) | Só o link |
