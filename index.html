@@ -1302,6 +1302,12 @@ function calcularComissoesOrcamento(total, funcionarios, dataRef, idsPreservar) 
 function loteTotalmenteClassificado(itens) {
   return (itens || []).every(it => it.quantidade === (it.qtdConsertada || 0) + (it.qtdGarantia || 0) + (it.qtdTeste || 0) + (it.qtdNaoConsertada || 0));
 }
+// A entrada só fica "Concluído" quando TODAS as peças estão classificadas E já foram para orçamento.
+// Classificar sem gerar o orçamento mantém "Em análise".
+function loteTotalmenteOrcado(itens) {
+  return loteTotalmenteClassificado(itens) && (itens || []).every(it => (it.qtdConsertadaOrcada || 0) >= (it.qtdConsertada || 0) && (it.qtdGarantiaOrcada || 0) >= (it.qtdGarantia || 0) && (it.qtdTesteOrcada || 0) >= (it.qtdTeste || 0) && (it.qtdNaoConsertadaOrcada || 0) >= (it.qtdNaoConsertada || 0));
+}
+const AVISO_LOTE_CONCLUIDO = 'A entrada só pode ficar "Concluído" quando todas as peças estiverem classificadas e com o orçamento gerado.';
 // Elegibilidade de comissão: uma peça em Teste só libera comissão quando o teste
 // for confirmado como aprovado; se for reprovado, nunca gera comissão (mesmo que
 // o cartão seja movido depois). Fora da coluna Teste, segue como sempre funcionou.
@@ -4104,6 +4110,33 @@ function App() {
   }, [usuario]);
   useEffect(() => {
     if (!usuario) return;
+    // Entradas marcadas "Concluído" sem o orçamento de todas as peças voltam para "Em análise" (uma vez só).
+    (async () => {
+      try {
+        const configRef = db.collection('config').doc('migracaoLoteConcluidoOrcado');
+        const configSnap = await configRef.get();
+        if (configSnap.exists) return;
+        const snap = await db.collection('lotes').where('status', '==', 'Concluído').get();
+        const alvos = snap.docs.filter(d => d.data().arquivado !== true && !loteTotalmenteOrcado(d.data().itens));
+        for (let i = 0; i < alvos.length; i += 400) {
+          const lote = db.batch();
+          alvos.slice(i, i + 400).forEach(d => lote.update(d.ref, {
+            status: 'Em análise'
+          }));
+          await lote.commit();
+        }
+        await configRef.set({
+          feito: true,
+          cartoes: alvos.length,
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch (err) {
+        console.error('correção status das entradas', err);
+      }
+    })();
+  }, [usuario]);
+  useEffect(() => {
+    if (!usuario) return;
     // A coluna "Entregue/Faturado" passou a se chamar "Rota" (e não fatura mais: só "Concluído" fatura).
     // Muda só o nome do status nos cartões existentes; histórico, datas e vínculos ficam como estão.
     (async () => {
@@ -6859,6 +6892,10 @@ function ModalLoteDetalhe({
   const [orcamentoParaVer, setOrcamentoParaVer] = useState(null);
   const [clienteParaVer, setClienteParaVer] = useState(null);
   async function mudarStatusManual(novoStatus) {
+    if (novoStatus === 'Concluído' && !loteTotalmenteOrcado(lote.itens)) {
+      alert(AVISO_LOTE_CONCLUIDO);
+      return;
+    }
     await db.collection('lotes').doc(lote.id).update({
       status: novoStatus
     });
@@ -6878,7 +6915,7 @@ function ModalLoteDetalhe({
     const dadosLote = {
       itens: itensAtualizados
     };
-    const completo = loteTotalmenteClassificado(itensAtualizados);
+    const completo = loteTotalmenteOrcado(itensAtualizados);
     if (completo && lote.status !== 'Concluído') dadosLote.status = 'Concluído';
     if (!completo && lote.status === 'Concluído') dadosLote.status = 'Em análise';
     await db.collection('lotes').doc(lote.id).update(dadosLote);
@@ -7053,12 +7090,18 @@ function ModalLoteDetalhe({
       qtdNaoConsertadaOrcada: it.qtdNaoConsertada || 0
     }));
     opBatch.update(db.collection('lotes').doc(lote.id), {
-      itens: itensAtualizados
+      itens: itensAtualizados,
+      // tudo classificado e agora tudo orçado → Concluído; senão continua Em análise
+      status: loteTotalmenteOrcado(itensAtualizados) ? 'Concluído' : 'Em análise'
     });
     await opBatch.commit();
     setProcessando(false);
   }
   async function marcarConcluido() {
+    if (!loteTotalmenteOrcado(lote.itens)) {
+      alert(AVISO_LOTE_CONCLUIDO);
+      return;
+    }
     setProcessando(true);
     await db.collection('lotes').doc(lote.id).update({
       status: 'Concluído'
@@ -8277,7 +8320,7 @@ function AbaOrcamentos({
           dadosLote.orcamentoId = '';
           dadosLote.orcamentoNumero = '';
         }
-        if (loteData.status === 'Concluído' && !loteTotalmenteClassificado(itensAtualizados)) {
+        if (loteData.status === 'Concluído' && !loteTotalmenteOrcado(itensAtualizados)) {
           dadosLote.status = 'Em análise';
         }
         opBatch.update(db.collection('lotes').doc(o.loteId), dadosLote);
