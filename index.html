@@ -588,11 +588,6 @@
     .abas-internas{flex-wrap:wrap;overflow-x:visible !important;}
     .sub-abas{display:flex;flex-wrap:wrap;overflow-x:visible;}
     .sub-abas button{white-space:normal;}
-    /* Orçamentos (quadro): as colunas viram blocos empilhados (1 por linha no celular, 2 no tablet);
-       cada coluna cresce com os cartões e o quadro inteiro rola só para baixo */
-    .kanban-orcamento{display:grid !important;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));align-content:start;align-items:start;overflow-x:hidden !important;overflow-y:auto !important;}
-    .kanban-coluna{flex:none !important;min-width:0 !important;width:auto;height:auto !important;}
-    .kanban-lista{overflow:visible !important;flex:none !important;padding-right:0 !important;}
     /* tabelas de dados com rótulo: cada linha vira um bloco "Rótulo: valor" que quebra linha */
     .com-lancamentos table,.func-card-memoria table{min-width:0 !important;}
     .com-lancamentos{overflow-x:hidden !important;}
@@ -652,6 +647,16 @@
     .lista-equipe td:nth-child(4){order:3;flex:0 1 auto;font-size:12px;color:var(--texto-fraco);}
     .lista-equipe td:nth-child(2){order:4;font-size:12px;color:var(--texto-fraco);}
     .lista-equipe td:nth-child(2)::before{content:'· login ';}
+    /* ---- Orçamentos: continua em COLUNAS lado a lado (exceção ao padrão), só que compactas:
+       coluna mais estreita (aparece a ponta da próxima), encaixe ao deslizar, cartões menores ---- */
+    .kanban-orcamento{gap:8px !important;padding-bottom:6px !important;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scroll-padding-left:2px;}
+    .kanban-coluna{flex:0 0 min(76vw,280px) !important;min-width:0 !important;padding:8px 6px 6px !important;border-radius:9px !important;scroll-snap-align:start;}
+    .kanban-coluna > div:first-child{margin-bottom:6px !important;}
+    .kanban-coluna > div:first-child > span:first-child{font-size:13px !important;}
+    .kanban-lista{gap:6px !important;padding-right:1px !important;}
+    .kanban-cartao{zoom:.86;}
+    .kanban-cartao.kanban-arrastando{zoom:1;} /* o cartão em arraste acompanha o dedo na posição exata */
+    .kanban-lista > div:not(.kanban-cartao):not(.kanban-marcador){font-size:12px;padding:10px 4px !important;}
     /* ---- Tabelas de dados (lançamentos, ocorrências, memória de cálculo): "Rótulo: valor" em fluxo ---- */
     .tabela-rotulada thead{display:none;}
     .tabela-rotulada,.tabela-rotulada tbody{display:block;width:100%;}
