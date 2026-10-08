@@ -564,6 +564,108 @@
   .abertura-barra span{display:block;width:40%;height:100%;border-radius:2px;background:#E97307;animation:abertura-anda 1.1s ease-in-out infinite;}
   @keyframes abertura-anda{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
   img[data-midia="carregando"]{background:#ECE8E6;}
+  /* ===================== PADRÃO RESPONSIVO (tablet e celular) =====================
+     Regra geral: no celular e no tablet nada rola para os lados — só para cima e para baixo.
+     O computador (acima de 900px) não usa nada deste bloco. */
+  @media (max-width:900px){
+    th{white-space:normal;}
+    th,td{padding:9px 8px;}
+    td{overflow-wrap:break-word;}
+    .painel-tabela{overflow-x:hidden;}
+    .painel-tabela table{table-layout:auto;}
+    .foto-thumb{width:52px;height:52px;}
+    .badge{padding:3px 8px;font-size:11px;}
+    /* abas: quebram linha em vez de rolar de lado */
+    .abas-internas{flex-wrap:wrap;overflow-x:visible !important;}
+    .sub-abas{display:flex;flex-wrap:wrap;overflow-x:visible;}
+    .sub-abas button{white-space:normal;}
+    /* Orçamentos (quadro): as colunas viram blocos empilhados (1 por linha no celular, 2 no tablet);
+       cada coluna cresce com os cartões e o quadro inteiro rola só para baixo */
+    .kanban-orcamento{display:grid !important;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));align-content:start;align-items:start;overflow-x:hidden !important;overflow-y:auto !important;}
+    .kanban-coluna{flex:none !important;min-width:0 !important;width:auto;height:auto !important;}
+    .kanban-lista{overflow:visible !important;flex:none !important;padding-right:0 !important;}
+    /* tabelas de dados com rótulo: cada linha vira um bloco "Rótulo: valor" que quebra linha */
+    .com-lancamentos table,.func-card-memoria table{min-width:0 !important;}
+    .com-lancamentos{overflow-x:hidden !important;}
+    .lista-entradas td:nth-child(4),.lista-entradas td:nth-child(5){white-space:nowrap;}
+  }
+  @media (max-width:640px){
+    .conteudo-principal{padding-left:10px;padding-right:10px;}
+    .card{padding:14px;}
+    .card.painel-tabela{padding:0;}
+    /* ---- Listas (Entrada de Peças, Cadastro de Peças, Clientes, Equipe): cada linha vira um item
+       compacto da largura da tela — foto à esquerda, título e ações em cima, o resto embaixo ---- */
+    .tabela-lista thead{display:none;}
+    .tabela-lista,.tabela-lista tbody{display:block;width:100%;}
+    .tabela-lista tr{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:2px;position:relative;padding:10px 10px;border-bottom:1px solid var(--borda);}
+    .tabela-lista tbody tr:last-child{border-bottom:none;}
+    .tabela-lista td{display:block;padding:0;border:none;min-width:0;max-width:100%;font-size:13px;line-height:1.35;overflow-wrap:anywhere;}
+    .tabela-lista td[colspan]{flex:1 1 100%;text-align:center;padding:18px 0 !important;position:static !important;}
+    .tabela-lista td:empty,.tabela-lista td.sem-valor{display:none;}
+    .tabela-lista.com-lateral tbody tr{padding-left:70px;min-height:72px;}
+    .tabela-lista.com-lateral.lateral-estreita tbody tr{padding-left:42px;min-height:0;}
+    .tabela-lista.com-lateral tbody td:first-child:not([colspan]){position:absolute;left:10px;top:10px;}
+    .tabela-lista.com-lateral.lateral-estreita tbody td:first-child:not([colspan]){top:12px;}
+    .tabela-lista .foto-thumb{width:50px;height:50px;}
+    .tabela-lista .btn.pequeno{padding:5px 9px;font-size:12px;}
+    .tabela-lista .btn-menu-pontos{width:30px;height:30px;}
+    .tabela-lista .meta{font-size:12px;color:var(--texto-fraco);}
+    /* Entrada de Peças: [#9 ......... Assinar ⋮] / [Cliente] / [data · peças · status] */
+    .lista-entradas td:nth-child(2){order:1;flex:1 1 auto;font-weight:700;font-size:14px;}
+    .lista-entradas td:nth-child(7){order:2;margin-left:auto;white-space:nowrap;}
+    .lista-entradas td:nth-child(3){order:3;flex:1 1 100%;}
+    .lista-entradas td:nth-child(4){order:4;font-size:12px;color:var(--texto-fraco);}
+    .lista-entradas td:nth-child(5){order:5;font-size:12px;color:var(--texto-fraco);}
+    .lista-entradas td:nth-child(5)::before{content:'· ';}
+    .lista-entradas td:nth-child(6){order:6;}
+    /* Cadastro de Peças: [Descrição ......... ⋮] / [PN · categoria · valor] */
+    .lista-pecas td:nth-child(3){order:1;flex:1 1 calc(100% - 46px);font-weight:600;font-size:13.5px;}
+    .lista-pecas td:nth-child(6){order:2;margin-left:auto;}
+    .lista-pecas td:nth-child(2){order:3;font-size:12px;color:var(--texto-fraco);}
+    .lista-pecas td:nth-child(2)::before{content:'PN ';}
+    .lista-pecas td:nth-child(4){order:4;font-size:12px;color:var(--texto-fraco);}
+    .lista-pecas td:nth-child(5){order:5;font-size:12px;font-weight:600;}
+    .lista-pecas td:nth-child(4)::before{content:'· ';}
+    .lista-pecas td.sem-valor:nth-child(2) ~ td:nth-child(4)::before{content:'';}
+    .lista-pecas td:nth-child(5)::before{content:'· ';color:var(--texto-fraco);font-weight:400;}
+    .lista-pecas tr:has(td:nth-child(2).sem-valor):has(td:nth-child(4).sem-valor) td:nth-child(5)::before{content:'';}
+    /* Clientes: [☐ Razão social ......... ⋮] / [fantasia] / [CNPJ · telefone · cidade] */
+    .lista-clientes td:nth-child(2){order:1;flex:1 1 calc(100% - 46px);font-weight:600;font-size:13.5px;}
+    .lista-clientes td:nth-child(7){order:2;margin-left:auto;}
+    .lista-clientes td:nth-child(3){order:3;flex:1 1 100%;font-size:12.5px;color:var(--texto-fraco);}
+    .lista-clientes td:nth-child(4),.lista-clientes td:nth-child(5),.lista-clientes td:nth-child(6){order:4;font-size:12px;color:var(--texto-fraco);}
+    .lista-clientes td:nth-child(5)::before,.lista-clientes td:nth-child(6)::before{content:'· ';}
+    .lista-clientes td:nth-child(4).sem-valor + td:nth-child(5)::before,.lista-clientes td:nth-child(4).sem-valor + td:nth-child(5).sem-valor + td:nth-child(6)::before{content:'';}
+    /* Equipe: [Nome ......... status] / [perfil · login] */
+    .lista-equipe td:nth-child(1){order:1;flex:1 1 0;min-width:calc(100% - 110px);font-weight:600;font-size:13.5px;}
+    .lista-equipe td:nth-child(4){flex-basis:auto;}
+    .lista-equipe td:nth-child(3){order:2;margin-left:auto;}
+    .lista-equipe td:nth-child(4){order:3;flex:0 1 auto;font-size:12px;color:var(--texto-fraco);}
+    .lista-equipe td:nth-child(2){order:4;font-size:12px;color:var(--texto-fraco);}
+    .lista-equipe td:nth-child(2)::before{content:'· login ';}
+    /* ---- Tabelas de dados (lançamentos, ocorrências, memória de cálculo): "Rótulo: valor" em fluxo ---- */
+    .tabela-rotulada thead{display:none;}
+    .tabela-rotulada,.tabela-rotulada tbody{display:block;width:100%;}
+    .tabela-rotulada tr{display:flex;flex-wrap:wrap;gap:2px 12px;padding:9px 10px;border-bottom:1px solid var(--borda);}
+    .tabela-rotulada td{display:block;padding:0;border:none;min-width:0;font-size:12.5px;line-height:1.4;overflow-wrap:anywhere;}
+    .tabela-rotulada td[data-rotulo]::before{content:attr(data-rotulo) ': ';color:var(--texto-fraco);font-weight:400;}
+    .tabela-rotulada td.celula-titulo{flex:1 1 100%;font-weight:700;font-size:13.5px;}
+    .tabela-rotulada td.celula-titulo::before{content:'';}
+    .tabela-rotulada td.celula-acao{flex:1 1 100%;}
+    .tabela-rotulada td[colspan]{flex:1 1 100%;text-align:center;}
+    /* relatório de comissão na tela (a impressão e o PDF não mudam) */
+    .rel-previa{padding:8px !important;overflow-x:hidden !important;}
+    .rel-previa .rel .cab{flex-direction:column;gap:6px;}
+    .rel-previa .rel .dir{text-align:left;}
+    .rel-previa .rel table.rel-rotulada thead{display:none;}
+    .rel-previa .rel table.rel-rotulada,.rel-previa .rel table.rel-rotulada tbody,.rel-previa .rel table.rel-rotulada tfoot{display:block;width:100%;}
+    .rel-previa .rel table.rel-rotulada tr{display:flex;flex-wrap:wrap;gap:2px 12px;padding:8px 0;border-bottom:1px solid #e6dfdd;}
+    .rel-previa .rel table.rel-rotulada td{display:block;border:none;padding:0;overflow-wrap:anywhere;}
+    .rel-previa .rel table.rel-rotulada td[data-rotulo]::before{content:attr(data-rotulo) ': ';color:#6b605e;}
+    .rel-previa .rel table.rel-rotulada td.celula-titulo{flex:1 1 100%;font-weight:700;}
+    .rel-previa .rel table.rel-rotulada td.celula-titulo::before{content:'';}
+    .rel-previa .rel table td{overflow-wrap:anywhere;}
+  }
 </style>
 </head>
 <body>
@@ -4709,7 +4811,9 @@ function AbaClientes({
     onClick: excluirSelecionados
   }, excluindoLote ? 'Excluindo...' : `🗑️ Excluir selecionados (${selecionados.size})`))), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-lista com-lateral lateral-estreita lista-clientes"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
     style: {
       width: 34
     }
@@ -4730,7 +4834,15 @@ function AbaClientes({
     type: "checkbox",
     checked: selecionados.has(c.id),
     onChange: () => alternarSelecao(c.id)
-  })), /*#__PURE__*/React.createElement("td", null, c.razaoSocial), /*#__PURE__*/React.createElement("td", null, c.nomeFantasia || '-'), /*#__PURE__*/React.createElement("td", null, c.cnpj ? formatCNPJ(c.cnpj) : '-'), /*#__PURE__*/React.createElement("td", null, c.telefone || '-'), /*#__PURE__*/React.createElement("td", null, c.cidade ? `${c.cidade}/${c.uf || ''}` : '-'), /*#__PURE__*/React.createElement("td", {
+  })), /*#__PURE__*/React.createElement("td", null, c.razaoSocial), /*#__PURE__*/React.createElement("td", {
+    className: c.nomeFantasia ? undefined : "sem-valor"
+  }, c.nomeFantasia || '-'), /*#__PURE__*/React.createElement("td", {
+    className: c.cnpj ? undefined : "sem-valor"
+  }, c.cnpj ? formatCNPJ(c.cnpj) : '-'), /*#__PURE__*/React.createElement("td", {
+    className: c.telefone ? undefined : "sem-valor"
+  }, c.telefone || '-'), /*#__PURE__*/React.createElement("td", {
+    className: c.cidade ? undefined : "sem-valor"
+  }, c.cidade ? `${c.cidade}/${c.uf || ''}` : '-'), /*#__PURE__*/React.createElement("td", {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
@@ -5019,7 +5131,9 @@ function AbaCatalogo({
     }
   })), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "PN"), /*#__PURE__*/React.createElement("th", null, "Descrição"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Valor conserto"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(p => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-lista com-lateral lista-pecas"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "PN"), /*#__PURE__*/React.createElement("th", null, "Descrição"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Valor conserto"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(p => /*#__PURE__*/React.createElement("tr", {
     key: p.id,
     className: "linha-clicavel",
     onClick: () => {
@@ -5042,7 +5156,11 @@ function AbaCatalogo({
       justifyContent: 'center',
       color: 'var(--texto-fraco)'
     }
-  }, "—")), /*#__PURE__*/React.createElement("td", null, p.codigo || '-'), /*#__PURE__*/React.createElement("td", null, p.descricao), /*#__PURE__*/React.createElement("td", null, p.categoria || '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(p.valorConserto)), /*#__PURE__*/React.createElement("td", {
+  }, "—")), /*#__PURE__*/React.createElement("td", {
+    className: p.codigo ? undefined : "sem-valor"
+  }, p.codigo || '-'), /*#__PURE__*/React.createElement("td", null, p.descricao), /*#__PURE__*/React.createElement("td", {
+    className: p.categoria ? undefined : "sem-valor"
+  }, p.categoria || '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(p.valorConserto)), /*#__PURE__*/React.createElement("td", {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
@@ -6282,7 +6400,9 @@ function AbaLotes({
     onClick: () => setLoteSelecionadoId(resultadoArquivado.id)
   }, "Abrir cartão")))), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-lista com-lateral lista-entradas"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id,
     className: "linha-clicavel",
     onClick: () => setLoteSelecionadoId(l.id)
@@ -7717,8 +7837,15 @@ function useArrastarKanban(ativo, aoSoltar) {
   // Funções criadas uma vez só (os listeners adicionados e removidos são sempre os mesmos)
   const api = useMemo(() => {
     function indiceDe(d) {
-      const y = d.y + (d.colunaEl.scrollTop - d.scroll0);
+      const y = d.y + (d.rolador.scrollTop - d.scroll0);
       return d.mids.filter(m => m < y).length;
+    }
+    function areaQueRola(el) {
+      for (let e = el; e && e !== document.body; e = e.parentElement) {
+        const oy = getComputedStyle(e).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && e.scrollHeight > e.clientHeight + 1) return e;
+      }
+      return el;
     }
     function ativar(p) {
       if (ref.current.pend !== p) return;
@@ -7742,7 +7869,8 @@ function useArrastarKanban(ativo, aoSoltar) {
         idxOrig,
         indice: idxOrig,
         mids,
-        scroll0: p.colunaEl.scrollTop,
+        scroll0: areaQueRola(p.colunaEl).scrollTop,
+        rolador: areaQueRola(p.colunaEl),
         colunaEl: p.colunaEl,
         offY: p.y - meu.r.top,
         left: meu.r.left,
@@ -7764,14 +7892,14 @@ function useArrastarKanban(ativo, aoSoltar) {
       const passo = () => {
         const dd = ref.current.drag;
         if (!dd) return;
-        const r = dd.colunaEl.getBoundingClientRect();
+        const r = dd.rolador.getBoundingClientRect();
         const borda = 48;
         let v = 0;
         if (dd.y < r.top + borda) v = -Math.ceil((r.top + borda - dd.y) / 5);else if (dd.y > r.bottom - borda) v = Math.ceil((dd.y - (r.bottom - borda)) / 5);
         if (v) {
-          const antes = dd.colunaEl.scrollTop;
-          dd.colunaEl.scrollTop = antes + v;
-          if (dd.colunaEl.scrollTop !== antes) {
+          const antes = dd.rolador.scrollTop;
+          dd.rolador.scrollTop = antes + v;
+          if (dd.rolador.scrollTop !== antes) {
             dd.indice = indiceDe(dd);
             setDrag({
               ...dd
@@ -8243,6 +8371,7 @@ function AbaOrcamentos({
     const itensDoStatus = ordenarColunaKanban(orcamentosFiltrados.filter(o => o.status === status));
     return /*#__PURE__*/React.createElement("div", {
       key: status,
+      className: "kanban-coluna",
       style: {
         flex: '0 0 310px',
         minWidth: 310,
@@ -8278,6 +8407,7 @@ function AbaOrcamentos({
         fontWeight: 700
       }
     }, itensDoStatus.length)), /*#__PURE__*/React.createElement("div", {
+      className: "kanban-lista",
       style: {
         display: 'flex',
         flexDirection: 'column',
@@ -9929,6 +10059,7 @@ function AbasInternas({
   aoMudar
 }) {
   return /*#__PURE__*/React.createElement("div", {
+    className: "abas-internas",
     style: {
       display: 'flex',
       gap: 4,
@@ -10275,13 +10406,30 @@ function MemoriaCalculo({
       marginTop: 12
     }
   }, "Ocorrências no período"), /*#__PURE__*/React.createElement("table", {
+    className: "tabela-rotulada",
     style: {
       marginTop: 4,
       fontSize: 12
     }
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Previsto"), /*#__PURE__*/React.createElement("th", null, "Chegada"), /*#__PURE__*/React.createElement("th", null, "Atraso"), /*#__PURE__*/React.createElement("th", null, "Observação"), /*#__PURE__*/React.createElement("th", null, "Registrado por"), aoRemoverOcorrencia && /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, linha.ocorrencias.map(o => /*#__PURE__*/React.createElement("tr", {
     key: o.id
-  }, /*#__PURE__*/React.createElement("td", null, formatarDataBr(o.data)), /*#__PURE__*/React.createElement("td", null, o.tipo === 'atraso' ? 'Atraso' : (tiposFalta || linha.tiposFalta || []).find(t => t.id === o.tipo)?.nome || o.nomeTipo || 'Falta'), /*#__PURE__*/React.createElement("td", null, o.previsto || '—'), /*#__PURE__*/React.createElement("td", null, o.chegada || '—'), /*#__PURE__*/React.createElement("td", null, o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '—'), /*#__PURE__*/React.createElement("td", null, o.obs || '—'), /*#__PURE__*/React.createElement("td", null, o.por), aoRemoverOcorrencia && /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Data"
+  }, formatarDataBr(o.data)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tipo"
+  }, o.tipo === 'atraso' ? 'Atraso' : (tiposFalta || linha.tiposFalta || []).find(t => t.id === o.tipo)?.nome || o.nomeTipo || 'Falta'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Previsto"
+  }, o.previsto || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Chegada"
+  }, o.chegada || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Atraso"
+  }, o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Observação"
+  }, o.obs || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Registrado por"
+  }, o.por), aoRemoverOcorrencia && /*#__PURE__*/React.createElement("td", {
+    className: "celula-acao"
+  }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn perigo pequeno",
     onClick: () => aoRemoverOcorrencia(o)
@@ -10292,13 +10440,26 @@ function MemoriaCalculo({
       marginTop: 4
     }
   }, "+ ", linha.atrasosAntigos, " atraso(s) lançado(s) antes, sem horário.")), linha.lancamentos.length > 0 && /*#__PURE__*/React.createElement("table", {
+    className: "tabela-rotulada",
     style: {
       marginTop: 10,
       fontSize: 12
     }
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "Peças"), /*#__PURE__*/React.createElement("th", null, "Valor do orçamento"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Comissão"))), /*#__PURE__*/React.createElement("tbody", null, linha.lancamentos.map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id
-  }, /*#__PURE__*/React.createElement("td", null, formatarDataBr(l.data)), /*#__PURE__*/React.createElement("td", null, "#", l.numero), /*#__PURE__*/React.createElement("td", null, l.pecas), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.valorOrcamento)), /*#__PURE__*/React.createElement("td", null, l.percentual !== null ? formatarPct(l.percentual) : '-'), /*#__PURE__*/React.createElement("td", null, formatMoeda(l.valor)))))));
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Data"
+  }, formatarDataBr(l.data)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Orçamento"
+  }, "#", l.numero), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Peças"
+  }, l.pecas), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Valor do orçamento"
+  }, formatMoeda(l.valorOrcamento)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "%"
+  }, l.percentual !== null ? formatarPct(l.percentual) : '-'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Comissão"
+  }, formatMoeda(l.valor)))))));
 }
 // Celular: cada funcionário vira um cartão com pares "informação / valor".
 function CartaoFuncionarioComissao({
@@ -10633,18 +10794,33 @@ function AnaliseComissao({
       overflowX: 'auto',
       padding: 0
     }
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data ref."), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, lancPeriodo.map(c => {
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-rotulada"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data ref."), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, lancPeriodo.map(c => {
     const o = orcPorId[c.orcamentoId];
     const st = statusComissaoOrcamento(o);
     return /*#__PURE__*/React.createElement("tr", {
       key: c.id
-    }, /*#__PURE__*/React.createElement("td", null, formatData(dataReferenciaOrcamento(o) || c.data)), /*#__PURE__*/React.createElement("td", null, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", null, o ? `#${o.numero}` : '-'), /*#__PURE__*/React.createElement("td", null, c.percentual !== undefined ? formatarPct(c.percentual) : '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Data ref."
+    }, formatData(dataReferenciaOrcamento(o) || c.data)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Funcionário",
+      className: "celula-titulo"
+    }, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Orçamento"
+    }, o ? `#${o.numero}` : '-'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "%"
+    }, c.percentual !== undefined ? formatarPct(c.percentual) : '-'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Status"
+    }, /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 12,
         fontWeight: 700,
         color: st.cor
       }
-    }, st.rotulo)), /*#__PURE__*/React.createElement("td", null, formatMoeda(c.valor)));
+    }, st.rotulo)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Valor"
+    }, formatMoeda(c.valor)));
   }), !carregando && lancPeriodo.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "6",
     style: {
@@ -13705,13 +13881,13 @@ function htmlRelatorioComissao(res, meta) {
   const eq = `Faturamento do período: <b>${formatMoeda(res.faturamento)}</b> · Faixa de faturamento: <b>${escHtml(textoFaixaResultado(res))}</b> · Bonificação: <b>${formatarPct(res.pctFaixa)}</b> · Peças consertadas (informativo): <b>${res.qtdConsertadas ?? res.qtdFaixa ?? 0}</b> · Garantia: <b>${formatarPct(res.pctGarantia.toFixed(1))}</b>${res.garantiaEstourada ? ' (acima do limite)' : ''}`;
   let corpo = '';
   if (meta.tipo === 'simples') {
-    corpo = `<table><thead><tr><th>Funcionário</th><th>Atrasos</th><th>Tempo de atraso*</th><th>Redução por atrasos</th><th>Faltas</th><th>Desconto por faltas</th><th>Comissão base</th><th>Faixa e demais regras</th><th>Ajustes</th><th>Valor final</th></tr></thead><tbody>${linhas.map(l => `<tr><td>${escHtml(l.nome)}<div class="kv">${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) + ' na Equipe' : '% não configurado'} · ${l.pecas} peças</div></td><td>${l.atrasos}</td><td>${l.minutosAtraso ? formatarMinutos(l.minutosAtraso) : '—'}</td><td>${l.pctReducaoAtrasos ? `${formatarPct(l.pctReducaoAtrasos)} (− ${formatMoeda(l.descontoAtrasos)})` : '—'}</td><td>${l.qtdFaltas}</td><td>${l.descontoFaltas ? `− ${formatMoeda(l.descontoFaltas)}` : '—'}</td><td>${formatMoeda(l.base)}</td><td>${sinalMoeda(outrasRegrasLinha(l))}</td><td>${sinalMoeda(l.totalAjustes)}</td><td><b>${formatMoeda(l.final)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="9"><b>Total geral das comissões</b></td><td><b>${formatMoeda(total)}</b></td></tr></tfoot></table><p class="kv">* Tempo de atraso é só informativo: a redução usa a quantidade de ocorrências (cada atraso = ${formatarPct(res.regras?.atrasos?.reducaoPct ?? 20).replace('%', '')} pontos percentuais, até ${formatarPct(res.regras?.atrasos?.limitePct ?? 100)}).</p>`;
+    corpo = `<table class="rel-rotulada"><thead><tr><th>Funcionário</th><th>Atrasos</th><th>Tempo de atraso*</th><th>Redução por atrasos</th><th>Faltas</th><th>Desconto por faltas</th><th>Comissão base</th><th>Faixa e demais regras</th><th>Ajustes</th><th>Valor final</th></tr></thead><tbody>${linhas.map(l => `<tr><td data-rotulo="Funcionário" class="celula-titulo">${escHtml(l.nome)}<div class="kv">${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) + ' na Equipe' : '% não configurado'} · ${l.pecas} peças</div></td><td data-rotulo="Atrasos">${l.atrasos}</td><td data-rotulo="Tempo de atraso*">${l.minutosAtraso ? formatarMinutos(l.minutosAtraso) : '—'}</td><td data-rotulo="Redução por atrasos">${l.pctReducaoAtrasos ? `${formatarPct(l.pctReducaoAtrasos)} (− ${formatMoeda(l.descontoAtrasos)})` : '—'}</td><td data-rotulo="Faltas">${l.qtdFaltas}</td><td data-rotulo="Desconto por faltas">${l.descontoFaltas ? `− ${formatMoeda(l.descontoFaltas)}` : '—'}</td><td data-rotulo="Comissão base">${formatMoeda(l.base)}</td><td data-rotulo="Faixa e demais regras">${sinalMoeda(outrasRegrasLinha(l))}</td><td data-rotulo="Ajustes">${sinalMoeda(l.totalAjustes)}</td><td data-rotulo="Valor final"><b>${formatMoeda(l.final)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="9"><b>Total geral das comissões</b></td><td><b>${formatMoeda(total)}</b></td></tr></tfoot></table><p class="kv">* Tempo de atraso é só informativo: a redução usa a quantidade de ocorrências (cada atraso = ${formatarPct(res.regras?.atrasos?.reducaoPct ?? 20).replace('%', '')} pontos percentuais, até ${formatarPct(res.regras?.atrasos?.limitePct ?? 100)}).</p>`;
   } else {
     corpo = linhas.map(l => `<div class="func"><h3>${escHtml(l.nome)}</h3>
       <div class="kv">Período: <b>${meta.periodo}</b> · Faturamento do período: <b>${formatMoeda(res.faturamento)}</b> · Faixa: <b>${escHtml(textoFaixaResultado(res))}</b> · Bonificação: <b>${formatarPct(res.pctFaixa)}</b> · Peças consertadas: <b>${l.pecas}</b> · % na Equipe: <b>${l.percentualFicha > 0 ? formatarPct(l.percentualFicha) : 'não configurado'}</b></div>
       <table><tbody><tr><td>Comissão base</td><td>${formatMoeda(l.base)}</td></tr>${l.passos.map(p => `<tr><td>${escHtml(p.nome)}: ${escHtml(p.descricao)}</td><td>${sinalMoeda(p.delta)}</td></tr>`).join('')}${l.ajustes.map(a => `<tr><td>Ajuste manual: ${escHtml(a.justificativa)} (${escHtml(a.por)})</td><td>${sinalMoeda(Number(a.valor) || 0)}</td></tr>`).join('')}<tr><td><b>Valor final</b></td><td><b>${formatMoeda(l.final)}</b></td></tr></tbody></table>
-      ${(l.ocorrencias || []).length ? `<div class="sub">Ocorrências — ${l.atrasos} atraso(s) (${formatarMinutos(l.minutosAtraso)} no total, só informativo) · ${l.qtdFaltas} falta(s)</div><table><thead><tr><th>Data</th><th>Tipo</th><th>Previsto</th><th>Chegada</th><th>Atraso</th><th>Observação</th></tr></thead><tbody>${l.ocorrencias.map(o => `<tr><td>${formatarDataBr(o.data)}</td><td>${escHtml(nomeTipoOcorrencia(o, res))}</td><td>${o.previsto || '—'}</td><td>${o.chegada || '—'}</td><td>${o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '—'}</td><td>${escHtml(o.obs || '—')}</td></tr>`).join('')}</tbody></table>` : ''}
-      ${l.lancamentos.length ? `<div class="sub">Lançamentos</div><table><thead><tr><th>Data</th><th>Orçamento</th><th>Peças</th><th>Valor do orçamento</th><th>%</th><th>Comissão</th></tr></thead><tbody>${l.lancamentos.map(x => `<tr><td>${formatarDataBr(x.data)}</td><td>#${escHtml(x.numero)}</td><td>${x.pecas}</td><td>${formatMoeda(x.valorOrcamento)}</td><td>${x.percentual !== null ? formatarPct(x.percentual) : '-'}</td><td>${formatMoeda(x.valor)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`).join('') + `<div class="total">Total geral das comissões: ${formatMoeda(total)}</div>`;
+      ${(l.ocorrencias || []).length ? `<div class="sub">Ocorrências — ${l.atrasos} atraso(s) (${formatarMinutos(l.minutosAtraso)} no total, só informativo) · ${l.qtdFaltas} falta(s)</div><table class="rel-rotulada"><thead><tr><th>Data</th><th>Tipo</th><th>Previsto</th><th>Chegada</th><th>Atraso</th><th>Observação</th></tr></thead><tbody>${l.ocorrencias.map(o => `<tr><td data-rotulo="Data">${formatarDataBr(o.data)}</td><td data-rotulo="Tipo">${escHtml(nomeTipoOcorrencia(o, res))}</td><td data-rotulo="Previsto">${o.previsto || '—'}</td><td data-rotulo="Chegada">${o.chegada || '—'}</td><td data-rotulo="Atraso">${o.tipo === 'atraso' ? formatarMinutos(o.minutos) : '—'}</td><td data-rotulo="Observação">${escHtml(o.obs || '—')}</td></tr>`).join('')}</tbody></table>` : ''}
+      ${l.lancamentos.length ? `<div class="sub">Lançamentos</div><table class="rel-rotulada"><thead><tr><th>Data</th><th>Orçamento</th><th>Peças</th><th>Valor do orçamento</th><th>%</th><th>Comissão</th></tr></thead><tbody>${l.lancamentos.map(x => `<tr><td data-rotulo="Data">${formatarDataBr(x.data)}</td><td data-rotulo="Orçamento">#${escHtml(x.numero)}</td><td data-rotulo="Peças">${x.pecas}</td><td data-rotulo="Valor do orçamento">${formatMoeda(x.valorOrcamento)}</td><td data-rotulo="%">${x.percentual !== null ? formatarPct(x.percentual) : '-'}</td><td data-rotulo="Comissão">${formatMoeda(x.valor)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`).join('') + `<div class="total">Total geral das comissões: ${formatMoeda(total)}</div>`;
   }
   return `<div class="rel"><div class="cab"><div><div class="emp">TECNOPEMT</div><h2>${meta.titulo}</h2></div><div class="dir">Período: <b>${meta.periodo}</b><br>${escHtml(meta.situacao)}<br>Gerado em ${meta.geradoEm} por ${escHtml(meta.geradoPor)}</div></div><div class="eq">${eq}</div>${linhas.length ? corpo : '<p>Nenhuma comissão elegível no período.</p>'}</div>`;
 }
@@ -13958,6 +14134,7 @@ function ModalRelatorioComissao({
     className: "btn secundario pequeno",
     onClick: aoFechar
   }, "Fechar")), /*#__PURE__*/React.createElement("style", null, CSS_RELATORIO_COMISSAO), /*#__PURE__*/React.createElement("div", {
+    className: "rel-previa",
     style: {
       background: '#fff',
       borderRadius: 8,
@@ -15086,6 +15263,7 @@ function ModalGerenciarAvisos({
       marginTop: 0
     }
   }, "Gerenciar avisos"), /*#__PURE__*/React.createElement("div", {
+    className: "abas-internas",
     style: {
       display: 'flex',
       gap: 4,
@@ -15570,11 +15748,15 @@ function AbaFuncionarios({
     }
   })), /*#__PURE__*/React.createElement("div", {
     className: "card painel-tabela"
-  }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Login"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Perfil"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(f => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-lista lista-equipe"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Login"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Perfil"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(f => /*#__PURE__*/React.createElement("tr", {
     key: f.id,
     className: "linha-clicavel",
     onClick: () => setDetalheId(f.id)
-  }, /*#__PURE__*/React.createElement("td", null, f.nome), /*#__PURE__*/React.createElement("td", null, f.login || '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("td", null, f.nome), /*#__PURE__*/React.createElement("td", {
+    className: f.login ? undefined : "sem-valor"
+  }, f.login || '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
     className: `badge ${badgeStatus(f.status)}`
   }, statusRotulo(f.status || 'ativo'))), /*#__PURE__*/React.createElement("td", null, f.perfil === 'master' ? 'Administrador Master' : f.perfil === 'administrador' ? 'Administrador' : 'Funcionário'), /*#__PURE__*/React.createElement("td", {
     style: {
@@ -16153,6 +16335,7 @@ function ModalFuncionarioDetalhe({
     disabled: processando,
     onClick: recusar
   }, "Recusar cadastro")), /*#__PURE__*/React.createElement("div", {
+    className: "abas-internas",
     style: {
       display: 'flex',
       gap: 4,
