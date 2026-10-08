@@ -564,6 +564,19 @@
   .abertura-barra span{display:block;width:40%;height:100%;border-radius:2px;background:#E97307;animation:abertura-anda 1.1s ease-in-out infinite;}
   @keyframes abertura-anda{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
   img[data-midia="carregando"]{background:#ECE8E6;}
+  /* nova entrada: [Peça] [Quantidade] [Frota] [×] */
+  .linha-item-entrada-titulos{display:flex;gap:6px;font-size:11.5px;font-weight:600;color:var(--texto-fraco);margin:2px 0 4px;}
+  .linha-item-entrada-titulos span:nth-child(1){flex:1;}
+  .linha-item-entrada-titulos span:nth-child(2){width:80px;}
+  .linha-item-entrada-titulos span:nth-child(3){width:110px;}
+  .linha-item-entrada-titulos span:nth-child(4){width:34px;}
+  @media (max-width:640px){
+    .linha-item-entrada{flex-wrap:wrap;}
+    .linha-item-entrada > div:first-child{flex:1 1 100% !important;}
+    .linha-item-entrada > .campo-frota{flex:1 1 auto;width:auto !important;}
+    .linha-item-entrada-titulos{display:none;}
+    .linha-item-entrada{padding-bottom:8px;border-bottom:1px dashed var(--borda);}
+  }
   /* ---- janelas no celular: alça para puxar, botão × fixo, animação ao fechar por gesto ---- */
   .janela-x{position:fixed;z-index:60;width:38px;height:38px;border-radius:50%;border:1px solid var(--borda);background:rgba(255,255,255,.96);color:var(--texto);font-size:24px;line-height:1;display:none;align-items:center;justify-content:center;padding:0 0 2px;box-shadow:0 2px 8px rgba(40,30,28,.18);cursor:pointer;-webkit-tap-highlight-color:transparent;}
   @media (min-width:901px){ .janela-x{display:none !important;} }
@@ -1093,6 +1106,16 @@ React.createElement = function (tipo, props) {
 };
 
 // ======================= HELPERS =======================
+// Frota (opcional) de uma peça da entrada: o número informado, ou '' quando não há
+// (nunca vira quantidade nem entra em cálculo; vazio não aparece em lugar nenhum).
+function frotaDe(it) {
+  const f = it && it.frota !== undefined && it.frota !== null ? String(it.frota).trim() : '';
+  return f;
+}
+function sufixoFrota(it) {
+  const f = frotaDe(it);
+  return f ? ` — Frota: ${f}` : '';
+}
 function formatMoeda(v) {
   const n = Number(v) || 0;
   return n.toLocaleString('pt-BR', {
@@ -1806,7 +1829,7 @@ async function gerarPdfEntrada(lote, cliente, assinatura) {
     }
     const partes = (it.pecaDescricao || '').split(' — ');
     const codigo = partes.length > 1 ? partes[0] : '-';
-    const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.pecaDescricao || '';
+    const descricao = (partes.length > 1 ? partes.slice(1).join(' — ') : it.pecaDescricao || '') + sufixoFrota(it);
     const linhasDesc = doc.splitTextToSize(descricao, colQtd - colDescricao - 4);
     doc.text(codigo, colCodigo, y);
     doc.text(linhasDesc, colDescricao, y);
@@ -1943,7 +1966,7 @@ async function gerarPdfEntrega(orcamento, cliente, assinatura) {
     const subtotal = (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0);
     const partes = (it.descricao || '').split(' — ');
     const codigo = partes.length > 1 ? partes[0] : '-';
-    const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.descricao || '';
+    const descricao = (partes.length > 1 ? partes.slice(1).join(' — ') : it.descricao || '') + sufixoFrota(it);
     const linhasDesc = doc.splitTextToSize(descricao, colQtd - colDescricao - 4);
     doc.text(codigo, colCodigo, y);
     doc.text(linhasDesc, colDescricao, y);
@@ -2094,7 +2117,7 @@ async function gerarPdfEntregaTeste(orcamento, cliente, assinatura) {
     }
     const partes = (it.descricao || '').split(' — ');
     const codigo = partes.length > 1 ? partes[0] : '-';
-    const descricao = partes.length > 1 ? partes.slice(1).join(' — ') : it.descricao || '';
+    const descricao = (partes.length > 1 ? partes.slice(1).join(' — ') : it.descricao || '') + sufixoFrota(it);
     const linhasDesc = doc.splitTextToSize(descricao, colId - colPeca - 4);
     doc.text(String(it.qtd), colQtd, y);
     doc.text(linhasDesc, colPeca, y);
@@ -2255,7 +2278,7 @@ async function gerarPdfLoteImpressao(lote, cliente) {
   doc.setFontSize(9);
   doc.setTextColor(40, 34, 33);
   (lote.itens || []).forEach(it => {
-    const linhas = doc.splitTextToSize(it.pecaDescricao || '', colQtd - colDescricao - 4);
+    const linhas = doc.splitTextToSize((it.pecaDescricao || '') + sufixoFrota(it), colQtd - colDescricao - 4);
     const classificacao = `${it.qtdConsertada || 0}C / ${it.qtdGarantia || 0}G / ${it.qtdTeste || 0}T / ${it.qtdNaoConsertada || 0}S`;
     doc.text(linhas, colDescricao, y);
     doc.text(String(it.quantidade), colQtd, y);
@@ -2408,7 +2431,7 @@ async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
   doc.setTextColor(40, 34, 33);
   (orcamento.itens || []).forEach(it => {
     const subtotal = (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0);
-    const linhas = doc.splitTextToSize(it.descricao || '', colQtd - colDescricao - 4);
+    const linhas = doc.splitTextToSize((it.descricao || '') + sufixoFrota(it), colQtd - colDescricao - 4);
     doc.text(linhas, colDescricao, y);
     doc.text(String(it.qtd), colQtd, y);
     doc.text(formatMoeda(subtotal), colValor, y);
@@ -2624,17 +2647,17 @@ function FormularioAssinatura({
     style: {
       marginBottom: 4
     }
-  }, it.pecaDescricao, " — Qtd: ", it.quantidade)) : tipo === 'teste' ? (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+  }, it.pecaDescricao, " — Qtd: ", it.quantidade, sufixoFrota(it))) : tipo === 'teste' ? (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
       marginBottom: 4
     }
-  }, it.descricao, " — Qtd: ", it.qtd)) : (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
+  }, it.descricao, " — Qtd: ", it.qtd, sufixoFrota(it))) : (documento.itens || []).map((it, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
       marginBottom: 4
     }
-  }, it.descricao, " — Qtd: ", it.qtd, " — ", formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0)))), !semValores && /*#__PURE__*/React.createElement("div", {
+  }, it.descricao, " — Qtd: ", it.qtd, sufixoFrota(it), " — ", formatMoeda((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0)))), !semValores && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 6,
       fontWeight: 700
@@ -6550,10 +6573,12 @@ function ModalNovoLote({
   const [clienteId, setClienteId] = useState(origemCopia?.clienteId || '');
   const [itens, setItens] = useState(origemCopia?.itens?.length ? origemCopia.itens.map(it => ({
     pecaCatalogoId: it.pecaCatalogoId,
-    quantidade: it.quantidade
+    quantidade: it.quantidade,
+    frota: frotaDe(it)
   })) : [{
     pecaCatalogoId: '',
-    quantidade: 1
+    quantidade: 1,
+    frota: ''
   }]);
   const [fotosLote, setFotosLote] = useState([]);
   // Quem registrou cada foto e quando — mesma posição do array fotosLote.
@@ -6571,7 +6596,8 @@ function ModalNovoLote({
   function addItem() {
     setItens(prev => [...prev, {
       pecaCatalogoId: '',
-      quantidade: 1
+      quantidade: 1,
+      frota: ''
     }]);
   }
   function removerItem(i) {
@@ -6620,6 +6646,9 @@ function ModalNovoLote({
         pecaCatalogoId: it.pecaCatalogoId,
         pecaDescricao: peca ? `${peca.codigo ? peca.codigo + ' — ' : ''}${peca.descricao}` : '',
         quantidade: Number(it.quantidade),
+        ...(frotaDe(it) ? {
+          frota: frotaDe(it)
+        } : {}),
         qtdConsertada: 0,
         qtdGarantia: 0,
         qtdTeste: 0,
@@ -6746,8 +6775,11 @@ function ModalNovoLote({
       color: 'var(--texto-fraco)',
       marginBottom: 8
     }
-  }, "Cadastre as peças no Cadastro de Peças antes de dar entrada."), itens.map((it, i) => /*#__PURE__*/React.createElement("div", {
+  }, "Cadastre as peças no Cadastro de Peças antes de dar entrada."), itens.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "linha-item-entrada linha-item-entrada-titulos"
+  }, /*#__PURE__*/React.createElement("span", null, "Peça"), /*#__PURE__*/React.createElement("span", null, "Quantidade"), /*#__PURE__*/React.createElement("span", null, "Frota (opcional)"), /*#__PURE__*/React.createElement("span", null)), itens.map((it, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
+    className: "linha-item-entrada",
     style: {
       display: 'flex',
       gap: 6,
@@ -6771,7 +6803,20 @@ function ModalNovoLote({
     min: "1",
     value: it.quantidade,
     onChange: e => mudarItem(i, 'quantidade', e.target.value),
-    placeholder: "Qtd"
+    placeholder: "Qtd",
+    "aria-label": "Quantidade"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "campo-frota",
+    style: {
+      width: 110
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: it.frota || '',
+    maxLength: 30,
+    onChange: e => mudarItem(i, 'frota', e.target.value),
+    placeholder: "Frota (opcional)",
+    "aria-label": "Frota (opcional)"
   })), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn perigo pequeno",
@@ -6838,6 +6883,47 @@ function ModalLoteDetalhe({
     if (!completo && lote.status === 'Concluído') dadosLote.status = 'Em análise';
     await db.collection('lotes').doc(lote.id).update(dadosLote);
   }
+  async function definirFrota(idx, valor) {
+    const nova = String(valor || '').trim();
+    if (nova === frotaDe(lote.itens[idx])) return;
+    const itensAtualizados = lote.itens.map((it, i) => {
+      if (i !== idx) return it;
+      const {
+        frota,
+        ...resto
+      } = it;
+      return nova ? {
+        ...resto,
+        frota: nova
+      } : resto;
+    });
+    await db.collection('lotes').doc(lote.id).update({
+      itens: itensAtualizados
+    });
+    // a frota acompanha a peça no orçamento já gerado desta entrada (linhas que vieram desta peça)
+    const peca = lote.itens[idx];
+    for (const o of orcamentosVinculados) {
+      const aj = o.loteAjustes || [];
+      const its = o.itens || [];
+      if (!aj.length || aj.length !== its.length) continue;
+      let mudou = false;
+      const novos = its.map((li, k) => {
+        if (!aj[k] || aj[k].idx !== idx || !String(li.descricao || '').startsWith(peca.pecaDescricao || '')) return li;
+        mudou = true;
+        const {
+          frota,
+          ...resto
+        } = li;
+        return nova ? {
+          ...resto,
+          frota: nova
+        } : resto;
+      });
+      if (mudou) await db.collection('orcamentos').doc(o.id).update({
+        itens: novos
+      });
+    }
+  }
   async function definirValor(idx, valor) {
     const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
       ...it,
@@ -6860,6 +6946,9 @@ function ModalLoteDetalhe({
         linhas.push({
           descricao: it.pecaDescricao,
           qtd: pendConserto,
+          ...(frotaDe(it) ? {
+            frota: frotaDe(it)
+          } : {}),
           valorUnit: it.valorConserto || 0,
           categoria,
           tipo: 'consertada'
@@ -6874,6 +6963,9 @@ function ModalLoteDetalhe({
         linhas.push({
           descricao: `${it.pecaDescricao} (Garantia)`,
           qtd: pendGarantia,
+          ...(frotaDe(it) ? {
+            frota: frotaDe(it)
+          } : {}),
           valorUnit: 0,
           categoria,
           tipo: 'garantia'
@@ -6888,6 +6980,9 @@ function ModalLoteDetalhe({
         linhas.push({
           descricao: `${it.pecaDescricao} (Teste)`,
           qtd: pendTeste,
+          ...(frotaDe(it) ? {
+            frota: frotaDe(it)
+          } : {}),
           valorUnit: it.valorConserto || 0,
           categoria,
           tipo: 'teste'
@@ -6902,6 +6997,9 @@ function ModalLoteDetalhe({
         linhas.push({
           descricao: `${it.pecaDescricao} (Sem conserto)`,
           qtd: pendSem,
+          ...(frotaDe(it) ? {
+            frota: frotaDe(it)
+          } : {}),
           valorUnit: 0,
           categoria,
           tipo: 'naoConsertada'
@@ -7136,13 +7234,25 @@ function ModalLoteDetalhe({
         color: 'var(--texto-fraco)',
         marginBottom: 8
       }
-    }, "Quantidade: ", it.quantidade), /*#__PURE__*/React.createElement("label", null, "Valor do conserto (un.)"), /*#__PURE__*/React.createElement("input", {
+    }, "Quantidade: ", it.quantidade, frotaDe(it) && /*#__PURE__*/React.createElement("span", {
+      className: "frota-peca"
+    }, " · Frota: ", /*#__PURE__*/React.createElement("strong", null, frotaDe(it)))), /*#__PURE__*/React.createElement("label", null, "Valor do conserto (un.)"), /*#__PURE__*/React.createElement("input", {
       type: "number",
       step: "0.01",
       defaultValue: it.valorConserto || 0,
       onBlur: e => definirValor(idx, e.target.value),
       disabled: somenteLeitura
-    }), /*#__PURE__*/React.createElement("div", {
+    }), !somenteLeitura && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Frota (opcional)"), /*#__PURE__*/React.createElement("input", {
+      key: 'frota-' + frotaDe(it),
+      type: "text",
+      maxLength: 30,
+      defaultValue: frotaDe(it),
+      placeholder: "Nº da frota",
+      onBlur: e => definirFrota(idx, e.target.value),
+      onKeyDown: e => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+      }
+    })), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         gap: 18,
@@ -7633,7 +7743,7 @@ function ModalCopiarOrcamento({
     style: {
       flex: 1
     }
-  }, it.descricao, " — Qtd: ", it.qtd), /*#__PURE__*/React.createElement("span", {
+  }, it.descricao, " — Qtd: ", it.qtd, sufixoFrota(it)), /*#__PURE__*/React.createElement("span", {
     style: {
       color: 'var(--texto-fraco)'
     }
@@ -8889,7 +8999,7 @@ function ModalOrcamento({
       style: {
         fontSize: 12.5
       }
-    }, "- ", item?.pecaDescricao || 'Peça', " (", rotuloCategoria, ", ", a.qtd, "x)");
+    }, "- ", item?.pecaDescricao || 'Peça', sufixoFrota(item), " (", rotuloCategoria, ", ", a.qtd, "x)");
   })), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
@@ -8959,7 +9069,14 @@ function ModalOrcamento({
       placeholder: "Descrição",
       value: it.descricao,
       onChange: e => mudarItem(i, 'descricao', e.target.value)
-    })), /*#__PURE__*/React.createElement("div", {
+    }), frotaDe(it) && /*#__PURE__*/React.createElement("div", {
+      className: "frota-peca",
+      style: {
+        fontSize: 11.5,
+        color: 'var(--texto-fraco)',
+        marginTop: 2
+      }
+    }, "Frota: ", /*#__PURE__*/React.createElement("strong", null, frotaDe(it)))), /*#__PURE__*/React.createElement("div", {
       style: {
         width: 60
       }
