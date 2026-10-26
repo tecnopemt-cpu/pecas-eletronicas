@@ -564,6 +564,13 @@
   .abertura-barra span{display:block;width:40%;height:100%;border-radius:2px;background:#E97307;animation:abertura-anda 1.1s ease-in-out infinite;}
   @keyframes abertura-anda{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
   img[data-midia="carregando"]{background:#ECE8E6;}
+  /* orçamento: Número | Data do orçamento | Data de faturamento */
+  .grid-datas-orc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .dica-datas-orc{font-size:11.5px;color:var(--texto-fraco);margin:4px 0 6px;}
+  @media (max-width:640px){
+    .grid-datas-orc{grid-template-columns:1fr 1fr;gap:0 10px;}
+    .grid-datas-orc .campo-numero{grid-column:1 / -1;}
+  }
   /* nova entrada: [Peça] [Quantidade] [Frota] [×] */
   .linha-item-entrada-titulos{display:flex;gap:6px;font-size:11.5px;font-weight:600;color:var(--texto-fraco);margin:2px 0 4px;}
   .linha-item-entrada-titulos span:nth-child(1){flex:1;}
@@ -7068,7 +7075,11 @@ function ModalLoteDetalhe({
       loteId: lote.id,
       loteAjustes: ajustes,
       arquivado: false,
-      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      historico: [{
+        data: new Date().toISOString(),
+        texto: `📄 Orçamento criado em ${new Date().toLocaleDateString('pt-BR')} por ${usuario?.nome || '-'} (gerado da entrada #${lote.numero || '-'}).`
+      }]
     });
     const opBatch = db.batch();
     comissoes.forEach(c => {
@@ -8880,7 +8891,14 @@ function ModalOrcamento({
   const [clienteParaVer, setClienteParaVer] = useState(null);
   const [numero, setNumero] = useState(orcamento?.numero ?? totalAtual + 1);
   const [clienteId, setClienteId] = useState(orcamento?.clienteId || '');
-  const [validade, setValidade] = useState(orcamento?.validade || '');
+  // Data do orçamento = data de criação (editável). Data de faturamento = data em que foi faturado
+  // (Concluído) — é a que define o período da comissão. A validade saiu da tela (valores antigos ficam no banco).
+  const dataOrcamentoInicial = orcamento ? dataDe(orcamento.criadoEm) ? formatarDataInput(dataDe(orcamento.criadoEm)) : '' : formatarDataInput(new Date());
+  const [dataOrcamento, setDataOrcamento] = useState(dataOrcamentoInicial);
+  const faturado = orcamento?.status === 'Concluído';
+  const dataFatOriginal = faturado ? dataDe(orcamento.dataFaturamento) || dataDe(orcamento.dataConclusao) : null;
+  const dataFaturamentoInicial = dataFatOriginal ? formatarDataInput(dataFatOriginal) : '';
+  const [dataFaturamento, setDataFaturamento] = useState(dataFaturamentoInicial);
   const [numeroPedidoCompras, setNumeroPedidoCompras] = useState(orcamento?.numeroPedidoCompras || '');
   const [observacao, setObservacao] = useState(orcamento?.observacao || '');
   const [itens, setItens] = useState(orcamento?.itens || [{
@@ -8932,26 +8950,62 @@ function ModalOrcamento({
       const dados = {
         numero,
         clienteId,
-        validade,
         numeroPedidoCompras,
         observacao,
         itens: itensComTipo,
         total,
         status: orcamento?.status || 'Pendente orçamento'
       };
+      const quem = usuario?.nome || '-';
+      const agoraTxt = `${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+      const novosHistoricos = [];
+      // Data do orçamento (criação)
+      if (dataOrcamento && dataOrcamento !== dataOrcamentoInicial) {
+        dados.criadoEm = firebase.firestore.Timestamp.fromDate(trocarDiaMantendoHora(orcamento.criadoEm, dataOrcamento));
+        novosHistoricos.push(`📅 Data do orçamento alterada de ${dataOrcamentoInicial ? formatarDataBr(dataOrcamentoInicial) : '-'} para ${formatarDataBr(dataOrcamento)} em ${agoraTxt} por ${quem}.`);
+      }
+      // Data de faturamento: muda o período da comissão (sem duplicar lançamentos)
+      const fatMudou = faturado && dataFaturamento && dataFaturamento !== dataFaturamentoInicial;
+      let novaDataFat = null;
+      if (fatMudou) {
+        const fechamentos = await carregarFechamentosComissao();
+        const consolidado = orcamento.periodoConsolidadoId ? fechamentos.find(f => f.id === orcamento.periodoConsolidadoId) : null;
+        const fechAntigo = consolidado || fechamentoQueContem(fechamentos, dataFatOriginal);
+        const fechNovo = fechamentoQueContem(fechamentos, new Date(dataFaturamento + 'T12:00:00'));
+        if (fechAntigo || fechNovo) {
+          const f = fechAntigo || fechNovo;
+          alert(`Não dá para mudar a data de faturamento: ${fechAntigo ? 'o orçamento está' : 'a nova data cai'} no período de comissão já fechado (${formatarDataBr(f.inicio)} a ${formatarDataBr(f.fim)}).\n\nPara isso, reabra o período em Comissão → Período de Apuração (a reabertura pede o motivo e fica registrada). Nada foi salvo.`);
+          setSalvando(false);
+          return;
+        }
+        novaDataFat = trocarDiaMantendoHora(dataFatOriginal, dataFaturamento);
+        dados.dataFaturamento = firebase.firestore.Timestamp.fromDate(novaDataFat);
+        dados.dataConclusao = dados.dataFaturamento;
+        novosHistoricos.push(`💰 Data de faturamento alterada de ${formatarDataBr(dataFaturamentoInicial)} para ${formatarDataBr(dataFaturamento)} em ${agoraTxt} por ${quem} — a comissão passa para o período da nova data.`);
+      }
+      if (novosHistoricos.length) dados.historico = firebase.firestore.FieldValue.arrayUnion(...novosHistoricos.map(texto => ({
+        data: new Date().toISOString(),
+        texto
+      })));
       await db.collection('orcamentos').doc(orcamento.id).update(dados);
+      if (novaDataFat) await vincularPeriodoAoFaturar(orcamento.id, novaDataFat);
+      const {
+        historico: _h,
+        ...dadosCalculo
+      } = dados;
       const rc = await recalcularLancamentosOrcamento({
         ...orcamento,
-        ...dados
+        ...dadosCalculo
       }, funcionarios);
       if (rc.fechamento) alert(`Orçamento salvo. Ele pertence ao período de comissão já fechado (${formatarDataBr(rc.fechamento.inicio)} a ${formatarDataBr(rc.fechamento.fim)}), então os lançamentos de comissão não foram alterados.`);
     } else {
       const comissoes = calcularComissoesOrcamento(total, funcionarios, new Date());
       const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
+      const hojeStr = formatarDataInput(new Date());
+      const diaOrc = dataOrcamento || hojeStr;
       const dados = {
         numero,
         clienteId,
-        validade,
         numeroPedidoCompras,
         observacao,
         itens: itensComTipo,
@@ -8959,7 +9013,11 @@ function ModalOrcamento({
         comissaoTotal,
         status: 'Pendente orçamento',
         arquivado: false,
-        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        criadoEm: diaOrc === hojeStr ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.Timestamp.fromDate(new Date(diaOrc + 'T12:00:00')),
+        historico: [{
+          data: new Date().toISOString(),
+          texto: `📄 Orçamento criado em ${formatarDataBr(diaOrc)} por ${usuario?.nome || '-'}.`
+        }]
       };
       const ref = await db.collection('orcamentos').add(dados);
       const opBatch = db.batch();
@@ -9051,17 +9109,34 @@ function ModalOrcamento({
     },
     onClick: () => setLoteParaVer(true)
   }, "Ver entrada completa")), /*#__PURE__*/React.createElement("div", {
-    className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Número"), /*#__PURE__*/React.createElement("input", {
+    className: "grid-datas-orc"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "campo-numero"
+  }, /*#__PURE__*/React.createElement("label", null, "Número"), /*#__PURE__*/React.createElement("input", {
     value: numero,
     onChange: e => setNumero(e.target.value),
     placeholder: "Ex: 1042 ou RP-1042",
     required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Validade"), /*#__PURE__*/React.createElement("input", {
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data do orçamento"), /*#__PURE__*/React.createElement("input", {
     type: "date",
-    value: validade,
-    onChange: e => setValidade(e.target.value)
-  }))), orcamento ? /*#__PURE__*/React.createElement("div", {
+    value: dataOrcamento,
+    onChange: e => setDataOrcamento(e.target.value),
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de faturamento"), faturado ? /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataFaturamento,
+    onChange: e => setDataFaturamento(e.target.value),
+    required: true,
+    title: "Define o período em que a comissão é contabilizada"
+  }) : /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: "",
+    placeholder: "Ainda não faturado",
+    disabled: true,
+    title: "É preenchida automaticamente quando o orçamento vai para Concluído"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "dica-datas-orc"
+  }, faturado ? 'A comissão entra no período da data de faturamento.' : 'A data de faturamento é preenchida ao mover o orçamento para Concluído; só então a comissão é contabilizada.'), orcamento ? /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 14
     }
@@ -9591,10 +9666,12 @@ function validarFaixas(faixas) {
 }
 
 // ---------- Datas ----------
-// Data que define o período de um orçamento: a DATA DE CONCLUSÃO (gravada ao mudar para Concluído —
-// é o fato gerador do faturamento e da comissão). Sem ela, a data de faturamento antiga; sem as duas, a criação.
+// Data que define o período de um orçamento: a DATA DE FATURAMENTO (gravada ao mudar para Concluído e
+// editável na tela do orçamento — é o fato gerador do faturamento e da comissão). Sem ela, a data de
+// conclusão; sem as duas (registros antigos), a criação. Orçamento não faturado (fora de Concluído) não
+// entra em período nenhum: orcamentoNoPeriodo exige status Concluído.
 function dataReferenciaOrcamento(o) {
-  return dataDe(o?.dataConclusao) || dataDe(o?.dataFaturamento) || dataDe(o?.criadoEm);
+  return dataDe(o?.dataFaturamento) || dataDe(o?.dataConclusao) || dataDe(o?.criadoEm);
 }
 function somarDias(dataStr, n) {
   const d = new Date(dataStr + 'T12:00:00');
@@ -10827,13 +10904,15 @@ function AnaliseComissao({
   orcamentos.forEach(o => {
     orcPorId[o.id] = o;
   });
-  // Lançamentos dos orçamentos com data de referência no período (liberados + aguardando).
+  // Lançamentos dos orçamentos FATURADOS (Concluído) com data de faturamento no período.
+  // Orçamento ainda não faturado não aparece em período nenhum.
   const chavePer = idFechamentoComissao(inicio, fim);
   const lancPeriodo = comissoes.filter(c => {
     if (!idsElegiveis.has(c.funcionarioId) || filtroEfetivo && c.funcionarioId !== filtroEfetivo) return false;
     const o = orcPorId[c.orcamentoId];
-    if (o && o.periodoConsolidadoId) return o.periodoConsolidadoId === chavePer;
-    return dentroDoIntervalo(dataReferenciaOrcamento(o) || dataDe(c.data), inicio, fim);
+    if (!o || o.status !== 'Concluído') return false;
+    if (o.periodoConsolidadoId) return o.periodoConsolidadoId === chavePer;
+    return dentroDoIntervalo(dataReferenciaOrcamento(o), inicio, fim);
   });
   const nomeFunc = id => funcionarios.find(f => f.id === id)?.nome || '-';
   function abrirRelatorio(tipo) {
@@ -10970,14 +11049,14 @@ function AnaliseComissao({
     }
   }, /*#__PURE__*/React.createElement("table", {
     className: "tabela-rotulada"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data ref."), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, lancPeriodo.map(c => {
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Faturado em"), /*#__PURE__*/React.createElement("th", null, "Funcionário"), /*#__PURE__*/React.createElement("th", null, "Orçamento"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Valor"))), /*#__PURE__*/React.createElement("tbody", null, lancPeriodo.map(c => {
     const o = orcPorId[c.orcamentoId];
     const st = statusComissaoOrcamento(o);
     return /*#__PURE__*/React.createElement("tr", {
       key: c.id
     }, /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "Data ref."
-    }, formatData(dataReferenciaOrcamento(o) || c.data)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Faturado em"
+    }, formatData(dataReferenciaOrcamento(o))), /*#__PURE__*/React.createElement("td", {
       "data-rotulo": "Funcionário",
       className: "celula-titulo"
     }, nomeFunc(c.funcionarioId)), /*#__PURE__*/React.createElement("td", {
@@ -14322,6 +14401,14 @@ function ModalRelatorioComissao({
 }
 
 // ======================= DASHBOARD =======================
+// Troca só o DIA de uma data gravada, mantendo o horário original (datas editadas na tela do orçamento).
+function trocarDiaMantendoHora(original, diaStr) {
+  const base = dataDe(original) || new Date();
+  const [a, m, d] = String(diaStr).split('-').map(Number);
+  const n = new Date(base.getTime());
+  n.setFullYear(a, m - 1, d);
+  return n;
+}
 function dataDe(v) {
   return v?.toDate ? v.toDate() : v ? new Date(v) : null;
 }
@@ -15567,7 +15654,15 @@ function AbaDashboard({
   const [dataFim, setDataFim] = useState(formatarDataInput(hoje));
   const orcamentosDoMes = orcamentos.filter(o => dentroDoIntervalo(dataDe(o.criadoEm), dataInicioPrincipal, dataFimPrincipal));
   const lotesDoMes = lotes.filter(l => dentroDoIntervalo(dataDe(l.criadoEm), dataInicioPrincipal, dataFimPrincipal));
-  const comissoesDoMes = comissoes.filter(c => dentroDoIntervalo(dataDe(c.data), dataInicioPrincipal, dataFimPrincipal));
+  // comissão do período: pela data de faturamento do orçamento (só faturados contam — ver comissaoElegivel)
+  const orcPorIdComissao = {};
+  orcamentos.forEach(o => {
+    orcPorIdComissao[o.id] = o;
+  });
+  const comissoesDoMes = comissoes.filter(c => {
+    const o = orcPorIdComissao[c.orcamentoId];
+    return dentroDoIntervalo(o ? dataReferenciaOrcamento(o) : dataDe(c.data), dataInicioPrincipal, dataFimPrincipal);
+  });
   const itensDoMes = orcamentosDoMes.flatMap(o => o.itens || []);
   const totalConsertadas = itensDoMes.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
   const totalGarantia = itensDoMes.filter(i => i.tipo === 'garantia').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
