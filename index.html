@@ -564,6 +564,23 @@
   .abertura-barra span{display:block;width:40%;height:100%;border-radius:2px;background:#E97307;animation:abertura-anda 1.1s ease-in-out infinite;}
   @keyframes abertura-anda{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
   img[data-midia="carregando"]{background:#ECE8E6;}
+  /* entrada: resultado da garantia (com / sem conserto) */
+  .resultado-garantia{margin-top:12px;padding:10px 12px;border:1px solid #E7D3A6;background:#FFF8E8;border-radius:10px;}
+  .resultado-garantia.pendente{border-color:var(--laranja);}
+  .resultado-garantia-titulo{font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  .resultado-garantia-titulo span{font-weight:400;color:var(--texto-fraco);}
+  .resultado-garantia-opcoes{display:flex;gap:18px;flex-wrap:wrap;}
+  .resultado-garantia-aviso{margin-top:8px;font-size:11.5px;color:var(--laranja-escuro);font-weight:600;}
+  /* histórico do orçamento (somente consulta) */
+  .historico-orc{margin-top:18px;border:1px solid var(--borda);border-radius:10px;padding:12px 14px;background:var(--fundo);}
+  .historico-orc-titulo{font-weight:700;font-size:13.5px;margin-bottom:8px;}
+  .historico-orc-vazio{font-size:12.5px;color:var(--texto-fraco);}
+  .historico-orc-lista{list-style:none;margin:0;padding:0;max-height:320px;overflow-y:auto;}
+  .historico-orc-lista li{display:flex;gap:10px;padding:7px 0;border-top:1px dashed var(--borda);font-size:12.5px;line-height:1.4;}
+  .historico-orc-lista li:first-child{border-top:none;padding-top:0;}
+  .historico-orc-quando{flex:0 0 auto;color:var(--texto-fraco);white-space:nowrap;}
+  .historico-orc-texto{min-width:0;overflow-wrap:anywhere;}
+  @media (max-width:640px){ .historico-orc-lista li{flex-direction:column;gap:1px;} }
   /* orçamento: Número | Data do orçamento | Data de faturamento */
   .grid-datas-orc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
   .dica-datas-orc{font-size:11.5px;color:var(--texto-fraco);margin:4px 0 6px;}
@@ -1122,6 +1139,44 @@ function frotaDe(it) {
 function sufixoFrota(it) {
   const f = frotaDe(it);
   return f ? ` — Frota: ${f}` : '';
+}
+// ---- Histórico do orçamento: cada registro guarda quem fez (conta logada), quando (ISO, exibido no
+// horário de Brasília) e a ação. Só é gravado quando algo realmente muda (sem registros duplicados).
+function registroHistoricoOrc(usuario, texto, tipo) {
+  return {
+    data: new Date().toISOString(),
+    usuario: usuario?.nome || '-',
+    usuarioId: usuario?.id || '',
+    tipo: tipo || 'acao',
+    texto,
+    id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
+  };
+}
+function quandoBrasilia(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '-';
+  const dia = d.toLocaleDateString('pt-BR', {
+    timeZone: 'America/Sao_Paulo'
+  });
+  const hora = d.toLocaleTimeString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  return `${dia} às ${hora}`;
+}
+// ---- Garantia: resultado do atendimento (com conserto / sem conserto), por peça da entrada.
+// É uma informação à parte da classificação "Garantia" (que continua contando como garantia).
+function garantiaPendenteSemResultado(it) {
+  const pendGarantia = (it.qtdGarantia || 0) - (it.qtdGarantiaOrcada || 0);
+  const pendResultado = (it.qtdGarantiaComConserto || 0) - (it.qtdGarantiaComConsertoOrcada || 0) + ((it.qtdGarantiaSemConserto || 0) - (it.qtdGarantiaSemConsertoOrcada || 0));
+  return Math.max(0, pendGarantia - pendResultado);
+}
+function textoResultadoGarantia(it) {
+  const com = it.qtdGarantiaComConserto || 0,
+    sem = it.qtdGarantiaSemConserto || 0;
+  if (!com && !sem) return '';
+  return [com ? `${com} com conserto` : '', sem ? `${sem} sem conserto` : ''].filter(Boolean).join(', ');
 }
 function formatMoeda(v) {
   const n = Number(v) || 0;
@@ -2291,7 +2346,7 @@ async function gerarPdfLoteImpressao(lote, cliente) {
   doc.setFontSize(9);
   doc.setTextColor(40, 34, 33);
   (lote.itens || []).forEach(it => {
-    const linhas = doc.splitTextToSize((it.pecaDescricao || '') + sufixoFrota(it), colQtd - colDescricao - 4);
+    const linhas = doc.splitTextToSize((it.pecaDescricao || '') + sufixoFrota(it) + (textoResultadoGarantia(it) ? ` — Garantia: ${textoResultadoGarantia(it)}` : ''), colQtd - colDescricao - 4);
     const classificacao = `${it.qtdConsertada || 0}C / ${it.qtdGarantia || 0}G / ${it.qtdTeste || 0}T / ${it.qtdNaoConsertada || 0}S`;
     doc.text(linhas, colDescricao, y);
     doc.text(String(it.quantidade), colQtd, y);
@@ -2620,11 +2675,11 @@ function FormularioAssinatura({
       const dadosSalvar = {
         [campoAssinatura]: assinatura
       };
-      if (tipo === 'teste') {
-        dadosSalvar.historico = [...(documento.historico || []), {
-          data: new Date().toISOString(),
-          texto: `✍️ Recebimento assinado por ${nome} — ${agora.toLocaleString('pt-BR')}`
-        }];
+      if (colecao === 'orcamentos' && (tipo === 'teste' || tipo === 'entrega')) {
+        dadosSalvar.historico = firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc({
+          nome: `${nome} (cliente)`,
+          id: ''
+        }, tipo === 'teste' ? 'assinou o recebimento da entrega para teste.' : 'assinou o recebimento da entrega.', 'assinatura'));
       }
       await db.collection(colecao).doc(documento.id).update(dadosSalvar);
       const assinaturaPdf = {
@@ -2940,11 +2995,8 @@ function RegistroFotografico({
           dataRegistro: firebase.firestore.FieldValue.serverTimestamp()
         }
       };
-      if (campo === 'fotoTeste') {
-        dados.historico = [...(documento.historico || []), {
-          data: new Date().toISOString(),
-          texto: `📷 Foto da entrega registrada por ${usuario?.nome || '-'} — ${new Date().toLocaleString('pt-BR')}`
-        }];
+      if (campo === 'fotoTeste' || campo === 'fotoEntrega') {
+        dados.historico = firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, campo === 'fotoTeste' ? 'registrou a foto da entrega para teste.' : 'registrou a foto das peças finalizadas para a entrega.', 'foto'));
       }
       await db.collection('orcamentos').doc(documento.id).update(dados);
     } catch (err) {
@@ -6911,10 +6963,25 @@ function ModalLoteDetalhe({
     const novo = Math.max(item[chaveOrcada] || 0, atual + delta);
     const outrasClassificadas = ['qtdConsertada', 'qtdGarantia', 'qtdTeste', 'qtdNaoConsertada'].filter(k => k !== chave).reduce((s, k) => s + (item[k] || 0), 0);
     if (novo + outrasClassificadas > item.quantidade) return;
-    const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
-      ...it,
-      [chave]: novo
-    } : it);
+    const itensAtualizados = lote.itens.map((it, i) => {
+      if (i !== idx) return it;
+      const n = {
+        ...it,
+        [chave]: novo
+      };
+      // menos peças em garantia: o resultado (com/sem conserto) acompanha, sem passar do total
+      if (chave === 'qtdGarantia') {
+        let excesso = (n.qtdGarantiaComConserto || 0) + (n.qtdGarantiaSemConserto || 0) - novo;
+        const tirarSem = Math.min(Math.max(0, excesso), Math.max(0, (n.qtdGarantiaSemConserto || 0) - (n.qtdGarantiaSemConsertoOrcada || 0)));
+        if (tirarSem) {
+          n.qtdGarantiaSemConserto -= tirarSem;
+          excesso -= tirarSem;
+        }
+        const tirarCom = Math.min(Math.max(0, excesso), Math.max(0, (n.qtdGarantiaComConserto || 0) - (n.qtdGarantiaComConsertoOrcada || 0)));
+        if (tirarCom) n.qtdGarantiaComConserto -= tirarCom;
+      }
+      return n;
+    });
     const dadosLote = {
       itens: itensAtualizados
     };
@@ -6922,6 +6989,21 @@ function ModalLoteDetalhe({
     if (completo && lote.status !== 'Concluído') dadosLote.status = 'Concluído';
     if (!completo && lote.status === 'Concluído') dadosLote.status = 'Em análise';
     await db.collection('lotes').doc(lote.id).update(dadosLote);
+  }
+  // Resultado da garantia (com conserto / sem conserto) — obrigatório para as peças em garantia
+  async function alterarResultadoGarantia(idx, qual, delta) {
+    const item = lote.itens[idx];
+    const chave = qual === 'com' ? 'qtdGarantiaComConserto' : 'qtdGarantiaSemConserto';
+    const novo = Math.max(item[chave + 'Orcada'] || 0, (item[chave] || 0) + delta);
+    const outro = qual === 'com' ? item.qtdGarantiaSemConserto || 0 : item.qtdGarantiaComConserto || 0;
+    if (novo + outro > (item.qtdGarantia || 0)) return;
+    const itensAtualizados = lote.itens.map((it, i) => i === idx ? {
+      ...it,
+      [chave]: novo
+    } : it);
+    await db.collection('lotes').doc(lote.id).update({
+      itens: itensAtualizados
+    });
   }
   async function definirFrota(idx, valor) {
     const nova = String(valor || '').trim();
@@ -6960,7 +7042,8 @@ function ModalLoteDetalhe({
         } : resto;
       });
       if (mudou) await db.collection('orcamentos').doc(o.id).update({
-        itens: novos
+        itens: novos,
+        historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, nova ? `alterou a frota da peça "${peca.pecaDescricao}" para ${nova} (pela entrada #${lote.numero || '-'}).` : `removeu a frota da peça "${peca.pecaDescricao}" (pela entrada #${lote.numero || '-'}).`, 'edicao'))
       });
     }
   }
@@ -6974,6 +7057,11 @@ function ModalLoteDetalhe({
     });
   }
   async function gerarOrcamento() {
+    const semResultado = (lote.itens || []).filter(it => garantiaPendenteSemResultado(it) > 0);
+    if (semResultado.length) {
+      alert(`Informe o resultado da garantia (com conserto ou sem conserto) antes de gerar o orçamento:\n\n${semResultado.map(it => `• ${it.pecaDescricao}: ${garantiaPendenteSemResultado(it)} peça(s) sem resultado`).join('\n')}`);
+      return;
+    }
     const linhas = [];
     const ajustes = [];
     (lote.itens || []).forEach((it, idx) => {
@@ -7000,20 +7088,28 @@ function ModalLoteDetalhe({
         });
       }
       if (pendGarantia > 0) {
-        linhas.push({
-          descricao: `${it.pecaDescricao} (Garantia)`,
-          qtd: pendGarantia,
-          ...(frotaDe(it) ? {
-            frota: frotaDe(it)
-          } : {}),
-          valorUnit: 0,
-          categoria,
-          tipo: 'garantia'
-        });
-        ajustes.push({
-          idx,
-          categoria: 'garantia',
-          qtd: pendGarantia
+        // uma linha por resultado (continua sendo garantia: sem cobrança e sem comissão)
+        const pendCom = (it.qtdGarantiaComConserto || 0) - (it.qtdGarantiaComConsertoOrcada || 0);
+        const pendSem = (it.qtdGarantiaSemConserto || 0) - (it.qtdGarantiaSemConsertoOrcada || 0);
+        [['comConserto', pendCom, 'Garantia com conserto'], ['semConserto', pendSem, 'Garantia sem conserto']].forEach(([resultado, q, rotulo]) => {
+          if (q <= 0) return;
+          linhas.push({
+            descricao: `${it.pecaDescricao} (${rotulo})`,
+            qtd: q,
+            valorUnit: 0,
+            categoria,
+            tipo: 'garantia',
+            resultadoGarantia: resultado,
+            ...(frotaDe(it) ? {
+              frota: frotaDe(it)
+            } : {})
+          });
+          ajustes.push({
+            idx,
+            categoria: 'garantia',
+            qtd: q,
+            resultadoGarantia: resultado
+          });
         });
       }
       if (pendTeste > 0) {
@@ -7072,10 +7168,7 @@ function ModalLoteDetalhe({
       loteAjustes: ajustes,
       arquivado: false,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-      historico: [{
-        data: new Date().toISOString(),
-        texto: `📄 Orçamento criado em ${new Date().toLocaleDateString('pt-BR')} por ${usuario?.nome || '-'} (gerado da entrada #${lote.numero || '-'}).`
-      }]
+      historico: [registroHistoricoOrc(usuario, `gerou o orçamento a partir da entrada #${lote.numero || '-'}.`, 'criacao')]
     });
     const opBatch = db.batch();
     comissoes.forEach(c => {
@@ -7093,6 +7186,8 @@ function ModalLoteDetalhe({
       ...it,
       qtdConsertadaOrcada: it.qtdConsertada || 0,
       qtdGarantiaOrcada: it.qtdGarantia || 0,
+      qtdGarantiaComConsertoOrcada: it.qtdGarantiaComConserto || 0,
+      qtdGarantiaSemConsertoOrcada: it.qtdGarantiaSemConserto || 0,
       qtdTesteOrcada: it.qtdTeste || 0,
       qtdNaoConsertadaOrcada: it.qtdNaoConsertada || 0
     }));
@@ -7422,13 +7517,57 @@ function ModalLoteDetalhe({
         fontWeight: 700,
         paddingTop: 8
       }
-    }, restante))), jaOrcadas > 0 && /*#__PURE__*/React.createElement("div", {
+    }, restante))), (it.qtdGarantia || 0) > 0 && /*#__PURE__*/React.createElement("div", {
+      className: `resultado-garantia${garantiaPendenteSemResultado(it) > 0 ? ' pendente' : ''}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "resultado-garantia-titulo"
+    }, "Resultado da garantia ", /*#__PURE__*/React.createElement("span", null, "(obrigatório)")), /*#__PURE__*/React.createElement("div", {
+      className: "resultado-garantia-opcoes"
+    }, [['com', 'Garantia com conserto', 'qtdGarantiaComConserto'], ['sem', 'Garantia sem conserto', 'qtdGarantiaSemConserto']].map(([qual, rotulo, k]) => /*#__PURE__*/React.createElement("div", {
+      key: qual
+    }, /*#__PURE__*/React.createElement("label", {
+      style: {
+        marginTop: 0
+      }
+    }, rotulo), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      "aria-label": `${rotulo}: menos`,
+      onClick: () => alterarResultadoGarantia(idx, qual, -1),
+      disabled: somenteLeitura || (it[k] || 0) <= (it[k + 'Orcada'] || 0)
+    }, "－"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        minWidth: 20,
+        textAlign: 'center',
+        fontWeight: 700
+      }
+    }, it[k] || 0), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      "aria-label": `${rotulo}: mais`,
+      onClick: () => alterarResultadoGarantia(idx, qual, 1),
+      disabled: somenteLeitura || (it.qtdGarantiaComConserto || 0) + (it.qtdGarantiaSemConserto || 0) >= (it.qtdGarantia || 0)
+    }, "＋"))))), garantiaPendenteSemResultado(it) > 0 && /*#__PURE__*/React.createElement("div", {
+      className: "resultado-garantia-aviso"
+    }, "⚠️ Informe se a garantia foi com conserto ou sem conserto (", garantiaPendenteSemResultado(it), " peça(s) sem resultado). Sem isso não dá para gerar o orçamento.")), jaOrcadas > 0 && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: 'var(--texto-fraco)',
         marginTop: 8
       }
-    }, "Já incluído em orçamento: ", it.qtdConsertadaOrcada || 0, " conserto, ", it.qtdGarantiaOrcada || 0, " garantia, ", it.qtdTesteOrcada || 0, " teste, ", it.qtdNaoConsertadaOrcada || 0, " sem conserto."));
+    }, "Já incluído em orçamento: ", it.qtdConsertadaOrcada || 0, " conserto, ", it.qtdGarantiaOrcada || 0, " garantia", textoResultadoGarantia({
+      qtdGarantiaComConserto: it.qtdGarantiaComConsertoOrcada,
+      qtdGarantiaSemConserto: it.qtdGarantiaSemConsertoOrcada
+    }) ? ` (${textoResultadoGarantia({
+      qtdGarantiaComConserto: it.qtdGarantiaComConsertoOrcada,
+      qtdGarantiaSemConserto: it.qtdGarantiaSemConsertoOrcada
+    })})` : '', ", ", it.qtdTesteOrcada || 0, " teste, ", it.qtdNaoConsertadaOrcada || 0, " sem conserto."));
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
@@ -7584,15 +7723,18 @@ function ModalLoteDetalhe({
 // ======================= ORÇAMENTOS =======================
 function ModalConfirmarTeste({
   orcamento,
+  usuario,
   aoFechar
 }) {
   const [processando, setProcessando] = useState(false);
   async function confirmar(resultado) {
     setProcessando(true);
     try {
-      await db.collection('orcamentos').doc(orcamento.id).update({
+      const dadosTeste = {
         resultadoTeste: resultado
-      });
+      };
+      if (orcamento.resultadoTeste !== resultado) dadosTeste.historico = firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `registrou o resultado do teste: ${resultado === 'aprovado' ? 'aprovado (peça consertada)' : resultado === 'reprovado' ? 'reprovado (peça não consertada)' : resultado}.`, 'teste'));
+      await db.collection('orcamentos').doc(orcamento.id).update(dadosTeste);
       aoFechar();
     } catch (err) {
       console.error(err);
@@ -7656,6 +7798,7 @@ function ModalConfirmarTeste({
 function ModalCopiarOrcamento({
   orcamento,
   funcionarios,
+  usuario,
   aoFechar
 }) {
   const [selecionados, setSelecionados] = useState(() => new Set((orcamento.itens || []).map((_, i) => i)));
@@ -7699,10 +7842,7 @@ function ModalCopiarOrcamento({
         comissaoTotal: comissaoTotalNovo,
         status: 'Pendente orçamento',
         loteId: orcamento.loteId || null,
-        historico: [{
-          data: new Date().toISOString(),
-          texto: `Orçamento criado a partir da separação de peças do orçamento #${orcamento.numero}.`
-        }],
+        historico: [registroHistoricoOrc(usuario, `criou o orçamento separando peças do orçamento #${orcamento.numero}.`, 'criacao')],
         arquivado: false,
         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -7724,10 +7864,7 @@ function ModalCopiarOrcamento({
       await db.collection('orcamentos').doc(orcamento.id).update({
         itens: itensRestantes,
         total: totalRestante,
-        historico: [...(orcamento.historico || []), {
-          data: new Date().toISOString(),
-          texto: `Peça(s) "${nomesTransferidos}" separada(s) e enviada(s) para o orçamento #${novoNumero}.`
-        }]
+        historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `separou a(s) peça(s) "${nomesTransferidos}" para o orçamento #${novoNumero}.`, 'edicao'))
       });
       // Os lançamentos do orçamento original precisam acompanhar o novo total — sem isso as
       // peças separadas ficavam com comissão nos DOIS orçamentos (lançamento em dobro).
@@ -8317,6 +8454,11 @@ function AbaOrcamentos({
             const chaveOrcada = a.categoria === 'consertada' ? 'qtdConsertadaOrcada' : a.categoria === 'garantia' ? 'qtdGarantiaOrcada' : a.categoria === 'teste' ? 'qtdTesteOrcada' : 'qtdNaoConsertadaOrcada';
             novo[chaveClassificacao] = Math.max(0, (novo[chaveClassificacao] || 0) - a.qtd);
             novo[chaveOrcada] = Math.max(0, (novo[chaveOrcada] || 0) - a.qtd);
+            if (a.categoria === 'garantia' && a.resultadoGarantia) {
+              const kr = a.resultadoGarantia === 'comConserto' ? 'qtdGarantiaComConserto' : 'qtdGarantiaSemConserto';
+              novo[kr] = Math.max(0, (novo[kr] || 0) - a.qtd);
+              novo[kr + 'Orcada'] = Math.max(0, (novo[kr + 'Orcada'] || 0) - a.qtd);
+            }
           });
           return novo;
         });
@@ -8343,7 +8485,7 @@ function AbaOrcamentos({
     const agora = new Date();
     const quando = `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     const quem = usuario?.nome || '-';
-    const historico = [...(o.historico || [])];
+    const novosRegistros = [];
     const entrouConcluido = status === 'Concluído' && o.status !== 'Concluído';
     const saiuConcluido = o.status === 'Concluído' && status !== 'Concluído';
     // Saindo de Concluído: sai do faturamento e da comissão. Se o período já foi fechado, exige reabrir.
@@ -8360,10 +8502,6 @@ function AbaOrcamentos({
       dados.dataConclusao = firebase.firestore.FieldValue.delete();
       dados.concluidoPor = firebase.firestore.FieldValue.delete();
       dados.concluidoPorId = firebase.firestore.FieldValue.delete();
-      historico.push({
-        data: agora.toISOString(),
-        texto: `↩️ Saiu de Concluído para ${status} em ${quando} por ${quem} — retirado do faturamento e da comissão.`
-      });
     }
     // Mudou de coluna: o cartão entra em 1º lugar na nova coluna.
     dados.ordemKanban = chaveTopoKanban(orcamentos.filter(x => x.status === status), o.id);
@@ -8373,11 +8511,8 @@ function AbaOrcamentos({
       dados.dataFaturamento = firebase.firestore.FieldValue.serverTimestamp();
       dados.concluidoPor = quem;
       dados.concluidoPorId = usuario?.id || '';
-      historico.push({
-        data: agora.toISOString(),
-        texto: `✅ Concluído em ${quando} por ${quem}.`
-      });
     }
+    novosRegistros.push(registroHistoricoOrc(usuario, `moveu o orçamento de ${o.status} para ${status}${saiuConcluido ? ' — retirado do faturamento e da comissão' : entrouConcluido ? ' — faturado (a comissão entra no período da data de faturamento)' : ''}.`, 'status'));
     if (status !== 'Concluído' && o.dataFaturamento) dados.dataFaturamento = firebase.firestore.FieldValue.delete();
     // Fora de Concluído não pertence a período de apuração (se ainda não foi consolidado num fechamento).
     if (status !== 'Concluído' && o.periodoApuracaoId && !o.periodoConsolidadoId) dados.periodoApuracaoId = firebase.firestore.FieldValue.delete();
@@ -8395,12 +8530,9 @@ function AbaOrcamentos({
         ...o.fotoTeste,
         origemTeste: true
       };
-      historico.push({
-        data: agora.toISOString(),
-        texto: `✅ Entrega considerada concluída reaproveitando a foto e a assinatura da entrega para teste (${o.assinaturaTeste.nome}).`
-      });
+      novosRegistros.push(registroHistoricoOrc(usuario, `considerou a entrega concluída reaproveitando a foto e a assinatura da entrega para teste (${o.assinaturaTeste.nome}).`, 'entrega'));
     }
-    if (historico.length !== (o.historico || []).length) dados.historico = historico;
+    if (novosRegistros.length) dados.historico = firebase.firestore.FieldValue.arrayUnion(...novosRegistros);
     await db.collection('orcamentos').doc(o.id).update(dados);
     if (entrouConcluido) {
       // Vincula o cartão ao período de apuração que contém a data de conclusão (periodoApuracaoId).
@@ -8822,6 +8954,7 @@ function AbaOrcamentos({
     aoFechar: () => setModalAberto(false)
   }), testeParaConfirmar && /*#__PURE__*/React.createElement(ModalConfirmarTeste, {
     orcamento: testeParaConfirmar,
+    usuario: usuario,
     aoFechar: () => setTesteParaConfirmar(null)
   }), menuOrcamento && /*#__PURE__*/React.createElement(ModalMenuOrcamento, {
     orcamento: menuOrcamento,
@@ -8852,13 +8985,15 @@ function AbaOrcamentos({
         arquivado: true,
         statusAnterior: o.status,
         dataArquivamento: new Date().toISOString(),
-        arquivadoPor: usuario.nome
+        arquivadoPor: usuario.nome,
+        historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `arquivou o orçamento (estava em ${o.status}).`, 'arquivo'))
       });
     },
     aoFechar: () => setMenuOrcamento(null)
   }), orcamentoParaCopiar && /*#__PURE__*/React.createElement(ModalCopiarOrcamento, {
     orcamento: orcamentoParaCopiar,
     funcionarios: funcionarios,
+    usuario: usuario,
     aoFechar: () => setOrcamentoParaCopiar(null)
   }), modalArquivadosAberto && /*#__PURE__*/React.createElement(ModalArquivados, {
     usuario: usuario,
@@ -8872,6 +9007,30 @@ function AbaOrcamentos({
     aoFechar: () => setClienteParaVer(null)
   }));
 }
+// Histórico de movimentações do orçamento — só consulta, dos mais recentes para os mais antigos.
+function HistoricoOrcamento({
+  orcamento
+}) {
+  const lista = (orcamento.historico || []).map((h, i) => ({
+    ...h,
+    _i: i
+  })).sort((a, b) => (Date.parse(b.data) || 0) - (Date.parse(a.data) || 0) || b._i - a._i);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "historico-orc"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "historico-orc-titulo"
+  }, "🕘 Histórico do orçamento #", orcamento.numero ?? '-'), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "historico-orc-vazio"
+  }, "Nenhuma movimentação registrada ainda.") : /*#__PURE__*/React.createElement("ul", {
+    className: "historico-orc-lista"
+  }, lista.map(h => /*#__PURE__*/React.createElement("li", {
+    key: h.id || h._i
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "historico-orc-quando"
+  }, quandoBrasilia(h.data)), /*#__PURE__*/React.createElement("span", {
+    className: "historico-orc-texto"
+  }, h.usuarioId !== undefined ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("strong", null, h.usuario || '-'), " ", h.texto) : h.texto)))));
+}
 function ModalOrcamento({
   orcamento,
   clientes,
@@ -8880,6 +9039,9 @@ function ModalOrcamento({
   aoFechar
 }) {
   const [funcionarios] = useColecao('funcionarios');
+  // versão ao vivo do orçamento (o histórico aparece atualizado sem fechar a janela)
+  const [orcamentosVivos] = useColecao('orcamentos');
+  const orcamentoAtual = orcamento ? orcamentosVivos.find(o => o.id === orcamento.id) || orcamento : null;
   const [todosLotes] = useColecao('lotes');
   const [catalogoOrigem] = useColecao('catalogoPecas');
   const loteOrigem = orcamento?.loteId ? todosLotes.find(l => l.id === orcamento.loteId) : null;
@@ -8952,13 +9114,18 @@ function ModalOrcamento({
         total,
         status: orcamento?.status || 'Pendente orçamento'
       };
-      const quem = usuario?.nome || '-';
-      const agoraTxt = `${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
       const novosHistoricos = [];
+      if (String(numero) !== String(orcamento.numero ?? '')) novosHistoricos.push(`alterou o número do orçamento de ${orcamento.numero ?? '-'} para ${numero}.`);
+      const pedAnt = String(orcamento.numeroPedidoCompras || '').trim(),
+        pedNovo = String(numeroPedidoCompras || '').trim();
+      if (pedAnt !== pedNovo) novosHistoricos.push(!pedAnt ? `incluiu o número do pedido de compra: ${pedNovo}.` : !pedNovo ? `removeu o número do pedido de compra (era ${pedAnt}).` : `alterou o número do pedido de compra de ${pedAnt} para ${pedNovo}.`);
+      if (String(orcamento.observacao || '').trim() !== String(observacao || '').trim()) novosHistoricos.push('alterou a observação do orçamento.');
+      const normItens = lista => JSON.stringify((lista || []).map(i => [String(i.descricao || ''), Number(i.qtd) || 0, Number(i.valorUnit) || 0, i.tipo || 'consertada']));
+      if (normItens(orcamento.itens) !== normItens(itensComTipo)) novosHistoricos.push((Number(orcamento.total) || 0) !== total ? `alterou os itens do orçamento (total de ${formatMoeda(orcamento.total)} para ${formatMoeda(total)}).` : 'alterou os itens do orçamento.');
       // Data do orçamento (criação)
       if (dataOrcamento && dataOrcamento !== dataOrcamentoInicial) {
         dados.criadoEm = firebase.firestore.Timestamp.fromDate(trocarDiaMantendoHora(orcamento.criadoEm, dataOrcamento));
-        novosHistoricos.push(`📅 Data do orçamento alterada de ${dataOrcamentoInicial ? formatarDataBr(dataOrcamentoInicial) : '-'} para ${formatarDataBr(dataOrcamento)} em ${agoraTxt} por ${quem}.`);
+        novosHistoricos.push(`alterou a data do orçamento de ${dataOrcamentoInicial ? formatarDataBr(dataOrcamentoInicial) : '-'} para ${formatarDataBr(dataOrcamento)}.`);
       }
       // Data de faturamento: muda o período da comissão (sem duplicar lançamentos)
       const fatMudou = faturado && dataFaturamento && dataFaturamento !== dataFaturamentoInicial;
@@ -8977,12 +9144,9 @@ function ModalOrcamento({
         novaDataFat = trocarDiaMantendoHora(dataFatOriginal, dataFaturamento);
         dados.dataFaturamento = firebase.firestore.Timestamp.fromDate(novaDataFat);
         dados.dataConclusao = dados.dataFaturamento;
-        novosHistoricos.push(`💰 Data de faturamento alterada de ${formatarDataBr(dataFaturamentoInicial)} para ${formatarDataBr(dataFaturamento)} em ${agoraTxt} por ${quem} — a comissão passa para o período da nova data.`);
+        novosHistoricos.push(`alterou a data de faturamento de ${formatarDataBr(dataFaturamentoInicial)} para ${formatarDataBr(dataFaturamento)} — a comissão passa para o período da nova data.`);
       }
-      if (novosHistoricos.length) dados.historico = firebase.firestore.FieldValue.arrayUnion(...novosHistoricos.map(texto => ({
-        data: new Date().toISOString(),
-        texto
-      })));
+      if (novosHistoricos.length) dados.historico = firebase.firestore.FieldValue.arrayUnion(...novosHistoricos.map(texto => registroHistoricoOrc(usuario, texto, 'edicao')));
       await db.collection('orcamentos').doc(orcamento.id).update(dados);
       if (novaDataFat) await vincularPeriodoAoFaturar(orcamento.id, novaDataFat);
       const {
@@ -9010,10 +9174,7 @@ function ModalOrcamento({
         status: 'Pendente orçamento',
         arquivado: false,
         criadoEm: diaOrc === hojeStr ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.Timestamp.fromDate(new Date(diaOrc + 'T12:00:00')),
-        historico: [{
-          data: new Date().toISOString(),
-          texto: `📄 Orçamento criado em ${formatarDataBr(diaOrc)} por ${usuario?.nome || '-'}.`
-        }]
+        historico: [registroHistoricoOrc(usuario, `criou o orçamento (data do orçamento ${formatarDataBr(diaOrc)}).`, 'criacao')]
       };
       const ref = await db.collection('orcamentos').add(dados);
       const opBatch = db.batch();
@@ -9237,24 +9398,9 @@ function ModalOrcamento({
     cliente: clientes.find(c => c.id === clienteId),
     colecao: "orcamentos",
     usuario: usuario
-  })), orcamento && orcamento.historico && orcamento.historico.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 16
-    }
-  }, /*#__PURE__*/React.createElement("label", null, "Histórico"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      border: '1px solid var(--borda)',
-      borderRadius: 8,
-      padding: 10,
-      fontSize: 12.5,
-      color: 'var(--texto-fraco)'
-    }
-  }, orcamento.historico.map((h, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      marginBottom: i < orcamento.historico.length - 1 ? 6 : 0
-    }
-  }, new Date(h.data).toLocaleDateString('pt-BR'), " — ", h.texto)))), /*#__PURE__*/React.createElement("div", {
+ })), orcamento && /*#__PURE__*/React.createElement(HistoricoOrcamento, {
+    orcamento: orcamentoAtual
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -9266,12 +9412,14 @@ function ModalOrcamento({
     type: "button",
     className: "btn secundario",
     onClick: async () => {
+      const statusVolta = (orcamento.statusAnterior === 'Entregue/Faturado' ? 'Rota' : orcamento.statusAnterior) || (orcamento.status === 'Entregue/Faturado' ? 'Rota' : orcamento.status);
       await db.collection('orcamentos').doc(orcamento.id).update({
         arquivado: false,
-        status: (orcamento.statusAnterior === 'Entregue/Faturado' ? 'Rota' : orcamento.statusAnterior) || (orcamento.status === 'Entregue/Faturado' ? 'Rota' : orcamento.status),
+        status: statusVolta,
         ordemKanban: Date.now(),
         dataArquivamento: null,
-        arquivadoPor: null
+        arquivadoPor: null,
+        historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `desarquivou o orçamento (voltou para ${statusVolta}).`, 'arquivo'))
       });
       aoFechar();
     }
