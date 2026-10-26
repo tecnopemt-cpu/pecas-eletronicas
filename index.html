@@ -2474,7 +2474,7 @@ async function gerarPdfOrcamentoImpressao(orcamento, cliente) {
   const nomeCliente = (cliente?.razaoSocial || 'Cliente').slice(0, 40).replace(/[\\/:*?"<>|]/g, '-');
   doc.save(`Orcamento ${orcamento.numero} - ${nomeCliente}.pdf`);
 }
-// Assinatura digitada: o nome (Nome + Sobrenome) escrito em fonte cursiva.
+// Assinatura digitada: o nome completo escrito em fonte cursiva.
 // Única forma de assinatura do sistema — a assinatura desenhada foi removida.
 const FONTE_ASSINATURA = "'Dancing Script', cursive";
 const COR_ASSINATURA = '#453B3C';
@@ -2505,7 +2505,7 @@ async function gerarImagemAssinaturaDigitada(texto) {
   ctx.fillText(texto, largura / 2, altura / 2);
   return canvas.toDataURL('image/png');
 }
-// Prévia ao vivo: atualiza a cada letra digitada em Nome/Sobrenome, sem botão.
+// Prévia ao vivo: atualiza a cada letra digitada no Nome completo, sem botão.
 function PreviaAssinaturaDigitada({
   nome
 }) {
@@ -2555,7 +2555,7 @@ function PreviaAssinaturaDigitada({
       color: 'var(--texto-fraco)',
       textAlign: 'center'
     }
-  }, "Preencha Nome e Sobrenome acima — a assinatura aparece aqui automaticamente."), /*#__PURE__*/React.createElement("div", {
+  }, "Preencha o Nome completo acima — a assinatura aparece aqui automaticamente."), /*#__PURE__*/React.createElement("div", {
     style: {
       width: '100%',
       borderTop: '1px solid rgba(69,59,60,.35)',
@@ -2570,21 +2570,23 @@ function FormularioAssinatura({
   colecao,
   onConcluido
 }) {
-  const [primeiroNome, setPrimeiroNome] = useState('');
-  const [sobrenome, setSobrenome] = useState('');
+  const [nomeCompleto, setNomeCompleto] = useState('');
   const [cpf, setCpf] = useState('');
   const [enviando, setEnviando] = useState(false);
   const semValores = tipo !== 'entrega';
-  // A assinatura é sempre o nome digitado (Nome + Sobrenome), gerada automaticamente.
-  const nome = [primeiroNome, sobrenome].map(p => p.trim().replace(/\s+/g, ' ')).filter(Boolean).join(' ');
+  // A assinatura é sempre o nome completo digitado, gerada automaticamente.
+  const nome = nomeCompleto.trim().replace(/\s+/g, ' ');
+  const partesNome = nome ? nome.split(' ') : [];
+  const primeiroNome = partesNome[0] || '';
+  const sobrenome = partesNome.slice(1).join(' ');
   async function enviar(e) {
     e.preventDefault();
-    if (!primeiroNome.trim()) {
-      alert('Informe o nome de quem está assinando.');
+    if (!nome) {
+      alert('Informe o nome completo de quem está assinando.');
       return;
     }
-    if (!sobrenome.trim()) {
-      alert('Informe o sobrenome de quem está assinando.');
+    if (!sobrenome) {
+      alert('Informe o nome completo (nome e sobrenome) de quem está assinando.');
       return;
     }
     if (!validarCPF(cpf)) {
@@ -2605,8 +2607,8 @@ function FormularioAssinatura({
     const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
     const assinatura = {
       nome: nome,
-      primeiroNome: primeiroNome.trim().replace(/\s+/g, ' '),
-      sobrenome: sobrenome.trim().replace(/\s+/g, ' '),
+      primeiroNome,
+      sobrenome,
       tipoAssinatura: 'digitada',
       cpf: cpf.replace(/\D/g, ''),
       imagem: assinaturaImg,
@@ -2682,19 +2684,13 @@ function FormularioAssinatura({
       color: 'var(--laranja-escuro)',
       fontWeight: 600
     }
-  }, "⚠️ Entrega para teste — não representa conclusão do conserto nem faturamento.")), /*#__PURE__*/React.createElement("div", {
-    className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Nome"), /*#__PURE__*/React.createElement("input", {
-    value: primeiroNome,
-    onChange: e => setPrimeiroNome(e.target.value),
-    autoComplete: "given-name",
+  }, "⚠️ Entrega para teste — não representa conclusão do conserto nem faturamento.")), /*#__PURE__*/React.createElement("label", null, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+    value: nomeCompleto,
+    onChange: e => setNomeCompleto(e.target.value),
+    autoComplete: "name",
+    placeholder: "Nome e sobrenome",
     required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Sobrenome"), /*#__PURE__*/React.createElement("input", {
-    value: sobrenome,
-    onChange: e => setSobrenome(e.target.value),
-    autoComplete: "family-name",
-    required: true
-  }))), /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
+  }), /*#__PURE__*/React.createElement("label", null, "CPF"), /*#__PURE__*/React.createElement("input", {
     value: formatarCPF(cpf),
     onChange: e => setCpf(e.target.value),
     placeholder: "000.000.000-00",
