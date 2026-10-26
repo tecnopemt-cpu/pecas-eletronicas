@@ -1,0 +1,42 @@
+name: Verificar backup e armazenamento
+
+# Todo dia às 12:00 (Brasília) confere, fora do site:
+#  - se existe backup das últimas 36 horas (pega também o caso de a rotina de backup nem ter rodado);
+#  - se o banco (estimado pelo backup) passou de 50% do 1 GiB gratuito ou o repositório passou de 1 GB.
+# Problema → abre um aviso (issue) com menção à conta tecnopemt-cpu, que recebe e-mail do GitHub.
+# Resolvido → fecha o aviso sozinho. Só lê a lista pública de backups: não acessa o banco de dados.
+on:
+  schedule:
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: backup
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Conferir backup e armazenamento
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node backup/alerta.mjs verificar
+      - name: Manter as rotinas ativas (o GitHub pausa agendamentos após 60 dias sem atividade)
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for w in backup.yml verificar-backup.yml; do
+            curl -sS -X PUT -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/$w/enable" -o /dev/null -w "$w %{http_code}\n"
+          done

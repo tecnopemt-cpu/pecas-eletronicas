@@ -35,7 +35,13 @@ O backup copia o Firestore para fora do Google, e o código já está versionado
   **Guarde os dois em pelo menos dois lugares** (ex.: pen drive e Google Drive). Sem eles os backups não abrem.
 - **Teste de recuperação automático**: toda alteração na pasta `backup/` roda no GitHub um teste completo com os dados reais
   (lê o banco, cifra, abre de novo, confere documento por documento e simula a restauração), sem gravar nada.
-- **Aviso de falha**: se a rotina falhar, o GitHub envia e-mail para a conta dona do repositório.
+- **Avisos por e-mail** (`backup/alerta.mjs`): se o backup falhar, se ficar mais de 36 h sem backup novo
+  (rotina *Verificar backup e armazenamento*, todo dia às 12:00) ou se o banco passar de 50% do 1 GiB gratuito /
+  o repositório passar de 1 GB, a rotina abre um aviso em *Issues* mencionando @tecnopemt-cpu, e o GitHub manda
+  e-mail para essa conta. O aviso não se repete (vira comentário) e fecha sozinho quando o problema some.
+  Para garantir o e-mail: no repositório, *Watch → All Activity*, e em github.com/settings/notifications deixe
+  *Email* marcado. (O e-mail padrão do GitHub para falha de rotina agendada vai para quem editou o agendamento,
+  que não é a conta da empresa — por isso os avisos usam issues.)
   Dá para ver todas as execuções em *Actions → Backup do Controle de Peças* e rodar na hora em *Run workflow*.
 
 ## Como recuperar (sem precisar do site)

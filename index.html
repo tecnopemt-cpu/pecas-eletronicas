@@ -3303,14 +3303,20 @@ function BlocoAssinatura({
 }
 // Coleções ficam "vivas" e compartilhadas entre as telas: ao voltar para uma tela os dados aparecem
 // na hora (já estão na memória e continuam se atualizando em tempo real), sem baixar tudo de novo.
-// Uma coleção que nenhuma tela usa por 10 minutos é desligada.
+// Economia de leituras (o plano gratuito do Firestore permite 50.000 por dia):
+//  - cada coleção tem UMA assinatura da coleção inteira; as versões "ordenada por X" são montadas no
+//    aparelho a partir dela (antes, cada ordenação era uma consulta separada e lia tudo de novo);
+//  - a versão "só ativos" (sem arquivados) usa a assinatura completa se ela já estiver ligada; senão
+//    consulta só os ativos;
+//  - uma coleção que nenhuma tela usa fica ligada por 2 horas (ligada, só o que muda é lido).
 const COLECOES_VIVAS = new Map();
-const TEMPO_MANTER_COLECAO = 10 * 60 * 1000;
-function assinarColecao(nome, ordenarPor, apenasAtivos) {
-  const chave = nome + '|' + (ordenarPor || '') + '|' + (apenasAtivos ? '1' : '0');
+const TEMPO_MANTER_COLECAO = 2 * 60 * 60 * 1000;
+function assinarColecao(nome, apenasAtivos) {
+  const chave = nome + '|' + (apenasAtivos ? 'ativos' : 'todos');
   let e = COLECOES_VIVAS.get(chave);
   if (e) return e;
   e = {
+    chave,
     dados: [],
     carregando: true,
     ouvintes: new Set(),
@@ -3320,27 +3326,13 @@ function assinarColecao(nome, ordenarPor, apenasAtivos) {
   COLECOES_VIVAS.set(chave, e);
   const avisar = () => e.ouvintes.forEach(f => f(e.dados, e.carregando));
   let ref = db.collection(nome);
-  if (apenasAtivos) {
-    // Filtro único de igualdade — não precisa de índice composto no Firestore.
-    // Como combinar where+orderBy em campos diferentes exigiria um índice manual
-    // (que precisaria ser criado no Console do Firebase), ordenamos no cliente abaixo.
-    ref = ref.where('arquivado', '==', false);
-  } else if (ordenarPor) {
-    ref = ref.orderBy(ordenarPor, 'desc');
-  }
+  // Filtro único de igualdade — não precisa de índice composto no Firestore.
+  if (apenasAtivos) ref = ref.where('arquivado', '==', false);
   e.unsub = ref.onSnapshot(snap => {
-    let lista = snap.docs.map(d => ({
+    e.dados = snap.docs.map(d => ({
       id: d.id,
       ...d.data()
     }));
-    if (apenasAtivos && ordenarPor) {
-      lista = lista.slice().sort((a, b) => {
-        const da = a[ordenarPor]?.toDate ? a[ordenarPor].toDate() : new Date(a[ordenarPor] || 0);
-        const dbb = b[ordenarPor]?.toDate ? b[ordenarPor].toDate() : new Date(b[ordenarPor] || 0);
-        return dbb - da;
-      });
-    }
-    e.dados = lista;
     e.carregando = false;
     avisar();
   }, err => {
@@ -3352,15 +3344,44 @@ function assinarColecao(nome, ordenarPor, apenasAtivos) {
   });
   return e;
 }
+// Qual assinatura atende o pedido: a completa sempre que possível (já ligada = nenhuma leitura nova).
+function fonteDaColecao(nome, apenasAtivos) {
+  if (!apenasAtivos) return assinarColecao(nome, false);
+  const completa = COLECOES_VIVAS.get(nome + '|todos');
+  if (completa && !completa.carregando) return completa;
+  return assinarColecao(nome, true);
+}
+function valorOrdenacao(v) {
+  if (v?.toDate) return v.toDate().getTime();
+  return new Date(v || 0).getTime() || 0;
+}
+// Monta, no aparelho, a lista que a tela pediu (só ativos e/ou ordenada do mais novo para o mais antigo).
+const LISTAS_DERIVADAS = new WeakMap();
+function listaDerivada(e, ordenarPor, apenasAtivos) {
+  let porTipo = LISTAS_DERIVADAS.get(e.dados);
+  if (!porTipo) LISTAS_DERIVADAS.set(e.dados, porTipo = new Map());
+  const tipo = (ordenarPor || '') + '|' + (apenasAtivos ? '1' : '0');
+  if (porTipo.has(tipo)) return porTipo.get(tipo);
+  let lista = e.dados;
+  if (apenasAtivos && e.chave.endsWith('|todos')) lista = lista.filter(d => d.arquivado === false);
+  // A consulta ordenada do Firestore deixava de fora quem não tem o campo; mantém o mesmo resultado.
+  if (ordenarPor && !apenasAtivos) lista = lista.filter(d => d[ordenarPor] !== undefined);
+  if (ordenarPor) lista = lista.slice().sort((a, b) => valorOrdenacao(b[ordenarPor]) - valorOrdenacao(a[ordenarPor]));
+  porTipo.set(tipo, lista);
+  return lista;
+}
 function useColecao(nome, ordenarPor, apenasAtivos) {
   const [estado, setEstado] = useState(() => {
-    const e = COLECOES_VIVAS.get(nome + '|' + (ordenarPor || '') + '|' + (apenasAtivos ? '1' : '0'));
-    return e && !e.carregando ? [e.dados, false] : [[], true];
+    const e = COLECOES_VIVAS.get(nome + '|todos') || (apenasAtivos ? COLECOES_VIVAS.get(nome + '|ativos') : null);
+    return e && !e.carregando ? [listaDerivada(e, ordenarPor, apenasAtivos), false] : [[], true];
   });
   useEffect(() => {
-    const e = assinarColecao(nome, ordenarPor, apenasAtivos);
+    const e = fonteDaColecao(nome, apenasAtivos);
     clearTimeout(e.timer);
-    const ouvir = (dados, carregando) => setEstado(atual => atual[0] === dados && atual[1] === carregando ? atual : [dados, carregando]);
+    const ouvir = (dados, carregando) => {
+      const lista = carregando ? dados : listaDerivada(e, ordenarPor, apenasAtivos);
+      setEstado(atual => atual[0] === lista && atual[1] === carregando ? atual : [lista, carregando]);
+    };
     e.ouvintes.add(ouvir);
     ouvir(e.dados, e.carregando);
     return () => {
@@ -3368,15 +3389,45 @@ function useColecao(nome, ordenarPor, apenasAtivos) {
       if (!e.ouvintes.size) {
         clearTimeout(e.timer);
         e.timer = setTimeout(() => {
-          if (!e.ouvintes.size && COLECOES_VIVAS.get(nome + '|' + (ordenarPor || '') + '|' + (apenasAtivos ? '1' : '0')) === e) {
+          if (!e.ouvintes.size && COLECOES_VIVAS.get(e.chave) === e) {
             if (e.unsub) e.unsub();
-            COLECOES_VIVAS.delete(nome + '|' + (ordenarPor || '') + '|' + (apenasAtivos ? '1' : '0'));
+            COLECOES_VIVAS.delete(e.chave);
           }
         }, TEMPO_MANTER_COLECAO);
       }
     };
   }, [nome, ordenarPor, apenasAtivos]);
   return estado;
+}
+// Um único documento ao vivo (1 leitura), em vez de assinar a coleção inteira só para achar um registro.
+function useDocumento(colecao, id) {
+  const [doc, setDoc] = useState(null);
+  useEffect(() => {
+    if (!id) {
+      setDoc(null);
+      return;
+    }
+    return db.collection(colecao).doc(id).onSnapshot(s => setDoc(s.exists ? {
+      id: s.id,
+      ...s.data()
+    } : null), err => console.error(colecao, err));
+  }, [colecao, id]);
+  return doc;
+}
+// Registros de uma coleção ligados a um valor (ex.: orçamentos de uma entrada) — lê só esses.
+function useColecaoOnde(colecao, campo, valor) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!valor) {
+      setLista([]);
+      return;
+    }
+    return db.collection(colecao).where(campo, '==', valor).onSnapshot(snap => setLista(snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }))), err => console.error(colecao, err));
+  }, [colecao, campo, valor]);
+  return lista;
 }
 async function atualizarApp() {
   try {
@@ -6942,8 +6993,8 @@ function ModalLoteDetalhe({
   const [processando, setProcessando] = useState(false);
   const somenteLeitura = !podeEditar(usuario, 'lotes');
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
-  const [todosOrcamentos] = useColecao('orcamentos');
-  const orcamentosVinculados = todosOrcamentos.filter(o => o.loteId === lote.id);
+  // só os orçamentos desta entrada (antes lia todos os orçamentos para filtrar aqui)
+  const orcamentosVinculados = useColecaoOnde('orcamentos', 'loteId', lote.id);
   const [orcamentoParaVer, setOrcamentoParaVer] = useState(null);
   const [clienteParaVer, setClienteParaVer] = useState(null);
   async function mudarStatusManual(novoStatus) {
@@ -9040,11 +9091,10 @@ function ModalOrcamento({
 }) {
   const [funcionarios] = useColecao('funcionarios');
   // versão ao vivo do orçamento (o histórico aparece atualizado sem fechar a janela)
-  const [orcamentosVivos] = useColecao('orcamentos');
-  const orcamentoAtual = orcamento ? orcamentosVivos.find(o => o.id === orcamento.id) || orcamento : null;
-  const [todosLotes] = useColecao('lotes');
+  const orcamentoVivo = useDocumento('orcamentos', orcamento?.id);
+  const orcamentoAtual = orcamento ? orcamentoVivo || orcamento : null;
   const [catalogoOrigem] = useColecao('catalogoPecas');
-  const loteOrigem = orcamento?.loteId ? todosLotes.find(l => l.id === orcamento.loteId) : null;
+  const loteOrigem = useDocumento('lotes', orcamento?.loteId);
   const [loteParaVer, setLoteParaVer] = useState(false);
   const [clienteParaVer, setClienteParaVer] = useState(null);
   const [numero, setNumero] = useState(orcamento?.numero ?? totalAtual + 1);

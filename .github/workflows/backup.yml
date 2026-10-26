@@ -22,6 +22,7 @@ on:
 permissions:
   contents: write
   actions: write
+  issues: write
 
 concurrency:
   group: backup
@@ -89,3 +90,20 @@ jobs:
         run: |
           curl -sS -X PUT -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/backup.yml/enable" -o /dev/null -w "%{http_code}\n"
+          curl -sS -X PUT -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/verificar-backup.yml/enable" -o /dev/null -w "%{http_code}\n"
+
+      # Aviso por e-mail: abre (ou atualiza) um "issue" no repositório, com menção à conta da empresa.
+      # O GitHub manda e-mail de issues/menções para a conta tecnopemt-cpu — chega mesmo com o site fora do ar.
+      - name: Avisar por e-mail se o backup falhar
+        if: failure() && env.MODO != 'teste'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node backup/alerta.mjs falha "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+      - name: Encerrar aviso de falha quando o backup volta a funcionar
+        if: success() && env.MODO != 'teste'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node backup/alerta.mjs resolvido "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
