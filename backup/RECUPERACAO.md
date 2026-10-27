@@ -29,6 +29,8 @@ O backup copia o Firestore para fora do Google, e o código já está versionado
 - **Segunda cópia fora do GitHub (opcional)**: se os segredos `RCLONE_CONFIG` e `RCLONE_DESTINO` forem configurados
   no repositório (*Settings → Secrets and variables → Actions*), cada backup também é enviado para um armazenamento
   externo (Google Drive, OneDrive, Amazon S3, Backblaze etc.) via [rclone](https://rclone.org).
+  Na pasta de destino ficam os backups dos últimos 30 dias; na subpasta `mensal`, o último backup de cada mês
+  (13 meses). Os arquivos continuam cifrados: abrem só com a chave + senha.
 - **Criptografia**: o repositório é público, então todo backup sai cifrado (RSA-3072 + AES-256-GCM).
   A rotina usa a chave **pública** (`backup/chave-publica.json`). Abrir um backup exige o **arquivo da chave privada
   (`chave-backup-tecnopemt-XXXX.json`) + a senha** — guardados pelo administrador, fora do sistema e fora do GitHub.

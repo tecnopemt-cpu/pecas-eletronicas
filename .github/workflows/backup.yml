@@ -65,17 +65,28 @@ jobs:
           git commit -q -m "Backup ${{ steps.gerar.outputs.arquivo }}"
           git push -q -f origin publicado:backups
 
-      - name: Segunda cópia fora do GitHub (opcional, rclone)
+      # Cópia diária no Google Drive (ou outro armazenamento do rclone), fora do GitHub.
+      # Pasta principal: últimos 30 dias. Subpasta "mensal": o último backup de cada mês, por 13 meses.
+      - name: Segunda cópia fora do GitHub (Google Drive via rclone)
         if: steps.gerar.outputs.publicar == 'true' && env.TEM_COPIA_EXTRA == 'true'
         env:
-          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
-          RCLONE_DESTINO: ${{ secrets.RCLONE_DESTINO }}
+          # (não usar o nome RCLONE_CONFIG aqui: o rclone lê essa variável como caminho do arquivo de configuração)
+          CONFIG_RCLONE: ${{ secrets.RCLONE_CONFIG }}
+          DESTINO: ${{ secrets.RCLONE_DESTINO }}
+          ARQUIVO: ${{ steps.gerar.outputs.arquivo }}
         run: |
           set -e
           curl -fsSL https://rclone.org/install.sh | sudo bash >/dev/null
-          mkdir -p ~/.config/rclone && printf '%s\n' "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
-          rclone copy saida/ "$RCLONE_DESTINO" --include "*.tpbak*"
-          echo "::notice::Segunda cópia enviada para o armazenamento externo configurado."
+          mkdir -p ~/.config/rclone && printf '%s\n' "$CONFIG_RCLONE" > ~/.config/rclone/rclone.conf
+          rclone copy saida/ "$DESTINO" --include "*.tpbak*"
+          MES=$(echo "$ARQUIVO" | sed -E 's/^backup-([0-9]{6}).*/\1/')
+          for f in saida/*.tpbak*; do
+            rclone copyto "$f" "$DESTINO/mensal/$(basename "$f" | sed -E "s/^backup-[0-9]{8}-[0-9]{4}-/backup-$MES-/")"
+          done
+          rclone delete "$DESTINO" --max-depth 1 --min-age 30d --include "backup-*.tpbak*"
+          rclone delete "$DESTINO/mensal" --min-age 400d --include "backup-*.tpbak*"
+          echo "Na pasta principal:"; rclone lsl "$DESTINO" --max-depth 1 --include "*.tpbak*" | sort -k2 | tail -3
+          echo "::notice::Cópia no armazenamento externo: $ARQUIVO (+ cópia do mês $MES)."
 
       - name: Remover registros da antiga tela de backup do banco
         if: env.MODO != 'teste'
