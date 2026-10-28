@@ -1,0 +1,32 @@
+name: Testar regras do banco
+
+# Roda as regras de seguranca/firestore.rules no emulador oficial do Firestore e confere, caso a caso,
+# o que cada tipo de pessoa consegue fazer. Não toca no banco de verdade.
+on:
+  push:
+    branches: [main]
+    paths: ['seguranca/**', '.github/workflows/testar-regras.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar o emulador e as ferramentas de teste
+        working-directory: seguranca
+        run: npm install --no-audit --no-fund
+      - name: Testar as regras
+        working-directory: seguranca
+        run: npx firebase emulators:exec --only firestore --project demo-controle-pecas "node teste-regras.mjs"

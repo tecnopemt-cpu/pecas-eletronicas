@@ -1,0 +1,128 @@
+// Regras de segurança do Cloud Firestore — Controle de Peças (Tecnopemt)
+// Publicar em: console do Firebase → Firestore Database → Regras → colar tudo → Publicar.
+// Testadas automaticamente no GitHub (rotina "Testar regras do banco") a cada alteração.
+//
+// Quem pode o quê:
+//  - funcionário ATIVO logado (conta interna f-<id>-v<n>@acesso.controle-pecas.app que seja a conta
+//    atual da ficha dele): lê e grava os dados do sistema;
+//  - Administrador Master: tudo; administrador: gerencia funcionários comuns;
+//  - quem está com cadastro pendente: só vê a própria ficha;
+//  - cliente com link de assinatura (visitante anônimo): abre só o documento do link e grava só a
+//    própria assinatura (uma vez);
+//  - conta da rotina de backup (registrada em seguranca/backup): só leitura;
+//  - qualquer outra pessoa: nada.
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() { return request.auth != null; }
+    function anonimo() { return logado() && request.auth.token.firebase.sign_in_provider == 'anonymous'; }
+    function emailConta() { return request.auth.token.get('email', ''); }
+    function contaFuncionario() {
+      return logado() && !anonimo() && emailConta().matches('^f-[A-Za-z0-9]+-v[0-9]+@acesso[.]controle-pecas[.]app$');
+    }
+    function fid() { return emailConta().split('@')[0].split('-')[1]; }
+    function fichaPath() { return /databases/$(database)/documents/funcionarios/$(fid()); }
+    function eu() { return get(fichaPath()).data; }
+    // a conta logada é a conta ATUAL da ficha (redefinir a senha cria outra e derruba a antiga)
+    function contaValida() { return contaFuncionario() && exists(fichaPath()) && eu().get('authEmail', '') == emailConta(); }
+    function ativo() {
+      return contaValida() && (eu().get('status', '') == 'ativo' || (!('status' in eu()) && eu().get('ativo', true) != false));
+    }
+    function perfil() { return eu().get('perfil', 'funcionario'); }
+    function master() { return ativo() && perfil() == 'master'; }
+    function administrador() { return ativo() && perfil() in ['master', 'administrador']; }
+    // quem pode cadastrar/editar funcionários: administradores e quem tem "Editar" em Equipe
+    // (contas antigas sem permissões configuradas mantêm o acesso total que já tinham)
+    function editaEquipe() {
+      return administrador() || (ativo() && (!('permissoes' in eu()) || eu().permissoes.get('funcionarios', 'sem_acesso') == 'editar'));
+    }
+    function backup() {
+      return logado() && !anonimo() && exists(/databases/$(database)/documents/seguranca/backup)
+        && get(/databases/$(database)/documents/seguranca/backup).data.uid == request.auth.uid;
+    }
+    function mudou() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // ---------- dados do sistema ----------
+    match /{colecao}/{id} {
+      allow read: if backup() || (ativo() && colecao in ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'comissoes',
+        'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao',
+        'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes', 'midias', 'loginsPublicos', 'cpfs', 'backups', 'backupsCopias']);
+      allow write: if ativo() && colecao in ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'comissoes',
+        'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao',
+        'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes'];
+    }
+
+    // ---------- funcionários ----------
+    match /funcionarios/{id} {
+      allow read: if ativo() || backup() || (contaValida() && fid() == id);
+      // cadastro pelo próprio funcionário: só como pendente, sem permissões, ligado à própria conta
+      allow create: if (editaEquipe() && (master() || request.resource.data.get('perfil', 'funcionario') == 'funcionario'))
+        || (contaFuncionario() && fid() == id
+            && request.resource.data.get('status', '') == 'pendente'
+            && request.resource.data.get('perfil', '') == 'funcionario'
+            && request.resource.data.get('authEmail', '') == emailConta()
+            && request.resource.data.get('permissoes', {}).values().hasOnly(['sem_acesso']));
+      allow update: if master()
+        // administrador / quem edita a Equipe: só contas comuns, sem promover ninguém
+        || (editaEquipe() && fid() != id
+            && resource.data.get('perfil', 'funcionario') == 'funcionario'
+            && request.resource.data.get('perfil', 'funcionario') == 'funcionario')
+        // o próprio funcionário: dados pessoais e marcações de leitura (nunca perfil, status, permissões, comissão)
+        || (ativo() && fid() == id && mudou().hasOnly(['nome', 'cpf', 'dataNascimento', 'telefone', 'cep', 'endereco',
+            'numero', 'complemento', 'bairro', 'cidade', 'uf', 'login', 'cargo', 'avisosVistos',
+            'notificacoesAniversarioVistas', 'atualizadoEm']));
+      allow delete: if master();
+    }
+
+    // ---------- login → conta interna (lido antes de entrar; não lista nada) ----------
+    match /loginsPublicos/{login} {
+      allow get: if true;
+      allow create: if editaEquipe() || (contaFuncionario() && request.resource.data.email == emailConta());
+      allow update, delete: if editaEquipe() || (ativo() && resource.data.email == emailConta());
+    }
+
+    // ---------- CPF já cadastrado (para o "Criar minha conta") ----------
+    match /cpfs/{chave} {
+      allow get: if contaFuncionario();
+      allow create: if editaEquipe() || (contaFuncionario() && request.resource.data.funcionarioId == fid());
+      allow update, delete: if editaEquipe() || (ativo() && resource.data.funcionarioId == fid());
+    }
+
+    // ---------- fotos e assinaturas ----------
+    match /midias/{id} {
+      allow get: if logado();
+      allow list: if ativo() || backup();
+      allow create: if logado();
+      // reaproveitar uma imagem só acrescenta onde ela é usada; o conteúdo nunca muda
+      allow update: if logado() && request.resource.data.dados == resource.data.dados;
+      allow delete: if administrador();
+    }
+
+    // ---------- assinatura por link (cliente como visitante anônimo) ----------
+    match /lotes/{id} {
+      allow get: if anonimo();
+      allow update: if anonimo() && resource.data.get('codigoAssinaturaEntrada', '') != ''
+        && !('assinaturaEntrada' in resource.data)
+        && mudou().hasOnly(['assinaturaEntrada', 'atualizadoEm']);
+    }
+    match /orcamentos/{id} {
+      allow get: if anonimo();
+      allow update: if anonimo()
+        && mudou().hasOnly(['assinaturaEntrega', 'assinaturaTeste', 'historico', 'atualizadoEm'])
+        && (!('assinaturaEntrega' in mudou()) || (resource.data.get('codigoAssinaturaEntrega', '') != '' && !('assinaturaEntrega' in resource.data)))
+        && (!('assinaturaTeste' in mudou()) || (resource.data.get('codigoAssinaturaTeste', '') != '' && !('assinaturaTeste' in resource.data)))
+        && request.resource.data.get('historico', []).hasAll(resource.data.get('historico', []))
+        && request.resource.data.get('historico', []).size() <= resource.data.get('historico', []).size() + 1;
+    }
+    match /clientes/{id} {
+      allow get: if anonimo();
+    }
+
+    // ---------- configuração de segurança (só o Master) ----------
+    match /seguranca/{id} {
+      allow read, write: if master();
+    }
+  }
+}

@@ -1,4 +1,5 @@
-chave-backup*.json
 *.tpbak
 *.tpbak.parte*
+chave-backup*.json
+node_modules/
 saida-backup/
