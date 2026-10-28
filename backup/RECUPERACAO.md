@@ -69,7 +69,9 @@ Mostra a data, a quantidade de documentos por coleção, fotos e assinaturas, e 
 node backup/restaurar.mjs backup-AAAAMMDD-HHMM-automatico.tpbak --chave chave-backup-tecnopemt-XXXX.json --aplicar
 ```
 
-Antes de gravar, o script salva um backup do estado atual (`...-pre-restauracao.tpbak`) para poder voltar atrás.
+O script pede o **login e a senha de um Administrador Master** (o mesmo do sistema): com o banco fechado, só
+uma conta de verdade pode gravar. Antes de gravar, salva um backup do estado atual (`...-pre-restauracao.tpbak`)
+para poder voltar atrás. As contas de acesso não voltam no tempo: cada funcionário continua com a senha atual.
 Pede para digitar `RESTAURAR`, grava tudo e no fim relê o banco e confirma: “o banco ficou idêntico ao backup”.
 Para desfazer, rode o mesmo comando com o arquivo `...-pre-restauracao.tpbak`.
 
@@ -87,10 +89,15 @@ node backup/restaurar.mjs BACKUP.tpbak --chave CHAVE.json --extrair recuperado
 
 ### 4) Projeto do Firebase excluído → banco novo
 
-1. Crie um projeto no [console do Firebase](https://console.firebase.google.com) e ative o Cloud Firestore.
+1. Crie um projeto no [console do Firebase](https://console.firebase.google.com) e ative o Cloud Firestore
+   (em modo de teste, aberto, só durante a recuperação) e o Authentication com **E-mail/senha** e **Anônimo**.
 2. Coloque a configuração web do projeto novo no `firebaseConfig` do `index.html`.
-3. `node backup/restaurar.mjs BACKUP.tpbak --chave CHAVE.json --aplicar --projeto ID-NOVO --api-key CHAVE-WEB-NOVA`
-4. Publique o site atualizado (item 3).
+3. `node backup/restaurar.mjs BACKUP.tpbak --chave CHAVE.json --aplicar --sem-login --projeto ID-NOVO --api-key CHAVE-WEB-NOVA`
+4. As contas de login não ficam no backup (são do Google). Crie a do Master:
+   `node backup/restaurar.mjs BACKUP.tpbak --chave CHAVE.json --novo-acesso walter --projeto ID-NOVO --api-key CHAVE-WEB-NOVA`
+5. Publique o site atualizado (item 3), entre como Master e, em Equipe, use "Redefinir senha" para cada funcionário.
+6. Cole as regras de `seguranca/firestore.rules` no console (Firestore → Regras) e recrie o acesso do backup
+   (Equipe → painel de segurança) e os segredos `BACKUP_EMAIL`/`BACKUP_SENHA` no GitHub.
 
 ### 5) Repositório do GitHub perdido
 
@@ -107,7 +114,14 @@ node backup/gerar-chave.mjs --saida chave-backup-tecnopemt-NOVA.json
 Envie o `backup/chave-publica.json` atualizado ao repositório. Backups novos usam a chave nova; os antigos continuam
 abrindo só com a chave antiga (não descarte o arquivo antigo).
 
-## Observação de segurança
+## Segurança do acesso (login pelo Firebase)
 
-O sistema não usa o login do Firebase, então as regras do Firestore permitem acesso direto com a configuração pública
-do site. O backup diário protege contra perda; fechar esse acesso exigiria migrar o login para o Firebase Authentication.
+- O login é conferido pelo Google (Firebase Authentication). Cada funcionário tem uma conta interna
+  (`f-<id>-v<n>@acesso.controle-pecas.app`, ligada à ficha por `contas/<uid>` e pelo campo `authUid` da ficha);
+  ninguém precisa conhecer esse e-mail — entra-se com o login e a senha de sempre.
+- As regras do banco ficam em `seguranca/firestore.rules` (versão anterior, aberta, em `seguranca/regras-anteriores.rules`).
+  A rotina **Testar regras do banco** (GitHub Actions) testa as regras no emulador oficial e o sistema inteiro com elas
+  (login, telas, assinatura por link, cadastro, backup) a cada alteração.
+- A rotina de backup usa uma conta própria, só de leitura, criada pelo Master em **Equipe → painel de segurança**
+  ("Criar acesso da rotina de backup"); o e-mail e a senha vão nos segredos `BACKUP_EMAIL` e `BACKUP_SENHA` do GitHub.
+- Para voltar às regras abertas em uma emergência: console do Firebase → Firestore → Regras → histórico → versão anterior.
