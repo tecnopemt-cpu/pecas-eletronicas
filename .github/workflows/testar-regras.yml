@@ -36,6 +36,6 @@ jobs:
       - name: Testar o sistema inteiro com as regras (login, telas, assinatura, backup)
         working-directory: seguranca
         run: npx firebase emulators:exec --only firestore,auth --project demo-controle-pecas "node teste-integracao.mjs"
-      - name: Testar a fase 1 (banco ainda aberto: a 1ª entrada cria o acesso novo)
+      - name: Testar a fase 1 (banco ainda aberto, a 1ª entrada cria o acesso novo)
         working-directory: seguranca
         run: npx firebase emulators:exec --config firebase-aberto.json --only firestore,auth --project demo-controle-pecas "node teste-fase1.mjs"
