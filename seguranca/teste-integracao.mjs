@@ -84,6 +84,9 @@ async function novaPagina() {
   const ctx = await browser.newContext({ geolocation: { latitude: -23.39, longitude: -46.32 }, permissions: ['geolocation'] });
   const page = await ctx.newPage();
   const erros = [];
+  page.__log = [];
+  page.on('console', m => { page.__log.push(m.type() + ': ' + m.text().slice(0, 300)); });
+  page.on('requestfailed', r => page.__log.push('falhou: ' + r.url().slice(0, 120) + ' ' + (r.failure() || {}).errorText));
   page.on('console', m => { if (m.type() === 'error' && /permission|insufficient|PERMISSION_DENIED/i.test(m.text())) erros.push(m.text().slice(0, 200)); });
   page.on('pageerror', e => erros.push('pageerror: ' + e.message));
   page.on('dialog', d => d.accept());
@@ -93,7 +96,11 @@ async function entrar(page, login, senha) {
   await page.goto(SITE + '?emulador'); await page.waitForSelector('#acesso-login', { timeout: 30000 });
   await page.fill('#acesso-login', login); await page.fill('#acesso-senha', senha);
   await page.locator('.acesso-btn-entrar').click();
-  await page.waitForSelector('.sidebar, .acesso-erro', { timeout: 30000 }); await page.waitForTimeout(1500);
+  await page.waitForSelector('.sidebar, .acesso-erro', { timeout: 30000 }).catch(() => {}); await page.waitForTimeout(1500);
+  if (!(await page.locator('.sidebar').count())) {
+    const erro = await page.locator('.acesso-erro').innerText().catch(() => '(sem mensagem)');
+    console.log(`::warning::Login ${login}: ${erro} | ${page.__log.slice(-8).join(' || ').replace(/\n/g, ' ')}`);
+  }
 }
 const esperar = ms => new Promise(r => setTimeout(r, ms));
 try {
