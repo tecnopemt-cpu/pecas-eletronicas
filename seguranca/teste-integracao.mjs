@@ -70,6 +70,15 @@ await gravar('orcamentos/O1', { numero: 1, clienteId: 'C1', status: 'Pendente or
 await gravar('periodosApuracao/PA1', { nome: 'Out/Nov', dataInicial: '2026-10-24', dataFinal: '2026-11-23', origem: 'manual', editadoManualmente: true });
 for (const c of ['migracaoArquivamento_v2', 'migracaoPermissoes', 'migracaoStatusRota', 'migracaoLoteConcluidoOrcado']) await gravar('config/' + c, { feito: true });
 
+// diagnóstico: a conta do master consegue ler a própria ficha direto pela API?
+{
+  const r1 = await fetch(`${AUTH}/accounts:signInWithPassword?key=fake`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: `f-WAL-v1@${DOM}`, password: derivada('walter123'), returnSecureToken: true }) });
+  const t = (await r1.json()).idToken;
+  const r2 = await fetch(`${FS}/funcionarios/WAL`, { headers: { Authorization: 'Bearer ' + t } });
+  const r3 = await fetch(`${FS}/clientes/C1`, { headers: { Authorization: 'Bearer ' + t } });
+  const payload = JSON.parse(Buffer.from(t.split('.')[1], 'base64url').toString());
+  console.log(`::warning::Diagnóstico API: ficha ${r2.status} ${r2.status !== 200 ? (await r2.text()).slice(0, 200) : ''} | clientes ${r3.status} | token ${JSON.stringify({ email: payload.email, firebase: payload.firebase })}`);
+}
 // ---- site servido localmente
 const tipos = { '.html': 'text/html', '.png': 'image/png', '.json': 'application/json', '.js': 'text/javascript' };
 const servidor = http.createServer((req, res) => {
@@ -99,7 +108,7 @@ async function entrar(page, login, senha) {
   await page.waitForSelector('.sidebar, .acesso-erro', { timeout: 30000 }).catch(() => {}); await page.waitForTimeout(1500);
   if (!(await page.locator('.sidebar').count())) {
     const erro = await page.locator('.acesso-erro').innerText().catch(() => '(sem mensagem)');
-    console.log(`::warning::Login ${login}: ${erro} | ${page.__log.slice(-8).join(' || ').replace(/\n/g, ' ')}`);
+    console.log(`::warning::Login ${login}: ${erro} | ${page.__log.filter(l => !/^falhou/.test(l)).slice(-10).join(' || ').replace(/\n/g, ' ')}`);
   }
 }
 const esperar = ms => new Promise(r => setTimeout(r, ms));
