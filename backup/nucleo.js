@@ -12,7 +12,7 @@
   const FORMATO = 'tecnopemt-backup';
   const VERSAO = 1;
   // Coleções do sistema (as que o código usa). A rotina também tenta descobrir coleções extras.
-  const COLECOES = ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'funcionarios', 'comissoes', 'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao', 'avisos', 'notificacoes', 'config', 'pecas', 'midias'];
+  const COLECOES = ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'funcionarios', 'comissoes', 'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao', 'avisos', 'notificacoes', 'config', 'pecas', 'midias', 'exclusoes', 'loginsPublicos', 'cpfs', 'seguranca'];
   // Fotos e assinaturas ficam na coleção "midias" (um documento por imagem, id = img_ + SHA-256 do conteúdo);
   // os registros guardam só a referência "midia:img_...".
   const PREFIXO_MIDIA = 'midia:';

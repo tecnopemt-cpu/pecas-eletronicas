@@ -56,7 +56,8 @@ service cloud.firestore {
 
     // ---------- funcionários ----------
     match /funcionarios/{id} {
-      allow read: if ativo() || backup() || (contaValida() && fid() == id);
+      // a própria ficha: inclusive pendente, bloqueado ou com a senha já redefinida (o sistema mostra o motivo)
+      allow read: if ativo() || backup() || (contaFuncionario() && fid() == id);
       // cadastro pelo próprio funcionário: só como pendente, sem permissões, ligado à própria conta
       allow create: if (editaEquipe() && (master() || request.resource.data.get('perfil', 'funcionario') == 'funcionario'))
         || (contaFuncionario() && fid() == id

@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,22 +18,55 @@ export function configFirebase(raizSite = path.join(AQUI, '..')) {
   return { projeto: env.projeto || projeto, apiKey: env.apiKey || apiKey };
 }
 
-export function clienteFirestore({ projeto, apiKey, base }) {
+// ---- login no Firebase Authentication (as regras do banco exigem uma conta)
+// A rotina de backup usa a conta própria dela (BACKUP_EMAIL / BACKUP_SENHA, segredos do GitHub).
+// A restauração usa o login de um Administrador Master (o mesmo login e senha do sistema).
+const AUTH_BASE = () => process.env.AUTH_BASE || 'https://identitytoolkit.googleapis.com/v1';
+export function senhaAcessoSistema(senha) {
+  return 'cp1-' + createHash('sha256').update('controle-pecas|' + String(senha || '')).digest('hex');
+}
+async function entrarAuth(apiKey, email, senha) {
+  const r = await fetch(`${AUTH_BASE()}/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: senha, returnSecureToken: true }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`Login no Firebase recusado (${(j.error && j.error.message) || r.status}). Confira e-mail/senha da conta.`);
+  return { token: j.idToken, expira: Date.now() + (Number(j.expiresIn) || 3600) * 1000 - 120000 };
+}
+// Login do sistema (ex.: "walter" + senha) → conta interna do Firebase.
+export async function credenciaisDoLogin({ projeto, apiKey, base }, login, senha) {
+  const raiz = base || process.env.FIRESTORE_BASE || 'https://firestore.googleapis.com/v1';
+  const chave = encodeURIComponent(String(login || '').trim().toLowerCase());
+  const r = await fetch(`${raiz}/projects/${projeto}/databases/(default)/documents/loginsPublicos/${chave}?key=${encodeURIComponent(apiKey)}`);
+  if (!r.ok) throw new Error(`Login "${login}" não encontrado no sistema (${r.status}).`);
+  const email = ((await r.json()).fields || {}).email?.stringValue;
+  if (!email) throw new Error(`Login "${login}" sem conta de acesso.`);
+  return { email, senha: senhaAcessoSistema(senha) };
+}
+
+export function clienteFirestore({ projeto, apiKey, base, credenciais }) {
   const raiz = base || process.env.FIRESTORE_BASE || 'https://firestore.googleapis.com/v1';
   const docs = `${raiz}/projects/${projeto}/databases/(default)/documents`;
   const nomeDoc = (col, id) => `projects/${projeto}/databases/(default)/documents/${col}/${id}`;
+  const cred = credenciais || (process.env.FIREBASE_EMAIL && process.env.FIREBASE_SENHA ? { email: process.env.FIREBASE_EMAIL, senha: process.env.FIREBASE_SENHA } : null);
+  let sessao = null;
+  async function cabecalhoAuth(renovar) {
+    if (!cred) return {};
+    if (renovar || !sessao || Date.now() > sessao.expira) sessao = await entrarAuth(apiKey, cred.email, cred.senha);
+    return { Authorization: `Bearer ${sessao.token}` };
+  }
   async function req(url, opcoes = {}, tentativas = 4) {
     const sep = url.includes('?') ? '&' : '?';
+    let renovou = false;
     for (let t = 1; ; t++) {
       let r;
       try {
-        r = await fetch(`${url}${sep}key=${encodeURIComponent(apiKey)}`, { ...opcoes, headers: { 'Content-Type': 'application/json', ...(opcoes.headers || {}) } });
+        r = await fetch(`${url}${sep}key=${encodeURIComponent(apiKey)}`, { ...opcoes, headers: { 'Content-Type': 'application/json', ...(await cabecalhoAuth(false)), ...(opcoes.headers || {}) } });
       } catch (e) {
         if (t >= tentativas) throw new Error(`Sem conexão com o Firestore: ${e.message}`);
         await new Promise(res => setTimeout(res, 1000 * t));
         continue;
       }
       if (r.ok) return r.status === 204 ? null : r.json();
+      if (r.status === 401 && cred && !renovou) { renovou = true; await cabecalhoAuth(true); t--; continue; }
       const corpo = await r.text();
       if ((r.status === 429 || r.status >= 500) && t < tentativas) { await new Promise(res => setTimeout(res, 1500 * t)); continue; }
       const msg = (() => { try { return JSON.parse(corpo).error.message; } catch (e) { return corpo.slice(0, 200); } })();

@@ -4,8 +4,8 @@ name: Testar regras do banco
 # o que cada tipo de pessoa consegue fazer. Não toca no banco de verdade.
 on:
   push:
-    branches: [main]
-    paths: ['seguranca/**', '.github/workflows/testar-regras.yml']
+    branches: [main, 'seguranca-*']
+    paths: ['seguranca/**', 'index.html', 'backup/**', '.github/workflows/testar-regras.yml']
   workflow_dispatch:
 
 permissions:
@@ -19,8 +19,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 20
-      - uses: actions/setup-java@v4
+          node-version: 22
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -30,3 +30,9 @@ jobs:
       - name: Testar as regras
         working-directory: seguranca
         run: npx firebase emulators:exec --only firestore --project demo-controle-pecas "node teste-regras.mjs"
+      - name: Instalar o navegador do teste de ponta a ponta
+        working-directory: seguranca
+        run: npx playwright install --with-deps chromium
+      - name: Testar o sistema inteiro com as regras (login, telas, assinatura, backup)
+        working-directory: seguranca
+        run: npx firebase emulators:exec --only firestore,auth --project demo-controle-pecas "node teste-integracao.mjs"

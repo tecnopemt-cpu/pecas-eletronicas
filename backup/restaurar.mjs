@@ -10,12 +10,15 @@
 //
 // Opções: --senha S (ou variável TPBACKUP_SENHA) · --projeto ID --api-key K (restaurar em outro projeto
 // Firebase) · --sim (não pergunta) · BACKUP pode ser .parte01 (junta as partes) ou um link https.
+// Com o banco fechado, --aplicar pede o login e a senha de um Administrador Master (--login L).
+// Projeto novo (banco vazio, regras abertas no início): --sem-login e, depois de restaurar,
+// --novo-acesso LOGIN cria a conta de acesso desse funcionário (pede a senha nova).
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { configFirebase, clienteFirestore, lerBancoCompleto } from './firestore-rest.mjs';
+import { configFirebase, clienteFirestore, lerBancoCompleto, credenciaisDoLogin, senhaAcessoSistema } from './firestore-rest.mjs';
 
 const require = createRequire(import.meta.url);
 const T = require('./nucleo.js');
@@ -51,7 +54,7 @@ function imprimirRelatorio(cab, v) {
 }
 
 async function principal() {
-  const comValor = ['chave', 'senha', 'extrair', 'projeto', 'api-key'];
+  const comValor = ['chave', 'senha', 'extrair', 'projeto', 'api-key', 'login', 'novo-acesso'];
   const alvo = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && comValor.includes(args[i - 1].slice(2))))[0];
   if (!alvo || !opt('chave')) {
     console.log('Uso: node backup/restaurar.mjs BACKUP.tpbak --chave chave-backup.json [--extrair pasta] [--aplicar]');
@@ -87,7 +90,13 @@ async function principal() {
     const cfg = configFirebase(RAIZ);
     if (opt('projeto')) cfg.projeto = opt('projeto');
     if (opt('api-key')) cfg.apiKey = opt('api-key');
-    const fsCli = clienteFirestore(cfg);
+    let credenciais = null;
+    if (!flag('sem-login')) {
+      const login = opt('login') || process.env.TPBACKUP_LOGIN || await pergunta('Login de um Administrador Master: ');
+      const senhaLogin = process.env.TPBACKUP_SENHA_LOGIN || await pergunta('Senha desse login: ');
+      credenciais = await credenciaisDoLogin(cfg, login, senhaLogin);
+    }
+    const fsCli = clienteFirestore({ ...cfg, credenciais });
     console.log(`\nLendo o banco atual do projeto ${cfg.projeto}...`);
     const atual = await lerBancoCompleto(fsCli, T.COLECOES, T.COLECOES_DO_BACKUP);
     // 1) backup do estado atual ANTES de restaurar
@@ -107,8 +116,20 @@ async function principal() {
     // 3) grava: apaga o que não existe no backup e grava cada documento do backup exatamente como era
     const escritas = [];
     const cols = new Set([...Object.keys(plano.documentos), ...Object.keys(atual.docsPorColecao)]);
+    // Contas de acesso não voltam no tempo: se o banco atual já tem os índices de login e a configuração
+    // de segurança, eles ficam como estão, e cada ficha mantém a conta de acesso atual (senão quem
+    // trocou a senha depois do backup — e quem está restaurando — perderia o acesso).
+    const manterAcesso = (atual.docsPorColecao.loginsPublicos && Object.keys(atual.docsPorColecao.loginsPublicos).length) ? ['loginsPublicos', 'seguranca'] : [];
+    const CAMPOS_ACESSO = ['authEmail', 'authUid', 'acessoCriadoEm'];
+    const fichaAtual = atual.docsPorColecao.funcionarios || {};
+    if (plano.documentos.funcionarios) Object.keys(plano.documentos.funcionarios).forEach(id => {
+      const f = { ...plano.documentos.funcionarios[id] };
+      CAMPOS_ACESSO.forEach(k => { if (fichaAtual[id] && fichaAtual[id][k]) f[k] = fichaAtual[id][k]; });
+      if (fichaAtual[id] && !fichaAtual[id].senhaHash) delete f.senhaHash;
+      plano.documentos.funcionarios[id] = f;
+    });
     cols.forEach(c => {
-      if (T.COLECOES_DO_BACKUP.includes(c)) return;
+      if (T.COLECOES_DO_BACKUP.includes(c) || manterAcesso.includes(c)) return;
       const preserv = T.DOCS_PRESERVADOS[c] || [];
       const b = plano.documentos[c] || {}, a = atual.docsPorColecao[c] || {};
       Object.keys(a).forEach(id => { if (!preserv.includes(id) && !b[id]) escritas.push(fsCli.escritaApagar(c, id)); });
@@ -120,10 +141,41 @@ async function principal() {
     await fsCli.gravarDocumento('config', 'cache', { geracao: { integerValue: String(Date.now()) }, motivo: { stringValue: 'restauração de backup' } });
     // 4) conferência final
     const depois = await lerBancoCompleto(fsCli, T.COLECOES, T.COLECOES_DO_BACKUP);
+    manterAcesso.forEach(c => { delete plano.documentos[c]; delete depois.docsPorColecao[c]; });
     const conf = T.conferirRestauracao(plano, depois.docsPorColecao);
     console.log(conf.ok ? '✔ Restauração conferida: o banco ficou idêntico ao backup.' : `⛔ Diferenças após restaurar: ${conf.diferencas.slice(0, 10).join(', ')}`);
     // (o registro da restauração fica neste terminal e no arquivo pré-restauração — nada é gravado no sistema)
     if (!conf.ok) process.exitCode = 2;
+  }
+
+  // Projeto novo: cria a conta de acesso de um funcionário (as contas do Firebase não ficam no backup).
+  if (opt('novo-acesso')) {
+    const cfg = configFirebase(RAIZ);
+    if (opt('projeto')) cfg.projeto = opt('projeto');
+    if (opt('api-key')) cfg.apiKey = opt('api-key');
+    const login = opt('novo-acesso');
+    const fsCli = clienteFirestore(cfg);
+    const funcs = await fsCli.listarDocumentos('funcionarios');
+    const [fid, ficha] = Object.entries(funcs).find(([, f]) => String(f.login?.stringValue || '').trim().toLowerCase() === login.trim().toLowerCase()) || [];
+    if (!fid) throw new Error(`Funcionário com login "${login}" não encontrado.`);
+    const senhaNova = await pergunta(`Senha nova para ${ficha.nome?.stringValue || login} (mínimo 6): `);
+    if (senhaNova.length < 6) throw new Error('Senha curta demais.');
+    const AUTH = process.env.AUTH_BASE || 'https://identitytoolkit.googleapis.com/v1';
+    let email = '', r = null;
+    for (let v = 1; v < 20; v++) {
+      email = `f-${fid}-v${v}@acesso.controle-pecas.app`;
+      r = await fetch(`${AUTH}/accounts:signUp?key=${encodeURIComponent(cfg.apiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: senhaAcessoSistema(senhaNova), returnSecureToken: true }) });
+      if (r.ok) break;
+      const j = await r.json().catch(() => ({}));
+      if (!String(j.error && j.error.message).includes('EMAIL_EXISTS')) throw new Error('Não consegui criar a conta: ' + JSON.stringify(j));
+    }
+    const conta = await r.json();
+    const chaveLogin = encodeURIComponent(login.trim().toLowerCase());
+    await fsCli.gravar([
+      { update: { name: fsCli.nomeDoc('funcionarios', fid), fields: { authEmail: { stringValue: email }, authUid: { stringValue: conta.localId } } }, updateMask: { fieldPaths: ['authEmail', 'authUid'] } },
+      fsCli.escritaSet('loginsPublicos', chaveLogin, { email: { stringValue: email } })
+    ]);
+    console.log(`✔ Acesso criado: ${login} já pode entrar no sistema com a senha nova. Os demais: Equipe → ficha → Redefinir senha.`);
   }
 }
 principal().catch(e => { console.error('⛔ ' + e.message); process.exit(1); });

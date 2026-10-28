@@ -76,6 +76,8 @@ await caso('conta antiga (sem permissões configuradas) mantém acesso', SIM, ()
 // senha redefinida: a conta anterior perde o acesso
 await caso('conta da senha antiga (v1) não lê mais', NAO, () => como.contaAntiga.doc('clientes/C1').get());
 await caso('conta atual (v2) lê', SIM, () => como.contaAtual.doc('clientes/C1').get());
+await caso('conta da senha antiga vê só a própria ficha (para o sistema avisar)', SIM, () => como.contaAntiga.doc('funcionarios/FU2').get());
+await caso('conta da senha antiga NÃO lê a ficha de outro', NAO, () => como.contaAntiga.doc('funcionarios/WAL').get());
 // pendente / bloqueado
 await caso('pendente vê a própria ficha', SIM, () => como.pendente.doc('funcionarios/PEN').get());
 await caso('pendente NÃO lê clientes', NAO, () => como.pendente.doc('clientes/C1').get());

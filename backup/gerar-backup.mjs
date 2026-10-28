@@ -73,6 +73,7 @@ async function principal() {
     const banco = await lerBancoCompleto(fsCli, T.COLECOES, T.COLECOES_DO_BACKUP, (c, i, n, qtd) => console.log(`  ${i}/${n} ${c}: ${qtd} documento(s)`));
     const codigo = lerCodigo();
     const observacoes = [];
+    if (!process.env.FIREBASE_EMAIL || !process.env.FIREBASE_SENHA) aviso('warning', 'A rotina está lendo o banco sem login. Antes de fechar as regras do banco, crie o acesso da rotina (Equipe → painel de segurança) e cadastre BACKUP_EMAIL e BACKUP_SENHA nos segredos do GitHub.');
     if (!banco.listaDoBanco) observacoes.push('A lista de coleções do Firestore não está disponível com a chave pública; foram copiadas as coleções conhecidas do sistema.');
     if (banco.extras.length) observacoes.push(`Coleções extras encontradas e incluídas: ${banco.extras.join(', ')}.`);
     const plano = T.montarPlano({ docsPorColecao: banco.docsPorColecao, tipo, origem: meta.origem, projeto: cfg.projeto, codigo, colecoesNaoEncontradas: banco.vazias, observacoes });

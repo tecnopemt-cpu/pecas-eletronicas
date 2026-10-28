@@ -44,6 +44,10 @@ jobs:
 
       - name: Gerar backup (banco + fotos + assinaturas + código) e testar a recuperação
         id: gerar
+        env:
+          # conta própria da rotina (só leitura), criada pelo Master em Equipe → "Criar acesso da rotina de backup"
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
         run: node backup/gerar-backup.mjs --modo "$MODO" --saida saida
 
       - name: Guardar no ramo "backups" (cópia externa, com retenção)
@@ -87,11 +91,6 @@ jobs:
           rclone delete "$DESTINO/mensal" --min-age 400d --include "backup-*.tpbak*"
           echo "Na pasta principal:"; rclone lsl "$DESTINO" --max-depth 1 --include "*.tpbak*" | sort -k2 | tail -3
           echo "::notice::Cópia no armazenamento externo: $ARQUIVO (+ cópia do mês $MES)."
-
-      - name: Remover registros da antiga tela de backup do banco
-        if: env.MODO != 'teste'
-        continue-on-error: true
-        run: node backup/limpar-legado.mjs
 
       - name: Manter a rotina ativa (o GitHub pausa agendamentos após 60 dias sem atividade)
         if: github.event_name == 'schedule'
