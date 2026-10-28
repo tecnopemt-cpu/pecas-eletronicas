@@ -116,6 +116,8 @@ async function principal() {
     });
     await fsCli.gravar(escritas, (f, t) => process.stdout.write(`\rGravando ${f}/${t}...`));
     console.log('');
+    // os aparelhos guardam uma cópia dos dados: troca a "geração" para todos relerem o banco restaurado
+    await fsCli.gravarDocumento('config', 'cache', { geracao: { integerValue: String(Date.now()) }, motivo: { stringValue: 'restauração de backup' } });
     // 4) conferência final
     const depois = await lerBancoCompleto(fsCli, T.COLECOES, T.COLECOES_DO_BACKUP);
     const conf = T.conferirRestauracao(plano, depois.docsPorColecao);

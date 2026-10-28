@@ -983,6 +983,239 @@ function extrairDeArgumentosUpdate(args, achadas) {
     };
   }
 })();
+// ======================= SINCRONIZAÇÃO: cópia no aparelho + só o que mudou =======================
+// O plano gratuito do Firestore permite 50.000 leituras por dia. Antes, cada abertura do sistema lia
+// todos os cartões, clientes, entradas etc. Agora:
+//  - toda gravação nas coleções abaixo leva o carimbo "atualizadoEm" (hora do servidor), automaticamente;
+//  - toda exclusão deixa um registro em "exclusoes" (para os outros aparelhos tirarem da cópia deles);
+//  - cada aparelho guarda uma cópia (IndexedDB) e, ao abrir, pede ao banco só o que mudou desde então.
+// Primeira vez num aparelho (ou a cada 7 dias, por segurança) ele lê tudo uma vez.
+const SINC_COLECOES = new Set(['funcionarios', 'avisos', 'catalogoPecas', 'clientes', 'comissaoFechamentos', 'comissaoHistorico', 'comissoes', 'lotes', 'orcamentos', 'regrasComissao', 'periodosApuracao', 'apuracaoRegistros']);
+const SINC_EXCLUSOES = 'exclusoes';
+const SINC_FV = new WeakMap(); // FieldValue.arrayUnion(...) → valores (para aplicar a mudança na tela na hora)
+let SINC_FV_ST = null,
+  SINC_FV_DEL = null,
+  SINC_DENTRO_DIRETO = 0;
+function sincRefSincronizada(ref) {
+  try {
+    return !!ref && typeof ref.path === 'string' && ref.path.split('/').length === 2 && SINC_COLECOES.has(ref.parent.id);
+  } catch (err) {
+    return false;
+  }
+}
+function sincEhSentinela(v, sent) {
+  if (!v || !sent) return false;
+  if (v === sent) return true;
+  try {
+    return typeof v.isEqual === 'function' && v.isEqual(sent);
+  } catch (err) {
+    return false;
+  }
+}
+function sincIgual(a, b) {
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch (err) {
+    return false;
+  }
+}
+// Resolve o valor como o servidor vai gravar (hora atual no lugar de serverTimestamp, união de listas...).
+function sincResolver(v, anterior) {
+  if (sincEhSentinela(v, SINC_FV_ST)) return firebase.firestore.Timestamp.now();
+  if (v && typeof v === 'object' && SINC_FV.has(v)) {
+    const base = Array.isArray(anterior) ? anterior.slice() : [];
+    SINC_FV.get(v).forEach(x => {
+      if (!base.some(b => sincIgual(b, x))) base.push(x);
+    });
+    return base;
+  }
+  if (Array.isArray(v)) return v.map(x => sincResolver(x));
+  if (ehObjetoSimples(v)) {
+    const o = {};
+    Object.keys(v).forEach(k => {
+      if (!sincEhSentinela(v[k], SINC_FV_DEL)) o[k] = sincResolver(v[k]);
+    });
+    return o;
+  }
+  if (v && typeof v === 'object' && typeof v.toMillis !== 'function') throw new Error('valor especial desconhecido');
+  return v;
+}
+function sincAplicarCampos(base, campos, profundo) {
+  const novo = {
+    ...(base || {})
+  };
+  Object.keys(campos).forEach(k => {
+    const v = campos[k];
+    if (sincEhSentinela(v, SINC_FV_DEL)) {
+      delete novo[k];
+      return;
+    }
+    if (k.includes('.')) {
+      const partes = k.split('.');
+      let o = novo;
+      for (let i = 0; i < partes.length - 1; i++) {
+        o[partes[i]] = ehObjetoSimples(o[partes[i]]) ? {
+          ...o[partes[i]]
+        } : {};
+        o = o[partes[i]];
+      }
+      o[partes[partes.length - 1]] = sincResolver(v, o[partes[partes.length - 1]]);
+      return;
+    }
+    novo[k] = profundo && ehObjetoSimples(v) && ehObjetoSimples(novo[k]) ? sincAplicarCampos(novo[k], v, true) : sincResolver(v, novo[k]);
+  });
+  return novo;
+}
+// Mostra a gravação na tela na hora (o banco confirma em seguida e substitui pelo valor oficial).
+function sincOtimista(ref, calcular) {
+  try {
+    const e = COLECOES_VIVAS.get(ref.parent.id + '|todos');
+    if (!e || !e.aplicarLocal) return;
+    e.aplicarLocal(ref.id, calcular);
+  } catch (err) {/* a confirmação do banco atualiza a tela */}
+}
+function sincCarimbar(dados) {
+  return ehObjetoSimples(dados) ? {
+    ...dados,
+    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  } : dados;
+}
+function sincDadosExclusao(ref) {
+  return {
+    colecao: ref.parent.id,
+    docId: ref.id,
+    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+(function instalarSincronizacao() {
+  const F = firebase.firestore;
+  if (!F || !F.FieldValue || !F.DocumentReference || !F.WriteBatch) return;
+  SINC_FV_ST = F.FieldValue.serverTimestamp();
+  SINC_FV_DEL = F.FieldValue.delete();
+  const auArrayUnion = F.FieldValue.arrayUnion;
+  F.FieldValue.arrayUnion = function (...valores) {
+    const fv = auArrayUnion.apply(this, valores);
+    try {
+      SINC_FV.set(fv, valores);
+    } catch (err) {}
+    return fv;
+  };
+  const otimistaSet = (ref, dados, opcoes) => {
+    if (SINC_DENTRO_DIRETO) return;
+    const mesclar = !!(opcoes && (opcoes.merge || opcoes.mergeFields));
+    sincOtimista(ref, atual => mesclar ? sincAplicarCampos(atual, dados, true) : sincAplicarCampos({}, dados, false));
+  };
+  const otimistaUpdate = (ref, args) => {
+    if (SINC_DENTRO_DIRETO || args.length !== 1 || !ehObjetoSimples(args[0])) return;
+    sincOtimista(ref, atual => atual ? sincAplicarCampos(atual, args[0], false) : undefined);
+  };
+  const WB = F.WriteBatch.prototype;
+  const wbSet = WB.set,
+    wbUpdate = WB.update,
+    wbDelete = WB.delete,
+    wbCommit = WB.commit;
+  const lembrar = (lote, ref) => {
+    try {
+      (lote.__sincRefs = lote.__sincRefs || []).push(ref);
+    } catch (err) {}
+  };
+  // lote recusado pelo banco: volta a tela de cada registro para o que está no banco
+  WB.commit = function () {
+    const refs = this.__sincRefs || [];
+    return Promise.resolve(wbCommit.apply(this, arguments)).catch(err => {
+      refs.forEach(ref => ref.get().then(s => sincOtimista(ref, () => s.exists ? s.data() : null)).catch(() => {}));
+      throw err;
+    });
+  };
+  WB.set = function (ref, dados, opcoes) {
+    if (!sincRefSincronizada(ref)) return wbSet.apply(this, arguments);
+    lembrar(this, ref);
+    const d = sincCarimbar(dados);
+    otimistaSet(ref, d, opcoes);
+    return opcoes === undefined ? wbSet.call(this, ref, d) : wbSet.call(this, ref, d, opcoes);
+  };
+  WB.update = function (ref, ...args) {
+    if (!sincRefSincronizada(ref)) return wbUpdate.apply(this, arguments);
+    lembrar(this, ref);
+    const novos = args.length === 1 ? [sincCarimbar(args[0])] : [...args, 'atualizadoEm', F.FieldValue.serverTimestamp()];
+    otimistaUpdate(ref, novos);
+    return wbUpdate.call(this, ref, ...novos);
+  };
+  WB.delete = function (ref) {
+    if (!sincRefSincronizada(ref)) return wbDelete.apply(this, arguments);
+    lembrar(this, ref);
+    if (!SINC_DENTRO_DIRETO) sincOtimista(ref, () => null);
+    wbSet.call(this, db.collection(SINC_EXCLUSOES).doc(`${ref.parent.id}__${ref.id}`), sincDadosExclusao(ref));
+    return wbDelete.call(this, ref);
+  };
+  if (F.Transaction) {
+    const TX = F.Transaction.prototype;
+    const txSet = TX.set,
+      txUpdate = TX.update,
+      txDelete = TX.delete;
+    TX.set = function (ref, dados, opcoes) {
+      if (!sincRefSincronizada(ref)) return txSet.apply(this, arguments);
+      const d = sincCarimbar(dados);
+      return opcoes === undefined ? txSet.call(this, ref, d) : txSet.call(this, ref, d, opcoes);
+    };
+    TX.update = function (ref, ...args) {
+      if (!sincRefSincronizada(ref)) return txUpdate.apply(this, arguments);
+      const novos = args.length === 1 ? [sincCarimbar(args[0])] : [...args, 'atualizadoEm', F.FieldValue.serverTimestamp()];
+      return txUpdate.call(this, ref, ...novos);
+    };
+    if (txDelete) TX.delete = function (ref) {
+      if (!sincRefSincronizada(ref)) return txDelete.apply(this, arguments);
+      txSet.call(this, db.collection(SINC_EXCLUSOES).doc(`${ref.parent.id}__${ref.id}`), sincDadosExclusao(ref));
+      return txDelete.call(this, ref);
+    };
+  }
+  const DR = F.DocumentReference.prototype;
+  const drSet = DR.set,
+    drUpdate = DR.update,
+    drDelete = DR.delete;
+  const corrigirSeFalhar = (ref, p) => Promise.resolve(p).catch(err => {
+    // a gravação não foi aceita: volta a tela para o que está no banco
+    ref.get().then(s => sincOtimista(ref, () => s.exists ? s.data() : null)).catch(() => {});
+    throw err;
+  });
+  DR.set = function (dados, opcoes) {
+    if (!sincRefSincronizada(this)) return drSet.apply(this, arguments);
+    const d = sincCarimbar(dados);
+    otimistaSet(this, d, opcoes);
+    SINC_DENTRO_DIRETO++;
+    try {
+      return corrigirSeFalhar(this, opcoes === undefined ? drSet.call(this, d) : drSet.call(this, d, opcoes));
+    } finally {
+      SINC_DENTRO_DIRETO--;
+    }
+  };
+  DR.update = function (...args) {
+    if (!sincRefSincronizada(this)) return drUpdate.apply(this, arguments);
+    const novos = args.length === 1 ? [sincCarimbar(args[0])] : [...args, 'atualizadoEm', F.FieldValue.serverTimestamp()];
+    otimistaUpdate(this, novos);
+    SINC_DENTRO_DIRETO++;
+    try {
+      return corrigirSeFalhar(this, drUpdate.call(this, ...novos));
+    } finally {
+      SINC_DENTRO_DIRETO--;
+    }
+  };
+  DR.delete = function () {
+    if (!sincRefSincronizada(this)) return drDelete.apply(this, arguments);
+    const lote = db.batch();
+    lote.delete(this); // registra a exclusão junto (mesmo lote)
+    return corrigirSeFalhar(this, lote.commit());
+  };
+  if (F.CollectionReference) {
+    const CR = F.CollectionReference.prototype;
+    const crAdd = CR.add;
+    CR.add = function (dados) {
+      if (!SINC_COLECOES.has(this.id) || String(this.path || this.id).includes('/')) return crAdd.apply(this, arguments);
+      const ref = this.doc();
+      return ref.set(dados).then(() => ref);
+    };
+  }
+})();
 // ---- leitura: busca a imagem de uma referência (memória → aparelho → banco)
 const midiaPromessas = new Map();
 const midiaProntas = new Map();
@@ -3302,54 +3535,257 @@ function BlocoAssinatura({
   }));
 }
 // Coleções ficam "vivas" e compartilhadas entre as telas: ao voltar para uma tela os dados aparecem
-// na hora (já estão na memória e continuam se atualizando em tempo real), sem baixar tudo de novo.
-// Economia de leituras (o plano gratuito do Firestore permite 50.000 por dia):
-//  - cada coleção tem UMA assinatura da coleção inteira; as versões "ordenada por X" são montadas no
-//    aparelho a partir dela (antes, cada ordenação era uma consulta separada e lia tudo de novo);
-//  - a versão "só ativos" (sem arquivados) usa a assinatura completa se ela já estiver ligada; senão
-//    consulta só os ativos;
-//  - uma coleção que nenhuma tela usa fica ligada por 2 horas (ligada, só o que muda é lido).
+// na hora (já estão na memória e continuam se atualizando em tempo real).
+// Cada coleção sincronizada vem da cópia guardada no aparelho + só o que mudou no banco (ver
+// "SINCRONIZAÇÃO" acima). As versões "ordenada por X" e "só ativos" são montadas no aparelho.
+// Uma coleção que nenhuma tela usa fica ligada por 2 horas (ligada, só o que muda é lido).
 const COLECOES_VIVAS = new Map();
 const TEMPO_MANTER_COLECAO = 2 * 60 * 60 * 1000;
-function assinarColecao(nome, apenasAtivos) {
-  const chave = nome + '|' + (apenasAtivos ? 'ativos' : 'todos');
+const SINC_VERSAO = 1;
+// Leituras do Firestore são consistentes: tudo gravado até a hora de uma leitura aparece nela, então
+// basta pedir o que tem carimbo MAIOR que o último carimbo já recebido do banco (sem folga).
+const SINC_MARGEM = 0;
+const SINC_REVALIDAR = 7 * 24 * 60 * 60 * 1000; // a cada 7 dias o aparelho confere tudo de novo
+let SINC_MAIOR_MARCA = 0;
+// ---- cópia no aparelho (IndexedDB). Se o navegador não deixar, tudo funciona lendo do banco.
+let sincBancoLocal = null;
+function sincAbrirLocal() {
+  if (!sincBancoLocal) sincBancoLocal = new Promise((ok, falha) => {
+    try {
+      const r = indexedDB.open('controle-pecas-cache', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('colecoes');
+      r.onsuccess = () => ok(r.result);
+      r.onerror = () => falha(r.error);
+      setTimeout(() => falha(new Error('cache local demorou')), 4000);
+    } catch (err) {
+      falha(err);
+    }
+  }).catch(() => null);
+  return sincBancoLocal;
+}
+async function sincLerLocal(chave) {
+  const bd = await sincAbrirLocal();
+  if (!bd) return null;
+  return new Promise(ok => {
+    try {
+      const r = bd.transaction('colecoes', 'readonly').objectStore('colecoes').get(firebaseConfig.projectId + '|' + chave);
+      r.onsuccess = () => ok(r.result ? sincDesserializar(r.result) : null);
+      r.onerror = () => ok(null);
+    } catch (err) {
+      ok(null);
+    }
+  });
+}
+async function sincGravarLocal(chave, valor) {
+  const bd = await sincAbrirLocal();
+  if (!bd) return;
+  try {
+    bd.transaction('colecoes', 'readwrite').objectStore('colecoes').put(sincSerializar(valor), firebaseConfig.projectId + '|' + chave);
+  } catch (err) {/* sem cópia local: na próxima abertura lê do banco */}
+}
+function sincSerializar(v) {
+  if (v && typeof v === 'object' && typeof v.toMillis === 'function' && 'seconds' in v) return {
+    __ts: v.toMillis()
+  };
+  if (Array.isArray(v)) return v.map(sincSerializar);
+  if (v && typeof v === 'object') {
+    const o = {};
+    Object.keys(v).forEach(k => {
+      o[k] = sincSerializar(v[k]);
+    });
+    return o;
+  }
+  return v;
+}
+function sincDesserializar(v) {
+  if (v && typeof v === 'object' && !Array.isArray(v) && typeof v.__ts === 'number' && Object.keys(v).length === 1) return firebase.firestore.Timestamp.fromMillis(v.__ts);
+  if (Array.isArray(v)) return v.map(sincDesserializar);
+  if (v && typeof v === 'object') {
+    const o = {};
+    Object.keys(v).forEach(k => {
+      o[k] = sincDesserializar(v[k]);
+    });
+    return o;
+  }
+  return v;
+}
+const sincMs = t => t && typeof t.toMillis === 'function' ? t.toMillis() : 0;
+// "Geração" das cópias: a restauração de backup troca esse número e todos os aparelhos releem tudo.
+let sincGeracaoPromessa = null;
+function sincGeracao() {
+  if (!sincGeracaoPromessa) sincGeracaoPromessa = db.collection('config').doc('cache').get().then(s => s.exists && s.data().geracao || 0).catch(() => 0);
+  return sincGeracaoPromessa;
+}
+// ---- exclusões feitas em outros aparelhos: tiram o registro da cópia deste aparelho
+let sincExclusoesLigadas = false;
+async function sincLigarExclusoes() {
+  if (sincExclusoesLigadas) return;
+  sincExclusoesLigadas = true;
+  const salvo = await sincLerLocal(SINC_EXCLUSOES);
+  const geracao = await sincGeracao();
+  let marca = salvo && salvo.geracao === geracao ? salvo.marca : (SINC_MAIOR_MARCA || Date.now()) - 24 * 60 * 60 * 1000;
+  db.collection(SINC_EXCLUSOES).where('atualizadoEm', '>', firebase.firestore.Timestamp.fromMillis(marca - SINC_MARGEM)).onSnapshot(async snap => {
+    const porColecao = {};
+    snap.docs.forEach(d => {
+      const x = d.data();
+      if (!x.colecao || !x.docId) return;
+      (porColecao[x.colecao] = porColecao[x.colecao] || []).push(x);
+      marca = Math.max(marca, sincMs(x.atualizadoEm));
+    });
+    for (const col of Object.keys(porColecao)) {
+      const e = COLECOES_VIVAS.get(col + '|todos');
+      if (e && e.removerExcluidos) {
+        e.removerExcluidos(porColecao[col]);
+        continue;
+      }
+      const local = await sincLerLocal(col);
+      if (!local) continue;
+      let mudou = false;
+      porColecao[col].forEach(x => {
+        const doc = local.docs[x.docId];
+        if (doc && sincMs(doc.atualizadoEm) <= sincMs(x.atualizadoEm)) {
+          delete local.docs[x.docId];
+          mudou = true;
+        }
+      });
+      if (mudou) sincGravarLocal(col, local);
+    }
+    sincGravarLocal(SINC_EXCLUSOES, {
+      marca,
+      geracao
+    });
+  }, err => console.error('exclusoes', err));
+}
+function assinarColecao(nome) {
+  const chave = nome + '|todos';
   let e = COLECOES_VIVAS.get(chave);
   if (e) return e;
   e = {
     chave,
+    nome,
+    mapa: {},
     dados: [],
     carregando: true,
     ouvintes: new Set(),
     timer: null,
-    unsub: null
+    unsub: null,
+    marca: 0,
+    cheioEm: 0,
+    geracao: 0
   };
   COLECOES_VIVAS.set(chave, e);
   const avisar = () => e.ouvintes.forEach(f => f(e.dados, e.carregando));
-  let ref = db.collection(nome);
-  // Filtro único de igualdade — não precisa de índice composto no Firestore.
-  if (apenasAtivos) ref = ref.where('arquivado', '==', false);
-  e.unsub = ref.onSnapshot(snap => {
-    e.dados = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
+  const publicar = () => {
+    e.dados = Object.keys(e.mapa).sort().map(id => ({
+      id,
+      ...e.mapa[id]
     }));
     e.carregando = false;
     avisar();
-  }, err => {
-    console.error(nome, err);
-    e.carregando = false;
-    avisar();
-    // erro (ex.: sem conexão): na próxima vez que uma tela pedir, tenta de novo do zero
-    if (COLECOES_VIVAS.get(chave) === e) COLECOES_VIVAS.delete(chave);
+  };
+  let timerSalvar = null;
+  const salvar = () => {
+    clearTimeout(timerSalvar);
+    timerSalvar = setTimeout(() => sincGravarLocal(nome, {
+      versao: SINC_VERSAO,
+      geracao: e.geracao,
+      marca: e.marca,
+      cheioEm: e.cheioEm,
+      docs: e.mapa
+    }), 800);
+  };
+  // a marca vem só de registros recebidos do banco (nunca de gravações locais, que usam o relógio do aparelho)
+  const atualizarMarca = docs => {
+    docs.forEach(d => {
+      e.marca = Math.max(e.marca, sincMs(d.data().atualizadoEm));
+    });
+    SINC_MAIOR_MARCA = Math.max(SINC_MAIOR_MARCA, e.marca);
+  };
+  // gravação feita neste aparelho: aparece na hora
+  e.aplicarLocal = (id, calcular) => {
+    if (e.carregando) return;
+    const novo = calcular(e.mapa[id]);
+    if (novo === undefined) return;
+    if (novo === null) delete e.mapa[id];else e.mapa[id] = novo;
+    publicar();
+  };
+  e.removerExcluidos = lista => {
+    let mudou = false;
+    lista.forEach(x => {
+      const doc = e.mapa[x.docId];
+      if (doc && sincMs(doc.atualizadoEm) <= sincMs(x.atualizadoEm)) {
+        delete e.mapa[x.docId];
+        mudou = true;
+      }
+    });
+    if (mudou) {
+      publicar();
+      salvar();
+    }
+  };
+  // Sem cópia possível (ou erro): assinatura da coleção inteira, como antes.
+  const ouvirTudo = () => {
+    e.unsub = db.collection(nome).onSnapshot(snap => {
+      e.mapa = {};
+      snap.docs.forEach(d => {
+        e.mapa[d.id] = d.data();
+      });
+      publicar();
+    }, err => {
+      console.error(nome, err);
+      e.carregando = false;
+      avisar();
+      if (COLECOES_VIVAS.get(chave) === e) COLECOES_VIVAS.delete(chave);
+    });
+  };
+  if (!SINC_COLECOES.has(nome)) {
+    ouvirTudo();
+    return e;
+  }
+  (async () => {
+    e.geracao = await sincGeracao();
+    let local = await sincLerLocal(nome);
+    if (local && (local.versao !== SINC_VERSAO || local.geracao !== e.geracao || Date.now() - local.cheioEm > SINC_REVALIDAR || !local.docs)) local = null;
+    if (e.encerrada) return;
+    if (local) {
+      e.mapa = local.docs;
+      e.marca = local.marca || 0;
+      e.cheioEm = local.cheioEm;
+      SINC_MAIOR_MARCA = Math.max(SINC_MAIOR_MARCA, e.marca);
+      publicar();
+    } else {
+      // primeira vez neste aparelho (ou revalidação semanal): lê tudo uma vez
+      const snap = await db.collection(nome).get();
+      if (e.encerrada) return;
+      e.mapa = {};
+      snap.docs.forEach(d => {
+        e.mapa[d.id] = d.data();
+      });
+      e.cheioEm = Date.now();
+      atualizarMarca(snap.docs);
+      if (!e.marca) e.marca = Date.now() - 6 * 60 * 60 * 1000;
+      publicar();
+      salvar();
+    }
+    sincLigarExclusoes();
+    // daqui para frente: só o que mudou (inclusive o que outros aparelhos gravarem, ao vivo)
+    e.unsub = db.collection(nome).where('atualizadoEm', '>', firebase.firestore.Timestamp.fromMillis(e.marca - SINC_MARGEM)).onSnapshot(snap => {
+      if (!snap.docs.length) return;
+      snap.docs.forEach(d => {
+        e.mapa[d.id] = d.data();
+      });
+      atualizarMarca(snap.docs);
+      publicar();
+      salvar();
+    }, err => {
+      console.error(nome, err);
+      if (COLECOES_VIVAS.get(chave) === e) COLECOES_VIVAS.delete(chave);
+    });
+  })().catch(err => {
+    console.error('sincronização ' + nome, err);
+    if (!e.unsub && !e.encerrada) ouvirTudo();
   });
   return e;
-}
-// Qual assinatura atende o pedido: a completa sempre que possível (já ligada = nenhuma leitura nova).
-function fonteDaColecao(nome, apenasAtivos) {
-  if (!apenasAtivos) return assinarColecao(nome, false);
-  const completa = COLECOES_VIVAS.get(nome + '|todos');
-  if (completa && !completa.carregando) return completa;
-  return assinarColecao(nome, true);
 }
 function valorOrdenacao(v) {
   if (v?.toDate) return v.toDate().getTime();
@@ -3363,7 +3799,7 @@ function listaDerivada(e, ordenarPor, apenasAtivos) {
   const tipo = (ordenarPor || '') + '|' + (apenasAtivos ? '1' : '0');
   if (porTipo.has(tipo)) return porTipo.get(tipo);
   let lista = e.dados;
-  if (apenasAtivos && e.chave.endsWith('|todos')) lista = lista.filter(d => d.arquivado === false);
+  if (apenasAtivos) lista = lista.filter(d => d.arquivado === false);
   // A consulta ordenada do Firestore deixava de fora quem não tem o campo; mantém o mesmo resultado.
   if (ordenarPor && !apenasAtivos) lista = lista.filter(d => d[ordenarPor] !== undefined);
   if (ordenarPor) lista = lista.slice().sort((a, b) => valorOrdenacao(b[ordenarPor]) - valorOrdenacao(a[ordenarPor]));
@@ -3372,11 +3808,11 @@ function listaDerivada(e, ordenarPor, apenasAtivos) {
 }
 function useColecao(nome, ordenarPor, apenasAtivos) {
   const [estado, setEstado] = useState(() => {
-    const e = COLECOES_VIVAS.get(nome + '|todos') || (apenasAtivos ? COLECOES_VIVAS.get(nome + '|ativos') : null);
+    const e = COLECOES_VIVAS.get(nome + '|todos');
     return e && !e.carregando ? [listaDerivada(e, ordenarPor, apenasAtivos), false] : [[], true];
   });
   useEffect(() => {
-    const e = fonteDaColecao(nome, apenasAtivos);
+    const e = assinarColecao(nome);
     clearTimeout(e.timer);
     const ouvir = (dados, carregando) => {
       const lista = carregando ? dados : listaDerivada(e, ordenarPor, apenasAtivos);
@@ -3390,6 +3826,7 @@ function useColecao(nome, ordenarPor, apenasAtivos) {
         clearTimeout(e.timer);
         e.timer = setTimeout(() => {
           if (!e.ouvintes.size && COLECOES_VIVAS.get(e.chave) === e) {
+            e.encerrada = true;
             if (e.unsub) e.unsub();
             COLECOES_VIVAS.delete(e.chave);
           }
@@ -3399,35 +3836,41 @@ function useColecao(nome, ordenarPor, apenasAtivos) {
   }, [nome, ordenarPor, apenasAtivos]);
   return estado;
 }
-// Um único documento ao vivo (1 leitura), em vez de assinar a coleção inteira só para achar um registro.
+// Um registro de uma coleção sincronizada (vem da cópia no aparelho: nenhuma leitura extra).
 function useDocumento(colecao, id) {
-  const [doc, setDoc] = useState(null);
-  useEffect(() => {
-    if (!id) {
-      setDoc(null);
-      return;
-    }
-    return db.collection(colecao).doc(id).onSnapshot(s => setDoc(s.exists ? {
-      id: s.id,
-      ...s.data()
-    } : null), err => console.error(colecao, err));
-  }, [colecao, id]);
-  return doc;
+  const [lista] = useColecao(colecao);
+  return useMemo(() => id ? lista.find(d => d.id === id) || null : null, [lista, id]);
 }
-// Registros de uma coleção ligados a um valor (ex.: orçamentos de uma entrada) — lê só esses.
+// Registros ligados a um valor (ex.: orçamentos de uma entrada), também da cópia no aparelho.
 function useColecaoOnde(colecao, campo, valor) {
-  const [lista, setLista] = useState([]);
-  useEffect(() => {
-    if (!valor) {
-      setLista([]);
-      return;
+  const [lista] = useColecao(colecao);
+  return useMemo(() => valor ? lista.filter(d => d[campo] === valor) : [], [lista, campo, valor]);
+}
+// Uma vez só: carimba "atualizadoEm" nos registros que já existiam (os novos já nascem carimbados).
+// Não muda nenhum outro campo. Depois disso cada aparelho passa a ler só o que mudou.
+async function migrarCarimboSincronizacao() {
+  try {
+    const configRef = db.collection('config').doc('migracaoCarimboSincronizacao');
+    if ((await configRef.get()).exists) return;
+    let total = 0;
+    for (const col of SINC_COLECOES) {
+      const snap = await db.collection(col).get();
+      const alvos = snap.docs.filter(d => !d.data().atualizadoEm);
+      for (let i = 0; i < alvos.length; i += 400) {
+        const lote = db.batch();
+        alvos.slice(i, i + 400).forEach(d => lote.update(d.ref, {}));
+        await lote.commit();
+      }
+      total += alvos.length;
     }
-    return db.collection(colecao).where(campo, '==', valor).onSnapshot(snap => setLista(snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }))), err => console.error(colecao, err));
-  }, [colecao, campo, valor]);
-  return lista;
+    await configRef.set({
+      feito: true,
+      registros: total,
+      data: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    console.error('carimbo da sincronização', err);
+  }
 }
 async function atualizarApp() {
   try {
@@ -4219,6 +4662,7 @@ function App() {
     // Entradas marcadas "Concluído" sem o orçamento de todas as peças voltam para "Em análise" (uma vez só).
     (async () => {
       try {
+        await migrarCarimboSincronizacao();
         const configRef = db.collection('config').doc('migracaoLoteConcluidoOrcado');
         const configSnap = await configRef.get();
         if (configSnap.exists) return;

@@ -20,7 +20,8 @@
   // são gravadas por uma restauração.
   const COLECOES_DO_BACKUP = ['backups', 'backupsCopias'];
   // Documentos que a restauração mantém como estão (configuração da chave de backup).
-  const DOCS_PRESERVADOS = { config: ['backup'] };
+  // config/cache = "geração" das cópias guardadas nos aparelhos (a restauração troca para todos relerem)
+  const DOCS_PRESERVADOS = { config: ['backup', 'cache'] };
   const subtle = () => (raiz.crypto && raiz.crypto.subtle) || null;
   const te = new TextEncoder(), td = new TextDecoder();
 
