@@ -66,7 +66,7 @@ async function verificar() {
   // 0) banco fechado para quem não fez login?
   try {
     const b = await bancoFechado();
-    console.log(`Banco sem login: ${b.fechado ? 'fechado (OK)' : 'ABERTO'} (resposta ${b.status}).`);
+    console.log(`::notice::Banco sem login: ${b.fechado ? 'fechado (OK)' : 'ABERTO'} (resposta ${b.status}).`);
     if (!b.fechado) await abrirAviso('bancoAberto', `${agoraBr()} — o banco respondeu a uma leitura SEM login (resposta ${b.status}). As regras de segurança não estão valendo.\n\nCorrija no console do Firebase → Firestore Database → Regras: cole o conteúdo de \`seguranca/firestore.rules\` e clique em Publicar.`);
     else await fecharAviso('bancoAberto', `${agoraBr()} — o banco voltou a recusar acessos sem login.`);
   } catch (e) { console.log('::warning::Não consegui conferir se o banco está fechado: ' + e.message); }
