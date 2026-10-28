@@ -5,6 +5,9 @@ import fs from 'node:fs';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
 
 const DOM = 'acesso.controle-pecas.app';
+// o Firebase deixa o e-mail em minúsculas; a ligação com a ficha é pelo uid (contas/<uid> + authUid)
+const em = (id, v) => `f-${id}-v${v}@${DOM}`.toLowerCase();
+const uid = (id, v) => `uid-${id}-${v}`;
 const env = await initializeTestEnvironment({
   projectId: 'demo-controle-pecas',
   firestore: { rules: fs.readFileSync(new URL('./firestore.rules', import.meta.url), 'utf8'), host: '127.0.0.1', port: 8080 }
@@ -14,15 +17,20 @@ const permFunc = { ...permEditar, funcionarios: 'sem_acesso' };
 await env.withSecurityRulesDisabled(async ctx => {
   const db = ctx.firestore();
   const set = (p, d) => db.doc(p).set(d);
-  await set('funcionarios/WAL', { nome: 'Walter', perfil: 'master', status: 'ativo', login: 'walter', authEmail: `f-WAL-v1@${DOM}` });
-  await set('funcionarios/RAI', { nome: 'Raiany', perfil: 'administrador', status: 'ativo', login: 'raiany', authEmail: `f-RAI-v1@${DOM}`, permissoes: permEditar });
-  await set('funcionarios/FUN', { nome: 'Fábio', perfil: 'funcionario', status: 'ativo', login: 'fabio', authEmail: `f-FUN-v1@${DOM}`, permissoes: permFunc });
-  await set('funcionarios/FU2', { nome: 'Fernanda', perfil: 'funcionario', status: 'ativo', login: 'fe', authEmail: `f-FU2-v2@${DOM}`, permissoes: permFunc });
-  await set('funcionarios/LEG', { nome: 'Legado', ativo: true, login: 'leg', authEmail: `f-LEG-v1@${DOM}` });
-  await set('funcionarios/PEN', { nome: 'Pedro', perfil: 'funcionario', status: 'pendente', login: 'pedro', authEmail: `f-PEN-v1@${DOM}`, permissoes: {} });
-  await set('funcionarios/BLO', { nome: 'Bruno', perfil: 'funcionario', status: 'bloqueado', login: 'bruno', authEmail: `f-BLO-v1@${DOM}` });
-  await set('loginsPublicos/walter', { email: `f-WAL-v1@${DOM}` });
-  await set('loginsPublicos/fe', { email: `f-FU2-v2@${DOM}` });
+  const ficha = async (id, dados, versao = 1) => {
+    await set('funcionarios/' + id, { ...dados, authEmail: em(id, versao), authUid: uid(id, versao) });
+    for (let v = 1; v <= versao; v++) await set('contas/' + uid(id, v), { funcionarioId: id, email: em(id, v) });
+  };
+  await ficha('WAL', { nome: 'Walter', perfil: 'master', status: 'ativo', login: 'walter' });
+  await ficha('RAI', { nome: 'Raiany', perfil: 'administrador', status: 'ativo', login: 'raiany', permissoes: permEditar });
+  await ficha('FUN', { nome: 'Fábio', perfil: 'funcionario', status: 'ativo', login: 'fabio', permissoes: permFunc });
+  await ficha('FU2', { nome: 'Fernanda', perfil: 'funcionario', status: 'ativo', login: 'fe', permissoes: permFunc }, 2);
+  await ficha('LEG', { nome: 'Legado', ativo: true, login: 'leg' });
+  await ficha('PEN', { nome: 'Pedro', perfil: 'funcionario', status: 'pendente', login: 'pedro', permissoes: {} });
+  await ficha('BLO', { nome: 'Bruno', perfil: 'funcionario', status: 'bloqueado', login: 'bruno' });
+  await set('contas/uid-intruso', { funcionarioId: 'WAL', email: 'intruso@gmail.com' });
+  await set('loginsPublicos/walter', { email: em('WAL', 1) });
+  await set('loginsPublicos/fe', { email: em('FU2', 2) });
   await set('seguranca/backup', { uid: 'uid-backup', email: `backup-x@${DOM}` });
   await set('clientes/C1', { razaoSocial: 'Cliente' });
   await set('lotes/L1', { numero: 1, codigoAssinaturaEntrada: '1234', status: 'Em análise' });
@@ -31,11 +39,12 @@ await env.withSecurityRulesDisabled(async ctx => {
   await set('midias/M1', { dados: 'data:image/png;base64,AAA', usos: [] });
   await set('config/cache', { geracao: 1 });
 });
-const conta = (id, versao = 1) => env.authenticatedContext('uid-' + id + versao, { email: `f-${id}-v${versao}@${DOM}`, firebase: { sign_in_provider: 'password' } }).firestore();
+const conta = (id, versao = 1) => env.authenticatedContext(uid(id, versao), { email: em(id, versao), firebase: { sign_in_provider: 'password' } }).firestore();
 const como = {
   estranho: env.unauthenticatedContext().firestore(),
   cadastrouSozinho: env.authenticatedContext('uid-x', { email: 'qualquer@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
   semFicha: conta('NAOEXISTE'),
+  intruso: env.authenticatedContext('uid-intruso', { email: 'intruso@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
   master: conta('WAL'), admin: conta('RAI'), func: conta('FUN'), legado: conta('LEG'),
   contaAntiga: conta('FU2', 1), contaAtual: conta('FU2', 2),
   pendente: conta('PEN'), bloqueado: conta('BLO'), novo: conta('NOVO'),
@@ -60,6 +69,10 @@ await caso('estranho lê o índice de um login (para entrar)', SIM, () => como.e
 await caso('estranho não lista o índice de logins', NAO, () => como.estranho.collection('loginsPublicos').get());
 await caso('conta qualquer criada por fora (gmail) não lê nada', NAO, () => como.cadastrouSozinho.doc('clientes/C1').get());
 await caso('conta interna sem ficha não lê nada', NAO, () => como.semFicha.doc('clientes/C1').get());
+await caso('conta que se "liga" à ficha do master sem ser a conta dela NÃO lê nada', NAO, () => como.intruso.doc('clientes/C1').get());
+await caso('estranho NÃO cria ligação de conta para outra pessoa', NAO, () => como.semFicha.doc('contas/uid-outra').set({ funcionarioId: 'WAL' }));
+await caso('funcionário lê a própria ligação de conta', SIM, () => como.func.doc('contas/' + uid('FUN', 1)).get());
+await caso('funcionário NÃO lê a ligação de outra conta', NAO, () => como.func.doc('contas/' + uid('WAL', 1)).get());
 // funcionário ativo
 await caso('funcionário lê clientes', SIM, () => como.func.doc('clientes/C1').get());
 await caso('funcionário lista orçamentos', SIM, () => como.func.collection('orcamentos').get());
@@ -71,7 +84,7 @@ await caso('funcionário NÃO muda as próprias permissões', NAO, () => como.fu
 await caso('funcionário NÃO muda o próprio % de comissão', NAO, () => como.func.doc('funcionarios/FUN').update({ percentualComissao: 50 }));
 await caso('funcionário NÃO edita a ficha de outro', NAO, () => como.func.doc('funcionarios/FU2').update({ telefone: '1' }));
 await caso('funcionário NÃO lê a configuração de segurança', NAO, () => como.func.doc('seguranca/backup').get());
-await caso('funcionário NÃO troca o índice de login de outro', NAO, () => como.func.doc('loginsPublicos/walter').set({ email: `f-FUN-v1@${DOM}` }));
+await caso('funcionário NÃO troca o índice de login de outro', NAO, () => como.func.doc('loginsPublicos/walter').set({ email: em('FUN', 1) }));
 await caso('conta antiga (sem permissões configuradas) mantém acesso', SIM, () => como.legado.collection('clientes').get());
 // senha redefinida: a conta anterior perde o acesso
 await caso('conta da senha antiga (v1) não lê mais', NAO, () => como.contaAntiga.doc('clientes/C1').get());
@@ -89,23 +102,26 @@ await caso('administrador edita funcionário comum', SIM, () => como.admin.doc('
 await caso('administrador NÃO edita o master', NAO, () => como.admin.doc('funcionarios/WAL').update({ nome: 'x' }));
 await caso('administrador NÃO promove ninguém a administrador', NAO, () => como.admin.doc('funcionarios/FU2').update({ perfil: 'administrador' }));
 await caso('administrador NÃO lê a configuração de segurança', NAO, () => como.admin.doc('seguranca/backup').get());
-await caso('administrador redefine o índice de login de um funcionário', SIM, () => como.admin.doc('loginsPublicos/fe').set({ email: `f-FU2-v3@${DOM}` }));
+await caso('administrador redefine o índice de login de um funcionário', SIM, () => como.admin.doc('loginsPublicos/fe').set({ email: em('FU2', 3) }));
+await caso('administrador liga a conta nova de um funcionário', SIM, () => como.admin.doc('contas/uid-FU2-3').set({ funcionarioId: 'FU2', email: em('FU2', 3) }));
 await caso('master promove a administrador', SIM, () => como.master.doc('funcionarios/FU2').update({ perfil: 'administrador' }));
 await caso('master lê/grava a configuração de segurança', SIM, () => como.master.doc('seguranca/backup').get());
 await caso('administrador cria funcionário comum', SIM, () => como.admin.doc('funcionarios/NF1').set({ nome: 'Novo', perfil: 'funcionario', status: 'ativo' }));
 await caso('administrador NÃO cria um master', NAO, () => como.admin.doc('funcionarios/NF2').set({ nome: 'Novo', perfil: 'master', status: 'ativo' }));
 // cadastro pelo próprio funcionário
-const fichaNova = { nome: 'Novo', perfil: 'funcionario', status: 'pendente', authEmail: `f-NOVO-v1@${DOM}`, permissoes: permFunc };
-await caso('cadastro: NÃO nasce ativo', NAO, () => como.novo.doc('funcionarios/NOVO').set({ ...fichaNova, status: 'ativo' }));
-await caso('cadastro: NÃO nasce com permissões', NAO, () => como.novo.doc('funcionarios/NOVO').set({ ...fichaNova, permissoes: permEditar }));
-await caso('cadastro: NÃO nasce master', NAO, () => como.novo.doc('funcionarios/NOVO').set({ ...fichaNova, perfil: 'master' }));
-await caso('cadastro: NÃO cria ficha com outro id', NAO, () => como.novo.doc('funcionarios/OUTRO').set(fichaNova));
-await caso('cadastro: cria a própria ficha pendente', SIM, () => como.novo.doc('funcionarios/NOVO').set({ ...fichaNova, permissoes: Object.fromEntries(Object.keys(permFunc).map(k => [k, 'sem_acesso'])) }));
-await caso('cadastro: cria o índice do próprio login', SIM, () => como.novo.doc('loginsPublicos/novo').set({ email: `f-NOVO-v1@${DOM}` }));
-await caso('cadastro: NÃO toma um login já existente', NAO, () => como.novo.doc('loginsPublicos/walter').set({ email: `f-NOVO-v1@${DOM}` }));
-await caso('cadastro: NÃO aponta login para outra conta', NAO, () => como.novo.doc('loginsPublicos/outro').set({ email: `f-WAL-v1@${DOM}` }));
-await caso('cadastro: confere CPF já cadastrado', SIM, () => como.novo.doc('cpfs/cpf_x').get());
-await caso('cadastro: registra o próprio CPF', SIM, () => como.novo.doc('cpfs/cpf_novo').set({ funcionarioId: 'NOVO' }));
+const semAcesso = Object.fromEntries(Object.keys(permFunc).map(k => [k, 'sem_acesso']));
+const fichaNova = { nome: 'Novo', perfil: 'funcionario', status: 'pendente', authEmail: em('NOVO', 1), authUid: uid('NOVO', 1), permissoes: semAcesso };
+const cadastro = (alvo, ficha, extras = b => b) => () => { const b = como.novo.batch(); b.set(como.novo.doc('contas/' + uid('NOVO', 1)), { funcionarioId: alvo, email: em('NOVO', 1) }); b.set(como.novo.doc('funcionarios/' + alvo), ficha); extras(b); return b.commit(); };
+await caso('cadastro: confere CPF já cadastrado (antes de ter ficha)', SIM, () => como.novo.doc('cpfs/cpf_x').get());
+await caso('cadastro: NÃO nasce ativo', NAO, cadastro('NOVO', { ...fichaNova, status: 'ativo' }));
+await caso('cadastro: NÃO nasce com permissões', NAO, cadastro('NOVO', { ...fichaNova, permissoes: permEditar }));
+await caso('cadastro: NÃO nasce master', NAO, cadastro('NOVO', { ...fichaNova, perfil: 'master' }));
+await caso('cadastro: NÃO liga a conta a outra pessoa', NAO, cadastro('NOVO', { ...fichaNova, authUid: 'uid-outro' }));
+await caso('cadastro: NÃO toma um login já existente', NAO, cadastro('NOVO', fichaNova, b => b.set(como.novo.doc('loginsPublicos/walter'), { email: em('NOVO', 1) })));
+await caso('cadastro: NÃO aponta login para outra conta', NAO, cadastro('NOVO', fichaNova, b => b.set(como.novo.doc('loginsPublicos/outro'), { email: em('WAL', 1) })));
+await caso('cadastro: cria ligação + ficha pendente + índices de login e CPF (num lote)', SIM, cadastro('NOVO', fichaNova, b => { b.set(como.novo.doc('loginsPublicos/novo'), { email: em('NOVO', 1) }); b.set(como.novo.doc('cpfs/cpf_novo'), { funcionarioId: 'NOVO' }); }));
+await caso('cadastro: depois de criado, vê só a própria ficha', SIM, () => como.novo.doc('funcionarios/NOVO').get());
+await caso('cadastro: NÃO lê dados do sistema', NAO, () => como.novo.doc('clientes/C1').get());
 // visitante do link de assinatura
 await caso('visitante abre o documento do link', SIM, () => como.visitante.doc('lotes/L1').get());
 await caso('visitante NÃO lista entradas', NAO, () => como.visitante.collection('lotes').get());

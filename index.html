@@ -774,7 +774,9 @@ const db = firebase.firestore();
 // Quem confere usuário e senha é o Google (Firebase Authentication); as regras do banco só respondem
 // para quem entrou de verdade. O funcionário continua usando o login de sempre (ex.: "walter"):
 //  - cada funcionário tem uma conta interna f-<id do funcionário>-v<versão>@acesso.controle-pecas.app
-//    (ninguém precisa ver nem ter esse e-mail; a versão muda quando um administrador redefine a senha);
+//    (ninguém precisa ver nem ter esse e-mail; a versão muda quando um administrador redefine a senha;
+//    o Firebase guarda o e-mail em minúsculas, por isso a ligação com a ficha fica em "contas/<uid>" e
+//    a ficha guarda authUid = a conta atual);
 //  - "loginsPublicos/<login>" diz qual conta interna corresponde a cada login (só isso, sem dados);
 //  - a senha enviada ao Google é derivada da senha digitada (assim funciona mesmo com senhas curtas
 //    antigas, e nunca é igual a nada que esteja guardado no banco).
@@ -798,18 +800,14 @@ function chaveCpf(cpf) {
   return 'cpf_' + sha256HexTexto('controle-pecas-cpf|' + String(cpf || '').replace(/\D/g, ''));
 }
 function emailAcesso(fid, versao) {
-  return `f-${fid}-v${versao}@${ACESSO_DOMINIO}`;
-}
-function fidDoEmail(email) {
-  const m = /^f-([A-Za-z0-9]+)-v(\d+)@/.exec(email || '');
-  return m ? m[1] : null;
+  return `f-${fid}-v${versao}@${ACESSO_DOMINIO}`.toLowerCase();
 }
 function versaoDoEmail(email) {
-  const m = /^f-[A-Za-z0-9]+-v(\d+)@/.exec(email || '');
+  const m = /^f-[A-Za-z0-9]+-v(\d+)@/i.exec(email || '');
   return m ? Number(m[1]) : 0;
 }
 function contaDeFuncionario(user) {
-  return !!user && !user.isAnonymous && !!fidDoEmail(user.email);
+  return !!user && !user.isAnonymous && /^f-[a-z0-9]+-v\d+@/i.test(user.email || '');
 }
 // Segunda instância do Firebase, só para criar contas de outras pessoas sem deslogar quem está usando.
 function authSecundario() {
@@ -848,6 +846,10 @@ async function criarAcessoFuncionario(funcionario, senha, comoProprio) {
   if (!cred) throw new Error('Não foi possível criar o acesso.');
   try {
     const lote = db.batch();
+    lote.set(db.collection('contas').doc(cred.user.uid), {
+      funcionarioId: funcionario.id,
+      email
+    });
     lote.update(db.collection('funcionarios').doc(funcionario.id), {
       authEmail: email,
       authUid: cred.user.uid,
@@ -4588,6 +4590,10 @@ function TelaCriarConta({
         permissoesVazias[m] = 'sem_acesso';
       });
       const lote = db.batch();
+      lote.set(db.collection('contas').doc(cred.user.uid), {
+        funcionarioId: ref.id,
+        email
+      });
       lote.set(db.collection('cpfs').doc(chaveCpf(cpfLimpo)), {
         funcionarioId: ref.id
       });
@@ -4861,12 +4867,34 @@ function App() {
       setAuthUser(u || null);
     });
   }, []);
-  const fidLogado = contaDeFuncionario(authUser) ? fidDoEmail(authUser.email) : null;
+  // de qual ficha é a conta logada (contas/<uid>)
+  const [fidLogado, setFidLogado] = useState(null);
+  useEffect(() => {
+    setFidLogado(null);
+    if (!contaDeFuncionario(authUser)) return;
+    let cancelado = false;
+    db.collection('contas').doc(authUser.uid).get().then(s => {
+      if (!cancelado) setFidLogado(s.exists && s.data().funcionarioId ? s.data().funcionarioId : '-');
+    }).catch(err => {
+      console.error('conta do usuário', err);
+      if (!cancelado) setFidLogado('-');
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [authUser && authUser.uid]);
   // A ficha de quem entrou (só ela é lida antes de liberar o resto)
   // fichaPropria = { fid, dados } (dados null = ficha não existe ou sem permissão)
   useEffect(() => {
     if (!fidLogado) {
       setFichaPropria(undefined);
+      return;
+    }
+    if (fidLogado === '-') {
+      setFichaPropria({
+        fid: '-',
+        dados: null
+      });
       return;
     }
     return db.collection('funcionarios').doc(fidLogado).onSnapshot(s => setFichaPropria({
@@ -4884,8 +4912,9 @@ function App() {
     });
   }, [fidLogado]);
   useEffect(() => {
-    if (authUser === undefined || fidLogado && (!fichaPropria || fichaPropria.fid !== fidLogado)) return;
-    if (!fidLogado) {
+    if (authUser === undefined) return;
+    if (contaDeFuncionario(authUser) && (!fidLogado || !fichaPropria || fichaPropria.fid !== fidLogado)) return;
+    if (!contaDeFuncionario(authUser)) {
       setUsuario(null);
       setCarregado(true);
       return;
@@ -4893,7 +4922,7 @@ function App() {
     const ficha = fichaPropria.dados;
     let motivo = ficha ? motivoSemAcesso(ficha) : 'Login não encontrado.';
     // senha redefinida por um administrador (conta antiga) ou conta que não é a atual desta ficha
-    if (!motivo && ficha.authEmail && ficha.authEmail !== authUser.email) motivo = 'Sua senha foi redefinida por um administrador. Entre com a senha nova.';
+    if (!motivo && ficha.authUid !== authUser.uid) motivo = 'Sua senha foi redefinida por um administrador. Entre com a senha nova.';
     if (motivo) {
       setErroAcesso(motivo);
       setUsuario(null);

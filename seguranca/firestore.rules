@@ -3,8 +3,8 @@
 // Testadas automaticamente no GitHub (rotina "Testar regras do banco") a cada alteração.
 //
 // Quem pode o quê:
-//  - funcionário ATIVO logado (conta interna f-<id>-v<n>@acesso.controle-pecas.app que seja a conta
-//    atual da ficha dele): lê e grava os dados do sistema;
+//  - funcionário ATIVO logado (conta do Firebase ligada à ficha por contas/<uid> e que seja a conta
+//    atual da ficha — campo authUid): lê e grava os dados do sistema;
 //  - Administrador Master: tudo; administrador: gerencia funcionários comuns;
 //  - quem está com cadastro pendente: só vê a própria ficha;
 //  - cliente com link de assinatura (visitante anônimo): abre só o documento do link e grava só a
@@ -19,14 +19,16 @@ service cloud.firestore {
     function logado() { return request.auth != null; }
     function anonimo() { return logado() && request.auth.token.firebase.sign_in_provider == 'anonymous'; }
     function emailConta() { return request.auth.token.get('email', ''); }
-    function contaFuncionario() {
-      return logado() && !anonimo() && emailConta().matches('^f-[A-Za-z0-9]+-v[0-9]+@acesso[.]controle-pecas[.]app$');
-    }
-    function fid() { return emailConta().split('@')[0].split('-')[1]; }
+    // contas/<uid> diz de qual ficha é a conta (o e-mail interno não serve: o Firebase o deixa em minúsculas)
+    function contaPath() { return /databases/$(database)/documents/contas/$(request.auth.uid); }
+    function contaFuncionario() { return logado() && !anonimo() && exists(contaPath()); }
+    function fid() { return get(contaPath()).data.funcionarioId; }
+    // durante o próprio cadastro a ligação conta → ficha é criada no mesmo lote
+    function fidNoLote() { return getAfter(contaPath()).data.funcionarioId; }
     function fichaPath() { return /databases/$(database)/documents/funcionarios/$(fid()); }
     function eu() { return get(fichaPath()).data; }
     // a conta logada é a conta ATUAL da ficha (redefinir a senha cria outra e derruba a antiga)
-    function contaValida() { return contaFuncionario() && exists(fichaPath()) && eu().get('authEmail', '') == emailConta(); }
+    function contaValida() { return contaFuncionario() && exists(fichaPath()) && eu().get('authUid', '') == request.auth.uid; }
     function ativo() {
       return contaValida() && (eu().get('status', '') == 'ativo' || (!('status' in eu()) && eu().get('ativo', true) != false));
     }
@@ -48,7 +50,7 @@ service cloud.firestore {
     match /{colecao}/{id} {
       allow read: if backup() || (ativo() && colecao in ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'comissoes',
         'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao',
-        'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes', 'midias', 'loginsPublicos', 'cpfs', 'backups', 'backupsCopias']);
+        'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes', 'midias', 'loginsPublicos', 'cpfs', 'contas', 'backups', 'backupsCopias']);
       allow write: if ativo() && colecao in ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'comissoes',
         'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao',
         'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes'];
@@ -60,10 +62,10 @@ service cloud.firestore {
       allow read: if ativo() || backup() || (contaFuncionario() && fid() == id);
       // cadastro pelo próprio funcionário: só como pendente, sem permissões, ligado à própria conta
       allow create: if (editaEquipe() && (master() || request.resource.data.get('perfil', 'funcionario') == 'funcionario'))
-        || (contaFuncionario() && fid() == id
+        || (logado() && !anonimo() && fidNoLote() == id
             && request.resource.data.get('status', '') == 'pendente'
             && request.resource.data.get('perfil', '') == 'funcionario'
-            && request.resource.data.get('authEmail', '') == emailConta()
+            && request.resource.data.get('authUid', '') == request.auth.uid
             && request.resource.data.get('permissoes', {}).values().hasOnly(['sem_acesso']));
       allow update: if master()
         // administrador / quem edita a Equipe: só contas comuns, sem promover ninguém
@@ -77,17 +79,26 @@ service cloud.firestore {
       allow delete: if master();
     }
 
+    // ---------- conta do Firebase → ficha do funcionário ----------
+    match /contas/{uid} {
+      allow get: if logado() && request.auth.uid == uid;
+      // a própria pessoa liga a conta dela (só vale se a ficha também apontar para esta conta: authUid)
+      allow create: if (logado() && !anonimo() && request.auth.uid == uid && request.resource.data.keys().hasOnly(['funcionarioId', 'email']))
+        || editaEquipe();
+      allow update, delete: if editaEquipe();
+    }
+
     // ---------- login → conta interna (lido antes de entrar; não lista nada) ----------
     match /loginsPublicos/{login} {
       allow get: if true;
-      allow create: if editaEquipe() || (contaFuncionario() && request.resource.data.email == emailConta());
+      allow create: if editaEquipe() || (logado() && !anonimo() && request.resource.data.email == emailConta());
       allow update, delete: if editaEquipe() || (ativo() && resource.data.email == emailConta());
     }
 
     // ---------- CPF já cadastrado (para o "Criar minha conta") ----------
     match /cpfs/{chave} {
-      allow get: if contaFuncionario();
-      allow create: if editaEquipe() || (contaFuncionario() && request.resource.data.funcionarioId == fid());
+      allow get: if logado() && !anonimo();
+      allow create: if editaEquipe() || (logado() && !anonimo() && request.resource.data.funcionarioId == fidNoLote());
       allow update, delete: if editaEquipe() || (ativo() && resource.data.funcionarioId == fid());
     }
 

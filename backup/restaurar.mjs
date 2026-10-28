@@ -119,7 +119,7 @@ async function principal() {
     // Contas de acesso não voltam no tempo: se o banco atual já tem os índices de login e a configuração
     // de segurança, eles ficam como estão, e cada ficha mantém a conta de acesso atual (senão quem
     // trocou a senha depois do backup — e quem está restaurando — perderia o acesso).
-    const manterAcesso = (atual.docsPorColecao.loginsPublicos && Object.keys(atual.docsPorColecao.loginsPublicos).length) ? ['loginsPublicos', 'seguranca'] : [];
+    const manterAcesso = (atual.docsPorColecao.loginsPublicos && Object.keys(atual.docsPorColecao.loginsPublicos).length) ? ['loginsPublicos', 'contas', 'seguranca'] : [];
     const CAMPOS_ACESSO = ['authEmail', 'authUid', 'acessoCriadoEm'];
     const fichaAtual = atual.docsPorColecao.funcionarios || {};
     if (plano.documentos.funcionarios) Object.keys(plano.documentos.funcionarios).forEach(id => {
@@ -163,7 +163,7 @@ async function principal() {
     const AUTH = process.env.AUTH_BASE || 'https://identitytoolkit.googleapis.com/v1';
     let email = '', r = null;
     for (let v = 1; v < 20; v++) {
-      email = `f-${fid}-v${v}@acesso.controle-pecas.app`;
+      email = `f-${fid}-v${v}@acesso.controle-pecas.app`.toLowerCase();
       r = await fetch(`${AUTH}/accounts:signUp?key=${encodeURIComponent(cfg.apiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: senhaAcessoSistema(senhaNova), returnSecureToken: true }) });
       if (r.ok) break;
       const j = await r.json().catch(() => ({}));
@@ -173,7 +173,8 @@ async function principal() {
     const chaveLogin = encodeURIComponent(login.trim().toLowerCase());
     await fsCli.gravar([
       { update: { name: fsCli.nomeDoc('funcionarios', fid), fields: { authEmail: { stringValue: email }, authUid: { stringValue: conta.localId } } }, updateMask: { fieldPaths: ['authEmail', 'authUid'] } },
-      fsCli.escritaSet('loginsPublicos', chaveLogin, { email: { stringValue: email } })
+      fsCli.escritaSet('loginsPublicos', chaveLogin, { email: { stringValue: email } }),
+      fsCli.escritaSet('contas', conta.localId, { funcionarioId: { stringValue: fid }, email: { stringValue: email } })
     ]);
     console.log(`✔ Acesso criado: ${login} já pode entrar no sistema com a senha nova. Os demais: Equipe → ficha → Redefinir senha.`);
   }

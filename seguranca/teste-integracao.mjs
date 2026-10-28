@@ -57,12 +57,15 @@ async function criarConta(email, senha) {
   const j = await r.json(); if (!r.ok) throw new Error('conta ' + JSON.stringify(j)); return j.localId;
 }
 const perm = v => Object.fromEntries(['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios'].map(m => [m, v]));
-await criarConta(`f-WAL-v1@${DOM}`, derivada('walter123'));
-await criarConta(`f-FUN-v1@${DOM}`, derivada('fabio123'));
-await gravar('funcionarios/WAL', { nome: 'Walter Teste', perfil: 'master', status: 'ativo', login: 'walter', cpf: '52998224725', authEmail: `f-WAL-v1@${DOM}`, permissoes: perm('editar'), percentualComissao: 0 });
-await gravar('funcionarios/FUN', { nome: 'Fábio Teste', perfil: 'funcionario', status: 'ativo', login: 'fabio', authEmail: `f-FUN-v1@${DOM}`, permissoes: { ...perm('editar'), funcionarios: 'sem_acesso' }, percentualComissao: 5, comissaoEscopo: 'propria' });
-await gravar('loginsPublicos/walter', { email: `f-WAL-v1@${DOM}` });
-await gravar('loginsPublicos/fabio', { email: `f-FUN-v1@${DOM}` });
+const emWAL = `f-wal-v1@${DOM}`, emFUN = `f-fun-v1@${DOM}`;
+const uidWAL = await criarConta(emWAL, derivada('walter123'));
+const uidFUN = await criarConta(emFUN, derivada('fabio123'));
+await gravar('funcionarios/WAL', { nome: 'Walter Teste', perfil: 'master', status: 'ativo', login: 'walter', cpf: '52998224725', authEmail: emWAL, authUid: uidWAL, permissoes: perm('editar'), percentualComissao: 0 });
+await gravar('funcionarios/FUN', { nome: 'Fábio Teste', perfil: 'funcionario', status: 'ativo', login: 'fabio', authEmail: emFUN, authUid: uidFUN, permissoes: { ...perm('editar'), funcionarios: 'sem_acesso' }, percentualComissao: 5, comissaoEscopo: 'propria' });
+await gravar('contas/' + uidWAL, { funcionarioId: 'WAL', email: emWAL });
+await gravar('contas/' + uidFUN, { funcionarioId: 'FUN', email: emFUN });
+await gravar('loginsPublicos/walter', { email: emWAL });
+await gravar('loginsPublicos/fabio', { email: emFUN });
 await gravar('clientes/C1', { razaoSocial: 'Cliente Integração Ltda', cnpj: '11222333000181' });
 await gravar('catalogoPecas/P1', { descricao: 'Placa controladora', categoria: 'Placa', valorConserto: 300, criadoEm: new Date('2026-10-01T10:00:00Z') });
 await gravar('lotes/L1', { numero: 41, clienteId: 'C1', status: 'Em análise', arquivado: false, criadoEm: new Date('2026-10-20T10:00:00Z'), codigoAssinaturaEntrada: '1234', itens: [{ pecaDescricao: 'Placa controladora', quantidade: 2 }] });
@@ -72,7 +75,7 @@ for (const c of ['migracaoArquivamento_v2', 'migracaoPermissoes', 'migracaoStatu
 
 // diagnóstico: a conta do master consegue ler a própria ficha direto pela API?
 {
-  const r1 = await fetch(`${AUTH}/accounts:signInWithPassword?key=fake`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: `f-WAL-v1@${DOM}`, password: derivada('walter123'), returnSecureToken: true }) });
+  const r1 = await fetch(`${AUTH}/accounts:signInWithPassword?key=fake`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: emWAL, password: derivada('walter123'), returnSecureToken: true }) });
   const t = (await r1.json()).idToken;
   const r2 = await fetch(`${FS}/funcionarios/WAL`, { headers: { Authorization: 'Bearer ' + t } });
   const r3 = await fetch(`${FS}/clientes/C1`, { headers: { Authorization: 'Bearer ' + t } });
@@ -153,7 +156,7 @@ try {
   await w.page.locator('.modal button', { hasText: 'Gerar nova senha' }).click(); await esperar(2500);
   const senhaTemp = (await w.page.locator('.modal').last().innerText()).match(/\b[A-Z2-9]{8}\b/g)?.pop();
   const fun = await ler('funcionarios/FUN');
-  passo('administrador redefine a senha (conta v2)', fun.authEmail === `f-FUN-v2@${DOM}` && !!senhaTemp, fun.authEmail);
+  passo('administrador redefine a senha (conta v2)', fun.authEmail === `f-fun-v2@${DOM}` && fun.authUid !== uidFUN && !!senhaTemp, fun.authEmail);
   await fabio.page.reload(); await fabio.page.waitForSelector('#acesso-login, .sidebar', { timeout: 30000 }); await fabio.page.waitForTimeout(2000);
   passo('sessão com a senha antiga é encerrada com aviso', await fabio.page.locator('.sidebar').count() === 0 && /redefinida/.test(await fabio.page.locator('.acesso-erro').innerText().catch(() => '')), await fabio.page.locator('body').innerText().then(t => t.slice(0, 200)));
   await entrar(fabio.page, 'fabio', senhaTemp);
