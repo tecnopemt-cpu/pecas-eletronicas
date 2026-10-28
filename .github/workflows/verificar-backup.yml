@@ -2,7 +2,8 @@ name: Verificar backup e armazenamento
 
 # Todo dia às 12:00 (Brasília) confere, fora do site:
 #  - se existe backup das últimas 36 horas (pega também o caso de a rotina de backup nem ter rodado);
-#  - se o banco (estimado pelo backup) passou de 50% do 1 GiB gratuito ou o repositório passou de 1 GB.
+#  - se o banco (estimado pelo backup) passou de 50% do 1 GiB gratuito ou o repositório passou de 1 GB;
+#  - se o banco continua fechado para quem não fez login (regras de segurança valendo).
 # Problema → abre um aviso (issue) com menção à conta tecnopemt-cpu, que recebe e-mail do GitHub.
 # Resolvido → fecha o aviso sozinho. Só lê a lista pública de backups: não acessa o banco de dados.
 on:

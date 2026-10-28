@@ -19,7 +19,8 @@ const COMPRESSAO = 0.72; // backup cifrado ≈ 72% do tamanho dos dados (medido 
 const TIPOS = {
   falha: { rotulo: 'aviso-backup-falhou', cor: 'B60205', titulo: 'Backup do Controle de Peças falhou' },
   atrasado: { rotulo: 'aviso-backup-atrasado', cor: 'D93F0B', titulo: 'Backup do Controle de Peças está atrasado' },
-  armazenamento: { rotulo: 'aviso-armazenamento', cor: 'FBCA04', titulo: 'Armazenamento do Controle de Peças passou do nível de atenção' }
+  armazenamento: { rotulo: 'aviso-armazenamento', cor: 'FBCA04', titulo: 'Armazenamento do Controle de Peças passou do nível de atenção' },
+  bancoAberto: { rotulo: 'aviso-banco-aberto', cor: 'B60205', titulo: 'URGENTE: o banco do Controle de Peças está aberto a qualquer pessoa' }
 };
 
 async function gh(caminho, opcoes = {}) {
@@ -54,7 +55,21 @@ async function fecharAviso(tipo, texto) {
   }
 }
 
+// O banco tem de recusar quem não fez login (regras de seguranca/firestore.rules publicadas).
+async function bancoFechado() {
+  const html = await fetch(`https://raw.githubusercontent.com/${REPO}/main/index.html`).then(r => r.text());
+  const projeto = /projectId:\s*"([^"]+)"/.exec(html)?.[1], chave = /apiKey:\s*"([^"]+)"/.exec(html)?.[1];
+  const r = await fetch(`https://firestore.googleapis.com/v1/projects/${projeto}/databases/(default)/documents/clientes?pageSize=1&key=${chave}`);
+  return { fechado: r.status === 403 || r.status === 401, status: r.status };
+}
 async function verificar() {
+  // 0) banco fechado para quem não fez login?
+  try {
+    const b = await bancoFechado();
+    console.log(`Banco sem login: ${b.fechado ? 'fechado (OK)' : 'ABERTO'} (resposta ${b.status}).`);
+    if (!b.fechado) await abrirAviso('bancoAberto', `${agoraBr()} — o banco respondeu a uma leitura SEM login (resposta ${b.status}). As regras de segurança não estão valendo.\n\nCorrija no console do Firebase → Firestore Database → Regras: cole o conteúdo de \`seguranca/firestore.rules\` e clique em Publicar.`);
+    else await fecharAviso('bancoAberto', `${agoraBr()} — o banco voltou a recusar acessos sem login.`);
+  } catch (e) { console.log('::warning::Não consegui conferir se o banco está fechado: ' + e.message); }
   // 1) último backup (lista pública do ramo "backups", sem dados)
   const arq = await gh('/contents/indice.json?ref=backups');
   const indice = JSON.parse(Buffer.from(arq.content, 'base64').toString('utf8'));
