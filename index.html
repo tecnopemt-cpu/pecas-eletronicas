@@ -564,7 +564,7 @@
   .abertura-barra span{display:block;width:40%;height:100%;border-radius:2px;background:#E97307;animation:abertura-anda 1.1s ease-in-out infinite;}
   @keyframes abertura-anda{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
   img[data-midia="carregando"]{background:#ECE8E6;}
-  /* Equipe: segurança do acesso (só master) */
+  /* Equipe: segurança do acesso (master e administradores) */
   .seguranca-acesso{margin-bottom:12px;border:1px solid var(--borda,#E3DEDC);border-radius:10px;background:var(--card,#fff);}
   .seguranca-acesso-resumo{width:100%;display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 14px;background:none;border:0;font:inherit;font-size:13px;cursor:pointer;color:inherit;text-align:left;}
   .seguranca-acesso-corpo{padding:0 14px 14px;font-size:13px;}
@@ -16862,7 +16862,7 @@ function AbaDashboard({
 }
 
 // ======================= FUNCIONÁRIOS =======================
-// ======================= SEGURANÇA DO ACESSO (só o Administrador Master vê) =======================
+// ======================= SEGURANÇA DO ACESSO (Master e administradores) =======================
 // Mostra quem já entrou com o acesso novo e configura a conta usada pela rotina de backup no GitHub.
 function senhaAleatoria(tamanho) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
@@ -16978,7 +16978,7 @@ function AbaFuncionarios({
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "painel-tela"
-  }, ehMaster(usuario) && /*#__PURE__*/React.createElement(PainelSegurancaAcesso, {
+  }, ehAdministrador(usuario) && /*#__PURE__*/React.createElement(PainelSegurancaAcesso, {
     usuario: usuario,
     funcionarios: funcionarios
   }), /*#__PURE__*/React.createElement("div", {

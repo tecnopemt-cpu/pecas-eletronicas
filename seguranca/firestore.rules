@@ -9,7 +9,7 @@
 //  - quem está com cadastro pendente: só vê a própria ficha;
 //  - cliente com link de assinatura (visitante anônimo): abre só o documento do link e grava só a
 //    própria assinatura (uma vez);
-//  - conta da rotina de backup (registrada em seguranca/backup): só leitura;
+//  - conta da rotina de backup (registrada em seguranca/backup pelo Master ou um administrador): só leitura;
 //  - qualquer outra pessoa: nada.
 rules_version = '2';
 
@@ -132,9 +132,9 @@ service cloud.firestore {
       allow get: if anonimo();
     }
 
-    // ---------- configuração de segurança (só o Master) ----------
+    // ---------- configuração de segurança (Master e administradores: conta da rotina de backup) ----------
     match /seguranca/{id} {
-      allow read, write: if master();
+      allow read, write: if administrador();
     }
   }
 }
