@@ -72,6 +72,12 @@ async function principal() {
     // 2) banco completo
     const banco = await lerBancoCompleto(fsCli, T.COLECOES, T.COLECOES_DO_BACKUP, (c, i, n, qtd) => console.log(`  ${i}/${n} ${c}: ${qtd} documento(s)`));
     const codigo = lerCodigo();
+    const uidConta = await fsCli.uidDaConta();
+    if (uidConta) {
+      const registrado = banco.docsPorColecao.seguranca && banco.docsPorColecao.seguranca.backup && banco.docsPorColecao.seguranca.backup.uid && banco.docsPorColecao.seguranca.backup.uid.stringValue;
+      if (registrado === uidConta) aviso('notice', 'Conta da rotina de backup: login OK e é a conta registrada no sistema (seguranca/backup).');
+      else aviso('warning', 'A conta de BACKUP_EMAIL entrou, mas NÃO é a registrada no sistema (seguranca/backup). Gere o acesso de novo no painel de segurança e atualize os dois segredos no GitHub — senão o backup para quando o banco fechar.');
+    }
     const observacoes = [];
     if (!process.env.FIREBASE_EMAIL || !process.env.FIREBASE_SENHA) aviso('warning', 'A rotina está lendo o banco sem login. Antes de fechar as regras do banco, crie o acesso da rotina (Equipe → painel de segurança) e cadastre BACKUP_EMAIL e BACKUP_SENHA nos segredos do GitHub.');
     if (!banco.listaDoBanco) observacoes.push('A lista de coleções do Firestore não está disponível com a chave pública; foram copiadas as coleções conhecidas do sistema.');

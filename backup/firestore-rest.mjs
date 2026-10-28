@@ -29,7 +29,7 @@ async function entrarAuth(apiKey, email, senha) {
   const r = await fetch(`${AUTH_BASE()}/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: senha, returnSecureToken: true }) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`Login no Firebase recusado (${(j.error && j.error.message) || r.status}). Confira e-mail/senha da conta.`);
-  return { token: j.idToken, expira: Date.now() + (Number(j.expiresIn) || 3600) * 1000 - 120000 };
+  return { token: j.idToken, uid: j.localId, expira: Date.now() + (Number(j.expiresIn) || 3600) * 1000 - 120000 };
 }
 // Login do sistema (ex.: "walter" + senha) → conta interna do Firebase.
 export async function credenciaisDoLogin({ projeto, apiKey, base }, login, senha) {
@@ -78,6 +78,8 @@ export function clienteFirestore({ projeto, apiKey, base, credenciais }) {
   return {
     projeto,
     nomeDoc,
+    // uid da conta usada (null sem login) — a rotina confere se é a registrada em seguranca/backup
+    async uidDaConta() { if (!cred) return null; await cabecalhoAuth(false); return sessao.uid; },
     // Lista as coleções do banco. Pode exigir login administrativo; se não der, devolve null.
     async listarColecoes() {
       try {
