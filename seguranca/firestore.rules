@@ -50,7 +50,7 @@ service cloud.firestore {
     match /{colecao}/{id} {
       allow read: if backup() || (ativo() && colecao in ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'comissoes',
         'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao',
-        'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes', 'midias', 'loginsPublicos', 'cpfs', 'contas', 'backups', 'backupsCopias']);
+        'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes', 'midias', 'loginsPublicos', 'cpfs', 'backups', 'backupsCopias']);
       allow write: if ativo() && colecao in ['clientes', 'catalogoPecas', 'lotes', 'orcamentos', 'comissoes',
         'comissaoFechamentos', 'comissaoHistorico', 'apuracaoRegistros', 'regrasComissao', 'periodosApuracao',
         'avisos', 'notificacoes', 'config', 'pecas', 'exclusoes'];
