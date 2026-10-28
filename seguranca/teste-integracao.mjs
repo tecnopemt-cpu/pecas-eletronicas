@@ -18,7 +18,7 @@ const AUTH = 'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1';
 const DOM = 'acesso.controle-pecas.app';
 const derivada = s => 'cp1-' + crypto.createHash('sha256').update('controle-pecas|' + s).digest('hex');
 let ok = 0, falhas = 0;
-const passo = (nome, cond, det) => { if (cond) { ok++; console.log('OK     ' + nome); } else { falhas++; console.log('FALHOU ' + nome + (det !== undefined ? ' — ' + det : '')); console.log(`::error::Integração: ${nome}`); } };
+const passo = (nome, cond, det) => { if (cond) { ok++; console.log('OK     ' + nome); } else { falhas++; console.log('FALHOU ' + nome + (det !== undefined ? ' — ' + det : '')); console.log(`::error::Integração: ${nome}${det !== undefined ? ' — ' + String(det).replace(/\n/g, ' ').slice(0, 400) : ''}`); } };
 
 // ---- banco e contas (como dono do emulador, sem regras)
 function tip(v) {
@@ -157,8 +157,10 @@ try {
   const senhaTemp = (await w.page.locator('.modal').last().innerText()).match(/\b[A-Z2-9]{8}\b/g)?.pop();
   const fun = await ler('funcionarios/FUN');
   passo('administrador redefine a senha (conta v2)', fun.authEmail === `f-fun-v2@${DOM}` && fun.authUid !== uidFUN && !!senhaTemp, fun.authEmail);
-  await fabio.page.reload(); await fabio.page.waitForSelector('#acesso-login, .sidebar', { timeout: 30000 }); await fabio.page.waitForTimeout(2000);
-  passo('sessão com a senha antiga é encerrada com aviso', await fabio.page.locator('.sidebar').count() === 0 && /redefinida/.test(await fabio.page.locator('.acesso-erro').innerText().catch(() => '')), await fabio.page.locator('body').innerText().then(t => t.slice(0, 200)));
+  // a tela do Fábio, aberta com a senha antiga, sai sozinha e mostra o aviso
+  await fabio.page.waitForSelector('#acesso-login', { timeout: 30000 }).catch(() => {}); await fabio.page.waitForTimeout(1000);
+  passo('sessão com a senha antiga é encerrada na hora, com aviso', await fabio.page.locator('.sidebar').count() === 0 && /redefinida/.test(await fabio.page.locator('.acesso-erro').innerText().catch(() => '')), await fabio.page.locator('body').innerText().then(t => t.slice(0, 200)));
+  fabio.erros.length = 0; // erros de permissão da sessão antiga (esperados) ficam de fora
   await entrar(fabio.page, 'fabio', senhaTemp);
   passo('funcionário entra com a senha temporária e usa o sistema', await fabio.page.locator('.sidebar').count() === 1);
   for (const t of ['Painel', 'Entrada de Peças', 'Orçamento', 'Clientes']) { await fabio.page.locator('.sidebar-item', { hasText: t }).first().click().catch(() => {}); await fabio.page.waitForTimeout(1000); }
