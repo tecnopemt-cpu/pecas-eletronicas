@@ -135,7 +135,15 @@ async function principal() {
       Object.keys(a).forEach(id => { if (!preserv.includes(id) && !b[id]) escritas.push(fsCli.escritaApagar(c, id)); });
       Object.keys(b).forEach(id => { if (!preserv.includes(id)) escritas.push(fsCli.escritaSet(c, id, b[id])); });
     });
-    await fsCli.gravar(escritas, (f, t) => process.stdout.write(`\rGravando ${f}/${t}...`));
+    // As avaliações de desempenho não podem ser apagadas nem reescritas pelo site; durante a restauração
+    // o Master ganha essa liberação por 2 horas (seguranca/restauracao), retirada logo ao terminar.
+    const comLogin = !!credenciais;
+    if (comLogin) await fsCli.gravarDocumento('seguranca', 'restauracao', { ate: { timestampValue: new Date(Date.now() + 2 * 36e5).toISOString() }, motivo: { stringValue: 'restauração de backup' } });
+    try {
+      await fsCli.gravar(escritas, (f, t) => process.stdout.write(`\rGravando ${f}/${t}...`));
+    } finally {
+      if (comLogin) await fsCli.gravar([fsCli.escritaApagar('seguranca', 'restauracao')]).catch(e => console.log(`\nAtenção: apague seguranca/restauracao no console (${e.message}).`));
+    }
     console.log('');
     // os aparelhos guardam uma cópia dos dados: troca a "geração" para todos relerem o banco restaurado
     await fsCli.gravarDocumento('config', 'cache', { geracao: { integerValue: String(Date.now()) }, motivo: { stringValue: 'restauração de backup' } });

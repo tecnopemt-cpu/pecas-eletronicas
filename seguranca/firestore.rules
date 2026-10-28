@@ -10,6 +10,7 @@
 //  - cliente com link de assinatura (visitante anônimo): abre só o documento do link e grava só a
 //    própria assinatura (uma vez);
 //  - conta da rotina de backup (registrada em seguranca/backup pelo Master ou um administrador): só leitura;
+//  - avaliação de desempenho: gestão registra/avalia; funcionário vê só o que foi aprovado para ele;
 //  - qualquer outra pessoa: nada.
 rules_version = '2';
 
@@ -130,6 +131,98 @@ service cloud.firestore {
     }
     match /clientes/{id} {
       allow get: if anonimo();
+    }
+
+    // ---------- avaliação de desempenho ----------
+    // Gestão (Master e administradores) registra, avalia e aprova; administrador não avalia o Master.
+    // Funcionário: só as próprias avaliações APROVADAS, as metas liberadas para ele e — se a configuração
+    // permitir — os próprios registros ativos. Nada é apagado: correções e remoções ficam no histórico.
+    function gestor() { return administrador(); }
+    // ninguém avalia a si mesmo; administrador não avalia o Master
+    function alvoPermitido(fidAlvo) {
+      return fidAlvo != fid()
+        && (master() || get(/databases/$(database)/documents/funcionarios/$(fidAlvo)).data.get('perfil', 'funcionario') != 'master');
+    }
+    function registrosVisiveis() {
+      return exists(/databases/$(database)/documents/avaliacaoConfig/geral)
+        && get(/databases/$(database)/documents/avaliacaoConfig/geral).data.get('registrosVisiveisFuncionario', false) == true;
+    }
+    // restauração de backup (backup/restaurar.mjs): o Master grava as coleções como estavam, por tempo limitado
+    function restauracao() {
+      return master() && exists(/databases/$(database)/documents/seguranca/restauracao)
+        && get(/databases/$(database)/documents/seguranca/restauracao).data.ate > request.time;
+    }
+    function listaCresce(campo, maximo) {
+      return request.resource.data.get(campo, []).hasAll(resource.data.get(campo, []))
+        && request.resource.data.get(campo, []).size() <= resource.data.get(campo, []).size() + maximo;
+    }
+    match /avaliacaoRegistros/{id} {
+      allow write: if restauracao();
+      allow read: if gestor() || backup()
+        || (ativo() && resource.data.funcionarioId == fid() && resource.data.status == 'ativo' && registrosVisiveis());
+      allow create: if gestor() && alvoPermitido(request.resource.data.funcionarioId)
+        && request.resource.data.registradoPorId == fid()
+        && request.resource.data.status == 'ativo'
+        && request.resource.data.get('historicoAlteracoes', []).size() == 0
+        && request.resource.data.descricao is string && request.resource.data.descricao.size() > 0;
+      // correção ou remoção: sempre acrescenta exatamente uma entrada no histórico; quem registrou e quando não mudam
+      allow update: if gestor() && alvoPermitido(resource.data.funcionarioId)
+        && resource.data.status == 'ativo'
+        && !mudou().hasAny(['funcionarioId', 'registradoPorId', 'registradoPorNome', 'registradoEm', 'origem'])
+        && listaCresce('historicoAlteracoes', 1)
+        && request.resource.data.get('historicoAlteracoes', []).size() == resource.data.get('historicoAlteracoes', []).size() + 1
+        && (request.resource.data.status == 'ativo'
+            || (request.resource.data.status == 'removido' && request.resource.data.get('justificativaRemocao', '').size() > 0));
+      allow delete: if false;
+    }
+    match /avaliacaoConfig/{id} {
+      allow read: if ativo() || backup();
+      allow write: if gestor();
+    }
+    match /avaliacoesTrimestrais/{id} {
+      allow write: if restauracao();
+      allow read: if gestor() || backup();
+      // uma por funcionário e trimestre (id = funcionario_AAAA-Tn), nasce como rascunho
+      allow create: if gestor() && alvoPermitido(request.resource.data.funcionarioId)
+        && id == request.resource.data.funcionarioId + '_' + request.resource.data.trimestre
+        && request.resource.data.status == 'rascunho';
+      allow update: if gestor() && alvoPermitido(resource.data.funcionarioId)
+        && !mudou().hasAny(['funcionarioId', 'trimestre', 'geradoEm'])
+        && listaCresce('versoes', 1) && listaCresce('historico', 1)
+        && (
+          // em edição: livre até aprovar
+          (resource.data.status in ['rascunho', 'em_revisao'] && request.resource.data.status in ['rascunho', 'em_revisao', 'aprovada'])
+          // aprovada: só registrar o feedback…
+          || (resource.data.status in ['aprovada', 'feedback'] && request.resource.data.status == 'feedback'
+              && mudou().hasOnly(['status', 'feedbackEm', 'feedbackPorId', 'feedbackPorNome', 'compromissosFeedback', 'historico']))
+          // …ou reabrir para correção guardando a versão aprovada, com justificativa
+          || (resource.data.status in ['aprovada', 'feedback'] && request.resource.data.status == 'em_revisao'
+              && mudou().hasOnly(['status', 'versoes', 'historico'])
+              && request.resource.data.get('versoes', []).size() == resource.data.get('versoes', []).size() + 1
+              && request.resource.data.versoes[request.resource.data.versoes.size() - 1].get('justificativa', '').size() > 0)
+        );
+      allow delete: if false;
+    }
+    // versão aprovada que o funcionário vê (só existe se a avaliação estiver aprovada)
+    match /avaliacoesPublicadas/{id} {
+      allow write: if restauracao();
+      allow read: if gestor() || backup() || (ativo() && resource.data.funcionarioId == fid());
+      allow write: if gestor() && alvoPermitido(request.resource.data.funcionarioId)
+        && getAfter(/databases/$(database)/documents/avaliacoesTrimestrais/$(id)).data.status in ['aprovada', 'feedback']
+        && getAfter(/databases/$(database)/documents/avaliacoesTrimestrais/$(id)).data.funcionarioId == request.resource.data.funcionarioId;
+      allow delete: if false;
+    }
+    match /avaliacaoMetas/{id} {
+      allow write: if restauracao();
+      allow read: if gestor() || backup()
+        || (ativo() && resource.data.funcionarioId == fid() && resource.data.visivelFuncionario == true);
+      allow create: if gestor() && alvoPermitido(request.resource.data.funcionarioId);
+      allow update: if gestor() && alvoPermitido(resource.data.funcionarioId)
+        && !mudou().hasAny(['funcionarioId', 'criadoPorId', 'criadoEm'])
+        && listaCresce('historico', 1) && listaCresce('comentarios', 1)
+        && (request.resource.data.status != 'Cancelada' || resource.data.status == 'Cancelada'
+            || request.resource.data.get('justificativaCancelamento', '').size() > 0);
+      allow delete: if false;
     }
 
     // ---------- configuração de segurança (Master e administradores: conta da rotina de backup) ----------

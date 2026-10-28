@@ -1,7 +1,8 @@
 // Teste de ponta a ponta do sistema COM as regras de segurança (roda no GitHub Actions).
 // Sobe os emuladores oficiais do Firestore e do Authentication, aplica seguranca/firestore.rules, abre o
 // site de verdade (index.html, com ?emulador) num navegador e usa o sistema como as pessoas usam:
-// login, telas, kanban, redefinir senha, conta do backup, assinatura por link e cadastro pendente.
+// login, telas, kanban, redefinir senha, conta do backup, assinatura por link, cadastro pendente e
+// avaliação de desempenho (gestão registra/aprova; funcionário vê só o que é dele).
 // Também roda a rotina de backup contra o banco fechado (com e sem a conta própria dela).
 import fs from 'node:fs';
 import http from 'node:http';
@@ -188,6 +189,46 @@ try {
   await novo.page.locator('button', { hasText: 'Voltar para o início' }).click().catch(() => {});
   await entrar(novo.page, 'diego', 'diego123');
   passo('cadastro pendente não entra', await novo.page.locator('.sidebar').count() === 0 && /aguardando/.test(await novo.page.locator('.acesso-erro').innerText().catch(() => '')));
+  // 7) Avaliação de desempenho com as regras valendo: registro, correção, avaliação, aprovação, meta, visão do funcionário
+  w.erros.length = 0;
+  await w.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await w.page.waitForTimeout(1200);
+  await w.page.locator('.av-botoes-rapidos button', { hasText: 'Novo registro' }).click();
+  const mr = w.page.locator('.av-modal-registro');
+  await mr.locator('select').nth(0).selectOption('FUN'); await mr.locator('select').nth(1).selectOption('Organização'); await mr.locator('select').nth(2).selectOption('positivo');
+  await mr.locator('textarea').first().fill('Organizou a bancada antes do serviço.');
+  await mr.locator('button', { hasText: 'Revisar e salvar' }).click(); await mr.locator('button', { hasText: 'Salvar registro' }).click();
+  await w.page.waitForSelector('.av-sucesso-titulo', { timeout: 15000 }).catch(() => {});
+  let regsAv = await listar('avaliacaoRegistros');
+  passo('avaliação: registro diário gravado com o banco fechado', regsAv.length === 1 && regsAv[0].funcionarioId === 'FUN' && regsAv[0].registradoPorId === 'WAL', JSON.stringify(regsAv).slice(0, 200));
+  await mr.locator('button', { hasText: 'Fechar' }).click();
+  await w.page.locator('.abas-internas button', { hasText: 'Histórico' }).click(); await w.page.waitForTimeout(800);
+  await w.page.locator('.av-tabela tr', { hasText: 'Organizou a bancada' }).click(); await w.page.waitForTimeout(500);
+  const mc = w.page.locator('.modal').last();
+  await mc.locator('button', { hasText: 'Corrigir' }).click(); await mc.locator('textarea').first().fill('Organizou a bancada e as peças antes do serviço.');
+  await mc.locator('button', { hasText: 'Salvar correção' }).click(); await esperar(1500);
+  regsAv = await listar('avaliacaoRegistros');
+  passo('avaliação: correção gravada com histórico', /e as peças/.test(regsAv[0].descricao) && regsAv[0].historicoAlteracoes.length === 1, JSON.stringify(regsAv[0]).slice(0, 300));
+  await mc.locator('button', { hasText: 'Fechar' }).first().click();
+  await w.page.locator('.abas-internas button', { hasText: 'Avaliações trimestrais' }).click(); await w.page.waitForTimeout(800);
+  await w.page.locator('.av-tabela tr', { hasText: 'Fábio' }).locator('button').click(); await w.page.waitForSelector('.av-modal-avaliacao', { timeout: 15000 });
+  await w.page.locator('.av-modal-avaliacao button', { hasText: 'Salvar revisão' }).click(); await esperar(1200);
+  await w.page.locator('.av-modal-avaliacao button', { hasText: 'Aprovar…' }).click();
+  await w.page.locator('.av-modal-avaliacao .av-confirmar button', { hasText: /^Aprovar$/ }).click(); await esperar(2000);
+  const avs = await listar('avaliacoesTrimestrais'), pubs = await listar('avaliacoesPublicadas');
+  passo('avaliação: gerada, revisada, aprovada e publicada', avs.length === 1 && avs[0].status === 'aprovada' && pubs.length === 1 && pubs[0].funcionarioId === 'FUN', JSON.stringify(avs.map(a => a.status)) + ' ' + pubs.length);
+  await w.page.locator('.av-modal-avaliacao button', { hasText: 'Fechar' }).first().click();
+  await w.page.locator('.abas-internas button', { hasText: 'Metas e PDI' }).click(); await w.page.waitForTimeout(500);
+  await w.page.locator('.av-filtros button', { hasText: 'Nova meta' }).click();
+  const mm = w.page.locator('.modal').last();
+  await mm.locator('select').first().selectOption('FUN'); await mm.locator('textarea').first().fill('Conferir as peças antes de separar');
+  await mm.locator('button', { hasText: 'Salvar meta' }).click(); await esperar(1500);
+  passo('avaliação: meta criada', (await listar('avaliacaoMetas')).length === 1);
+  passo('avaliação: gestão usa o módulo sem erro de permissão', w.erros.length === 0, w.erros.join(' | '));
+  fabio.erros.length = 0;
+  await fabio.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await fabio.page.waitForTimeout(2500);
+  const tf = await fabio.page.locator('.av-modulo').innerText().catch(() => '');
+  passo('avaliação: funcionário vê a própria avaliação aprovada e a meta, sem os registros', /trimestre de/.test(tf) && /Conferir as peças/.test(tf) && !/Organizou a bancada/.test(tf), tf.slice(0, 300));
+  passo('avaliação: funcionário sem erro de permissão', fabio.erros.length === 0, fabio.erros.join(' | '));
   // 7) Estranho: nada sem login
   const r = await fetch(`${FS}/clientes/C1`);
   passo('sem login, o banco não entrega dados (acesso direto à API)', r.status === 403 || r.status === 401, r.status);

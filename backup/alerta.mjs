@@ -5,6 +5,7 @@
 //   node backup/alerta.mjs falha <link da execução>       backup falhou
 //   node backup/alerta.mjs resolvido <link da execução>   backup voltou a funcionar (fecha o aviso de falha)
 //   node backup/alerta.mjs verificar                      backup atrasado? armazenamento perto do limite?
+//                                                         + lembretes da Avaliação de Desempenho (com FIREBASE_EMAIL/SENHA)
 // Precisa de GH_TOKEN (ou GITHUB_TOKEN) e GITHUB_REPOSITORY (o GitHub Actions já fornece).
 
 const REPO = process.env.GITHUB_REPOSITORY || 'tecnopemt-cpu/pecas-eletronicas';
@@ -20,11 +21,15 @@ const TIPOS = {
   falha: { rotulo: 'aviso-backup-falhou', cor: 'B60205', titulo: 'Backup do Controle de Peças falhou' },
   atrasado: { rotulo: 'aviso-backup-atrasado', cor: 'D93F0B', titulo: 'Backup do Controle de Peças está atrasado' },
   armazenamento: { rotulo: 'aviso-armazenamento', cor: 'FBCA04', titulo: 'Armazenamento do Controle de Peças passou do nível de atenção' },
-  bancoAberto: { rotulo: 'aviso-banco-aberto', cor: 'B60205', titulo: 'URGENTE: o banco do Controle de Peças está aberto a qualquer pessoa' }
+  bancoAberto: { rotulo: 'aviso-banco-aberto', cor: 'B60205', titulo: 'URGENTE: o banco do Controle de Peças está aberto a qualquer pessoa' },
+  avaliacao: { rotulo: 'lembrete-avaliacao', cor: '1D76DB', titulo: 'Lembretes da Avaliação de Desempenho' }
 };
+import { createHash } from 'node:crypto';
+import { configFirebase, clienteFirestore } from './firestore-rest.mjs';
+import { calcularLembretes, lerDadosAvaliacao } from './lembretes-avaliacao.mjs';
 
 async function gh(caminho, opcoes = {}) {
-  const r = await fetch(`https://api.github.com/repos/${REPO}${caminho}`, {
+  const r = await fetch(`${process.env.GITHUB_API || 'https://api.github.com'}/repos/${REPO}${caminho}`, {
     ...opcoes,
     headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json', ...(opcoes.headers || {}) }
   });
@@ -44,6 +49,21 @@ async function abrirAviso(tipo, texto) {
     const novo = await gh('/issues', { method: 'POST', body: JSON.stringify({ title: t.titulo, labels: [t.rotulo], body: `${CONTA}\n\n${texto}\n\n---\nAviso automático. Ele é fechado sozinho quando o problema for resolvido. Como recuperar e onde ver tudo: \`backup/RECUPERACAO.md\`.` }) });
     console.log(`Aviso #${novo.number} aberto.`);
   }
+}
+// Lembrete: um aviso aberto só recebe comentário (e e-mail) quando a lista MUDA — nada se repete todo dia.
+async function lembrar(tipo, itens) {
+  const t = TIPOS[tipo];
+  const marca = `<!-- lembrete:${createHash('sha256').update(itens.map(i => i.chave).join('|')).digest('hex').slice(0, 16)} -->`;
+  const texto = `${agoraBr()}\n\n${itens.map(i => '- ' + i.texto).join('\n')}\n\nAbra o sistema → Avaliação para resolver. Desligue estes lembretes em Avaliação → Critérios e configurações.\n${marca}`;
+  await gh('/labels', { method: 'POST', body: JSON.stringify({ name: t.rotulo, color: t.cor }) });
+  const abertos = await gh(`/issues?state=open&labels=${t.rotulo}&per_page=1`);
+  if (!abertos.length) { const n = await gh('/issues', { method: 'POST', body: JSON.stringify({ title: t.titulo, labels: [t.rotulo], body: `${CONTA}\n\n${texto}` }) }); console.log(`Lembrete #${n.number} aberto.`); return; }
+  const i = abertos[0];
+  const coms = i.comments ? await gh(`/issues/${i.number}/comments?per_page=100`) : [];
+  const ultimo = coms.length ? coms[coms.length - 1].body : i.body;
+  if ((ultimo || '').includes(marca)) { console.log(`Lembrete #${i.number}: nada mudou, sem novo e-mail.`); return; }
+  await gh(`/issues/${i.number}/comments`, { method: 'POST', body: JSON.stringify({ body: `${CONTA} atualização:\n\n${texto}` }) });
+  console.log(`Lembrete #${i.number} atualizado.`);
 }
 async function fecharAviso(tipo, texto) {
   const t = TIPOS[tipo];
@@ -88,6 +108,16 @@ async function verificar() {
   const problemas = [];
   if (bancoEst >= LIMITE_BANCO * AVISO_BANCO) problemas.push(`O banco de dados (Firestore) está em cerca de **${mb(bancoEst)}**, ${Math.round(bancoEst / LIMITE_BANCO * 100)}% do 1 GiB gratuito (estimativa pelo backup; o número oficial fica em Firebase → Uso e faturamento).`);
   if (repo.size >= AVISO_REPO_KB) problemas.push(`O repositório do GitHub (código + backups) está com **${mb(repo.size * 1024)}**, acima de 1 GB recomendado pelo GitHub. A retenção de backups pode precisar de ajuste.`);
+  // 3) lembretes da Avaliação de Desempenho (lê o banco com a conta da rotina de backup, só leitura)
+  if (process.env.FIREBASE_EMAIL && process.env.FIREBASE_SENHA) {
+    try {
+      const dados = await lerDadosAvaliacao(clienteFirestore(configFirebase()));
+      const itens = calcularLembretes(dados);
+      console.log(`Lembretes da avaliação: ${itens.length}.`);
+      if (itens.length) await lembrar('avaliacao', itens);
+      else await fecharAviso('avaliacao', `${agoraBr()} — nada pendente na Avaliação de Desempenho.`);
+    } catch (e) { console.log('::warning::Não consegui conferir os lembretes da avaliação: ' + e.message); }
+  } else console.log('Lembretes da avaliação: sem a conta da rotina (BACKUP_EMAIL/BACKUP_SENHA), pulado.');
   if (problemas.length) await abrirAviso('armazenamento', `${agoraBr()}\n\n- ${problemas.join('\n- ')}\n\nNada parou de funcionar; é um aviso antecipado para planejar.`);
   else await fecharAviso('armazenamento', `${agoraBr()} — banco ≈ ${mb(bancoEst)}, repositório ${mb(repo.size * 1024)}.`);
 }

@@ -74,6 +74,9 @@ uma conta de verdade pode gravar. Antes de gravar, salva um backup do estado atu
 para poder voltar atrás. As contas de acesso não voltam no tempo: cada funcionário continua com a senha atual.
 Pede para digitar `RESTAURAR`, grava tudo e no fim relê o banco e confirma: “o banco ficou idêntico ao backup”.
 Para desfazer, rode o mesmo comando com o arquivo `...-pre-restauracao.tpbak`.
+As avaliações de desempenho não podem ser apagadas nem reescritas pelo site; durante a restauração o script
+liga uma liberação de 2 horas só para o Master (`seguranca/restauracao`) e a retira ao terminar. Se o script for
+interrompido no meio, apague `seguranca/restauracao` no console do Firebase (ou espere as 2 horas vencerem).
 
 ### 3) Site fora do ar → publicar o sistema de novo
 
@@ -124,4 +127,7 @@ abrindo só com a chave antiga (não descarte o arquivo antigo).
   (login, telas, assinatura por link, cadastro, backup) a cada alteração.
 - A rotina de backup usa uma conta própria, só de leitura, criada pelo Master em **Equipe → painel de segurança**
   ("Criar acesso da rotina de backup"); o e-mail e a senha vão nos segredos `BACKUP_EMAIL` e `BACKUP_SENHA` do GitHub.
+- A mesma conta (só leitura) é usada pela rotina **Verificar backup e armazenamento** para os lembretes da
+  Avaliação de Desempenho (avaliações pendentes, feedback, metas atrasadas, dias sem registro), enviados como
+  aviso `lembrete-avaliacao` no GitHub — só quando a lista muda. Desligue em Avaliação → Critérios e configurações.
 - Para voltar às regras abertas em uma emergência: console do Firebase → Firestore → Regras → histórico → versão anterior.

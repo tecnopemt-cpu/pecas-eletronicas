@@ -729,6 +729,109 @@
     .rel-previa .rel table.rel-rotulada td.celula-titulo::before{content:'';}
     .rel-previa .rel table td{overflow-wrap:anywhere;}
   }
+  /* ---- Avaliação de desempenho ---- */
+  .av-modulo{max-width:1200px;}
+  .av-modal-registro{max-width:640px;}
+  .av-modal-avaliacao{max-width:920px;}
+  .av-modulo label,.av-modal-registro label,.av-modal-avaliacao label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px;}
+  .av-check{display:flex !important;align-items:flex-start;gap:8px;font-weight:500 !important;cursor:pointer;}
+  .av-check input{width:auto;margin-top:3px;}
+  .av-sucesso{text-align:center;padding:10px 0;}
+  .av-sucesso-titulo{font-size:18px;font-weight:700;color:var(--verde);margin-bottom:8px;}
+  .av-acoes{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:16px;}
+  .av-acoes-voz{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .av-previa-aviso,.av-alerta{background:var(--laranja-bg);color:#7a3d03;border-radius:8px;padding:10px 12px;font-size:13.5px;margin:10px 0;}
+  .av-previa{border:1px solid var(--borda);border-radius:10px;padding:12px;font-size:14px;line-height:1.5;}
+  .av-previa dt{font-weight:700;font-size:12.5px;color:var(--texto-fraco);margin-top:6px;}
+  .av-previa dd{margin:0 0 4px;}
+  .av-erro{background:var(--vermelho-bg);color:var(--vermelho);border-radius:8px;padding:10px 12px;font-size:13.5px;margin:10px 0;}
+  .av-ok{background:var(--verde-bg);color:var(--verde);border-radius:8px;padding:10px 12px;font-size:13.5px;margin:10px 0;}
+  .av-voz{border:1px dashed var(--laranja);border-radius:10px;padding:12px;margin:10px 0;background:#FFFBF7;}
+  .av-voz-controles{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .av-btn-voz{background:var(--dark) !important;}
+  .av-mic{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--texto-fraco);}
+  .av-mic.ativo{background:var(--vermelho);animation:avPulso 1.2s infinite;}
+  @keyframes avPulso{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.5);}50%{box-shadow:0 0 0 7px rgba(192,57,43,0);}}
+  .av-transcricao{min-height:70px;}
+  .av-parcial{color:var(--texto-fraco);font-style:italic;font-size:13.5px;margin-top:4px;}
+  .av-dica{font-size:12.5px;color:var(--texto-fraco);}
+  .av-confirmar{border:1px solid var(--laranja);border-radius:10px;padding:12px;margin:12px 0;background:#FFFBF7;font-size:14px;}
+  .av-sugerido{font-size:11px;font-weight:700;color:var(--laranja-escuro);background:var(--laranja-bg);border-radius:10px;padding:1px 7px;margin-left:6px;}
+  .av-chip-tipo{display:inline-block;padding:3px 9px;border-radius:12px;font-size:12px;font-weight:600;}
+  .av-chip-tipo.sp{background:var(--verde-bg);color:var(--verde);}
+  .av-chip-tipo.sn{background:var(--laranja-bg);color:#9a4a03;}
+  .av-chip-tipo.sz{background:#EEF1F5;color:#4A5568;}
+  .av-secao{margin-top:14px;}
+  .av-secao-titulo{font-weight:700;font-size:14.5px;margin:16px 0 8px;cursor:default;}
+  summary.av-secao-titulo{cursor:pointer;}
+  .av-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
+  .av-filtros select,.av-filtros input{width:auto;min-width:150px;flex:1 1 160px;}
+  .av-filtros .btn{flex:0 0 auto;}
+  .av-chips-filtro{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;}
+  .av-chip{border:1px solid var(--borda);background:var(--card);color:var(--texto);border-radius:16px;padding:6px 12px;font-size:13px;}
+  .av-chip.ativo{background:var(--laranja-bg);border-color:var(--laranja);color:var(--laranja-escuro);font-weight:600;}
+  .av-x{border:none;background:none;color:inherit;font-size:15px;padding:0 0 0 4px;}
+  .av-vazio{padding:24px 12px;text-align:center;color:var(--texto-fraco);background:var(--card);border:1px dashed var(--borda);border-radius:10px;margin:8px 0;}
+  .av-vazio-pequeno{font-size:13px;color:var(--texto-fraco);}
+  .av-tabela-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--borda);border-radius:10px;}
+  .av-tabela{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .av-tabela th{text-align:left;font-size:12px;color:var(--texto-fraco);padding:9px 10px;border-bottom:1px solid var(--borda);white-space:nowrap;}
+  .av-tabela td{padding:9px 10px;border-bottom:1px solid var(--borda);vertical-align:top;}
+  .av-tabela select,.av-tabela input{padding:7px 8px;font-size:14px;}
+  .av-removido td{opacity:.55;text-decoration:line-through;}
+  .av-desc{max-width:420px;overflow-wrap:anywhere;}
+  .av-status{display:inline-block;padding:3px 9px;border-radius:12px;font-size:12px;font-weight:700;background:#EEF1F5;color:#4A5568;white-space:nowrap;}
+  .av-status.s-rascunho,.av-status.s-em_revisao{background:var(--laranja-bg);color:#9a4a03;}
+  .av-status.s-aprovada{background:#E8F0FB;color:#1E4B84;}
+  .av-status.s-feedback{background:var(--verde-bg);color:var(--verde);}
+  .av-cab-avaliacao{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .av-sub{font-size:13px;color:var(--texto-fraco);margin-top:4px;}
+  .av-legenda{font-size:12px;color:var(--texto-fraco);margin:10px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .av-origem{display:inline-block;font-size:11px;font-weight:700;border-radius:10px;padding:1px 8px;}
+  .av-origem.o-fato{background:var(--verde-bg);color:var(--verde);}
+  .av-origem.o-interpretacao{background:#E8F0FB;color:#1E4B84;}
+  .av-origem.o-sugestao{background:var(--laranja-bg);color:#9a4a03;}
+  .av-origem.o-avaliador{background:#EEF1F5;color:#4A5568;}
+  .av-item{border-left:3px solid var(--borda);padding:4px 0 6px 10px;margin:6px 0;}
+  .av-item textarea{margin-top:4px;}
+  .av-item-rodape{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px;}
+  .av-refs{display:inline-flex;flex-wrap:wrap;gap:4px;}
+  .av-ref{border:1px solid var(--borda);background:var(--fundo);border-radius:10px;font-size:11.5px;padding:2px 7px;}
+  .av-link{border:none;background:none;color:var(--laranja-escuro);font-weight:600;font-size:13px;padding:4px 2px;}
+  .av-texto{white-space:pre-wrap;line-height:1.5;margin:4px 0;}
+  .av-lista{margin:4px 0;padding-left:18px;line-height:1.55;font-size:14px;}
+  .av-media{margin-top:10px;font-size:14.5px;}
+  .av-botoes-rapidos{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .av-indicadores{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+  .av-ind{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--card);border:1px solid var(--borda);border-radius:10px;padding:12px;color:var(--texto);}
+  .av-ind strong{font-size:24px;}
+  .av-ind span{font-size:12.5px;color:var(--texto-fraco);}
+  .av-ind.alerta{border-color:var(--laranja);background:#FFFBF7;}
+  .av-atrasada{color:var(--vermelho);font-weight:700;font-size:12px;}
+  .av-linha{display:flex;gap:8px;align-items:center;margin:6px 0;}
+  .av-linha input,.av-linha select{flex:1 1 auto;}
+  .av-linha .btn{flex:0 0 auto;}
+  .av-peso{max-width:90px;flex:0 0 90px !important;}
+  .av-criterio{border-top:1px solid var(--borda);padding:8px 0;}
+  .av-config .card{margin-bottom:12px;}
+  .av-evidencia{font-size:13px;margin:4px 0 !important;}
+  .av-minha{margin-top:12px;}
+  @media (max-width:900px){ .av-indicadores{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:640px){
+    .av-tabela thead{display:none;}
+    .av-tabela,.av-tabela tbody{display:block;width:100%;}
+    .av-tabela tr{display:flex;flex-wrap:wrap;gap:2px 12px;padding:9px 10px;border-bottom:1px solid var(--borda);}
+    .av-tabela td{display:block;padding:0;border:none;font-size:13px;overflow-wrap:anywhere;}
+    .av-tabela td[data-rotulo]::before{content:attr(data-rotulo) ': ';color:var(--texto-fraco);}
+    .av-tabela td:first-child{flex:1 1 100%;font-weight:700;}
+    .av-tabela td:first-child::before{content:'';}
+    .av-tabela td:last-child{flex:1 1 100%;}
+    .av-notas td{flex:1 1 100% !important;}
+    .av-desc{max-width:none;}
+    .av-filtros select,.av-filtros input{flex:1 1 100%;}
+    .av-acoes .btn,.av-botoes-rapidos .btn{flex:1 1 100%;}
+    .av-linha{flex-wrap:wrap;}
+  }
 </style>
 </head>
 <body>
@@ -4810,6 +4913,3111 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+// ======================= AVALIAÇÃO DE DESEMPENHO =======================
+// Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
+// desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
+// onde veio cada conclusão) → revisão e aprovação por uma pessoa → versão publicada para o funcionário.
+// Coleções: avaliacaoRegistros, avaliacaoConfig/geral, avaliacoesTrimestrais (id = funcionario_AAAA-Tn,
+// nunca duplica), avaliacoesPublicadas (só o conteúdo aprovado), avaliacaoMetas.
+// Permissões aplicadas nas regras do banco (seguranca/firestore.rules), não só na tela.
+const AV_CATEGORIAS_PADRAO = ['Qualidade do trabalho', 'Produtividade', 'Organização', 'Cumprimento de prazos', 'Pontualidade e assiduidade', 'Responsabilidade', 'Trabalho em equipe', 'Comunicação', 'Iniciativa e autonomia', 'Conhecimento técnico', 'Aprendizado e evolução', 'Retrabalho e falhas', 'Cumprimento de procedimentos', 'Metas e resultados', 'Outros'];
+// sentido: + (conta a favor), - (oportunidade de melhoria), 0 (neutro)
+const AV_TIPOS_PADRAO = [{
+  id: 'positivo',
+  nome: 'Ponto positivo',
+  sentido: '+'
+}, {
+  id: 'melhoria',
+  nome: 'Oportunidade de melhoria',
+  sentido: '-'
+}, {
+  id: 'acompanhar',
+  nome: 'Situação que precisa ser acompanhada',
+  sentido: '0'
+}, {
+  id: 'evolucao',
+  nome: 'Evolução observada',
+  sentido: '+'
+}, {
+  id: 'feedback',
+  nome: 'Feedback realizado',
+  sentido: '0'
+}, {
+  id: 'meta',
+  nome: 'Meta ou compromisso assumido',
+  sentido: '0'
+}, {
+  id: 'ocorrencia',
+  nome: 'Ocorrência relevante',
+  sentido: '0'
+}];
+const AV_CRITERIOS_PADRAO = [{
+  id: 'qualidade',
+  nome: 'Qualidade do trabalho',
+  descricao: 'Capricho, acerto e ausência de retrabalho.',
+  peso: 1,
+  categorias: ['Qualidade do trabalho', 'Retrabalho e falhas']
+}, {
+  id: 'produtividade',
+  nome: 'Produtividade',
+  descricao: 'Volume e ritmo de entregas.',
+  peso: 1,
+  categorias: ['Produtividade', 'Metas e resultados']
+}, {
+  id: 'organizacao',
+  nome: 'Organização',
+  descricao: 'Organização do trabalho e cumprimento de procedimentos.',
+  peso: 1,
+  categorias: ['Organização', 'Cumprimento de procedimentos']
+}, {
+  id: 'responsabilidade',
+  nome: 'Responsabilidade',
+  descricao: 'Compromisso com o que assume.',
+  peso: 1,
+  categorias: ['Responsabilidade']
+}, {
+  id: 'pontualidade',
+  nome: 'Pontualidade e cumprimento de prazos',
+  descricao: 'Horários e prazos.',
+  peso: 1,
+  categorias: ['Pontualidade e assiduidade', 'Cumprimento de prazos']
+}, {
+  id: 'equipe',
+  nome: 'Trabalho em equipe',
+  descricao: 'Colaboração com os colegas.',
+  peso: 1,
+  categorias: ['Trabalho em equipe']
+}, {
+  id: 'comunicacao',
+  nome: 'Comunicação',
+  descricao: 'Clareza e frequência na comunicação.',
+  peso: 1,
+  categorias: ['Comunicação']
+}, {
+  id: 'iniciativa',
+  nome: 'Iniciativa',
+  descricao: 'Autonomia e proatividade.',
+  peso: 1,
+  categorias: ['Iniciativa e autonomia']
+}, {
+  id: 'tecnico',
+  nome: 'Conhecimento técnico',
+  descricao: 'Domínio técnico do trabalho.',
+  peso: 1,
+  categorias: ['Conhecimento técnico']
+}, {
+  id: 'evolucao',
+  nome: 'Evolução profissional',
+  descricao: 'Aprendizado e evolução no período.',
+  peso: 1,
+  categorias: ['Aprendizado e evolução']
+}];
+const AV_ESCALA = {
+  1: 'Muito abaixo do esperado',
+  2: 'Abaixo do esperado',
+  3: 'Dentro do esperado',
+  4: 'Acima do esperado',
+  5: 'Desempenho de destaque'
+};
+const AV_STATUS = {
+  em_formacao: 'Em formação',
+  aguardando: 'Aguardando geração',
+  rascunho: 'Rascunho gerado',
+  em_revisao: 'Em revisão',
+  aprovada: 'Aprovada',
+  feedback: 'Feedback realizado'
+};
+const AV_STATUS_META = ['Não iniciada', 'Em andamento', 'Concluída', 'Parcialmente concluída', 'Não concluída', 'Cancelada'];
+const AV_MIN_EVIDENCIAS = 3; // abaixo disso a avaliação mostra "evidências insuficientes"
+
+function avHoje() {
+  return formatarDataInput(new Date());
+}
+function avTrimestreDe(dataStr) {
+  if (!dataStr) return '';
+  const [a, m] = String(dataStr).split('-').map(Number);
+  return `${a}-T${Math.floor((m - 1) / 3) + 1}`;
+}
+function avLimites(tri) {
+  const [a, t] = tri.split('-T').map(Number);
+  const mi = (t - 1) * 3 + 1,
+    mf = mi + 2;
+  const ultimo = new Date(a, mf, 0).getDate();
+  return {
+    inicio: `${a}-${String(mi).padStart(2, '0')}-01`,
+    fim: `${a}-${String(mf).padStart(2, '0')}-${ultimo}`
+  };
+}
+function avRotuloTri(tri) {
+  if (!tri) return '-';
+  const [a, t] = tri.split('-T');
+  return `${t}º trimestre de ${a}`;
+}
+function avTriAnterior(tri) {
+  const [a, t] = tri.split('-T').map(Number);
+  return t === 1 ? `${a - 1}-T4` : `${a}-T${t - 1}`;
+}
+function avTrimestresRecentes(n) {
+  const lista = [avTrimestreDe(avHoje())];
+  while (lista.length < n) lista.push(avTriAnterior(lista[lista.length - 1]));
+  return lista;
+}
+function avIdAvaliacao(fid, tri) {
+  return `${fid}_${tri}`;
+}
+function avSemAcento(t) {
+  return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+function avPrimeiroNome(f) {
+  return String(f && f.nome || '').trim().split(/\s+/)[0] || '';
+}
+function avEhGestor(usuario) {
+  return ehAdministrador(usuario);
+}
+function avPodeAvaliar(usuario, alvo) {
+  return avEhGestor(usuario) && !!alvo && (ehMaster(usuario) || alvo.perfil !== 'master');
+}
+function avFuncionariosAvaliaveis(usuario, funcionarios) {
+  return (funcionarios || []).filter(f => f.id !== usuario.id && !motivoSemAcesso(f) && avPodeAvaliar(usuario, f)).sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+}
+function avConfigCompleta(c) {
+  c = c || {};
+  return {
+    categorias: c.categorias && c.categorias.length ? c.categorias : AV_CATEGORIAS_PADRAO,
+    tipos: c.tipos && c.tipos.length ? c.tipos : AV_TIPOS_PADRAO,
+    criterios: c.criterios && c.criterios.length ? c.criterios : AV_CRITERIOS_PADRAO,
+    registrosVisiveisFuncionario: !!c.registrosVisiveisFuncionario,
+    lembretesAtivos: c.lembretesAtivos !== false
+  };
+}
+function avTipo(config, id) {
+  return config.tipos.find(t => t.id === id) || {
+    id,
+    nome: id || '-',
+    sentido: '0'
+  };
+}
+function avDataHora(r) {
+  return `${formatarDataBr(r.dataOcorrido)}${r.horaOcorrido ? ' ' + r.horaOcorrido : ''}`;
+}
+
+// ---- leitura ao vivo (só enquanto a tela está aberta; não entra na cópia do aparelho)
+function useAvConsulta(colecao, filtros, ativo = true) {
+  const [lista, setLista] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+  const chave = JSON.stringify(filtros || []);
+  useEffect(() => {
+    if (!ativo) {
+      setLista([]);
+      setCarregando(false);
+      return;
+    }
+    let ref = db.collection(colecao);
+    (filtros || []).forEach(([campo, op, valor]) => {
+      ref = ref.where(campo, op, valor);
+    });
+    setCarregando(true);
+    return ref.onSnapshot(snap => {
+      setLista(snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })));
+      setCarregando(false);
+      setErro('');
+    }, err => {
+      console.error(colecao, err);
+      setErro('Não consegui carregar os dados. Verifique a conexão.');
+      setCarregando(false);
+    });
+  }, [colecao, chave, ativo]);
+  return [lista, carregando, erro];
+}
+function useAvConfig() {
+  const [cfg, setCfg] = useState(() => avConfigCompleta(null));
+  useEffect(() => db.collection('avaliacaoConfig').doc('geral').onSnapshot(s => setCfg(avConfigCompleta(s.exists ? s.data() : null)), err => console.error('avaliacaoConfig', err)), []);
+  return cfg;
+}
+
+// ---- sugestão dos campos a partir do texto (no próprio aparelho, sem enviar nada para fora)
+const AV_PALAVRAS_CATEGORIA = {
+  'Qualidade do trabalho': ['qualidade', 'caprich', 'bem feito', 'acabamento', 'perfeito', 'sem retrabalho', 'sem precisar refazer'],
+  'Produtividade': ['produtiv', 'rapidez', 'rapido', 'agil', 'agilidade', 'volume', 'varias pecas', 'adiantou'],
+  'Organização': ['organiz', 'bagunc', 'arrum', 'bancada', 'sem conferir', 'conferir todas', 'separou', 'etiquet'],
+  'Cumprimento de prazos': ['prazo', 'atras', 'no tempo', 'entregou antes', 'dentro do prazo'],
+  'Pontualidade e assiduidade': ['pontual', 'chegou atrasado', 'horario', 'faltou', 'falta', 'saiu cedo'],
+  'Responsabilidade': ['responsab', 'comprometid', 'assumiu', 'cuidado com'],
+  'Trabalho em equipe': ['equipe', 'colega', 'ajudou', 'colabor', 'junto com'],
+  'Comunicação': ['comunic', 'avisou', 'informou', 'explicou', 'nao avisou', 'conversou com o cliente'],
+  'Iniciativa e autonomia': ['iniciativa', 'proativ', 'sozinho', 'autonom', 'sem ninguem pedir', 'por conta propria'],
+  'Conhecimento técnico': ['tecnic', 'defeito', 'diagnost', 'placa', 'eletronic', 'conserto', 'consertou', 'testes', 'teste', 'solda', 'componente'],
+  'Aprendizado e evolução': ['aprendeu', 'evolu', 'melhorou', 'curso', 'treinamento', 'aprendizado'],
+  'Retrabalho e falhas': ['retrabalho', 'refazer', 'refez', 'erro', 'errou', 'falha', 'quebrou', 'danific'],
+  'Cumprimento de procedimentos': ['procedimento', 'norma', 'padrao', 'checklist', 'protocolo', 'nao seguiu', 'seguiu o'],
+  'Metas e resultados': ['meta', 'resultado', 'objetivo', 'bateu']
+};
+const AV_POSITIVAS = ['bem', 'otimo', 'excelente', 'rapidez', 'rapido', 'sem precisar refazer', 'sem retrabalho', 'demonstrou', 'concluiu', 'resolveu', 'ajudou', 'destaque', 'parabens', 'acertou', 'identificou', 'caprich', 'antes do prazo', 'elogi', 'organizado'];
+const AV_NEGATIVAS = ['sem conferir', 'nao conferiu', 'atras', 'retrabalho', 'refazer', 'refez', 'erro', 'errou', 'esqueceu', 'falhou', 'falha', 'interromper', 'nao seguiu', 'faltou', 'reclam', 'descuid', 'nao avisou', 'danific', 'quebrou', 'perdeu', 'demorou'];
+function avSugerir(texto, config, funcionarios, fidSelecionado) {
+  const t = avSemAcento(texto);
+  const r = {
+    categoria: '',
+    tipoId: '',
+    descricao: '',
+    impacto: '',
+    dataOcorrido: '',
+    mencionados: []
+  };
+  // data
+  if (/\bontem\b/.test(t)) {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    r.dataOcorrido = formatarDataInput(d);
+  } else if (/\bhoje\b/.test(t)) r.dataOcorrido = avHoje();
+  const m = /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/.exec(t);
+  if (m) {
+    const ano = m[3] ? m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]) : new Date().getFullYear();
+    r.dataOcorrido = `${ano}-${String(m[2]).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
+  }
+  // tipo
+  const conta = lista => lista.reduce((n, p) => n + (t.includes(p) ? 1 : 0), 0);
+  let tipoId = '';
+  if (/\b(dei|dado|fiz|feito|passei) (o |um )?feedback|\bconversei com\b|\bfeedback\b/.test(t)) tipoId = 'feedback';else if (/se comprometeu|compromisso|combinamos|\bmeta\b|ficou de /.test(t)) tipoId = 'meta';else if (/evoluiu|evolucao|melhorou|esta melhor|progrediu/.test(t)) tipoId = 'evolucao';else if (/acompanhar|ficar de olho|observar|monitorar/.test(t)) tipoId = 'acompanhar';else {
+    const p = conta(AV_POSITIVAS),
+      n = conta(AV_NEGATIVAS);
+    if (p || n) tipoId = n > p ? 'melhoria' : 'positivo';
+  }
+  if (tipoId && config.tipos.some(x => x.id === tipoId)) r.tipoId = tipoId;
+  // categoria (pontuação por palavras; categorias personalizadas contam pelo próprio nome)
+  let melhor = '',
+    pontos = 0;
+  config.categorias.forEach(c => {
+    const lista = AV_PALAVRAS_CATEGORIA[c] || [avSemAcento(c)];
+    const p = conta(lista.map(avSemAcento));
+    if (p > pontos) {
+      melhor = c;
+      pontos = p;
+    }
+  });
+  r.categoria = melhor;
+  // pessoas mencionadas (para alertar se a fala for de outra pessoa)
+  (funcionarios || []).forEach(f => {
+    const pn = avSemAcento(avPrimeiroNome(f));
+    if (pn.length > 2 && new RegExp(`\\b${pn}\\b`).test(t)) r.mencionados.push(f.id);
+  });
+  // descrição: o texto falado, sem "hoje, o Fulano" no começo (nada é inventado)
+  let desc = String(texto || '').trim().replace(/\s+/g, ' ');
+  desc = desc.replace(/^(hoje|ontem)\s*,?\s*/i, '');
+  const sel = (funcionarios || []).find(f => f.id === fidSelecionado);
+  if (sel) {
+    const pn = avPrimeiroNome(sel);
+    desc = desc.replace(new RegExp(`^(o|a)?\\s*(funcion[aá]rio|funcion[aá]ria)?\\s*${pn}\\s*,?\\s*`, 'i'), '');
+  }
+  desc = desc.replace(/^(o|a)\s+funcion[aá]ri[oa]\s+/i, '');
+  if (desc) desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+  if (desc && !/[.!?]$/.test(desc)) desc += '.';
+  r.descricao = desc;
+  // impacto: só quando a fala diz a consequência
+  const im = /(?:,|\be\b|;)?\s*((?:ocasionando|causando|resultando em|gerando|o que (?:gerou|causou|atrasou)|precisou|teve que)\b[^.]*)/i.exec(texto || '');
+  if (im) {
+    let x = im[1].trim();
+    x = x.charAt(0).toUpperCase() + x.slice(1);
+    r.impacto = /[.!?]$/.test(x) ? x : x + '.';
+  }
+  return r;
+}
+
+// ---- comandos falados (só durante uma gravação iniciada pela pessoa; nada é salvo por voz)
+function avInterpretarComando(frase, config, funcionarios) {
+  const t = avSemAcento(frase).replace(/[.,!?]/g, '').trim();
+  let m;
+  if (m = /^(?:classificar|marcar|classifique|marque) como (.+)$/.exec(t)) {
+    const tipo = config.tipos.find(x => avSemAcento(x.nome).includes(m[1]) || m[1].includes(avSemAcento(x.nome)));
+    if (tipo) return {
+      tipo: 'tipo',
+      valor: tipo.id
+    };
+  }
+  if (m = /^(?:alterar|mudar|trocar|altere|mude|troque) (?:a )?categoria para (.+)$/.exec(t)) {
+    const cat = config.categorias.find(c => avSemAcento(c).includes(m[1]) || m[1].includes(avSemAcento(c)));
+    if (cat) return {
+      tipo: 'categoria',
+      valor: cat
+    };
+  }
+  if (m = /^registrar (?:uma )?observacao (?:do|da|de|para o|para a) (.+)$/.exec(t)) {
+    const f = (funcionarios || []).find(x => avSemAcento(x.nome).startsWith(m[1]) || avSemAcento(avPrimeiroNome(x)) === m[1].split(' ')[0]);
+    if (f) return {
+      tipo: 'funcionario',
+      valor: f.id
+    };
+  }
+  if (/^(?:revisar|revisar o registro|finalizar|terminar)$/.test(t)) return {
+    tipo: 'revisar'
+  };
+  if (/^(?:cancelar|cancelar o registro)$/.test(t)) return {
+    tipo: 'cancelar'
+  };
+  return null;
+}
+
+// ---- reconhecimento de voz do navegador (o áudio não é guardado; só o texto que a pessoa confirmar)
+function useReconhecimentoVoz(aoComando) {
+  const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+  const [estado, setEstado] = useState('parado'); // parado | ouvindo | pausado
+  const [erro, setErro] = useState('');
+  const [texto, setTexto] = useState('');
+  const [parcial, setParcial] = useState('');
+  const recRef = useRef(null),
+    querOuvir = useRef(false),
+    comandoRef = useRef(aoComando);
+  comandoRef.current = aoComando;
+  function parar(abortar) {
+    querOuvir.current = false;
+    const r = recRef.current;
+    recRef.current = null;
+    if (r) {
+      try {
+        abortar ? r.abort() : r.stop();
+      } catch (e) {}
+    }
+  }
+  function iniciar() {
+    setErro('');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setErro('Este navegador não tem reconhecimento de voz. Use o Google Chrome ou o Microsoft Edge (no celular, o Chrome do Android), ou digite o registro.');
+      return;
+    }
+    parar(true);
+    const r = new SR();
+    r.lang = 'pt-BR';
+    r.continuous = true;
+    r.interimResults = true;
+    r.onresult = ev => {
+      let p = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const frase = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) {
+          const usado = comandoRef.current ? comandoRef.current(frase) : false;
+          if (!usado && frase.trim()) setTexto(x => (x ? x.trim() + ' ' : '') + frase.trim());
+        } else p += frase;
+      }
+      setParcial(p);
+    };
+    r.onerror = ev => {
+      if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') {
+        setErro('O navegador não liberou o microfone. Permita o uso do microfone para este site (ícone ao lado do endereço) e tente de novo — ou digite o registro.');
+        querOuvir.current = false;
+        setEstado('parado');
+      } else if (ev.error === 'network') {
+        setErro('Sem conexão para transcrever a fala (o reconhecimento do navegador precisa de internet). Você pode digitar o registro.');
+        querOuvir.current = false;
+        setEstado('parado');
+      } else if (ev.error === 'audio-capture') {
+        setErro('Nenhum microfone encontrado neste aparelho. Você pode digitar o registro.');
+        querOuvir.current = false;
+        setEstado('parado');
+      } else if (ev.error !== 'no-speech' && ev.error !== 'aborted') setErro(`O reconhecimento de voz falhou (${ev.error}). Tente de novo ou digite.`);
+    };
+    r.onend = () => {
+      if (querOuvir.current && recRef.current === r) {
+        try {
+          r.start();
+          return;
+        } catch (e) {}
+      }
+      setParcial('');
+      setEstado(s => s === 'ouvindo' ? 'parado' : s);
+    };
+    recRef.current = r;
+    querOuvir.current = true;
+    try {
+      r.start();
+      setEstado('ouvindo');
+    } catch (e) {
+      setErro('Não consegui ligar o microfone. Tente de novo.');
+      querOuvir.current = false;
+    }
+  }
+  const pausar = () => {
+    parar(false);
+    setEstado('pausado');
+  };
+  const finalizar = () => {
+    parar(false);
+    setEstado('parado');
+  };
+  const cancelar = () => {
+    parar(true);
+    setTexto('');
+    setParcial('');
+    setEstado('parado');
+  };
+  useEffect(() => () => parar(true), []); // ao sair da tela, o microfone desliga
+  return {
+    suportado: !!SR,
+    estado,
+    erro,
+    texto,
+    setTexto,
+    parcial,
+    iniciar,
+    pausar,
+    retomar: iniciar,
+    finalizar,
+    cancelar
+  };
+}
+
+// ---- registro diário (digitado ou por voz). Nada é salvo sem a pessoa conferir e clicar em Salvar.
+function AvFormRegistro({
+  usuario,
+  funcionarios,
+  config,
+  metas,
+  avaliacoes,
+  funcionarioInicial,
+  iniciarPorVoz,
+  aoFechar
+}) {
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const [f, setF] = useState({
+    funcionarioId: funcionarioInicial || '',
+    dataOcorrido: avHoje(),
+    horaOcorrido: '',
+    categoria: '',
+    tipoId: '',
+    descricao: '',
+    impacto: '',
+    comentarios: '',
+    metaId: '',
+    avaliacaoRelacionadaId: ''
+  });
+  const [origem, setOrigem] = useState('texto');
+  const [etapa, setEtapa] = useState('editar'); // editar | previa | salvo
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  const [divergencia, setDivergencia] = useState(null); // { ids: [...] }
+  const [pedindoCancelar, setPedindoCancelar] = useState(false);
+  const [sugeridos, setSugeridos] = useState({});
+  const campo = (k, v) => setF(x => ({
+    ...x,
+    [k]: v
+  }));
+  const voz = useReconhecimentoVoz(frase => {
+    const c = avInterpretarComando(frase, config, avaliaveis);
+    if (!c) return false;
+    if (c.tipo === 'tipo') campo('tipoId', c.valor);else if (c.tipo === 'categoria') campo('categoria', c.valor);else if (c.tipo === 'funcionario') {
+      setF(x => {
+        if (x.funcionarioId && x.funcionarioId !== c.valor) {
+          setDivergencia({
+            ids: [c.valor]
+          });
+          return x;
+        }
+        return {
+          ...x,
+          funcionarioId: c.valor
+        };
+      });
+    } else if (c.tipo === 'revisar') setTimeout(() => concluirVoz(), 0);else if (c.tipo === 'cancelar') setPedindoCancelar(true);
+    return true;
+  });
+  const iniciou = useRef(false);
+  // "Registrar por voz" foi clicado: liga o microfone (nunca liga sozinho ao abrir o módulo)
+  useEffect(() => {
+    if (iniciarPorVoz && !iniciou.current) {
+      iniciou.current = true;
+      voz.iniciar();
+    }
+  }, []);
+  function concluirVoz() {
+    voz.finalizar();
+    setTimeout(() => {
+      const textoFalado = (vozTextoRef.current || '').trim();
+      if (!textoFalado) return;
+      setOrigem('voz');
+      setF(x => {
+        const s = avSugerir(textoFalado, config, avaliaveis, x.funcionarioId);
+        const novo = {
+          ...x
+        };
+        const marcados = {};
+        if (s.descricao) {
+          novo.descricao = s.descricao;
+          marcados.descricao = true;
+        }
+        if (s.categoria && !x.categoria) {
+          novo.categoria = s.categoria;
+          marcados.categoria = true;
+        }
+        if (s.tipoId && !x.tipoId) {
+          novo.tipoId = s.tipoId;
+          marcados.tipoId = true;
+        }
+        if (s.impacto && !x.impacto) {
+          novo.impacto = s.impacto;
+          marcados.impacto = true;
+        }
+        if (s.dataOcorrido && s.dataOcorrido !== x.dataOcorrido) {
+          novo.dataOcorrido = s.dataOcorrido;
+          marcados.dataOcorrido = true;
+        }
+        const outros = s.mencionados.filter(id => id !== novo.funcionarioId);
+        if (!novo.funcionarioId && s.mencionados.length === 1) {
+          novo.funcionarioId = s.mencionados[0];
+          marcados.funcionarioId = true;
+        } else if (outros.length && novo.funcionarioId) setDivergencia({
+          ids: outros
+        });
+        setSugeridos(marcados);
+        return novo;
+      });
+    }, 350);
+  }
+  const vozTextoRef = useRef('');
+  vozTextoRef.current = voz.texto;
+  const faltando = [!f.funcionarioId && 'funcionário', !f.dataOcorrido && 'data do ocorrido', !f.categoria && 'categoria', !f.tipoId && 'tipo', !f.descricao.trim() && 'descrição'].filter(Boolean);
+  const metasDoFuncionario = (metas || []).filter(m => m.funcionarioId === f.funcionarioId);
+  const avaliacoesDoFuncionario = (avaliacoes || []).filter(a => a.funcionarioId === f.funcionarioId);
+  const alvo = avaliaveis.find(x => x.id === f.funcionarioId);
+  function irParaPrevia() {
+    setErro('');
+    if (voz.estado !== 'parado') {
+      setErro('Finalize a gravação antes de revisar.');
+      return;
+    }
+    if (faltando.length) {
+      setErro(`Preencha: ${faltando.join(', ')}.`);
+      return;
+    }
+    if (divergencia) {
+      setErro('Confirme de qual funcionário é o registro (aviso acima).');
+      return;
+    }
+    setEtapa('previa');
+  }
+  async function salvar() {
+    if (salvando) return;
+    setSalvando(true);
+    setErro('');
+    try {
+      const tipo = avTipo(config, f.tipoId);
+      await db.collection('avaliacaoRegistros').add({
+        funcionarioId: f.funcionarioId,
+        funcionarioNome: alvo ? alvo.nome : '',
+        dataOcorrido: f.dataOcorrido,
+        horaOcorrido: f.horaOcorrido || '',
+        trimestre: avTrimestreDe(f.dataOcorrido),
+        categoria: f.categoria,
+        tipoId: f.tipoId,
+        tipoNome: tipo.nome,
+        sentido: tipo.sentido,
+        descricao: f.descricao.trim(),
+        impacto: f.impacto.trim(),
+        comentarios: f.comentarios.trim(),
+        metaId: f.metaId || '',
+        avaliacaoRelacionadaId: f.avaliacaoRelacionadaId || '',
+        origem,
+        status: 'ativo',
+        registradoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        registradoPorId: usuario.id,
+        registradoPorNome: usuario.nome || '-',
+        historicoAlteracoes: []
+      });
+      setEtapa('salvo'); // só depois que o banco confirmou
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui salvar o registro (nada foi gravado). Verifique a conexão e tente de novo.');
+    }
+    setSalvando(false);
+  }
+  function novoRegistro() {
+    voz.cancelar();
+    setF(x => ({
+      funcionarioId: funcionarioInicial || '',
+      dataOcorrido: avHoje(),
+      horaOcorrido: '',
+      categoria: '',
+      tipoId: '',
+      descricao: '',
+      impacto: '',
+      comentarios: '',
+      metaId: '',
+      avaliacaoRelacionadaId: ''
+    }));
+    setOrigem('texto');
+    setSugeridos({});
+    setDivergencia(null);
+    setEtapa('editar');
+  }
+  const nomeDe = id => (funcionarios.find(x => x.id === id) || {}).nome || '-';
+  const marca = k => sugeridos[k] ? /*#__PURE__*/React.createElement("span", {
+    className: "av-sugerido",
+    title: "Sugerido a partir da fala \u2014 confira"
+  }, "sugerido") : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && voz.estado === 'parado' && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal av-modal-registro"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Registro de desempenho"), etapa === 'salvo' ? /*#__PURE__*/React.createElement("div", {
+    className: "av-sucesso"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-sucesso-titulo"
+  }, "\u2713 Registro salvo"), /*#__PURE__*/React.createElement("div", null, nomeDe(f.funcionarioId), " \xB7 ", avTipo(config, f.tipoId).nome, " \xB7 ", f.categoria, " \xB7 ", formatarDataBr(f.dataOcorrido)), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: novoRegistro
+  }, "Fazer outro registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))) : etapa === 'previa' ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-previa-aviso"
+  }, "Confira antes de salvar. O registro s\xF3 \xE9 gravado quando voc\xEA clicar em ", /*#__PURE__*/React.createElement("strong", null, "Salvar registro"), "."), /*#__PURE__*/React.createElement("dl", {
+    className: "av-previa"
+  }, /*#__PURE__*/React.createElement("dt", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("dd", null, nomeDe(f.funcionarioId)), /*#__PURE__*/React.createElement("dt", null, "Data do ocorrido"), /*#__PURE__*/React.createElement("dd", null, formatarDataBr(f.dataOcorrido), f.horaOcorrido ? ` às ${f.horaOcorrido}` : ''), /*#__PURE__*/React.createElement("dt", null, "Categoria"), /*#__PURE__*/React.createElement("dd", null, f.categoria), /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, avTipo(config, f.tipoId).nome), /*#__PURE__*/React.createElement("dt", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, f.descricao), f.impacto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Impacto"), /*#__PURE__*/React.createElement("dd", null, f.impacto)), f.comentarios && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Coment\xE1rios"), /*#__PURE__*/React.createElement("dd", null, f.comentarios)), f.metaId && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Meta vinculada"), /*#__PURE__*/React.createElement("dd", null, (metasDoFuncionario.find(m => m.id === f.metaId) || {}).descricao || '-')), f.avaliacaoRelacionadaId && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Avalia\xE7\xE3o vinculada"), /*#__PURE__*/React.createElement("dd", null, avRotuloTri((avaliacoesDoFuncionario.find(a => a.id === f.avaliacaoRelacionadaId) || {}).trimestre))), /*#__PURE__*/React.createElement("dt", null, "Origem"), /*#__PURE__*/React.createElement("dd", null, origem === 'voz' ? 'Comando de voz (texto conferido)' : 'Digitado'), /*#__PURE__*/React.createElement("dt", null, "Respons\xE1vel"), /*#__PURE__*/React.createElement("dd", null, usuario.nome)), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setEtapa('editar'),
+    disabled: salvando
+  }, "Voltar e editar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: salvar,
+    disabled: salvando
+  }, salvando ? 'Salvando…' : 'Salvar registro'))) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: `av-voz av-voz-${voz.estado}`
+  }, voz.estado === 'parado' && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-btn-voz",
+    onClick: () => {
+      voz.setTexto('');
+      voz.iniciar();
+    }
+  }, "\uD83C\uDFA4 Registrar por voz"), voz.estado !== 'parado' && /*#__PURE__*/React.createElement("div", {
+    className: "av-voz-controles"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `av-mic ${voz.estado === 'ouvindo' ? 'ativo' : ''}`,
+    "aria-live": "polite"
+  }, voz.estado === 'ouvindo' ? '● Microfone ligado — fale normalmente' : '⏸ Pausado'), voz.estado === 'ouvindo' ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: voz.pausar
+  }, "Pausar") : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: voz.retomar
+  }, "Retomar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: concluirVoz
+  }, "Finalizar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setPedindoCancelar(true)
+  }, "Cancelar")), (voz.texto || voz.parcial || voz.estado !== 'parado') && /*#__PURE__*/React.createElement("div", {
+    className: "av-transcricao"
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 6
+    }
+  }, "Texto falado (pode corrigir)"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: voz.texto,
+    onChange: e => voz.setTexto(e.target.value),
+    placeholder: "O que voc\xEA falar aparece aqui\u2026"
+  }), voz.parcial && /*#__PURE__*/React.createElement("div", {
+    className: "av-parcial"
+  }, voz.parcial, "\u2026"), voz.estado === 'parado' && voz.texto && /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes-voz"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: concluirVoz
+  }, "Usar este texto nos campos"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      voz.setTexto('');
+      voz.iniciar();
+    }
+  }, "Gravar de novo")), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Durante a grava\xE7\xE3o voc\xEA pode dizer: \u201Cclassificar como ponto positivo\u201D, \u201Calterar a categoria para produtividade\u201D, \u201Crevisar o registro\u201D.")), voz.erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, voz.erro), pedindoCancelar && /*#__PURE__*/React.createElement("div", {
+    className: "av-confirmar"
+  }, "Descartar a grava\xE7\xE3o? O texto falado ser\xE1 apagado.", /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: () => {
+      voz.cancelar();
+      setPedindoCancelar(false);
+    }
+  }, "Descartar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setPedindoCancelar(false)
+  }, "Continuar"))), divergencia && /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, "A fala menciona ", /*#__PURE__*/React.createElement("strong", null, divergencia.ids.map(nomeDe).join(', ')), ", mas o registro est\xE1 para ", /*#__PURE__*/React.createElement("strong", null, nomeDe(f.funcionarioId) || 'ninguém'), ". De quem \xE9 este registro?", /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes-voz"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setDivergencia(null)
+  }, "Manter ", nomeDe(f.funcionarioId)), divergencia.ids.map(id => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      campo('funcionarioId', id);
+      setDivergencia(null);
+    }
+  }, "Trocar para ", nomeDe(id))))), /*#__PURE__*/React.createElement("label", null, "Funcion\xE1rio ", marca('funcionarioId')), /*#__PURE__*/React.createElement("select", {
+    value: f.funcionarioId,
+    onChange: e => {
+      campo('funcionarioId', e.target.value);
+      setDivergencia(null);
+    },
+    disabled: !!funcionarioInicial
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione\u2026"), avaliaveis.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data do ocorrido ", marca('dataOcorrido')), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.dataOcorrido,
+    max: avHoje(),
+    onChange: e => campo('dataOcorrido', e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Hor\xE1rio (opcional)"), /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    value: f.horaOcorrido,
+    onChange: e => campo('horaOcorrido', e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Categoria ", marca('categoria')), /*#__PURE__*/React.createElement("select", {
+    value: f.categoria,
+    onChange: e => campo('categoria', e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione\u2026"), config.categorias.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Tipo ", marca('tipoId')), /*#__PURE__*/React.createElement("select", {
+    value: f.tipoId,
+    onChange: e => campo('tipoId', e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione\u2026"), config.tipos.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t.id,
+    value: t.id
+  }, t.nome))))), /*#__PURE__*/React.createElement("label", null, "Descri\xE7\xE3o do ocorrido ", marca('descricao')), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: f.descricao,
+    onChange: e => campo('descricao', e.target.value),
+    placeholder: "O que aconteceu, de forma objetiva"
+  }), /*#__PURE__*/React.createElement("label", null, "Impacto ou consequ\xEAncia (opcional) ", marca('impacto')), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: f.impacto,
+    onChange: e => campo('impacto', e.target.value)
+  }), /*#__PURE__*/React.createElement("label", null, "Coment\xE1rios (opcional)"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: f.comentarios,
+    onChange: e => campo('comentarios', e.target.value)
+  }), (metasDoFuncionario.length > 0 || avaliacoesDoFuncionario.length > 0) && /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Vincular a uma meta (opcional)"), /*#__PURE__*/React.createElement("select", {
+    value: f.metaId,
+    onChange: e => campo('metaId', e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Nenhuma"), metasDoFuncionario.map(m => /*#__PURE__*/React.createElement("option", {
+    key: m.id,
+    value: m.id
+  }, m.descricao)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Vincular a uma avalia\xE7\xE3o (opcional)"), /*#__PURE__*/React.createElement("select", {
+    value: f.avaliacaoRelacionadaId,
+    onChange: e => campo('avaliacaoRelacionadaId', e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Nenhuma"), avaliacoesDoFuncionario.map(a => /*#__PURE__*/React.createElement("option", {
+    key: a.id,
+    value: a.id
+  }, avRotuloTri(a.trimestre)))))), Object.keys(sugeridos).length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Os campos marcados como \u201Csugerido\u201D foram preenchidos a partir da fala, sem acrescentar nada que n\xE3o foi dito. Confira e corrija se precisar."), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => {
+      voz.cancelar();
+      aoFechar();
+    }
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: irParaPrevia
+  }, "Revisar e salvar")))));
+}
+
+// ---- detalhe de um registro: correção com histórico e remoção controlada (com justificativa)
+function AvModalRegistro({
+  registro,
+  usuario,
+  funcionarios,
+  config,
+  aoFechar
+}) {
+  const [editando, setEditando] = useState(false);
+  const [f, setF] = useState({
+    dataOcorrido: registro.dataOcorrido,
+    horaOcorrido: registro.horaOcorrido || '',
+    categoria: registro.categoria,
+    tipoId: registro.tipoId,
+    descricao: registro.descricao,
+    impacto: registro.impacto || '',
+    comentarios: registro.comentarios || ''
+  });
+  const [justificativa, setJustificativa] = useState('');
+  const [removendo, setRemovendo] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  const alvo = funcionarios.find(x => x.id === registro.funcionarioId);
+  const podeEditar = avPodeAvaliar(usuario, alvo || {
+    perfil: 'funcionario'
+  });
+  const ROTULOS = {
+    dataOcorrido: 'Data',
+    horaOcorrido: 'Horário',
+    categoria: 'Categoria',
+    tipoId: 'Tipo',
+    descricao: 'Descrição',
+    impacto: 'Impacto',
+    comentarios: 'Comentários'
+  };
+  async function salvarCorrecao() {
+    const campos = {};
+    Object.keys(f).forEach(k => {
+      if (String(f[k] || '') !== String(registro[k] || '')) campos[k] = {
+        de: registro[k] || '',
+        para: f[k] || ''
+      };
+    });
+    if (!Object.keys(campos).length) {
+      setEditando(false);
+      return;
+    }
+    if (!f.descricao.trim()) {
+      setErro('A descrição não pode ficar vazia.');
+      return;
+    }
+    setSalvando(true);
+    setErro('');
+    try {
+      const tipo = avTipo(config, f.tipoId);
+      await db.collection('avaliacaoRegistros').doc(registro.id).update({
+        ...f,
+        descricao: f.descricao.trim(),
+        trimestre: avTrimestreDe(f.dataOcorrido),
+        tipoNome: tipo.nome,
+        sentido: tipo.sentido,
+        historicoAlteracoes: [...(registro.historicoAlteracoes || []), {
+          em: new Date().toISOString(),
+          porId: usuario.id,
+          porNome: usuario.nome || '-',
+          acao: 'correcao',
+          campos,
+          justificativa: justificativa.trim()
+        }]
+      });
+      setEditando(false);
+      setJustificativa('');
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui salvar a correção. Nada foi alterado.');
+    }
+    setSalvando(false);
+  }
+  async function remover() {
+    if (!justificativa.trim()) {
+      setErro('Explique por que o registro está sendo removido.');
+      return;
+    }
+    setSalvando(true);
+    setErro('');
+    try {
+      await db.collection('avaliacaoRegistros').doc(registro.id).update({
+        status: 'removido',
+        justificativaRemocao: justificativa.trim(),
+        removidoPorId: usuario.id,
+        removidoPorNome: usuario.nome || '-',
+        removidoEm: new Date().toISOString(),
+        historicoAlteracoes: [...(registro.historicoAlteracoes || []), {
+          em: new Date().toISOString(),
+          porId: usuario.id,
+          porNome: usuario.nome || '-',
+          acao: 'remocao',
+          campos: {},
+          justificativa: justificativa.trim()
+        }]
+      });
+      aoFechar();
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui remover. Nada foi alterado.');
+      setSalvando(false);
+    }
+  }
+  const t = avTipo(config, registro.tipoId);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Registro de ", alvo ? alvo.nome : registro.funcionarioNome), registro.status === 'removido' && /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, "Removido por ", registro.removidoPorNome, " em ", formatDataHora(registro.removidoEm), ". Motivo: ", registro.justificativaRemocao), !editando ? /*#__PURE__*/React.createElement("dl", {
+    className: "av-previa"
+  }, /*#__PURE__*/React.createElement("dt", null, "Data do ocorrido"), /*#__PURE__*/React.createElement("dd", null, avDataHora(registro)), /*#__PURE__*/React.createElement("dt", null, "Categoria"), /*#__PURE__*/React.createElement("dd", null, registro.categoria), /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, /*#__PURE__*/React.createElement("span", {
+    className: `av-chip-tipo s${t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : 'z'}`
+  }, registro.tipoNome || t.nome)), /*#__PURE__*/React.createElement("dt", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, registro.descricao), registro.impacto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Impacto"), /*#__PURE__*/React.createElement("dd", null, registro.impacto)), registro.comentarios && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Coment\xE1rios"), /*#__PURE__*/React.createElement("dd", null, registro.comentarios)), /*#__PURE__*/React.createElement("dt", null, "Registrado por"), /*#__PURE__*/React.createElement("dd", null, registro.registradoPorNome, " em ", formatDataHora(registro.registradoEm), " (", registro.origem === 'voz' ? 'por voz' : 'digitado', ")")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.dataOcorrido,
+    max: avHoje(),
+    onChange: e => setF({
+      ...f,
+      dataOcorrido: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Hor\xE1rio"), /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    value: f.horaOcorrido,
+    onChange: e => setF({
+      ...f,
+      horaOcorrido: e.target.value
+    })
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Categoria"), /*#__PURE__*/React.createElement("select", {
+    value: f.categoria,
+    onChange: e => setF({
+      ...f,
+      categoria: e.target.value
+    })
+  }, [...new Set([f.categoria, ...config.categorias])].map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Tipo"), /*#__PURE__*/React.createElement("select", {
+    value: f.tipoId,
+    onChange: e => setF({
+      ...f,
+      tipoId: e.target.value
+    })
+  }, config.tipos.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome))))), /*#__PURE__*/React.createElement("label", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: f.descricao,
+    onChange: e => setF({
+      ...f,
+      descricao: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("label", null, "Impacto"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: f.impacto,
+    onChange: e => setF({
+      ...f,
+      impacto: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("label", null, "Coment\xE1rios"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: f.comentarios,
+    onChange: e => setF({
+      ...f,
+      comentarios: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("label", null, "Motivo da corre\xE7\xE3o (opcional)"), /*#__PURE__*/React.createElement("input", {
+    value: justificativa,
+    onChange: e => setJustificativa(e.target.value)
+  })), removendo && /*#__PURE__*/React.createElement("div", {
+    className: "av-confirmar"
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 0
+    }
+  }, "Por que este registro deve ser removido? (obrigat\xF3rio \u2014 fica no hist\xF3rico)"), /*#__PURE__*/React.createElement("input", {
+    value: justificativa,
+    onChange: e => setJustificativa(e.target.value),
+    placeholder: "Ex.: registrado para a pessoa errada"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes-voz"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: remover,
+    disabled: salvando
+  }, "Confirmar remo\xE7\xE3o"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      setRemovendo(false);
+      setJustificativa('');
+    }
+  }, "Desistir"))), (registro.historicoAlteracoes || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "av-historico"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Hist\xF3rico de altera\xE7\xF5es"), /*#__PURE__*/React.createElement("ul", null, registro.historicoAlteracoes.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("strong", null, quandoBrasilia(h.em)), " \u2014 ", h.porNome, " ", h.acao === 'remocao' ? 'removeu o registro' : 'corrigiu', Object.keys(h.campos || {}).map(k => ` · ${ROTULOS[k] || k}: “${k === 'tipoId' ? avTipo(config, h.campos[k].de).nome : h.campos[k].de || '-'}” → “${k === 'tipoId' ? avTipo(config, h.campos[k].para).nome : h.campos[k].para || '-'}”`).join(''), h.justificativa ? ` · Motivo: ${h.justificativa}` : '')))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"), podeEditar && registro.status !== 'removido' && !editando && !removendo && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setRemovendo(true)
+  }, "Remover"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => setEditando(true)
+  }, "Corrigir")), editando && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: salvarCorrecao,
+    disabled: salvando
+  }, salvando ? 'Salvando…' : 'Salvar correção'))));
+}
+function AvHistorico({
+  usuario,
+  funcionarios,
+  config,
+  registros
+}) {
+  const [filtro, setFiltro] = useState({
+    funcionarioId: '',
+    de: '',
+    ate: '',
+    categoria: '',
+    tipoId: '',
+    responsavelId: '',
+    rapido: '',
+    vinculo: '',
+    removidos: false
+  });
+  const [ordemAsc, setOrdemAsc] = useState(false);
+  const [aberto, setAberto] = useState(null);
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const responsaveis = [...new Map(registros.map(r => [r.registradoPorId, r.registradoPorNome])).entries()];
+  const lista = registros.filter(r => {
+    if (!filtro.removidos && r.status === 'removido') return false;
+    if (filtro.funcionarioId && r.funcionarioId !== filtro.funcionarioId) return false;
+    if (filtro.de && r.dataOcorrido < filtro.de) return false;
+    if (filtro.ate && r.dataOcorrido > filtro.ate) return false;
+    if (filtro.categoria && r.categoria !== filtro.categoria) return false;
+    if (filtro.tipoId && r.tipoId !== filtro.tipoId) return false;
+    if (filtro.responsavelId && r.registradoPorId !== filtro.responsavelId) return false;
+    if (filtro.rapido === 'positivos' && r.sentido !== '+') return false;
+    if (filtro.rapido === 'melhorias' && r.sentido !== '-') return false;
+    if (filtro.rapido === 'metas' && r.tipoId !== 'meta' && !r.metaId) return false;
+    if (filtro.vinculo === 'avaliacao' && !r.avaliacaoRelacionadaId && !r.usadoEmAvaliacao) return false;
+    return true;
+  }).sort((a, b) => {
+    const c = (a.dataOcorrido + (a.horaOcorrido || '')).localeCompare(b.dataOcorrido + (b.horaOcorrido || ''));
+    return ordemAsc ? c : -c;
+  });
+  const nomeDe = id => (funcionarios.find(x => x.id === id) || {}).nome || '-';
+  const set = (k, v) => setFiltro(x => ({
+    ...x,
+    [k]: v
+  }));
+  const registroAberto = aberto ? registros.find(r => r.id === aberto) : null;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: filtro.funcionarioId,
+    onChange: e => set('funcionarioId', e.target.value),
+    "aria-label": "Funcion\xE1rio"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todos os funcion\xE1rios"), avaliaveis.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome))), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: filtro.de,
+    onChange: e => set('de', e.target.value),
+    "aria-label": "De"
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: filtro.ate,
+    onChange: e => set('ate', e.target.value),
+    "aria-label": "At\xE9"
+  }), /*#__PURE__*/React.createElement("select", {
+    value: filtro.categoria,
+    onChange: e => set('categoria', e.target.value),
+    "aria-label": "Categoria"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todas as categorias"), config.categorias.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c))), /*#__PURE__*/React.createElement("select", {
+    value: filtro.tipoId,
+    onChange: e => set('tipoId', e.target.value),
+    "aria-label": "Tipo"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todos os tipos"), config.tipos.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t.id,
+    value: t.id
+  }, t.nome))), /*#__PURE__*/React.createElement("select", {
+    value: filtro.responsavelId,
+    onChange: e => set('responsavelId', e.target.value),
+    "aria-label": "Respons\xE1vel"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Qualquer respons\xE1vel"), responsaveis.map(([id, n]) => /*#__PURE__*/React.createElement("option", {
+    key: id,
+    value: id
+  }, n)))), /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro"
+  }, [['', 'Todos'], ['positivos', 'Positivos'], ['melhorias', 'Oportunidades de melhoria'], ['metas', 'Metas e compromissos']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `av-chip ${filtro.rapido === k ? 'ativo' : ''}`,
+    onClick: () => set('rapido', k)
+  }, n)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `av-chip ${filtro.vinculo ? 'ativo' : ''}`,
+    onClick: () => set('vinculo', filtro.vinculo ? '' : 'avaliacao')
+  }, "Usados em avalia\xE7\xE3o"), /*#__PURE__*/React.createElement("label", {
+    className: "av-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: filtro.removidos,
+    onChange: e => set('removidos', e.target.checked)
+  }), " Mostrar removidos"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-chip",
+    onClick: () => setOrdemAsc(v => !v)
+  }, ordemAsc ? 'Mais antigos primeiro' : 'Mais recentes primeiro')), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Nenhum registro com esses filtros.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "Respons\xE1vel"))), /*#__PURE__*/React.createElement("tbody", null, lista.map(r => {
+    const t = avTipo(config, r.tipoId);
+    return /*#__PURE__*/React.createElement("tr", {
+      key: r.id,
+      className: `linha-clicavel ${r.status === 'removido' ? 'av-removido' : ''}`,
+      onClick: () => setAberto(r.id)
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Data"
+    }, avDataHora(r)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Funcion\xE1rio"
+    }, nomeDe(r.funcionarioId)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Tipo"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `av-chip-tipo s${t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : 'z'}`
+    }, r.tipoNome || t.nome)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Categoria"
+    }, r.categoria), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Descri\xE7\xE3o",
+      className: "av-desc"
+    }, r.descricao), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Respons\xE1vel"
+    }, r.registradoPorNome, r.origem === 'voz' ? ' 🎤' : ''));
+  })))), registroAberto && /*#__PURE__*/React.createElement(AvModalRegistro, {
+    registro: registroAberto,
+    usuario: usuario,
+    funcionarios: funcionarios,
+    config: config,
+    aoFechar: () => setAberto(null)
+  }));
+}
+
+// ---- avaliação trimestral montada a partir dos registros (o sistema organiza; quem decide é a pessoa)
+const AV_RECOMENDACOES = {
+  'Qualidade do trabalho': 'Revisar o padrão de qualidade esperado e acompanhar as próximas entregas.',
+  'Produtividade': 'Combinar metas de volume realistas e acompanhar semanalmente.',
+  'Organização': 'Definir uma rotina de conferência antes de iniciar cada serviço.',
+  'Cumprimento de prazos': 'Planejar as entregas com prazos intermediários.',
+  'Pontualidade e assiduidade': 'Conversar sobre horários e combinar o acompanhamento.',
+  'Responsabilidade': 'Deixar claro o que é responsabilidade da pessoa em cada serviço.',
+  'Trabalho em equipe': 'Incentivar trabalhos em dupla e a troca de conhecimento.',
+  'Comunicação': 'Combinar quando e como avisar a gestão e os colegas.',
+  'Iniciativa e autonomia': 'Delegar tarefas com mais autonomia, com acompanhamento.',
+  'Conhecimento técnico': 'Treinamento técnico ou acompanhamento por alguém mais experiente.',
+  'Aprendizado e evolução': 'Definir um plano de estudo ou treinamento.',
+  'Retrabalho e falhas': 'Analisar as causas dos retrabalhos e revisar o procedimento.',
+  'Cumprimento de procedimentos': 'Relembrar os procedimentos e usar lista de verificação.',
+  'Metas e resultados': 'Revisar as metas e acompanhar os resultados com mais frequência.'
+};
+let avSeq = 0;
+const avItem = (texto, refs, origem) => ({
+  id: 'i' + Date.now().toString(36) + avSeq++,
+  texto,
+  refs: refs || [],
+  origem
+});
+function avGerarRascunho(fid, tri, registros, metas, config) {
+  const {
+    inicio,
+    fim
+  } = avLimites(tri);
+  const regs = registros.filter(r => r.funcionarioId === fid && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim).sort((a, b) => (a.dataOcorrido + (a.horaOcorrido || '')).localeCompare(b.dataOcorrido + (b.horaOcorrido || '')));
+  const sentido = r => avTipo(config, r.tipoId).sentido || r.sentido || '0';
+  const pos = regs.filter(r => sentido(r) === '+'),
+    neg = regs.filter(r => sentido(r) === '-');
+  const porCategoria = lista => {
+    const m = {};
+    lista.forEach(r => {
+      (m[r.categoria] = m[r.categoria] || []).push(r);
+    });
+    return m;
+  };
+  const contagemCat = Object.entries(porCategoria(regs)).sort((a, b) => b[1].length - a[1].length);
+  const responsaveis = [...new Set(regs.map(r => r.registradoPorNome))];
+  const suficiente = regs.length >= AV_MIN_EVIDENCIAS;
+  const resumo = regs.length === 0 ? `Não há registros de desempenho no ${avRotuloTri(tri)}. A falta de registros não indica desempenho bom nem ruim; não há base para avaliar o período.` : `No ${avRotuloTri(tri)} há ${regs.length} registro(s) de desempenho: ${pos.length} positivo(s) ou de evolução, ${neg.length} oportunidade(s) de melhoria e ${regs.length - pos.length - neg.length} de acompanhamento, feedback ou compromisso, feitos por ${responsaveis.join(', ')}. Registros por categoria: ${contagemCat.map(([c, l]) => `${c} (${l.length})`).join(', ')}.${suficiente ? '' : ` Atenção: há poucos registros (menos de ${AV_MIN_EVIDENCIAS}); as conclusões abaixo têm evidências insuficientes.`} A quantidade de registros não é usada como medida de desempenho.`;
+  const conclusoes = lista => Object.entries(porCategoria(lista)).map(([cat, rs]) => avItem(`${cat}: ${rs.map(r => r.descricao.replace(/[.]$/, '')).join('; ')}.`, rs.map(r => r.id), 'fato'));
+  const doTipo = id => regs.filter(r => r.tipoId === id).map(r => avItem(`${formatarDataBr(r.dataOcorrido)} — ${r.descricao}`, [r.id], 'fato'));
+  // recorrência: só com registros em datas diferentes (uma situação isolada não vira padrão)
+  const recorrentes = [];
+  [[neg, 'Oportunidade de melhoria'], [pos, 'Ponto positivo']].forEach(([lista, rot]) => {
+    Object.entries(porCategoria(lista)).forEach(([cat, rs]) => {
+      const datas = [...new Set(rs.map(r => r.dataOcorrido))];
+      if (datas.length >= 2) recorrentes.push(avItem(`${rot} em ${cat} registrado em ${datas.length} datas diferentes (${datas.map(formatarDataBr).join(', ')}).`, rs.map(r => r.id), 'interpretacao'));
+    });
+  });
+  const metasAnteriores = (metas || []).filter(m => m.funcionarioId === fid && (m.criadoEmDia || '') <= fim && (!m.prazo || m.prazo <= fim || m.origemTrimestre === avTriAnterior(tri))).map(m => ({
+    metaId: m.id,
+    descricao: m.descricao,
+    status: m.status,
+    prazo: m.prazo || '',
+    visivelFuncionario: !!m.visivelFuncionario
+  }));
+  const sugestoesMetas = Object.entries(porCategoria(neg)).map(([cat, rs]) => avItem(`Meta sugerida em ${cat}: ${AV_RECOMENDACOES[cat] || 'definir uma ação de melhoria e acompanhar.'}`, rs.map(r => r.id), 'sugestao'));
+  const recomendacoes = Object.keys(porCategoria(neg)).map(cat => avItem(`${cat}: ${AV_RECOMENDACOES[cat] || 'acompanhar e orientar.'}`, porCategoria(neg)[cat].map(r => r.id), 'sugestao'));
+  const notas = {};
+  config.criterios.forEach(c => {
+    const rs = regs.filter(r => (c.categorias || []).includes(r.categoria) || c.id === 'evolucao' && r.tipoId === 'evolucao');
+    const p = rs.filter(r => sentido(r) === '+').length,
+      n = rs.filter(r => sentido(r) === '-').length;
+    if (p + n < 2) notas[c.id] = {
+      sugerida: null,
+      motivo: 'Sem dados suficientes para avaliar',
+      refs: rs.map(r => r.id),
+      confirmada: null,
+      justificativa: ''
+    };else {
+      const nota = Math.max(1, Math.min(5, Math.round(3 + (p - n) / (p + n) * 2)));
+      notas[c.id] = {
+        sugerida: nota,
+        motivo: `${p} registro(s) positivo(s) e ${n} de melhoria (proporção, não quantidade)`,
+        refs: rs.map(r => r.id),
+        confirmada: null,
+        justificativa: ''
+      };
+    }
+  });
+  return {
+    registrosUsados: regs.map(r => r.id),
+    evidenciasSuficientes: suficiente,
+    totalRegistros: regs.length,
+    conteudo: {
+      resumo,
+      pontosPositivos: conclusoes(pos),
+      melhorias: conclusoes(neg),
+      evolucao: doTipo('evolucao'),
+      recorrentes,
+      metasAnteriores,
+      compromissos: doTipo('meta'),
+      acompanhar: doTipo('acompanhar'),
+      feedbacks: doTipo('feedback'),
+      sugestoesMetas,
+      recomendacoes
+    },
+    notas
+  };
+}
+function avMedia(notas, criterios) {
+  let soma = 0,
+    pesos = 0;
+  criterios.forEach(c => {
+    const n = notas && notas[c.id] && notas[c.id].confirmada;
+    if (n) {
+      soma += n * (Number(c.peso) || 1);
+      pesos += Number(c.peso) || 1;
+    }
+  });
+  return pesos ? Math.round(soma / pesos * 100) / 100 : null;
+}
+const AV_SECOES = [['pontosPositivos', 'Principais pontos positivos'], ['melhorias', 'Principais oportunidades de melhoria'], ['evolucao', 'Evolução observada'], ['recorrentes', 'Situações recorrentes'], ['compromissos', 'Compromissos assumidos'], ['acompanhar', 'Aspectos para acompanhar'], ['feedbacks', 'Feedbacks realizados'], ['sugestoesMetas', 'Sugestões de metas para o próximo trimestre'], ['recomendacoes', 'Recomendações de desenvolvimento']];
+const AV_ORIGEM = {
+  fato: 'Fato registrado',
+  interpretacao: 'Interpretação do sistema',
+  sugestao: 'Sugestão do sistema',
+  avaliador: 'Escrito pelo avaliador'
+};
+function avPublicacao(av, funcionario, config, metasNovas) {
+  const limpar = lista => (lista || []).map(i => i.texto).filter(Boolean);
+  const c = av.conteudo || {};
+  return {
+    funcionarioId: av.funcionarioId,
+    funcionarioNome: funcionario ? funcionario.nome : av.funcionarioNome || '',
+    cargo: funcionario ? funcionario.cargo || '' : '',
+    trimestre: av.trimestre,
+    aprovadaEm: new Date().toISOString(),
+    aprovadoPorNome: av.aprovadoPorNome || '',
+    resumo: c.resumo || '',
+    pontosPositivos: limpar(c.pontosPositivos),
+    melhorias: limpar(c.melhorias),
+    evolucao: limpar(c.evolucao),
+    compromissos: limpar(c.compromissos),
+    planoDesenvolvimento: limpar(c.recomendacoes),
+    metasAnteriores: (c.metasAnteriores || []).filter(m => m.visivelFuncionario !== false).map(m => ({
+      descricao: m.descricao,
+      status: m.status
+    })),
+    // metas internas não vão para o funcionário
+    novasMetas: (metasNovas || []).filter(m => m.visivelFuncionario).map(m => ({
+      descricao: m.descricao,
+      prazo: m.prazo || '',
+      criterioConclusao: m.criterioConclusao || ''
+    })),
+    notas: config.criterios.map(cr => ({
+      criterio: cr.nome,
+      peso: Number(cr.peso) || 1,
+      nota: av.notas && av.notas[cr.id] && av.notas[cr.id].confirmada || null,
+      justificativa: av.notas && av.notas[cr.id] && av.notas[cr.id].justificativa || ''
+    })),
+    media: avMedia(av.notas, config.criterios),
+    comentariosAvaliador: av.comentariosAvaliador || '',
+    feedbackEm: av.feedbackEm || '',
+    compromissosFeedback: av.compromissosFeedback || ''
+  };
+}
+
+// ---- PDF da avaliação aprovada (sem anotações internas, transcrições ou dados de outras pessoas)
+async function gerarPdfAvaliacao(p, preliminar) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const mx = 16,
+    larg = 210 - mx * 2,
+    limite = 280;
+  let y = 0;
+  const novaPagina = async () => {
+    doc.addPage();
+    y = 20;
+  };
+  const garantir = async h => {
+    if (y + h > limite) await novaPagina();
+  };
+  const paragrafo = async (texto, tam = 10, estilo = 'normal') => {
+    doc.setFont('helvetica', estilo);
+    doc.setFontSize(tam);
+    doc.setTextColor(40, 34, 33);
+    const linhas = doc.splitTextToSize(String(texto || '-'), larg);
+    for (const l of linhas) {
+      await garantir(5.2);
+      doc.text(l, mx, y);
+      y += 5.2;
+    }
+  };
+  const secao = async titulo => {
+    y += 4;
+    await garantir(14);
+    desenharTituloSecaoTimbrado(doc, titulo, mx, y, larg);
+    y += 8;
+  };
+  const lista = async itens => {
+    if (!itens || !itens.length) {
+      await paragrafo('Nenhum item registrado.', 9.5, 'italic');
+      return;
+    }
+    for (const i of itens) await paragrafo('• ' + i);
+  };
+  await desenharTimbradoCabecalho(doc);
+  y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text('AVALIAÇÃO DE DESEMPENHO', mx, y);
+  if (preliminar) {
+    doc.setTextColor(200, 40, 30);
+    doc.setFontSize(11);
+    doc.text('PRELIMINAR — NÃO APROVADA', 210 - mx, y, {
+      align: 'right'
+    });
+    doc.setTextColor(40, 34, 33);
+  }
+  y += 10;
+  desenharCampoTimbrado(doc, 'Empresa', 'Tecnopemt — Tecnologia em Plataformas Elevatórias', mx, y);
+  desenharCampoTimbrado(doc, 'Período avaliado', avRotuloTri(p.trimestre), mx + 110, y);
+  y += 11;
+  desenharCampoTimbrado(doc, 'Funcionário', p.funcionarioNome, mx, y);
+  desenharCampoTimbrado(doc, 'Cargo / função', p.cargo || '-', mx + 110, y);
+  y += 11;
+  desenharCampoTimbrado(doc, 'Data da avaliação', p.aprovadaEm ? new Date(p.aprovadaEm).toLocaleDateString('pt-BR') : '-', mx, y);
+  desenharCampoTimbrado(doc, 'Avaliador', p.aprovadoPorNome || '-', mx + 110, y);
+  y += 10;
+  await secao('Resumo do desempenho');
+  await paragrafo(p.resumo);
+  await secao('Pontos positivos');
+  await lista(p.pontosPositivos);
+  await secao('Oportunidades de melhoria');
+  await lista(p.melhorias);
+  if (p.evolucao && p.evolucao.length) {
+    await secao('Evolução observada');
+    await lista(p.evolucao);
+  }
+  await secao('Critérios e notas confirmadas');
+  for (const n of p.notas || []) await paragrafo(`${n.criterio} (peso ${n.peso}): ${n.nota ? `${n.nota} — ${AV_ESCALA[n.nota]}` : 'Sem dados suficientes para avaliar'}${n.justificativa ? ` · ${n.justificativa}` : ''}`, 9.5);
+  await paragrafo(p.media ? `Média ponderada (só critérios com nota): ${String(p.media).replace('.', ',')}` : 'Média: sem notas confirmadas.', 10, 'bold');
+  await secao('Metas anteriores e resultados');
+  await lista((p.metasAnteriores || []).map(m => `${m.descricao} — ${m.status || '-'}`));
+  await secao('Novas metas acordadas');
+  await lista((p.novasMetas || []).map(m => `${m.descricao}${m.prazo ? ` (prazo ${formatarDataBr(m.prazo)})` : ''}${m.criterioConclusao ? ` — concluída quando: ${m.criterioConclusao}` : ''}`));
+  await secao('Plano de desenvolvimento');
+  await lista(p.planoDesenvolvimento);
+  if (p.compromissos && p.compromissos.length) {
+    await secao('Compromissos assumidos');
+    await lista(p.compromissos);
+  }
+  await secao('Comentários do avaliador');
+  await paragrafo(p.comentariosAvaliador || '-');
+  await secao('Feedback');
+  await paragrafo(p.feedbackEm ? `Feedback realizado em ${formatarDataBr(p.feedbackEm)}.${p.compromissosFeedback ? ' Compromissos: ' + p.compromissosFeedback : ''}` : 'Feedback ainda não registrado.');
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(140, 130, 128);
+    doc.text(`Página ${i} de ${total}`, 210 - mx, 290, {
+      align: 'right'
+    });
+    if (preliminar) doc.text('Documento preliminar — sujeito a revisão', mx, 290);
+  }
+  doc.save(`Avaliação de desempenho - ${(p.funcionarioNome || '').slice(0, 40)} - ${p.trimestre}${preliminar ? ' - PRELIMINAR' : ''}.pdf`);
+}
+function AvEditorAvaliacao({
+  avaliacao,
+  funcionario,
+  usuario,
+  config,
+  registros,
+  metas,
+  aoFechar,
+  aoNovaMeta
+}) {
+  const editavel = avaliacao.status === 'rascunho' || avaliacao.status === 'em_revisao';
+  const [av, setAv] = useState(avaliacao);
+  const [salvando, setSalvando] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [erro, setErro] = useState('');
+  const [verRegistro, setVerRegistro] = useState(null);
+  const [aprovando, setAprovando] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  const [corrigindo, setCorrigindo] = useState(null);
+  useEffect(() => {
+    setAv(avaliacao);
+  }, [avaliacao.status, avaliacao.versoes && avaliacao.versoes.length]);
+  const c = av.conteudo || {};
+  const setItem = (secao, id, texto) => setAv(x => ({
+    ...x,
+    conteudo: {
+      ...x.conteudo,
+      [secao]: x.conteudo[secao].map(i => i.id === id ? {
+        ...i,
+        texto
+      } : i)
+    }
+  }));
+  const tirarItem = (secao, id) => setAv(x => ({
+    ...x,
+    conteudo: {
+      ...x.conteudo,
+      [secao]: x.conteudo[secao].filter(i => i.id !== id)
+    }
+  }));
+  const addItem = secao => setAv(x => ({
+    ...x,
+    conteudo: {
+      ...x.conteudo,
+      [secao]: [...(x.conteudo[secao] || []), avItem('', [], 'avaliador')]
+    }
+  }));
+  const setNota = (cid, k, v) => setAv(x => ({
+    ...x,
+    notas: {
+      ...x.notas,
+      [cid]: {
+        ...(x.notas[cid] || {}),
+        [k]: v
+      }
+    }
+  }));
+  const media = avMedia(av.notas, config.criterios);
+  const ref = db.collection('avaliacoesTrimestrais').doc(avaliacao.id);
+  const hist = texto => ({
+    em: new Date().toISOString(),
+    porNome: usuario.nome || '-',
+    texto
+  });
+  async function salvarRevisao() {
+    setSalvando(true);
+    setErro('');
+    setMsg('');
+    try {
+      await ref.update({
+        conteudo: av.conteudo,
+        notas: av.notas,
+        comentariosAvaliador: av.comentariosAvaliador || '',
+        status: 'em_revisao',
+        media,
+        registrosUsados: av.registrosUsados || [],
+        evidenciasSuficientes: !!av.evidenciasSuficientes,
+        totalRegistros: av.totalRegistros || 0,
+        revisadoEm: new Date().toISOString(),
+        historico: [...(avaliacao.historico || []), hist('salvou a revisão')]
+      });
+      setMsg('✓ Revisão salva.');
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui salvar a revisão. Nada foi alterado.');
+    }
+    setSalvando(false);
+  }
+  async function regenerar() {
+    if (!confirm('Montar de novo a partir dos registros atuais? Os textos editados nas seções serão substituídos; as notas já confirmadas e os comentários do avaliador ficam.')) return;
+    const g = avGerarRascunho(avaliacao.funcionarioId, avaliacao.trimestre, registros, metas, config);
+    const notas = {};
+    Object.keys(g.notas).forEach(k => {
+      const antes = av.notas && av.notas[k];
+      notas[k] = {
+        ...g.notas[k],
+        confirmada: antes ? antes.confirmada : null,
+        justificativa: antes ? antes.justificativa : ''
+      };
+    });
+    setAv(x => ({
+      ...x,
+      ...g,
+      notas
+    }));
+    setMsg('Montado de novo a partir dos registros. Clique em "Salvar revisão" para gravar.');
+  }
+  const pendentesNota = config.criterios.filter(cr => {
+    const n = av.notas && av.notas[cr.id];
+    return n && n.sugerida && !n.confirmada;
+  });
+  async function aprovar() {
+    setSalvando(true);
+    setErro('');
+    try {
+      const metasNovas = (metas || []).filter(m => m.origemAvaliacaoId === avaliacao.id);
+      const aprovado = {
+        ...av,
+        aprovadoPorNome: usuario.nome || '-'
+      };
+      const lote = db.batch();
+      lote.update(ref, {
+        conteudo: av.conteudo,
+        notas: av.notas,
+        comentariosAvaliador: av.comentariosAvaliador || '',
+        media,
+        status: 'aprovada',
+        aprovadaEm: new Date().toISOString(),
+        aprovadoPorId: usuario.id,
+        aprovadoPorNome: usuario.nome || '-',
+        historico: [...(avaliacao.historico || []), hist('aprovou a avaliação')]
+      });
+      lote.set(db.collection('avaliacoesPublicadas').doc(avaliacao.id), avPublicacao(aprovado, funcionario, config, metasNovas));
+      await lote.commit();
+      setAprovando(false);
+      setMsg('✓ Avaliação aprovada e disponível para o funcionário.');
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui aprovar. Nada foi alterado.');
+    }
+    setSalvando(false);
+  }
+  async function registrarFeedback() {
+    if (!feedback.data) {
+      setErro('Informe a data do feedback.');
+      return;
+    }
+    setSalvando(true);
+    setErro('');
+    try {
+      const lote = db.batch();
+      lote.update(ref, {
+        status: 'feedback',
+        feedbackEm: feedback.data,
+        feedbackPorId: usuario.id,
+        feedbackPorNome: usuario.nome || '-',
+        compromissosFeedback: feedback.compromissos || '',
+        historico: [...(avaliacao.historico || []), hist(`registrou o feedback de ${formatarDataBr(feedback.data)}`)]
+      });
+      lote.set(db.collection('avaliacoesPublicadas').doc(avaliacao.id), {
+        feedbackEm: feedback.data,
+        compromissosFeedback: feedback.compromissos || ''
+      }, {
+        merge: true
+      });
+      await lote.commit();
+      setFeedback(null);
+      setMsg('✓ Feedback registrado.');
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui registrar o feedback.');
+    }
+    setSalvando(false);
+  }
+  async function abrirCorrecao() {
+    if (!corrigindo.justificativa.trim()) {
+      setErro('Explique o motivo da correção.');
+      return;
+    }
+    setSalvando(true);
+    setErro('');
+    try {
+      await ref.update({
+        status: 'em_revisao',
+        versoes: [...(avaliacao.versoes || []), {
+          em: new Date().toISOString(),
+          porNome: usuario.nome || '-',
+          justificativa: corrigindo.justificativa.trim(),
+          statusAnterior: avaliacao.status,
+          conteudo: avaliacao.conteudo,
+          notas: avaliacao.notas,
+          comentariosAvaliador: avaliacao.comentariosAvaliador || '',
+          media: avaliacao.media || null
+        }],
+        historico: [...(avaliacao.historico || []), hist(`reabriu a avaliação aprovada para correção: ${corrigindo.justificativa.trim()}`)]
+      });
+      setCorrigindo(null);
+      setMsg('Avaliação reaberta para correção. A versão aprovada anterior fica guardada no histórico de versões; o funcionário continua vendo a versão aprovada até a nova aprovação.');
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui reabrir a avaliação.');
+    }
+    setSalvando(false);
+  }
+  const RefChips = ({
+    refs
+  }) => refs && refs.length ? /*#__PURE__*/React.createElement("span", {
+    className: "av-refs"
+  }, refs.map(id => {
+    const r = registros.find(x => x.id === id);
+    return r ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      key: id,
+      className: "av-ref",
+      onClick: () => setVerRegistro(r),
+      title: r.descricao
+    }, "\uD83D\uDCCE ", formatarDataBr(r.dataOcorrido)) : null;
+  })) : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal av-modal-avaliacao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-cab-avaliacao"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0
+    }
+  }, "Avalia\xE7\xE3o de ", funcionario ? funcionario.nome : avaliacao.funcionarioNome), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, avRotuloTri(avaliacao.trimestre), " \xB7 ", /*#__PURE__*/React.createElement("span", {
+    className: `av-status s-${avaliacao.status}`
+  }, AV_STATUS[avaliacao.status]), avaliacao.aprovadoPorNome && (avaliacao.status === 'aprovada' || avaliacao.status === 'feedback') ? ` · aprovada por ${avaliacao.aprovadoPorNome}` : '')), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: aoFechar
+  }, "Fechar")), !av.evidenciasSuficientes && /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, "Evid\xEAncias insuficientes: h\xE1 ", av.totalRegistros || 0, " registro(s) no per\xEDodo. Use as conclus\xF5es com cautela; crit\xE9rios sem evid\xEAncia ficam \u201Csem dados suficientes\u201D."), /*#__PURE__*/React.createElement("div", {
+    className: "av-legenda"
+  }, Object.entries(AV_ORIGEM).map(([k, n]) => /*#__PURE__*/React.createElement("span", {
+    key: k,
+    className: `av-origem o-${k}`
+  }, n)), " \xB7 \uD83D\uDCCE = registro que fundamenta (clique para ver)"), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Resumo geral"), editavel ? /*#__PURE__*/React.createElement("textarea", {
+    rows: 4,
+    value: c.resumo || '',
+    onChange: e => setAv(x => ({
+      ...x,
+      conteudo: {
+        ...x.conteudo,
+        resumo: e.target.value
+      }
+    }))
+  }) : /*#__PURE__*/React.createElement("p", {
+    className: "av-texto"
+  }, c.resumo), AV_SECOES.map(([k, titulo]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, titulo), (c[k] || []).length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nada registrado no per\xEDodo."), (c[k] || []).map(i => /*#__PURE__*/React.createElement("div", {
+    key: i.id,
+    className: "av-item"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `av-origem o-${i.origem}`
+  }, AV_ORIGEM[i.origem]), editavel ? /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: i.texto,
+    onChange: e => setItem(k, i.id, e.target.value)
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "av-texto"
+  }, i.texto), /*#__PURE__*/React.createElement("div", {
+    className: "av-item-rodape"
+  }, /*#__PURE__*/React.createElement(RefChips, {
+    refs: i.refs
+  }), editavel && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => tirarItem(k, i.id)
+  }, "Tirar"), k === 'sugestoesMetas' && avaliacao.status !== 'rascunho' && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => aoNovaMeta({
+      funcionarioId: avaliacao.funcionarioId,
+      descricao: i.texto.replace(/^Meta sugerida em [^:]+:\s*/, ''),
+      origemAvaliacaoId: avaliacao.id,
+      origemTrimestre: avaliacao.trimestre
+    })
+  }, "Aprovar como meta")))), editavel && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => addItem(k)
+  }, "+ Acrescentar"))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Metas anteriores e resultados"), (c.metasAnteriores || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhuma meta anterior.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, c.metasAnteriores.map(m => {
+    const atual = (metas || []).find(x => x.id === m.metaId);
+    return /*#__PURE__*/React.createElement("li", {
+      key: m.metaId
+    }, m.descricao, " \u2014 ", /*#__PURE__*/React.createElement("strong", null, atual ? atual.status : m.status), m.prazo ? ` (prazo ${formatarDataBr(m.prazo)})` : '', m.visivelFuncionario === false ? /*#__PURE__*/React.createElement("span", {
+      className: "av-dica"
+    }, " \xB7 interna (n\xE3o vai para o funcion\xE1rio)") : '');
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Crit\xE9rios e notas"), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela av-notas"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Crit\xE9rio"), /*#__PURE__*/React.createElement("th", null, "Peso"), /*#__PURE__*/React.createElement("th", null, "Sugest\xE3o do sistema"), /*#__PURE__*/React.createElement("th", null, "Nota confirmada"), /*#__PURE__*/React.createElement("th", null, "Justificativa"))), /*#__PURE__*/React.createElement("tbody", null, config.criterios.map(cr => {
+    const n = (av.notas || {})[cr.id] || {
+      sugerida: null,
+      motivo: 'Sem dados suficientes para avaliar'
+    };
+    return /*#__PURE__*/React.createElement("tr", {
+      key: cr.id
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Crit\xE9rio"
+    }, cr.nome), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Peso"
+    }, cr.peso || 1), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Sugest\xE3o"
+    }, n.sugerida ? `${n.sugerida} — ${AV_ESCALA[n.sugerida]}` : 'Sem dados suficientes para avaliar', /*#__PURE__*/React.createElement("div", {
+      className: "av-dica"
+    }, n.sugerida ? n.motivo : '', " ", /*#__PURE__*/React.createElement(RefChips, {
+      refs: n.refs
+    }))), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Nota"
+    }, editavel ? /*#__PURE__*/React.createElement("select", {
+      value: n.confirmada || '',
+      onChange: e => setNota(cr.id, 'confirmada', e.target.value ? Number(e.target.value) : null),
+      "aria-label": `Nota de ${cr.nome}`
+    }, /*#__PURE__*/React.createElement("option", {
+      value: ""
+    }, n.sugerida ? 'Confirmar…' : 'Sem nota'), [1, 2, 3, 4, 5].map(v => /*#__PURE__*/React.createElement("option", {
+      key: v,
+      value: v
+    }, v, " \u2014 ", AV_ESCALA[v]))) : n.confirmada ? `${n.confirmada} — ${AV_ESCALA[n.confirmada]}` : 'Sem nota'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Justificativa"
+    }, editavel ? /*#__PURE__*/React.createElement("input", {
+      value: n.justificativa || '',
+      onChange: e => setNota(cr.id, 'justificativa', e.target.value),
+      "aria-label": `Justificativa de ${cr.nome}`
+    }) : n.justificativa || '-'));
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "av-media"
+  }, "M\xE9dia ponderada: ", /*#__PURE__*/React.createElement("strong", null, media ? String(media).replace('.', ',') : '—'), " ", /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "(soma de nota \xD7 peso \xF7 soma dos pesos, s\xF3 dos crit\xE9rios com nota confirmada; crit\xE9rios sem dados n\xE3o contam como zero)"))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Coment\xE1rios do avaliador"), editavel ? /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: av.comentariosAvaliador || '',
+    onChange: e => setAv(x => ({
+      ...x,
+      comentariosAvaliador: e.target.value
+    }))
+  }) : /*#__PURE__*/React.createElement("p", {
+    className: "av-texto"
+  }, av.comentariosAvaliador || '-')), avaliacao.feedbackEm && /*#__PURE__*/React.createElement("div", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Feedback"), /*#__PURE__*/React.createElement("p", {
+    className: "av-texto"
+  }, "Realizado em ", formatarDataBr(avaliacao.feedbackEm), " por ", avaliacao.feedbackPorNome, ".", avaliacao.compromissosFeedback ? ` Compromissos: ${avaliacao.compromissosFeedback}` : '')), (avaliacao.versoes || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Vers\xF5es anteriores"), /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, avaliacao.versoes.slice().reverse().map((v, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(v.em), " \u2014 ", v.porNome, " reabriu (", AV_STATUS[v.statusAnterior] || v.statusAnterior, "). Motivo: ", v.justificativa, ". M\xE9dia anterior: ", v.media ? String(v.media).replace('.', ',') : '—')))), (avaliacao.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("summary", {
+    className: "av-secao-titulo"
+  }, "Hist\xF3rico desta avalia\xE7\xE3o"), /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, avaliacao.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(h.em), " \u2014 ", h.porNome, " ", h.texto)))), aprovando && /*#__PURE__*/React.createElement("div", {
+    className: "av-confirmar"
+  }, pendentesNota.length ? /*#__PURE__*/React.createElement(React.Fragment, null, "Antes de aprovar, confirme (ou deixe sem nota, com justificativa) os crit\xE9rios com sugest\xE3o: ", /*#__PURE__*/React.createElement("strong", null, pendentesNota.map(x => x.nome).join(', ')), ".") : /*#__PURE__*/React.createElement(React.Fragment, null, "Aprovar a avalia\xE7\xE3o de ", /*#__PURE__*/React.createElement("strong", null, funcionario ? funcionario.nome : ''), "? Ela passa a ser um registro hist\xF3rico e fica dispon\xEDvel para o funcion\xE1rio. Corre\xE7\xF5es depois s\xF3 com justificativa."), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes-voz"
+  }, !pendentesNota.length && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: aprovar,
+    disabled: salvando
+  }, "Aprovar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setAprovando(false)
+  }, "Voltar"))), feedback && /*#__PURE__*/React.createElement("div", {
+    className: "av-confirmar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 0
+    }
+  }, "Data do feedback"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: feedback.data,
+    max: avHoje(),
+    onChange: e => setFeedback({
+      ...feedback,
+      data: e.target.value
+    })
+  }))), /*#__PURE__*/React.createElement("label", null, "Compromissos acordados com o funcion\xE1rio"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: feedback.compromissos,
+    onChange: e => setFeedback({
+      ...feedback,
+      compromissos: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes-voz"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: registrarFeedback,
+    disabled: salvando
+  }, "Registrar feedback"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setFeedback(null)
+  }, "Voltar"))), corrigindo && /*#__PURE__*/React.createElement("div", {
+    className: "av-confirmar"
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      marginTop: 0
+    }
+  }, "Motivo para corrigir a avalia\xE7\xE3o aprovada (obrigat\xF3rio; a vers\xE3o atual fica guardada)"), /*#__PURE__*/React.createElement("input", {
+    value: corrigindo.justificativa,
+    onChange: e => setCorrigindo({
+      justificativa: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes-voz"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo pequeno",
+    onClick: abrirCorrecao,
+    disabled: salvando
+  }, "Reabrir para corre\xE7\xE3o"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setCorrigindo(null)
+  }, "Voltar"))), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-ok",
+    role: "status"
+  }, msg), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, editavel && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: regenerar,
+    disabled: salvando
+  }, "Montar de novo pelos registros"), ehMaster(usuario) && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => gerarPdfAvaliacao(avPublicacao({
+      ...av,
+      aprovadoPorNome: ''
+    }, funcionario, config, []), true)
+  }, "PDF preliminar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: salvarRevisao,
+    disabled: salvando
+  }, salvando ? 'Salvando…' : 'Salvar revisão'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => setAprovando(true),
+    disabled: salvando
+  }, "Aprovar\u2026")), !editavel && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setCorrigindo({
+      justificativa: ''
+    })
+  }, "Corrigir\u2026"), avaliacao.status === 'aprovada' && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setFeedback({
+      data: avHoje(),
+      compromissos: ''
+    })
+  }, "Registrar feedback"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => gerarPdfAvaliacao(avPublicacao(avaliacao, funcionario, config, (metas || []).filter(m => m.origemAvaliacaoId === avaliacao.id)), false)
+  }, "Gerar PDF"))), verRegistro && /*#__PURE__*/React.createElement(AvModalRegistro, {
+    registro: verRegistro,
+    usuario: {
+      ...usuario,
+      perfil: 'somenteLeitura'
+    },
+    funcionarios: funcionario ? [funcionario] : [],
+    config: config,
+    aoFechar: () => setVerRegistro(null)
+  })));
+}
+function AvTrimestrais({
+  usuario,
+  funcionarios,
+  config,
+  registros,
+  avaliacoes,
+  metas,
+  aoNovaMeta
+}) {
+  const tris = avTrimestresRecentes(6);
+  const [tri, setTri] = useState(() => avTriAnterior(tris[0]));
+  const [aberta, setAberta] = useState(null);
+  const [gerando, setGerando] = useState('');
+  const [erro, setErro] = useState('');
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const triAtual = tris[0];
+  const {
+    inicio,
+    fim
+  } = avLimites(tri);
+  async function gerar(f) {
+    setGerando(f.id);
+    setErro('');
+    try {
+      const id = avIdAvaliacao(f.id, tri);
+      const refDoc = db.collection('avaliacoesTrimestrais').doc(id);
+      const existe = await refDoc.get();
+      if (existe.exists) {
+        setAberta(id);
+        setGerando('');
+        return;
+      } // nunca duplica
+      const g = avGerarRascunho(f.id, tri, registros, metas, config);
+      await refDoc.set({
+        funcionarioId: f.id,
+        funcionarioNome: f.nome,
+        trimestre: tri,
+        status: 'rascunho',
+        geradoEm: new Date().toISOString(),
+        geradoPorNome: usuario.nome || '-',
+        ...g,
+        comentariosAvaliador: '',
+        historico: [{
+          em: new Date().toISOString(),
+          porNome: usuario.nome || '-',
+          texto: 'gerou a avaliação preliminar a partir dos registros'
+        }],
+        versoes: []
+      });
+      setAberta(id);
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui gerar a avaliação. Verifique a conexão.');
+    }
+    setGerando('');
+  }
+  const avAberta = aberta ? avaliacoes.find(a => a.id === aberta) : null;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: tri,
+    onChange: e => setTri(e.target.value),
+    "aria-label": "Trimestre"
+  }, tris.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t,
+    value: t
+  }, avRotuloTri(t), t === triAtual ? ' (em andamento)' : ''))), /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, formatarDataBr(inicio), " a ", formatarDataBr(fim))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Registros no per\xEDodo"), /*#__PURE__*/React.createElement("th", null, "Situa\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, avaliaveis.map(f => {
+    const a = avaliacoes.find(x => x.id === avIdAvaliacao(f.id, tri));
+    const n = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim).length;
+    const status = a ? a.status : tri === triAtual ? 'em_formacao' : 'aguardando';
+    return /*#__PURE__*/React.createElement("tr", {
+      key: f.id
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Funcion\xE1rio"
+    }, f.nome), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Registros"
+    }, n, n < AV_MIN_EVIDENCIAS ? /*#__PURE__*/React.createElement("span", {
+      className: "av-dica"
+    }, " \xB7 evid\xEAncias insuficientes") : ''), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Situa\xE7\xE3o"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `av-status s-${status}`
+    }, AV_STATUS[status]), a && a.media ? ` · média ${String(a.media).replace('.', ',')}` : ''), /*#__PURE__*/React.createElement("td", null, a ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => setAberta(a.id)
+    }, "Abrir") : /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn pequeno",
+      disabled: !!gerando,
+      onClick: () => gerar(f)
+    }, gerando === f.id ? 'Gerando…' : tri === triAtual ? 'Gerar prévia' : 'Gerar avaliação preliminar')));
+  })))), tri === triAtual && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "O trimestre ainda est\xE1 em andamento: uma avalia\xE7\xE3o gerada agora considera s\xF3 os registros at\xE9 hoje (d\xE1 para montar de novo depois)."), avAberta && /*#__PURE__*/React.createElement(AvEditorAvaliacao, {
+    key: avAberta.id + avAberta.status + (avAberta.versoes || []).length,
+    avaliacao: avAberta,
+    funcionario: funcionarios.find(x => x.id === avAberta.funcionarioId),
+    usuario: usuario,
+    config: config,
+    registros: registros,
+    metas: metas,
+    aoFechar: () => setAberta(null),
+    aoNovaMeta: aoNovaMeta
+  }));
+}
+
+// ---- metas e plano de desenvolvimento
+function AvModalMeta({
+  meta,
+  inicial,
+  usuario,
+  funcionarios,
+  registros,
+  aoFechar
+}) {
+  const nova = !meta;
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const [f, setF] = useState(() => meta ? {
+    ...meta
+  } : {
+    funcionarioId: '',
+    descricao: '',
+    objetivo: '',
+    criterioConclusao: '',
+    prazo: '',
+    responsavelNome: usuario.nome || '',
+    status: 'Não iniciada',
+    visivelFuncionario: true,
+    ...(inicial || {})
+  });
+  const [comentario, setComentario] = useState('');
+  const [justificativa, setJustificativa] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  const set = (k, v) => setF(x => ({
+    ...x,
+    [k]: v
+  }));
+  const hist = texto => ({
+    em: new Date().toISOString(),
+    porNome: usuario.nome || '-',
+    texto
+  });
+  const evidenciasPossiveis = registros.filter(r => r.funcionarioId === f.funcionarioId && r.status !== 'removido').sort((a, b) => b.dataOcorrido.localeCompare(a.dataOcorrido)).slice(0, 40);
+  async function salvar() {
+    if (!f.funcionarioId) {
+      setErro('Escolha o funcionário.');
+      return;
+    }
+    if (!String(f.descricao || '').trim()) {
+      setErro('Descreva a meta.');
+      return;
+    }
+    if (f.status === 'Cancelada' && (!meta || meta.status !== 'Cancelada') && !justificativa.trim()) {
+      setErro('Para cancelar uma meta, informe a justificativa.');
+      return;
+    }
+    setSalvando(true);
+    setErro('');
+    try {
+      const alvo = funcionarios.find(x => x.id === f.funcionarioId);
+      const dados = {
+        funcionarioId: f.funcionarioId,
+        funcionarioNome: alvo ? alvo.nome : '',
+        descricao: f.descricao.trim(),
+        objetivo: f.objetivo || '',
+        criterioConclusao: f.criterioConclusao || '',
+        prazo: f.prazo || '',
+        responsavelNome: f.responsavelNome || '',
+        status: f.status,
+        visivelFuncionario: !!f.visivelFuncionario,
+        evidencias: f.evidencias || []
+      };
+      if (nova) {
+        await db.collection('avaliacaoMetas').add({
+          ...dados,
+          comentarios: [],
+          origemAvaliacaoId: f.origemAvaliacaoId || '',
+          origemTrimestre: f.origemTrimestre || avTrimestreDe(avHoje()),
+          criadoEmDia: avHoje(),
+          criadoEm: new Date().toISOString(),
+          criadoPorId: usuario.id,
+          criadoPorNome: usuario.nome || '-',
+          historico: [hist('criou a meta')]
+        });
+      } else {
+        const mudou = [];
+        if (meta.status !== f.status) mudou.push(`status: ${meta.status} → ${f.status}`);
+        ['descricao', 'objetivo', 'criterioConclusao', 'prazo', 'responsavelNome'].forEach(k => {
+          if (String(meta[k] || '') !== String(dados[k] || '')) mudou.push(k === 'prazo' ? `prazo: ${meta.prazo ? formatarDataBr(meta.prazo) : '-'} → ${dados.prazo ? formatarDataBr(dados.prazo) : '-'}` : `alterou ${k === 'criterioConclusao' ? 'critério de conclusão' : k === 'responsavelNome' ? 'responsável' : k}`);
+        });
+        if (!!meta.visivelFuncionario !== dados.visivelFuncionario) mudou.push(dados.visivelFuncionario ? 'tornou visível ao funcionário' : 'ocultou do funcionário');
+        if ((meta.evidencias || []).join() !== dados.evidencias.join()) mudou.push('atualizou as evidências');
+        await db.collection('avaliacaoMetas').doc(meta.id).update({
+          ...dados,
+          ...(f.status === 'Cancelada' && meta.status !== 'Cancelada' ? {
+            justificativaCancelamento: justificativa.trim()
+          } : {}),
+          historico: [...(meta.historico || []), ...(mudou.length ? [hist(mudou.join('; ') + (justificativa.trim() ? ` (motivo: ${justificativa.trim()})` : ''))] : [])]
+        });
+      }
+      aoFechar(true);
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui salvar a meta. Nada foi alterado.');
+      setSalvando(false);
+    }
+  }
+  async function comentar() {
+    if (!comentario.trim()) return;
+    setSalvando(true);
+    try {
+      await db.collection('avaliacaoMetas').doc(meta.id).update({
+        comentarios: [...(meta.comentarios || []), {
+          em: new Date().toISOString(),
+          porNome: usuario.nome || '-',
+          texto: comentario.trim()
+        }]
+      });
+      setComentario('');
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui salvar o comentário.');
+    }
+    setSalvando(false);
+  }
+  const alternarEvidencia = id => set('evidencias', (f.evidencias || []).includes(id) ? f.evidencias.filter(x => x !== id) : [...(f.evidencias || []), id]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal av-modal-registro"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, nova ? 'Nova meta' : 'Meta'), /*#__PURE__*/React.createElement("label", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("select", {
+    value: f.funcionarioId,
+    onChange: e => set('funcionarioId', e.target.value),
+    disabled: !nova
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Escolha\u2026"), avaliaveis.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome))), /*#__PURE__*/React.createElement("label", null, "Meta"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: f.descricao,
+    onChange: e => set('descricao', e.target.value)
+  }), /*#__PURE__*/React.createElement("label", null, "Objetivo"), /*#__PURE__*/React.createElement("input", {
+    value: f.objetivo,
+    onChange: e => set('objetivo', e.target.value)
+  }), /*#__PURE__*/React.createElement("label", null, "Crit\xE9rio de conclus\xE3o (como saber que foi cumprida)"), /*#__PURE__*/React.createElement("input", {
+    value: f.criterioConclusao,
+    onChange: e => set('criterioConclusao', e.target.value)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Prazo"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.prazo,
+    onChange: e => set('prazo', e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Respons\xE1vel pelo acompanhamento"), /*#__PURE__*/React.createElement("input", {
+    value: f.responsavelNome,
+    onChange: e => set('responsavelNome', e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Status"), /*#__PURE__*/React.createElement("select", {
+    value: f.status,
+    onChange: e => set('status', e.target.value)
+  }, AV_STATUS_META.map(s => /*#__PURE__*/React.createElement("option", {
+    key: s
+  }, s)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "av-check",
+    style: {
+      marginTop: 30
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: !!f.visivelFuncionario,
+    onChange: e => set('visivelFuncionario', e.target.checked)
+  }), " Vis\xEDvel para o funcion\xE1rio"))), f.status === 'Cancelada' && (!meta || meta.status !== 'Cancelada') && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Justificativa do cancelamento (obrigat\xF3ria)"), /*#__PURE__*/React.createElement("input", {
+    value: justificativa,
+    onChange: e => setJustificativa(e.target.value)
+  })), meta && meta.justificativaCancelamento && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Cancelada: ", meta.justificativaCancelamento), f.funcionarioId && evidenciasPossiveis.length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("summary", {
+    className: "av-secao-titulo"
+  }, "Evid\xEAncias (registros ligados a esta meta): ", (f.evidencias || []).length), evidenciasPossiveis.map(r => /*#__PURE__*/React.createElement("label", {
+    key: r.id,
+    className: "av-check av-evidencia"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: (f.evidencias || []).includes(r.id),
+    onChange: () => alternarEvidencia(r.id)
+  }), " ", formatarDataBr(r.dataOcorrido), " \u2014 ", r.descricao))), meta && /*#__PURE__*/React.createElement("div", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Coment\xE1rios de acompanhamento"), (meta.comentarios || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhum coment\xE1rio.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, meta.comentarios.map((c, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(c.em), " \u2014 ", c.porNome, ": ", c.texto))), /*#__PURE__*/React.createElement("div", {
+    className: "av-linha"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: comentario,
+    onChange: e => setComentario(e.target.value),
+    placeholder: "Escreva um coment\xE1rio",
+    "aria-label": "Coment\xE1rio"
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: comentar,
+    disabled: salvando || !comentario.trim()
+  }, "Comentar"))), meta && (meta.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("summary", {
+    className: "av-secao-titulo"
+  }, "Hist\xF3rico"), /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, meta.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(h.em), " \u2014 ", h.porNome, " ", h.texto)))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoFechar()
+  }, "Fechar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: salvar,
+    disabled: salvando
+  }, salvando ? 'Salvando…' : 'Salvar meta'))));
+}
+const avMetaAtrasada = m => m.prazo && m.prazo < avHoje() && !['Concluída', 'Cancelada', 'Não concluída', 'Parcialmente concluída'].includes(m.status);
+function AvMetas({
+  usuario,
+  funcionarios,
+  registros,
+  metas,
+  aoNovaMeta
+}) {
+  const [filtroF, setFiltroF] = useState('');
+  const [filtroS, setFiltroS] = useState('abertas');
+  const [aberta, setAberta] = useState(null);
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const ids = new Set(avaliaveis.map(x => x.id));
+  const lista = metas.filter(m => ids.has(m.funcionarioId) && (!filtroF || m.funcionarioId === filtroF) && (filtroS === 'todas' || (filtroS === 'abertas' ? ['Não iniciada', 'Em andamento'].includes(m.status) : filtroS === 'atrasadas' ? avMetaAtrasada(m) : m.status === filtroS))).sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999'));
+  const metaAberta = aberta ? metas.find(m => m.id === aberta) : null;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: filtroF,
+    onChange: e => setFiltroF(e.target.value),
+    "aria-label": "Funcion\xE1rio"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todos os funcion\xE1rios"), avaliaveis.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome))), /*#__PURE__*/React.createElement("select", {
+    value: filtroS,
+    onChange: e => setFiltroS(e.target.value),
+    "aria-label": "Status"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "abertas"
+  }, "Em aberto"), /*#__PURE__*/React.createElement("option", {
+    value: "atrasadas"
+  }, "Atrasadas"), /*#__PURE__*/React.createElement("option", {
+    value: "todas"
+  }, "Todas"), AV_STATUS_META.map(s => /*#__PURE__*/React.createElement("option", {
+    key: s,
+    value: s
+  }, s))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: () => aoNovaMeta({})
+  }, "+ Nova meta")), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Nenhuma meta com esses filtros.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Meta"), /*#__PURE__*/React.createElement("th", null, "Prazo"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Respons\xE1vel"))), /*#__PURE__*/React.createElement("tbody", null, lista.map(m => /*#__PURE__*/React.createElement("tr", {
+    key: m.id,
+    className: "linha-clicavel",
+    onClick: () => setAberta(m.id)
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Funcion\xE1rio"
+  }, m.funcionarioNome), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Meta",
+    className: "av-desc"
+  }, m.descricao, !m.visivelFuncionario ? /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, " \xB7 interna") : ''), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Prazo"
+  }, m.prazo ? formatarDataBr(m.prazo) : '-', avMetaAtrasada(m) ? /*#__PURE__*/React.createElement("span", {
+    className: "av-atrasada"
+  }, " atrasada") : ''), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Status"
+  }, m.status), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Respons\xE1vel"
+  }, m.responsavelNome || '-')))))), metaAberta && /*#__PURE__*/React.createElement(AvModalMeta, {
+    key: metaAberta.id,
+    meta: metaAberta,
+    usuario: usuario,
+    funcionarios: funcionarios,
+    registros: registros,
+    aoFechar: () => setAberta(null)
+  }));
+}
+
+// ---- painel com números reais
+function AvPainel({
+  usuario,
+  funcionarios,
+  registros,
+  avaliacoes,
+  metas,
+  config,
+  aoRegistrar,
+  aoIr
+}) {
+  const hoje = avHoje();
+  const tri = avTrimestreDe(hoje),
+    triAnt = avTriAnterior(tri);
+  const {
+    inicio
+  } = avLimites(tri);
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const ids = new Set(avaliaveis.map(x => x.id));
+  const ativos = registros.filter(r => r.status !== 'removido' && ids.has(r.funcionarioId));
+  const doTri = ativos.filter(r => r.dataOcorrido >= inicio && r.dataOcorrido <= hoje);
+  const semana = formatarDataInput(new Date(Date.now() - 7 * 864e5));
+  const pos = doTri.filter(r => avTipo(config, r.tipoId).sentido === '+').length,
+    neg = doTri.filter(r => avTipo(config, r.tipoId).sentido === '-').length;
+  const avsAnt = avaliacoes.filter(a => a.trimestre === triAnt && ids.has(a.funcionarioId));
+  const pendentes = avaliaveis.filter(f => {
+    const a = avsAnt.find(x => x.funcionarioId === f.id);
+    return !a || a.status === 'rascunho' || a.status === 'em_revisao';
+  });
+  const semFeedback = avsAnt.filter(a => a.status === 'aprovada');
+  const metasAbertas = metas.filter(m => ids.has(m.funcionarioId) && ['Não iniciada', 'Em andamento'].includes(m.status));
+  const atrasadas = metasAbertas.filter(avMetaAtrasada);
+  const semRegistroRecente = avaliaveis.filter(f => !ativos.some(r => r.funcionarioId === f.id && r.dataOcorrido >= semana));
+  const ultimos = ativos.slice().sort((a, b) => (b.dataOcorrido + (b.horaOcorrido || '')).localeCompare(a.dataOcorrido + (a.horaOcorrido || ''))).slice(0, 6);
+  const Ind = ({
+    n,
+    rotulo,
+    destino,
+    alerta
+  }) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `av-ind ${alerta && n ? 'alerta' : ''}`,
+    onClick: () => destino && aoIr(destino)
+  }, /*#__PURE__*/React.createElement("strong", null, n), /*#__PURE__*/React.createElement("span", null, rotulo));
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-botoes-rapidos"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => aoRegistrar({})
+  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-btn-voz",
+    onClick: () => aoRegistrar({
+      voz: true
+    })
+  }, "\uD83C\uDFA4 Registrar por voz"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoIr('trimestrais')
+  }, "Avalia\xE7\xF5es trimestrais"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoIr('metas')
+  }, "Metas")), /*#__PURE__*/React.createElement("div", {
+    className: "av-indicadores"
+  }, /*#__PURE__*/React.createElement(Ind, {
+    n: avaliaveis.length,
+    rotulo: "Funcion\xE1rios avaliados"
+  }), /*#__PURE__*/React.createElement(Ind, {
+    n: doTri.length,
+    rotulo: `Registros no ${avRotuloTri(tri)}`,
+    destino: "historico"
+  }), /*#__PURE__*/React.createElement(Ind, {
+    n: pos,
+    rotulo: "Pontos positivos no trimestre",
+    destino: "historico"
+  }), /*#__PURE__*/React.createElement(Ind, {
+    n: neg,
+    rotulo: "Oportunidades de melhoria no trimestre",
+    destino: "historico"
+  }), /*#__PURE__*/React.createElement(Ind, {
+    n: pendentes.length,
+    rotulo: `Avaliações pendentes (${avRotuloTri(triAnt)})`,
+    destino: "trimestrais",
+    alerta: true
+  }), /*#__PURE__*/React.createElement(Ind, {
+    n: semFeedback.length,
+    rotulo: "Aprovadas aguardando feedback",
+    destino: "trimestrais",
+    alerta: true
+  }), /*#__PURE__*/React.createElement(Ind, {
+    n: metasAbertas.length,
+    rotulo: "Metas em andamento",
+    destino: "metas"
+  }), /*#__PURE__*/React.createElement(Ind, {
+    n: atrasadas.length,
+    rotulo: "Metas atrasadas",
+    destino: "metas",
+    alerta: true
+  })), semRegistroRecente.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, "Sem registros nos \xFAltimos 7 dias: ", semRegistroRecente.map(f => f.nome).join(', '), ". (Isso n\xE3o indica desempenho bom nem ruim.)"), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Por funcion\xE1rio \u2014 ", avRotuloTri(tri)), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Registros"), /*#__PURE__*/React.createElement("th", null, "Positivos"), /*#__PURE__*/React.createElement("th", null, "Melhorias"), /*#__PURE__*/React.createElement("th", null, "\xDAltimo registro"), /*#__PURE__*/React.createElement("th", null, "Avalia\xE7\xE3o ", avRotuloTri(triAnt)), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, avaliaveis.map(f => {
+    const rs = doTri.filter(r => r.funcionarioId === f.id);
+    const ult = ativos.filter(r => r.funcionarioId === f.id).map(r => r.dataOcorrido).sort().pop();
+    const a = avsAnt.find(x => x.funcionarioId === f.id);
+    return /*#__PURE__*/React.createElement("tr", {
+      key: f.id
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Funcion\xE1rio"
+    }, f.nome), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Registros"
+    }, rs.length), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Positivos"
+    }, rs.filter(r => avTipo(config, r.tipoId).sentido === '+').length), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Melhorias"
+    }, rs.filter(r => avTipo(config, r.tipoId).sentido === '-').length), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "\xDAltimo registro"
+    }, ult ? formatarDataBr(ult) : '-'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Avalia\xE7\xE3o"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `av-status s-${a ? a.status : 'aguardando'}`
+    }, AV_STATUS[a ? a.status : 'aguardando'])), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => aoRegistrar({
+        funcionarioId: f.id
+      })
+    }, "Registrar")));
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "\xDAltimos registros"), ultimos.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Ainda n\xE3o h\xE1 registros. Use \u201CNovo registro\u201D ou \u201CRegistrar por voz\u201D.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, ultimos.map(r => /*#__PURE__*/React.createElement("li", {
+    key: r.id
+  }, avDataHora(r), " \u2014 ", /*#__PURE__*/React.createElement("strong", null, (funcionarios.find(x => x.id === r.funcionarioId) || {}).nome || r.funcionarioNome), " \xB7 ", r.tipoNome, " \xB7 ", r.descricao))));
+}
+
+// ---- critérios e configurações
+function AvConfiguracoes({
+  usuario,
+  config
+}) {
+  const [c, setC] = useState(() => JSON.parse(JSON.stringify(config)));
+  const [novaCat, setNovaCat] = useState('');
+  const [msg, setMsg] = useState('');
+  const [erro, setErro] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  useEffect(() => {
+    setC(JSON.parse(JSON.stringify(config)));
+  }, [JSON.stringify(config)]);
+  const setTipo = (i, k, v) => setC(x => ({
+    ...x,
+    tipos: x.tipos.map((t, j) => j === i ? {
+      ...t,
+      [k]: v
+    } : t)
+  }));
+  const setCrit = (i, k, v) => setC(x => ({
+    ...x,
+    criterios: x.criterios.map((t, j) => j === i ? {
+      ...t,
+      [k]: v
+    } : t)
+  }));
+  async function salvar() {
+    if (c.categorias.some(x => !String(x).trim()) || c.tipos.some(t => !String(t.nome).trim()) || c.criterios.some(t => !String(t.nome).trim())) {
+      setErro('Há nomes vazios. Preencha ou tire a linha.');
+      return;
+    }
+    if (c.criterios.some(t => !(Number(t.peso) > 0))) {
+      setErro('Os pesos precisam ser maiores que zero.');
+      return;
+    }
+    setSalvando(true);
+    setErro('');
+    setMsg('');
+    try {
+      await db.collection('avaliacaoConfig').doc('geral').set({
+        categorias: c.categorias.map(x => String(x).trim()),
+        tipos: c.tipos.map(t => ({
+          ...t,
+          nome: t.nome.trim()
+        })),
+        criterios: c.criterios.map(t => ({
+          ...t,
+          nome: t.nome.trim(),
+          peso: Number(t.peso)
+        })),
+        registrosVisiveisFuncionario: !!c.registrosVisiveisFuncionario,
+        lembretesAtivos: !!c.lembretesAtivos,
+        atualizadoPorNome: usuario.nome || '-',
+        atualizadoEmTexto: new Date().toISOString()
+      });
+      setMsg('✓ Configurações salvas. Registros antigos mantêm os nomes com que foram salvos.');
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui salvar as configurações.');
+    }
+    setSalvando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-config"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Visibilidade e lembretes"), /*#__PURE__*/React.createElement("label", {
+    className: "av-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: !!c.registrosVisiveisFuncionario,
+    onChange: e => setC({
+      ...c,
+      registrosVisiveisFuncionario: e.target.checked
+    })
+  }), " O funcion\xE1rio pode ver os pr\xF3prios registros di\xE1rios (por padr\xE3o s\xF3 v\xEA avalia\xE7\xF5es aprovadas e metas vis\xEDveis)"), /*#__PURE__*/React.createElement("label", {
+    className: "av-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: !!c.lembretesAtivos,
+    onChange: e => setC({
+      ...c,
+      lembretesAtivos: e.target.checked
+    })
+  }), " Lembretes autom\xE1ticos por e-mail (avalia\xE7\xF5es pendentes no fim do trimestre, metas atrasadas, funcion\xE1rios sem registros h\xE1 7 dias)")), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Categorias"), /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro"
+  }, c.categorias.map((cat, i) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    className: "av-chip ativo"
+  }, cat, " ", /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-x",
+    "aria-label": `Tirar ${cat}`,
+    onClick: () => setC({
+      ...c,
+      categorias: c.categorias.filter((_, j) => j !== i)
+    })
+  }, "\xD7")))), /*#__PURE__*/React.createElement("div", {
+    className: "av-linha"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: novaCat,
+    onChange: e => setNovaCat(e.target.value),
+    placeholder: "Nova categoria",
+    "aria-label": "Nova categoria"
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      if (novaCat.trim() && !c.categorias.includes(novaCat.trim())) {
+        setC({
+          ...c,
+          categorias: [...c.categorias, novaCat.trim()]
+        });
+        setNovaCat('');
+      }
+    }
+  }, "Acrescentar"))), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Tipos de registro"), c.tipos.map((t, i) => /*#__PURE__*/React.createElement("div", {
+    key: t.id,
+    className: "av-linha"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: t.nome,
+    onChange: e => setTipo(i, 'nome', e.target.value),
+    "aria-label": "Nome do tipo"
+  }), /*#__PURE__*/React.createElement("select", {
+    value: t.sentido,
+    onChange: e => setTipo(i, 'sentido', e.target.value),
+    "aria-label": "Conta como"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "+"
+  }, "Conta a favor"), /*#__PURE__*/React.createElement("option", {
+    value: "-"
+  }, "Oportunidade de melhoria"), /*#__PURE__*/React.createElement("option", {
+    value: "0"
+  }, "Neutro")), !AV_TIPOS_PADRAO.some(p => p.id === t.id) && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => setC({
+      ...c,
+      tipos: c.tipos.filter((_, j) => j !== i)
+    })
+  }, "Tirar"))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => setC({
+      ...c,
+      tipos: [...c.tipos, {
+        id: 't' + Date.now().toString(36),
+        nome: '',
+        sentido: '0'
+      }]
+    })
+  }, "+ Novo tipo")), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Crit\xE9rios de avalia\xE7\xE3o (escala de 1 a 5)"), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, [1, 2, 3, 4, 5].map(n => `${n} = ${AV_ESCALA[n]}`).join(' · ')), c.criterios.map((cr, i) => /*#__PURE__*/React.createElement("div", {
+    key: cr.id,
+    className: "av-criterio"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-linha"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: cr.nome,
+    onChange: e => setCrit(i, 'nome', e.target.value),
+    "aria-label": "Nome do crit\xE9rio"
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0.5",
+    step: "0.5",
+    value: cr.peso,
+    onChange: e => setCrit(i, 'peso', e.target.value),
+    "aria-label": "Peso",
+    className: "av-peso"
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => setC({
+      ...c,
+      criterios: c.criterios.filter((_, j) => j !== i)
+    })
+  }, "Tirar")), /*#__PURE__*/React.createElement("input", {
+    value: cr.descricao || '',
+    onChange: e => setCrit(i, 'descricao', e.target.value),
+    placeholder: "Descri\xE7\xE3o",
+    "aria-label": "Descri\xE7\xE3o do crit\xE9rio"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Categorias que servem de evid\xEAncia:"), /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro"
+  }, c.categorias.map(cat => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    key: cat,
+    className: `av-chip ${(cr.categorias || []).includes(cat) ? 'ativo' : ''}`,
+    onClick: () => setCrit(i, 'categorias', (cr.categorias || []).includes(cat) ? cr.categorias.filter(x => x !== cat) : [...(cr.categorias || []), cat])
+  }, cat))))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => setC({
+      ...c,
+      criterios: [...c.criterios, {
+        id: 'c' + Date.now().toString(36),
+        nome: '',
+        descricao: '',
+        peso: 1,
+        categorias: []
+      }]
+    })
+  }, "+ Novo crit\xE9rio")), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-ok"
+  }, msg), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setC(avConfigCompleta(null))
+  }, "Voltar ao padr\xE3o"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: salvar,
+    disabled: salvando
+  }, salvando ? 'Salvando…' : 'Salvar configurações')));
+}
+
+// ---- relatórios (PDF só de avaliação aprovada)
+function AvRelatorios({
+  usuario,
+  funcionarios,
+  avaliacoes,
+  config,
+  metas
+}) {
+  const [filtroF, setFiltroF] = useState('');
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const ids = new Set(avaliaveis.map(x => x.id));
+  const lista = avaliacoes.filter(a => ids.has(a.funcionarioId) && (!filtroF || a.funcionarioId === filtroF)).sort((a, b) => b.trimestre.localeCompare(a.trimestre) || String(a.funcionarioNome).localeCompare(String(b.funcionarioNome)));
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: filtroF,
+    onChange: e => setFiltroF(e.target.value),
+    "aria-label": "Funcion\xE1rio"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todos os funcion\xE1rios"), avaliaveis.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome)))), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "O PDF oficial s\xF3 sai de avalia\xE7\xE3o aprovada. ", ehMaster(usuario) ? 'Como Master, você pode gerar uma versão preliminar (marcada como não aprovada).' : ''), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Nenhuma avalia\xE7\xE3o ainda.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Per\xEDodo"), /*#__PURE__*/React.createElement("th", null, "Situa\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "M\xE9dia"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, lista.map(a => {
+    const aprovada = a.status === 'aprovada' || a.status === 'feedback';
+    const f = funcionarios.find(x => x.id === a.funcionarioId);
+    return /*#__PURE__*/React.createElement("tr", {
+      key: a.id
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Funcion\xE1rio"
+    }, f ? f.nome : a.funcionarioNome), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Per\xEDodo"
+    }, avRotuloTri(a.trimestre)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Situa\xE7\xE3o"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `av-status s-${a.status}`
+    }, AV_STATUS[a.status])), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "M\xE9dia"
+    }, a.media ? String(a.media).replace('.', ',') : '—'), /*#__PURE__*/React.createElement("td", null, aprovada ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn pequeno",
+      onClick: () => gerarPdfAvaliacao(avPublicacao(a, f, config, metas.filter(m => m.origemAvaliacaoId === a.id)), false)
+    }, "Gerar PDF") : ehMaster(usuario) ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => gerarPdfAvaliacao(avPublicacao(a, f, config, []), true)
+    }, "PDF preliminar") : /*#__PURE__*/React.createElement("span", {
+      className: "av-dica"
+    }, "Aguardando aprova\xE7\xE3o")));
+  })))));
+}
+
+// ---- visão do funcionário: só o que foi aprovado e liberado para ele
+function AvMinhas({
+  usuario,
+  config
+}) {
+  const [publicadas, carregando, erro] = useAvConsulta('avaliacoesPublicadas', [['funcionarioId', '==', usuario.id]]);
+  const [metas] = useAvConsulta('avaliacaoMetas', [['funcionarioId', '==', usuario.id], ['visivelFuncionario', '==', true]]);
+  const [registros] = useAvConsulta('avaliacaoRegistros', [['funcionarioId', '==', usuario.id], ['status', '==', 'ativo']], config.registrosVisiveisFuncionario);
+  const [aberta, setAberta] = useState(null);
+  const lista = publicadas.slice().sort((a, b) => b.trimestre.localeCompare(a.trimestre));
+  const p = aberta ? lista.find(x => x.id === aberta) : null;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Minhas avalia\xE7\xF5es"), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro), carregando ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Carregando\u2026") : lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Voc\xEA ainda n\xE3o tem avalia\xE7\xF5es aprovadas.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Per\xEDodo"), /*#__PURE__*/React.createElement("th", null, "M\xE9dia"), /*#__PURE__*/React.createElement("th", null, "Feedback"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, lista.map(a => /*#__PURE__*/React.createElement("tr", {
+    key: a.id
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Per\xEDodo"
+  }, avRotuloTri(a.trimestre)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "M\xE9dia"
+  }, a.media ? String(a.media).replace('.', ',') : '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Feedback"
+  }, a.feedbackEm ? formatarDataBr(a.feedbackEm) : 'Ainda não realizado'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setAberta(a.id)
+  }, "Ver"), " ", /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: () => gerarPdfAvaliacao(a, false)
+  }, "PDF"))))))), p && /*#__PURE__*/React.createElement("div", {
+    className: "card av-minha"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-cab-avaliacao"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0
+    }
+  }, avRotuloTri(p.trimestre)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setAberta(null)
+  }, "Fechar")), /*#__PURE__*/React.createElement("p", {
+    className: "av-texto"
+  }, p.resumo), [['pontosPositivos', 'Pontos positivos'], ['melhorias', 'Oportunidades de melhoria'], ['evolucao', 'Evolução'], ['compromissos', 'Compromissos'], ['planoDesenvolvimento', 'Plano de desenvolvimento']].map(([k, t]) => (p[k] || []).length ? /*#__PURE__*/React.createElement("div", {
+    key: k
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, t), /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, p[k].map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, x)))) : null), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Notas"), /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, (p.notas || []).map((n, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, n.criterio, ": ", n.nota ? `${n.nota} — ${AV_ESCALA[n.nota]}` : 'Sem dados suficientes', n.justificativa ? ` · ${n.justificativa}` : ''))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "M\xE9dia: ", p.media ? String(p.media).replace('.', ',') : '—')), p.comentariosAvaliador && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Coment\xE1rios do avaliador"), /*#__PURE__*/React.createElement("p", {
+    className: "av-texto"
+  }, p.comentariosAvaliador))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Minhas metas"), metas.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Nenhuma meta no momento.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, metas.slice().sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999')).map(m => /*#__PURE__*/React.createElement("li", {
+    key: m.id
+  }, /*#__PURE__*/React.createElement("strong", null, m.descricao), " \u2014 ", m.status, m.prazo ? ` · prazo ${formatarDataBr(m.prazo)}` : '', m.criterioConclusao ? ` · concluída quando: ${m.criterioConclusao}` : ''))), config.registrosVisiveisFuncionario && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Meus registros"), registros.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Nenhum registro.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, registros.slice().sort((a, b) => b.dataOcorrido.localeCompare(a.dataOcorrido)).map(r => /*#__PURE__*/React.createElement("li", {
+    key: r.id
+  }, formatarDataBr(r.dataOcorrido), " \xB7 ", r.tipoNome, " \xB7 ", r.categoria, ": ", r.descricao)))));
+}
+function AbaAvaliacoes({
+  usuario,
+  funcionarios
+}) {
+  const gestor = avEhGestor(usuario);
+  const config = useAvConfig();
+  const [registros,, erroReg] = useAvConsulta('avaliacaoRegistros', [], gestor);
+  const [avaliacoes] = useAvConsulta('avaliacoesTrimestrais', [], gestor);
+  const [metas] = useAvConsulta('avaliacaoMetas', [], gestor);
+  const [aba, setAba] = useState('painel');
+  const [registrando, setRegistrando] = useState(null);
+  const [novaMeta, setNovaMeta] = useState(null);
+  if (!gestor) return /*#__PURE__*/React.createElement("div", {
+    className: "av-modulo"
+  }, /*#__PURE__*/React.createElement(AvMinhas, {
+    usuario: usuario,
+    config: config
+  }));
+  const lista = funcionarios || [];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-modulo"
+  }, /*#__PURE__*/React.createElement(AbasInternas, {
+    abas: [['painel', 'Painel'], ['historico', 'Histórico'], ['trimestrais', 'Avaliações trimestrais'], ['metas', 'Metas e PDI'], ['relatorios', 'Relatórios'], ['config', 'Critérios e configurações'], ['minhas', 'Minhas avaliações']],
+    ativa: aba,
+    aoMudar: setAba
+  }), erroReg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erroReg), aba === 'painel' && /*#__PURE__*/React.createElement(AvPainel, {
+    usuario: usuario,
+    funcionarios: lista,
+    registros: registros,
+    avaliacoes: avaliacoes,
+    metas: metas,
+    config: config,
+    aoRegistrar: setRegistrando,
+    aoIr: setAba
+  }), aba === 'historico' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-botoes-rapidos"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => setRegistrando({})
+  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-btn-voz",
+    onClick: () => setRegistrando({
+      voz: true
+    })
+  }, "\uD83C\uDFA4 Registrar por voz")), /*#__PURE__*/React.createElement(AvHistorico, {
+    usuario: usuario,
+    funcionarios: lista,
+    config: config,
+    registros: registros
+  })), aba === 'trimestrais' && /*#__PURE__*/React.createElement(AvTrimestrais, {
+    usuario: usuario,
+    funcionarios: lista,
+    config: config,
+    registros: registros,
+    avaliacoes: avaliacoes,
+    metas: metas,
+    aoNovaMeta: setNovaMeta
+  }), aba === 'metas' && /*#__PURE__*/React.createElement(AvMetas, {
+    usuario: usuario,
+    funcionarios: lista,
+    registros: registros,
+    metas: metas,
+    aoNovaMeta: setNovaMeta
+  }), aba === 'relatorios' && /*#__PURE__*/React.createElement(AvRelatorios, {
+    usuario: usuario,
+    funcionarios: lista,
+    avaliacoes: avaliacoes,
+    config: config,
+    metas: metas
+  }), aba === 'config' && /*#__PURE__*/React.createElement(AvConfiguracoes, {
+    usuario: usuario,
+    config: config
+  }), aba === 'minhas' && /*#__PURE__*/React.createElement(AvMinhas, {
+    usuario: usuario,
+    config: config
+  }), registrando && /*#__PURE__*/React.createElement(AvFormRegistro, {
+    usuario: usuario,
+    funcionarios: lista,
+    config: config,
+    metas: metas,
+    avaliacoes: avaliacoes,
+    funcionarioInicial: registrando.funcionarioId || '',
+    iniciarPorVoz: !!registrando.voz,
+    aoFechar: () => setRegistrando(null)
+  }), novaMeta && /*#__PURE__*/React.createElement(AvModalMeta, {
+    inicial: novaMeta,
+    usuario: usuario,
+    funcionarios: lista,
+    registros: registros,
+    aoFechar: () => setNovaMeta(null)
+  }));
+}
+
 // ======================= LAYOUT =======================
 // Mesma tela de abertura do index (logo + barra), enquanto a lista de usuários chega
 function TelaAbertura() {
@@ -5193,11 +8401,17 @@ function App() {
   }];
   // Avisos é acessível a todo funcionário ativo, independente das permissões por módulo —
   // por isso fica fora do filtro de permissão e sempre em primeiro na navegação.
+  // Avaliação também: a gestão vê o módulo completo; o funcionário, só as próprias avaliações aprovadas
+  // (o que cada um pode ler é garantido pelas regras do banco).
   const abas = [{
     id: 'avisos',
     nome: 'Avisos',
     icone: '📢'
-  }, ...abasTodas.filter(a => podeVisualizar(usuario, a.id))];
+  }, ...abasTodas.filter(a => podeVisualizar(usuario, a.id)), {
+    id: 'avaliacoes',
+    nome: 'Avaliação',
+    icone: '📝'
+  }];
   const {
     hoje: aniversariantesHoje,
     proximos: todosProximosAniversarios
@@ -5392,7 +8606,7 @@ function App() {
     className: "cargo"
   }, usuario.cargo)))), /*#__PURE__*/React.createElement("div", {
     className: "conteudo-principal"
-  }, aba !== 'avisos' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
+  }, aba !== 'avisos' && aba !== 'avaliacoes' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -5419,6 +8633,9 @@ function App() {
       marginTop: 4
     }
   }, "Você não tem permissão para acessar este módulo. Fale com um administrador.")) : /*#__PURE__*/React.createElement(React.Fragment, null, aba === 'avisos' && /*#__PURE__*/React.createElement(AbaAvisos, {
+    usuario: usuario,
+    funcionarios: funcionarios
+  }), aba === 'avaliacoes' && /*#__PURE__*/React.createElement(AbaAvaliacoes, {
     usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, {

@@ -3,9 +3,10 @@ name: Verificar backup e armazenamento
 # Todo dia às 12:00 (Brasília) confere, fora do site:
 #  - se existe backup das últimas 36 horas (pega também o caso de a rotina de backup nem ter rodado);
 #  - se o banco (estimado pelo backup) passou de 50% do 1 GiB gratuito ou o repositório passou de 1 GB;
-#  - se o banco continua fechado para quem não fez login (regras de segurança valendo).
+#  - se o banco continua fechado para quem não fez login (regras de segurança valendo);
+#  - lembretes da Avaliação de Desempenho (avaliações pendentes, feedback, metas atrasadas, dias sem registro).
 # Problema → abre um aviso (issue) com menção à conta tecnopemt-cpu, que recebe e-mail do GitHub.
-# Resolvido → fecha o aviso sozinho. Só lê a lista pública de backups: não acessa o banco de dados.
+# Resolvido → fecha o aviso sozinho. Os lembretes leem o banco com a conta da rotina de backup (só leitura).
 on:
   schedule:
     - cron: '0 15 * * *'
@@ -30,6 +31,9 @@ jobs:
       - name: Conferir backup e armazenamento
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # conta da rotina de backup (só leitura): usada para os lembretes da Avaliação de Desempenho
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
         run: node backup/alerta.mjs verificar
       - name: Manter as rotinas ativas (o GitHub pausa agendamentos após 60 dias sem atividade)
         if: github.event_name == 'schedule'
