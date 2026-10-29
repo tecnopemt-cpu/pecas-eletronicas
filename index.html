@@ -816,6 +816,76 @@
   .av-config .card{margin-bottom:12px;}
   .av-evidencia{font-size:13px;margin:4px 0 !important;}
   .av-minha{margin-top:12px;}
+  /* ---- Avaliação: painel em cartões ---- */
+  .av-painel-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--borda);}
+  .av-painel-titulo{margin:0;font-size:24px;font-weight:800;color:var(--texto);display:flex;align-items:center;gap:10px;}
+  .av-painel-titulo span{color:var(--laranja);font-size:30px;line-height:1;}
+  .av-painel-cab .av-sub{margin:4px 0 0 40px;}
+  .av-select-tri{width:auto;min-width:230px;font-weight:600;}
+  .av-titulo-grande{font-size:18px;margin-top:6px;}
+  .av-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px;}
+  .av-resumo-card{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(69,59,60,.06);}
+  .av-resumo-card strong{display:block;font-size:24px;line-height:1.1;color:var(--texto);}
+  .av-resumo-card span:not(.av-resumo-icone){font-size:13px;color:var(--texto-fraco);}
+  .av-resumo-icone{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;}
+  .av-resumo-icone.azul{background:#E5EEF8;color:#2F6FB3;}
+  .av-resumo-icone.verde{background:var(--verde-bg);color:var(--verde);}
+  .av-resumo-icone.laranja{background:var(--laranja-bg);color:var(--laranja);}
+  .av-resumo-icone.estrela{background:#FFF3DC;color:#F29F05;}
+  .av-atencao{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .av-chip-atencao{border:1px solid var(--laranja);background:var(--laranja-bg);color:#9a4a03;border-radius:16px;padding:6px 12px;font-size:13px;font-weight:600;}
+  .av-filtros-painel{align-items:center;}
+  .av-filtros-painel input{max-width:340px;}
+  .av-filtros-painel .av-chips-filtro{margin:0;}
+  .av-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .av-card{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(69,59,60,.06);transition:box-shadow .15s ease,transform .15s ease,border-color .15s ease;}
+  @media (hover:hover){ .av-card:hover{box-shadow:0 6px 18px rgba(15,42,71,.10);transform:translateY(-2px);border-color:#d8c9c7;} }
+  .av-card-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .av-card-pessoa{display:flex;align-items:center;gap:12px;min-width:0;}
+  .av-card-nome{min-width:0;}
+  .av-card-nome strong{display:block;font-size:15px;line-height:1.25;overflow-wrap:anywhere;}
+  .av-card-nome span{display:block;font-size:12.5px;color:var(--texto-fraco);margin-top:2px;}
+  .av-avatar{border-radius:50%;object-fit:cover;flex-shrink:0;}
+  .av-avatar-ini{display:flex;align-items:center;justify-content:center;background:#E8EDF3;color:var(--dark);font-weight:800;letter-spacing:.5px;}
+  .av-card.avaliado .av-avatar-ini{background:#E5EEF8;}
+  .av-selo{flex-shrink:0;font-size:12px;font-weight:700;border-radius:14px;padding:4px 10px;white-space:nowrap;}
+  .av-selo.avaliado{background:var(--verde-bg);color:var(--verde);}
+  .av-selo.pendente{background:var(--laranja-bg);color:var(--laranja-escuro);}
+  .av-card-nota{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .av-nota{font-size:15px;color:var(--texto-fraco);}
+  .av-nota strong{font-size:26px;color:var(--texto);}
+  .av-nota.sem{font-size:15px;font-weight:600;color:var(--texto-fraco);}
+  .av-card-status{font-size:12px;color:var(--laranja-escuro);margin-top:-8px;}
+  .av-estrelas{display:inline-flex;gap:3px;line-height:1;}
+  .av-estrela{position:relative;display:inline-block;}
+  .av-estrela-fundo{color:#D9D2D0;}
+  .av-estrela-cheia{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:#F29F05;}
+  .av-barra{height:7px;background:#EEE8E6;border-radius:6px;overflow:hidden;}
+  .av-barra span{display:block;height:100%;background:var(--laranja);border-radius:6px;transition:width .3s ease;}
+  .av-card-pontos{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .av-card-pontos > div{display:flex;gap:8px;align-items:flex-start;}
+  .av-card-pontos span:not(.av-ponto){display:block;font-size:12px;color:var(--texto-fraco);}
+  .av-card-pontos strong{display:block;font-size:17px;}
+  .av-ponto{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0;margin-top:2px;}
+  .av-ponto.pos{background:var(--verde);}
+  .av-ponto.neg{background:var(--laranja);}
+  .av-card-rodape{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:4px;}
+  .av-ver{min-height:38px;}
+  .av-link-texto{border:none;background:none;text-align:left;padding:2px 0;color:var(--texto);font-size:14px;cursor:pointer;}
+  .av-lista-registros{list-style:none;padding-left:0;}
+  @media (max-width:1100px){ .av-resumo{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:640px){
+    .av-painel-titulo{font-size:20px;}
+    .av-painel-cab .av-sub{margin-left:0;}
+    .av-select-tri{width:100%;}
+    .av-resumo{gap:10px;}
+    .av-resumo-card{padding:12px;gap:10px;}
+    .av-resumo-icone{width:36px;height:36px;font-size:16px;}
+    .av-resumo-card strong{font-size:20px;}
+    .av-grade{grid-template-columns:1fr;}
+    .av-filtros-painel input{max-width:none;}
+    .av-painel .av-botoes-rapidos .btn{flex:1 1 calc(50% - 4px);padding:10px 8px;font-size:13.5px;}
+  }
   @media (max-width:900px){ .av-indicadores{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:640px){
     .av-tabela thead{display:none;}
@@ -7220,6 +7290,400 @@ function AvTrimestrais({
     aoNovaMeta: aoNovaMeta
   }));
 }
+// ---- painel em cartões: quem foi avaliado, a nota do trimestre e os pontos de atenção
+// Nota = média ponderada já existente (avMedia: só critérios com nota confirmada, escala 1 a 5), da
+// avaliação APROVADA do trimestre. Sem avaliação aprovada = "Sem avaliação" (nunca zero).
+// Pontos positivos / a melhorar = registros salvos no trimestre, pelo sentido do tipo (+ / -) cadastrado.
+function avNotaDe(a, config) {
+  if (!a || a.status !== 'aprovada' && a.status !== 'feedback') return null;
+  const n = typeof a.media === 'number' ? a.media : avMedia(a.notas, config.criterios);
+  return typeof n === 'number' && n > 0 ? Math.min(5, n) : null;
+}
+const avNum1 = n => n.toFixed(1).replace('.', ',');
+function AvEstrelas({
+  nota,
+  tamanho = 18
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    className: "av-estrelas",
+    "aria-label": nota == null ? 'Sem avaliação' : `${avNum1(nota)} de 5 estrelas`,
+    style: {
+      fontSize: tamanho
+    }
+  }, [0, 1, 2, 3, 4].map(i => {
+    const p = nota == null ? 0 : Math.max(0, Math.min(1, nota - i));
+    return /*#__PURE__*/React.createElement("span", {
+      key: i,
+      className: "av-estrela"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "av-estrela-fundo"
+    }, "\u2605"), /*#__PURE__*/React.createElement("span", {
+      className: "av-estrela-cheia",
+      style: {
+        width: `${p * 100}%`
+      }
+    }, "\u2605"));
+  }));
+}
+function AvAvatar({
+  f,
+  tamanho = 52
+}) {
+  const foto = f && typeof f.foto === 'string' && /^(data:image|https:)/.test(f.foto) ? f.foto : null;
+  if (foto) return /*#__PURE__*/React.createElement("img", {
+    src: foto,
+    alt: "",
+    className: "av-avatar",
+    style: {
+      width: tamanho,
+      height: tamanho
+    }
+  });
+  const ini = String(f && f.nome || '').trim().split(/\s+/).filter(Boolean);
+  const txt = ((ini[0] || '?')[0] + (ini.length > 1 ? ini[ini.length - 1][0] : '')).toUpperCase();
+  return /*#__PURE__*/React.createElement("span", {
+    className: "av-avatar av-avatar-ini",
+    style: {
+      width: tamanho,
+      height: tamanho,
+      fontSize: tamanho * 0.36
+    },
+    "aria-hidden": "true"
+  }, txt);
+}
+// detalhes de quem ainda não tem avaliação no trimestre (dados reais: registros e metas; nada é criado)
+function AvResumoColaborador({
+  f,
+  tri,
+  registros,
+  metas,
+  config,
+  avaliacao,
+  aoFechar,
+  aoIrTrimestrais,
+  aoRegistrar
+}) {
+  const {
+    inicio,
+    fim
+  } = avLimites(tri);
+  const rs = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim).sort((a, b) => b.dataOcorrido.localeCompare(a.dataOcorrido));
+  const ms = metas.filter(m => m.funcionarioId === f.id && ['Não iniciada', 'Em andamento'].includes(m.status));
+  const [verRegistro, setVerRegistro] = useState(null);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal av-modal-registro"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-cab-avaliacao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pessoa"
+  }, /*#__PURE__*/React.createElement(AvAvatar, {
+    f: f,
+    tamanho: 44
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0
+    }
+  }, f.nome), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, f.cargo || 'Cargo não informado', " \xB7 ", avRotuloTri(tri)))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: aoFechar
+  }, "Fechar")), /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, avaliacao ? `Avaliação ${AV_STATUS[avaliacao.status].toLowerCase()} — a nota aparece quando for aprovada.` : 'Ainda sem avaliação neste trimestre.'), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Registros do trimestre (", rs.length, ")"), rs.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhum registro no per\xEDodo.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista av-lista-registros"
+  }, rs.map(r => {
+    const t = avTipo(config, r.tipoId);
+    return /*#__PURE__*/React.createElement("li", {
+      key: r.id
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "av-link-texto",
+      onClick: () => setVerRegistro(r)
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `av-chip-tipo s${t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : 'z'}`
+    }, r.tipoNome || t.nome), " ", formatarDataBr(r.dataOcorrido), " \u2014 ", r.descricao));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Metas em andamento (", ms.length, ")"), ms.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhuma meta em andamento.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, ms.map(m => /*#__PURE__*/React.createElement("li", {
+    key: m.id
+  }, m.descricao, m.prazo ? ` — prazo ${formatarDataBr(m.prazo)}` : '', avMetaAtrasada(m) ? /*#__PURE__*/React.createElement("span", {
+    className: "av-atrasada"
+  }, " atrasada") : ''))), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoRegistrar({
+      funcionarioId: f.id
+    })
+  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: aoIrTrimestrais
+  }, avaliacao ? 'Abrir avaliação' : 'Ir para Avaliações trimestrais')), verRegistro && /*#__PURE__*/React.createElement(AvModalRegistro, {
+    registro: verRegistro,
+    usuario: {
+      perfil: 'somenteLeitura'
+    },
+    funcionarios: [f],
+    config: config,
+    aoFechar: () => setVerRegistro(null)
+  })));
+}
+function AvPainel({
+  usuario,
+  funcionarios,
+  registros,
+  avaliacoes,
+  metas,
+  config,
+  aoRegistrar,
+  aoIr,
+  aoNovaMeta
+}) {
+  const tris = avTrimestresRecentes(6);
+  // padrão: o trimestre que está sendo avaliado (o anterior ao atual)
+  const [tri, setTri] = useState(() => tris[1]);
+  const [busca, setBusca] = useState('');
+  const [filtro, setFiltro] = useState('todos');
+  const [aberto, setAberto] = useState(null);
+  const {
+    inicio,
+    fim
+  } = avLimites(tri);
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const sentido = r => avTipo(config, r.tipoId).sentido || r.sentido || '0';
+  const cartoes = avaliaveis.map(f => {
+    const a = avaliacoes.find(x => x.id === avIdAvaliacao(f.id, tri));
+    const rs = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim);
+    const nota = avNotaDe(a, config);
+    const avaliado = !!a && (a.status === 'aprovada' || a.status === 'feedback');
+    return {
+      f,
+      a,
+      nota,
+      avaliado,
+      pos: rs.filter(r => sentido(r) === '+').length,
+      neg: rs.filter(r => sentido(r) === '-').length
+    };
+  });
+  const avaliados = cartoes.filter(c => c.avaliado);
+  const comNota = avaliados.filter(c => c.nota != null);
+  const mediaEquipe = comNota.length ? comNota.reduce((s, c) => s + c.nota, 0) / comNota.length : null;
+  const termo = avSemAcento(busca.trim());
+  const visiveis = cartoes.filter(c => (!termo || avSemAcento(`${c.f.nome} ${c.f.cargo || ''}`).includes(termo)) && (filtro === 'todos' || (filtro === 'avaliados' ? c.avaliado : !c.avaliado)));
+  const hoje = avHoje();
+  const atrasadas = metas.filter(m => avaliaveis.some(f => f.id === m.funcionarioId) && avMetaAtrasada(m)).length;
+  const semFeedback = avaliacoes.filter(a => a.status === 'aprovada' && avaliaveis.some(f => f.id === a.funcionarioId)).length;
+  const abertoC = aberto ? cartoes.find(c => c.f.id === aberto) : null;
+  const Resumo = ({
+    icone,
+    cls,
+    valor,
+    rotulo
+  }) => /*#__PURE__*/React.createElement("div", {
+    className: "av-resumo-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `av-resumo-icone ${cls}`,
+    "aria-hidden": "true"
+  }, icone), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, valor), /*#__PURE__*/React.createElement("span", null, rotulo)));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-painel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-painel-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "av-painel-titulo"
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true"
+  }, "\u2605"), " Avalia\xE7\xE3o de Desempenho"), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, avRotuloTri(tri), " \xB7 ", formatarDataBr(inicio), " a ", formatarDataBr(fim), tri === tris[0] ? ' (em andamento)' : '')), /*#__PURE__*/React.createElement("select", {
+    className: "av-select-tri",
+    value: tri,
+    onChange: e => setTri(e.target.value),
+    "aria-label": "Trimestre"
+  }, tris.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t,
+    value: t
+  }, avRotuloTri(t), t === tris[0] ? ' (em andamento)' : '')))), /*#__PURE__*/React.createElement("div", {
+    className: "av-botoes-rapidos"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => aoRegistrar({})
+  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-btn-voz",
+    onClick: () => aoRegistrar({
+      voz: true
+    })
+  }, "\uD83C\uDFA4 Registrar por voz"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoIr('trimestrais')
+  }, "Avalia\xE7\xF5es trimestrais"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoIr('metas')
+  }, "Metas")), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo av-titulo-grande"
+  }, "Desempenho da equipe"), /*#__PURE__*/React.createElement("div", {
+    className: "av-resumo"
+  }, /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\uD83D\uDC64",
+    cls: "azul",
+    valor: avaliaveis.length,
+    rotulo: "colaboradores"
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u2713",
+    cls: "verde",
+    valor: avaliados.length,
+    rotulo: "avaliados"
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u25F7",
+    cls: "laranja",
+    valor: avaliaveis.length - avaliados.length,
+    rotulo: "pendentes"
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u2605",
+    cls: "estrela",
+    valor: mediaEquipe == null ? '—' : `${avNum1(mediaEquipe)}/5`,
+    rotulo: mediaEquipe == null ? 'média da equipe (sem avaliações)' : `média da equipe (${comNota.length} avaliado${comNota.length > 1 ? 's' : ''})`
+  })), (atrasadas > 0 || semFeedback > 0) && /*#__PURE__*/React.createElement("div", {
+    className: "av-atencao"
+  }, atrasadas > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-chip-atencao",
+    onClick: () => aoIr('metas')
+  }, "\u26A0 ", atrasadas, " meta", atrasadas > 1 ? 's' : '', " atrasada", atrasadas > 1 ? 's' : ''), semFeedback > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-chip-atencao",
+    onClick: () => aoIr('trimestrais')
+  }, "\uD83D\uDCAC ", semFeedback, " aprovada", semFeedback > 1 ? 's' : '', " aguardando feedback")), /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros av-filtros-painel"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "search",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    placeholder: "Buscar por nome ou cargo\u2026",
+    "aria-label": "Buscar colaborador"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro",
+    role: "group",
+    "aria-label": "Filtrar por status"
+  }, [['todos', `Todos (${cartoes.length})`], ['avaliados', `Avaliados (${avaliados.length})`], ['pendentes', `Pendentes (${cartoes.length - avaliados.length})`]].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `av-chip ${filtro === k ? 'ativo' : ''}`,
+    onClick: () => setFiltro(k)
+  }, n)))), visiveis.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, cartoes.length ? 'Ninguém encontrado com essa busca.' : 'Nenhum colaborador para avaliar.') : /*#__PURE__*/React.createElement("div", {
+    className: "av-grade"
+  }, visiveis.map(({
+    f,
+    a,
+    nota,
+    avaliado,
+    pos,
+    neg
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: f.id,
+    className: `av-card ${avaliado ? 'avaliado' : 'pendente'}`,
+    "data-funcionario": f.id
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-topo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pessoa"
+  }, /*#__PURE__*/React.createElement(AvAvatar, {
+    f: f
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-nome"
+  }, /*#__PURE__*/React.createElement("strong", null, f.nome), /*#__PURE__*/React.createElement("span", null, f.cargo || 'Cargo não informado'))), /*#__PURE__*/React.createElement("span", {
+    className: `av-selo ${avaliado ? 'avaliado' : 'pendente'}`,
+    title: a && !avaliado ? AV_STATUS[a.status] : ''
+  }, avaliado ? '✓ Avaliado' : '◷ Pendente')), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-nota"
+  }, nota != null ? /*#__PURE__*/React.createElement("span", {
+    className: "av-nota"
+  }, /*#__PURE__*/React.createElement("strong", null, avNum1(nota)), "/5") : /*#__PURE__*/React.createElement("span", {
+    className: "av-nota sem"
+  }, "Sem avalia\xE7\xE3o"), /*#__PURE__*/React.createElement(AvEstrelas, {
+    nota: nota
+  })), a && !avaliado && /*#__PURE__*/React.createElement("div", {
+    className: "av-card-status"
+  }, AV_STATUS[a.status]), /*#__PURE__*/React.createElement("div", {
+    className: "av-barra",
+    role: "progressbar",
+    "aria-valuemin": 0,
+    "aria-valuemax": 5,
+    "aria-valuenow": nota || 0,
+    "aria-label": "Desempenho"
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: `${nota ? nota / 5 * 100 : 0}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pontos"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "av-ponto pos",
+    "aria-hidden": "true"
+  }, "\u2191"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Pontos positivos"), /*#__PURE__*/React.createElement("strong", null, pos))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "av-ponto neg",
+    "aria-hidden": "true"
+  }, "\u2212"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Pontos a melhorar"), /*#__PURE__*/React.createElement("strong", null, neg)))), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-rodape"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => aoRegistrar({
+      funcionarioId: f.id
+    })
+  }, "+ Registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno av-ver",
+    onClick: () => setAberto(f.id)
+  }, "Ver avalia\xE7\xE3o \u203A"))))), abertoC && abertoC.a && (abertoC.avaliado || abertoC.a.status === 'rascunho' || abertoC.a.status === 'em_revisao') ? /*#__PURE__*/React.createElement(AvEditorAvaliacao, {
+    key: abertoC.a.id + abertoC.a.status + (abertoC.a.versoes || []).length,
+    avaliacao: abertoC.a,
+    funcionario: abertoC.f,
+    usuario: usuario,
+    config: config,
+    registros: registros,
+    metas: metas,
+    aoFechar: () => setAberto(null),
+    aoNovaMeta: aoNovaMeta
+  }) : abertoC && /*#__PURE__*/React.createElement(AvResumoColaborador, {
+    f: abertoC.f,
+    tri: tri,
+    registros: registros,
+    metas: metas,
+    config: config,
+    avaliacao: abertoC.a,
+    aoFechar: () => setAberto(null),
+    aoIrTrimestrais: () => {
+      setAberto(null);
+      aoIr('trimestrais');
+    },
+    aoRegistrar: o => {
+      setAberto(null);
+      aoRegistrar(o);
+    }
+  }));
+}
 
 // ---- metas e plano de desenvolvimento
 function AvModalMeta({
@@ -7533,152 +7997,6 @@ function AvMetas({
     registros: registros,
     aoFechar: () => setAberta(null)
   }));
-}
-
-// ---- painel com números reais
-function AvPainel({
-  usuario,
-  funcionarios,
-  registros,
-  avaliacoes,
-  metas,
-  config,
-  aoRegistrar,
-  aoIr
-}) {
-  const hoje = avHoje();
-  const tri = avTrimestreDe(hoje),
-    triAnt = avTriAnterior(tri);
-  const {
-    inicio
-  } = avLimites(tri);
-  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
-  const ids = new Set(avaliaveis.map(x => x.id));
-  const ativos = registros.filter(r => r.status !== 'removido' && ids.has(r.funcionarioId));
-  const doTri = ativos.filter(r => r.dataOcorrido >= inicio && r.dataOcorrido <= hoje);
-  const semana = formatarDataInput(new Date(Date.now() - 7 * 864e5));
-  const pos = doTri.filter(r => avTipo(config, r.tipoId).sentido === '+').length,
-    neg = doTri.filter(r => avTipo(config, r.tipoId).sentido === '-').length;
-  const avsAnt = avaliacoes.filter(a => a.trimestre === triAnt && ids.has(a.funcionarioId));
-  const pendentes = avaliaveis.filter(f => {
-    const a = avsAnt.find(x => x.funcionarioId === f.id);
-    return !a || a.status === 'rascunho' || a.status === 'em_revisao';
-  });
-  const semFeedback = avsAnt.filter(a => a.status === 'aprovada');
-  const metasAbertas = metas.filter(m => ids.has(m.funcionarioId) && ['Não iniciada', 'Em andamento'].includes(m.status));
-  const atrasadas = metasAbertas.filter(avMetaAtrasada);
-  const semRegistroRecente = avaliaveis.filter(f => !ativos.some(r => r.funcionarioId === f.id && r.dataOcorrido >= semana));
-  const ultimos = ativos.slice().sort((a, b) => (b.dataOcorrido + (b.horaOcorrido || '')).localeCompare(a.dataOcorrido + (a.horaOcorrido || ''))).slice(0, 6);
-  const Ind = ({
-    n,
-    rotulo,
-    destino,
-    alerta
-  }) => /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: `av-ind ${alerta && n ? 'alerta' : ''}`,
-    onClick: () => destino && aoIr(destino)
-  }, /*#__PURE__*/React.createElement("strong", null, n), /*#__PURE__*/React.createElement("span", null, rotulo));
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "av-botoes-rapidos"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn",
-    onClick: () => aoRegistrar({})
-  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn av-btn-voz",
-    onClick: () => aoRegistrar({
-      voz: true
-    })
-  }, "\uD83C\uDFA4 Registrar por voz"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: () => aoIr('trimestrais')
-  }, "Avalia\xE7\xF5es trimestrais"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: () => aoIr('metas')
-  }, "Metas")), /*#__PURE__*/React.createElement("div", {
-    className: "av-indicadores"
-  }, /*#__PURE__*/React.createElement(Ind, {
-    n: avaliaveis.length,
-    rotulo: "Funcion\xE1rios avaliados"
-  }), /*#__PURE__*/React.createElement(Ind, {
-    n: doTri.length,
-    rotulo: `Registros no ${avRotuloTri(tri)}`,
-    destino: "historico"
-  }), /*#__PURE__*/React.createElement(Ind, {
-    n: pos,
-    rotulo: "Pontos positivos no trimestre",
-    destino: "historico"
-  }), /*#__PURE__*/React.createElement(Ind, {
-    n: neg,
-    rotulo: "Oportunidades de melhoria no trimestre",
-    destino: "historico"
-  }), /*#__PURE__*/React.createElement(Ind, {
-    n: pendentes.length,
-    rotulo: `Avaliações pendentes (${avRotuloTri(triAnt)})`,
-    destino: "trimestrais",
-    alerta: true
-  }), /*#__PURE__*/React.createElement(Ind, {
-    n: semFeedback.length,
-    rotulo: "Aprovadas aguardando feedback",
-    destino: "trimestrais",
-    alerta: true
-  }), /*#__PURE__*/React.createElement(Ind, {
-    n: metasAbertas.length,
-    rotulo: "Metas em andamento",
-    destino: "metas"
-  }), /*#__PURE__*/React.createElement(Ind, {
-    n: atrasadas.length,
-    rotulo: "Metas atrasadas",
-    destino: "metas",
-    alerta: true
-  })), semRegistroRecente.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "av-alerta"
-  }, "Sem registros nos \xFAltimos 7 dias: ", semRegistroRecente.map(f => f.nome).join(', '), ". (Isso n\xE3o indica desempenho bom nem ruim.)"), /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo"
-  }, "Por funcion\xE1rio \u2014 ", avRotuloTri(tri)), /*#__PURE__*/React.createElement("div", {
-    className: "av-tabela-wrap"
-  }, /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Registros"), /*#__PURE__*/React.createElement("th", null, "Positivos"), /*#__PURE__*/React.createElement("th", null, "Melhorias"), /*#__PURE__*/React.createElement("th", null, "\xDAltimo registro"), /*#__PURE__*/React.createElement("th", null, "Avalia\xE7\xE3o ", avRotuloTri(triAnt)), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, avaliaveis.map(f => {
-    const rs = doTri.filter(r => r.funcionarioId === f.id);
-    const ult = ativos.filter(r => r.funcionarioId === f.id).map(r => r.dataOcorrido).sort().pop();
-    const a = avsAnt.find(x => x.funcionarioId === f.id);
-    return /*#__PURE__*/React.createElement("tr", {
-      key: f.id
-    }, /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "Funcion\xE1rio"
-    }, f.nome), /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "Registros"
-    }, rs.length), /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "Positivos"
-    }, rs.filter(r => avTipo(config, r.tipoId).sentido === '+').length), /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "Melhorias"
-    }, rs.filter(r => avTipo(config, r.tipoId).sentido === '-').length), /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "\xDAltimo registro"
-    }, ult ? formatarDataBr(ult) : '-'), /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "Avalia\xE7\xE3o"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: `av-status s-${a ? a.status : 'aguardando'}`
-    }, AV_STATUS[a ? a.status : 'aguardando'])), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "btn secundario pequeno",
-      onClick: () => aoRegistrar({
-        funcionarioId: f.id
-      })
-    }, "Registrar")));
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo"
-  }, "\xDAltimos registros"), ultimos.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio"
-  }, "Ainda n\xE3o h\xE1 registros. Use \u201CNovo registro\u201D ou \u201CRegistrar por voz\u201D.") : /*#__PURE__*/React.createElement("ul", {
-    className: "av-lista"
-  }, ultimos.map(r => /*#__PURE__*/React.createElement("li", {
-    key: r.id
-  }, avDataHora(r), " \u2014 ", /*#__PURE__*/React.createElement("strong", null, (funcionarios.find(x => x.id === r.funcionarioId) || {}).nome || r.funcionarioNome), " \xB7 ", r.tipoNome, " \xB7 ", r.descricao))));
 }
 
 // ---- critérios e configurações
@@ -8102,7 +8420,8 @@ function AbaAvaliacoes({
     metas: metas,
     config: config,
     aoRegistrar: setRegistrando,
-    aoIr: setAba
+    aoIr: setAba,
+    aoNovaMeta: setNovaMeta
   }), aba === 'historico' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "av-botoes-rapidos"
   }, /*#__PURE__*/React.createElement("button", {
