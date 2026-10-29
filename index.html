@@ -823,7 +823,7 @@
   .av-painel-cab .av-sub{margin:4px 0 0 40px;}
   .av-select-tri{width:auto;min-width:230px;font-weight:600;}
   .av-titulo-grande{font-size:18px;margin-top:6px;}
-  .av-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px;}
+  .av-resumo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:14px;}
   .av-resumo-card{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(69,59,60,.06);}
   .av-resumo-card strong{display:block;font-size:24px;line-height:1.1;color:var(--texto);}
   .av-resumo-card span:not(.av-resumo-icone){font-size:13px;color:var(--texto-fraco);}
@@ -873,7 +873,8 @@
   .av-ver{min-height:38px;}
   .av-link-texto{border:none;background:none;text-align:left;padding:2px 0;color:var(--texto);font-size:14px;cursor:pointer;}
   .av-lista-registros{list-style:none;padding-left:0;}
-  @media (max-width:1100px){ .av-resumo{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:1250px){ .av-resumo{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:900px){ .av-resumo{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:640px){
     .av-painel-titulo{font-size:20px;}
     .av-painel-cab .av-sub{margin-left:0;}
@@ -886,6 +887,17 @@
     .av-filtros-painel input{max-width:none;}
     .av-painel .av-botoes-rapidos .btn{flex:1 1 calc(50% - 4px);padding:10px 8px;font-size:13.5px;}
   }
+  /* faltas e atrasos vindos da Comissão */
+  .av-chip-tipo.sf{background:#FBEAE8;color:var(--vermelho);}
+  .av-chip-tipo.sa{background:var(--laranja-bg);color:#9a4a03;}
+  .av-selo-comissao{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;border-radius:8px;padding:1px 6px;background:#E8EDF3;color:var(--dark);vertical-align:1px;}
+  .av-oc-resumo{font-size:12.5px;font-weight:600;color:#9a4a03;}
+  .av-oc-resumo.vazio{color:var(--texto-fraco);font-weight:400;}
+  .av-card-oc{margin-top:-4px;}
+  .av-oc-cab{display:flex;flex-direction:column;gap:2px;margin-bottom:6px;}
+  .av-lista-oc{list-style:none;padding-left:0;}
+  .av-oc-removida{opacity:.6;text-decoration:line-through;}
+  .av-resumo-icone.pontualidade{background:#F3ECEA;color:#7a5a52;}
   @media (max-width:900px){ .av-indicadores{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:640px){
     .av-tabela thead{display:none;}
@@ -5586,6 +5598,125 @@ function useReconhecimentoVoz(aoComando) {
   };
 }
 
+// ---- faltas e atrasos registrados na Comissão (fonte única: apuracaoRegistros.ocorrencias)
+// A Avaliação só LÊ esses registros — não copia nada. Assim não há lançamento duplicado, e uma correção
+// ou remoção feita na Comissão aparece igual aqui (removida = fora da contagem, visível com o motivo).
+// O trimestre vem da DATA da ocorrência. Nada disso altera nota ou sugestão de nota.
+function avOcorrenciasDe(docs) {
+  const vistos = new Map();
+  (docs || []).forEach(d => {
+    (d.ocorrencias || []).forEach((o, i) => {
+      if (!o || !o.data || !d.funcionarioId) return;
+      const chave = `${d.id}:${o.id || 'i' + i}`;
+      if (vistos.has(chave)) return;
+      const atraso = o.tipo === 'atraso';
+      vistos.set(chave, {
+        chave,
+        documentoComissao: d.id,
+        ocorrenciaId: o.id || '',
+        funcionarioId: d.funcionarioId,
+        tipo: atraso ? 'atraso' : 'falta',
+        tipoComissao: o.tipo || '',
+        nome: o.nomeTipo || (atraso ? 'Atraso' : 'Falta'),
+        data: o.data,
+        trimestre: avTrimestreDe(o.data),
+        previsto: o.previsto || '',
+        chegada: o.chegada || '',
+        minutos: Number(o.minutos) || 0,
+        obs: o.obs || '',
+        por: o.por || '',
+        em: o.em || '',
+        removido: !!o.removido,
+        removidoPor: o.removidoPor || '',
+        removidoEm: o.removidoEm || '',
+        motivoRemocao: o.motivoRemocao || ''
+      });
+    });
+  });
+  return [...vistos.values()].sort((a, b) => b.data.localeCompare(a.data));
+}
+// (só nas telas da gestão; vem da cópia sincronizada da Comissão, sem leitura extra do banco)
+function useAvOcorrencias() {
+  const [docs] = useColecao('apuracaoRegistros');
+  return useMemo(() => avOcorrenciasDe(docs), [docs]);
+}
+function avOcorrenciasNoPeriodo(lista, fid, inicio, fim, comRemovidas) {
+  return lista.filter(o => (!fid || o.funcionarioId === fid) && o.data >= inicio && o.data <= fim && (comRemovidas || !o.removido));
+}
+function avContarOcorrencias(lista) {
+  const ativas = lista.filter(o => !o.removido);
+  const atrasos = ativas.filter(o => o.tipo === 'atraso');
+  return {
+    faltas: ativas.filter(o => o.tipo === 'falta').length,
+    atrasos: atrasos.length,
+    minutos: atrasos.reduce((s, o) => s + o.minutos, 0)
+  };
+}
+const avPlural = (n, s, p) => `${n} ${n === 1 ? s : p}`;
+const avMinTxt = m => m >= 60 ? `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}` : `${m} min`;
+function avTextoOcorrencia(o) {
+  return o.tipo === 'atraso' ? `${o.nome}${o.previsto || o.chegada ? ` — previsto ${o.previsto || '-'}, chegada ${o.chegada || '-'}` : ''}${o.minutos ? ` (${avMinTxt(o.minutos)})` : ''}` : o.nome;
+}
+function AvResumoOcorrencias({
+  c,
+  compacto
+}) {
+  if (!c.faltas && !c.atrasos) return /*#__PURE__*/React.createElement("span", {
+    className: "av-oc-resumo vazio"
+  }, compacto ? 'Sem faltas ou atrasos' : 'Nenhuma falta ou atraso registrado na Comissão neste período.');
+  return /*#__PURE__*/React.createElement("span", {
+    className: "av-oc-resumo"
+  }, "\u23F1 ", avPlural(c.faltas, 'falta', 'faltas'), " \xB7 ", avPlural(c.atrasos, 'atraso', 'atrasos'), c.minutos ? ` (${avMinTxt(c.minutos)})` : '');
+}
+function AvListaOcorrencias({
+  lista,
+  aoAbrir
+}) {
+  if (!lista.length) return /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhuma falta ou atraso registrado na Comiss\xE3o neste per\xEDodo.");
+  return /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista av-lista-oc"
+  }, lista.map(o => /*#__PURE__*/React.createElement("li", {
+    key: o.chave,
+    className: o.removido ? 'av-oc-removida' : ''
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link-texto",
+    onClick: () => aoAbrir && aoAbrir(o)
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `av-chip-tipo ${o.tipo === 'falta' ? 'sf' : 'sa'}`
+  }, o.tipo === 'falta' ? 'Falta' : 'Atraso'), " ", formatarDataBr(o.data), " \u2014 ", avTextoOcorrencia(o), o.obs ? ` · ${o.obs}` : '', o.removido ? ' · removida na Comissão' : ''))));
+}
+function AvModalOcorrencia({
+  o,
+  nomeFuncionario,
+  aoFechar
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, o.tipo === 'falta' ? 'Falta' : 'Atraso', " de ", nomeFuncionario), /*#__PURE__*/React.createElement("div", {
+    className: "av-previa-aviso"
+  }, "Registrado na ", /*#__PURE__*/React.createElement("strong", null, "Comiss\xE3o"), ". Para corrigir ou remover, use a Comiss\xE3o \u2014 a mudan\xE7a aparece aqui automaticamente. N\xE3o altera a nota da avalia\xE7\xE3o."), o.removido && /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, "Removida na Comiss\xE3o por ", o.removidoPor || '-', o.removidoEm ? ` em ${quandoBrasilia(o.removidoEm)}` : '', ". Motivo: ", o.motivoRemocao || '-', ". N\xE3o entra na contagem."), /*#__PURE__*/React.createElement("dl", {
+    className: "av-previa"
+  }, /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, o.nome), /*#__PURE__*/React.createElement("dt", null, "Data da ocorr\xEAncia"), /*#__PURE__*/React.createElement("dd", null, formatarDataBr(o.data), " \xB7 ", avRotuloTri(o.trimestre)), o.tipo === 'atraso' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Hor\xE1rio"), /*#__PURE__*/React.createElement("dd", null, "Previsto ", o.previsto || '-', " \xB7 chegada ", o.chegada || '-', o.minutos ? ` · ${avMinTxt(o.minutos)} de atraso` : '')), o.obs && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Observa\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, o.obs)), /*#__PURE__*/React.createElement("dt", null, "Registrado por"), /*#__PURE__*/React.createElement("dd", null, o.por || '-', o.em ? ` em ${quandoBrasilia(o.em)}` : '')), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+
 // ---- registro diário (digitado ou por voz). Nada é salvo sem a pessoa conferir e clicar em Salvar.
 function AvFormRegistro({
   usuario,
@@ -6257,8 +6388,27 @@ function AvHistorico({
   const [ordemAsc, setOrdemAsc] = useState(false);
   const [aberto, setAberto] = useState(null);
   const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
-  const responsaveis = [...new Map(registros.map(r => [r.registradoPorId, r.registradoPorNome])).entries()];
-  const lista = registros.filter(r => {
+  // faltas e atrasos da Comissão entram no histórico como itens de leitura (vinculados ao registro original)
+  const ocorrencias = useAvOcorrencias();
+  const idsAvaliaveis = new Set(avaliaveis.map(x => x.id));
+  const daComissao = ocorrencias.filter(o => idsAvaliaveis.has(o.funcionarioId)).map(o => ({
+    id: 'oc:' + o.chave,
+    _oc: o,
+    funcionarioId: o.funcionarioId,
+    dataOcorrido: o.data,
+    horaOcorrido: o.tipo === 'atraso' ? o.chegada : '',
+    categoria: 'Pontualidade e assiduidade',
+    tipoId: '__comissao_' + o.tipo,
+    tipoNome: o.tipo === 'falta' ? 'Falta' : 'Atraso',
+    sentido: '0',
+    descricao: avTextoOcorrencia(o) + (o.obs ? ` · ${o.obs}` : ''),
+    registradoPorId: 'comissao:' + (o.por || '-'),
+    registradoPorNome: o.por || '-',
+    status: o.removido ? 'removido' : 'ativo'
+  }));
+  const todos = [...registros, ...daComissao];
+  const responsaveis = [...new Map(todos.map(r => [r.registradoPorId, r.registradoPorNome])).entries()];
+  const lista = todos.filter(r => {
     if (!filtro.removidos && r.status === 'removido') return false;
     if (filtro.funcionarioId && r.funcionarioId !== filtro.funcionarioId) return false;
     if (filtro.de && r.dataOcorrido < filtro.de) return false;
@@ -6269,6 +6419,7 @@ function AvHistorico({
     if (filtro.rapido === 'positivos' && r.sentido !== '+') return false;
     if (filtro.rapido === 'melhorias' && r.sentido !== '-') return false;
     if (filtro.rapido === 'metas' && r.tipoId !== 'meta' && !r.metaId) return false;
+    if (filtro.rapido === 'comissao' && !r._oc) return false;
     if (filtro.vinculo === 'avaliacao' && !r.avaliacaoRelacionadaId && !r.usadoEmAvaliacao) return false;
     return true;
   }).sort((a, b) => {
@@ -6280,7 +6431,7 @@ function AvHistorico({
     ...x,
     [k]: v
   }));
-  const registroAberto = aberto ? registros.find(r => r.id === aberto) : null;
+  const registroAberto = aberto ? todos.find(r => r.id === aberto) : null;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "av-filtros"
   }, /*#__PURE__*/React.createElement("select", {
@@ -6320,7 +6471,11 @@ function AvHistorico({
   }, "Todos os tipos"), config.tipos.map(t => /*#__PURE__*/React.createElement("option", {
     key: t.id,
     value: t.id
-  }, t.nome))), /*#__PURE__*/React.createElement("select", {
+  }, t.nome)), /*#__PURE__*/React.createElement("option", {
+    value: "__comissao_falta"
+  }, "Falta (Comiss\xE3o)"), /*#__PURE__*/React.createElement("option", {
+    value: "__comissao_atraso"
+  }, "Atraso (Comiss\xE3o)")), /*#__PURE__*/React.createElement("select", {
     value: filtro.responsavelId,
     onChange: e => set('responsavelId', e.target.value),
     "aria-label": "Respons\xE1vel"
@@ -6331,7 +6486,7 @@ function AvHistorico({
     value: id
   }, n)))), /*#__PURE__*/React.createElement("div", {
     className: "av-chips-filtro"
-  }, [['', 'Todos'], ['positivos', 'Positivos'], ['melhorias', 'Oportunidades de melhoria'], ['metas', 'Metas e compromissos']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+  }, [['', 'Todos'], ['positivos', 'Positivos'], ['melhorias', 'Oportunidades de melhoria'], ['metas', 'Metas e compromissos'], ['comissao', 'Faltas e atrasos (Comissão)']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     type: "button",
     className: `av-chip ${filtro.rapido === k ? 'ativo' : ''}`,
@@ -6357,7 +6512,10 @@ function AvHistorico({
   }, /*#__PURE__*/React.createElement("table", {
     className: "av-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Categoria"), /*#__PURE__*/React.createElement("th", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "Respons\xE1vel"))), /*#__PURE__*/React.createElement("tbody", null, lista.map(r => {
-    const t = avTipo(config, r.tipoId);
+    const t = r._oc ? {
+      sentido: r._oc.tipo === 'falta' ? 'f' : 'a',
+      nome: r.tipoNome
+    } : avTipo(config, r.tipoId);
     return /*#__PURE__*/React.createElement("tr", {
       key: r.id,
       className: `linha-clicavel ${r.status === 'removido' ? 'av-removido' : ''}`,
@@ -6369,7 +6527,7 @@ function AvHistorico({
     }, nomeDe(r.funcionarioId)), /*#__PURE__*/React.createElement("td", {
       "data-rotulo": "Tipo"
     }, /*#__PURE__*/React.createElement("span", {
-      className: `av-chip-tipo s${t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : 'z'}`
+      className: `av-chip-tipo s${t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : t.sentido === 'f' || t.sentido === 'a' ? t.sentido : 'z'}`
     }, r.tipoNome || t.nome)), /*#__PURE__*/React.createElement("td", {
       "data-rotulo": "Categoria"
     }, r.categoria), /*#__PURE__*/React.createElement("td", {
@@ -6377,14 +6535,20 @@ function AvHistorico({
       className: "av-desc"
     }, r.descricao), /*#__PURE__*/React.createElement("td", {
       "data-rotulo": "Respons\xE1vel"
-    }, r.registradoPorNome, r.origem === 'voz' ? ' 🎤' : ''));
-  })))), registroAberto && /*#__PURE__*/React.createElement(AvModalRegistro, {
+    }, r.registradoPorNome, r.origem === 'voz' ? ' 🎤' : '', r._oc ? /*#__PURE__*/React.createElement("span", {
+      className: "av-selo-comissao"
+    }, "Comiss\xE3o") : ''));
+  })))), registroAberto && (registroAberto._oc ? /*#__PURE__*/React.createElement(AvModalOcorrencia, {
+    o: registroAberto._oc,
+    nomeFuncionario: nomeDe(registroAberto.funcionarioId),
+    aoFechar: () => setAberto(null)
+  }) : /*#__PURE__*/React.createElement(AvModalRegistro, {
     registro: registroAberto,
     usuario: usuario,
     funcionarios: funcionarios,
     config: config,
     aoFechar: () => setAberto(null)
-  }));
+  })));
 }
 
 // ---- avaliação trimestral montada a partir dos registros (o sistema organiza; quem decide é a pessoa)
@@ -6674,6 +6838,12 @@ function AvEditorAvaliacao({
   const [aprovando, setAprovando] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [corrigindo, setCorrigindo] = useState(null);
+  const [ocAberta, setOcAberta] = useState(null);
+  // faltas e atrasos da Comissão no trimestre (só para quem avalia; não mexem na nota)
+  const todasOcorrencias = useAvOcorrencias();
+  const limTri = avLimites(avaliacao.trimestre);
+  const ocTri = avOcorrenciasNoPeriodo(todasOcorrencias, avaliacao.funcionarioId, limTri.inicio, limTri.fim, true);
+  const contOc = avContarOcorrencias(ocTri);
   useEffect(() => {
     setAv(avaliacao);
   }, [avaliacao.status, avaliacao.versoes && avaliacao.versoes.length]);
@@ -6777,6 +6947,18 @@ function AvEditorAvaliacao({
       };
       const lote = db.batch();
       lote.update(ref, {
+        pontualidade: {
+          ...contOc,
+          conferidoEm: new Date().toISOString(),
+          itens: ocTri.filter(o => !o.removido).map(o => ({
+            chave: o.chave,
+            tipo: o.tipo,
+            nome: o.nome,
+            data: o.data,
+            minutos: o.minutos,
+            obs: o.obs
+          }))
+        },
         conteudo: av.conteudo,
         notas: av.notas,
         comentariosAvaliador: av.comentariosAvaliador || '',
@@ -6968,6 +7150,21 @@ function AvEditorAvaliacao({
       className: "av-dica"
     }, " \xB7 interna (n\xE3o vai para o funcion\xE1rio)") : '');
   }))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao av-secao-oc"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Pontualidade e frequ\xEAncia (Comiss\xE3o)"), /*#__PURE__*/React.createElement("div", {
+    className: "av-oc-cab"
+  }, /*#__PURE__*/React.createElement(AvResumoOcorrencias, {
+    c: contOc
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "Registrado na Comiss\xE3o. Fica vis\xEDvel para quem avalia e ", /*#__PURE__*/React.createElement("strong", null, "n\xE3o altera a nota automaticamente"), " \u2014 use para decidir a nota de pontualidade.")), avaliacao.pontualidade && (avaliacao.status === 'aprovada' || avaliacao.status === 'feedback') && (avaliacao.pontualidade.faltas !== contOc.faltas || avaliacao.pontualidade.atrasos !== contOc.atrasos) && /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, "Na aprova\xE7\xE3o eram ", avPlural(avaliacao.pontualidade.faltas, 'falta', 'faltas'), " e ", avPlural(avaliacao.pontualidade.atrasos, 'atraso', 'atrasos'), "; a Comiss\xE3o foi alterada depois."), /*#__PURE__*/React.createElement(AvListaOcorrencias, {
+    lista: ocTri,
+    aoAbrir: setOcAberta
+  })), /*#__PURE__*/React.createElement("div", {
     className: "av-secao"
   }, /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo"
@@ -7165,7 +7362,11 @@ function AvEditorAvaliacao({
     type: "button",
     className: "btn",
     onClick: () => gerarPdfAvaliacao(avPublicacao(avaliacao, funcionario, config, (metas || []).filter(m => m.origemAvaliacaoId === avaliacao.id)), false)
-  }, "Gerar PDF"))), verRegistro && /*#__PURE__*/React.createElement(AvModalRegistro, {
+  }, "Gerar PDF"))), ocAberta && /*#__PURE__*/React.createElement(AvModalOcorrencia, {
+    o: ocAberta,
+    nomeFuncionario: funcionario ? funcionario.nome : avaliacao.funcionarioNome,
+    aoFechar: () => setOcAberta(null)
+  }), verRegistro && /*#__PURE__*/React.createElement(AvModalRegistro, {
     registro: verRegistro,
     usuario: {
       ...usuario,
@@ -7191,6 +7392,7 @@ function AvTrimestrais({
   const [gerando, setGerando] = useState('');
   const [erro, setErro] = useState('');
   const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const ocorrencias = useAvOcorrencias();
   const triAtual = tris[0];
   const {
     inicio,
@@ -7262,7 +7464,10 @@ function AvTrimestrais({
       "data-rotulo": "Registros"
     }, n, n < AV_MIN_EVIDENCIAS ? /*#__PURE__*/React.createElement("span", {
       className: "av-dica"
-    }, " \xB7 evid\xEAncias insuficientes") : ''), /*#__PURE__*/React.createElement("td", {
+    }, " \xB7 evid\xEAncias insuficientes") : '', /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(AvResumoOcorrencias, {
+      c: avContarOcorrencias(avOcorrenciasNoPeriodo(ocorrencias, f.id, inicio, fim)),
+      compacto: true
+    }))), /*#__PURE__*/React.createElement("td", {
       "data-rotulo": "Situa\xE7\xE3o"
     }, /*#__PURE__*/React.createElement("span", {
       className: `av-status s-${status}`
@@ -7370,6 +7575,8 @@ function AvResumoColaborador({
   const rs = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim).sort((a, b) => b.dataOcorrido.localeCompare(a.dataOcorrido));
   const ms = metas.filter(m => m.funcionarioId === f.id && ['Não iniciada', 'Em andamento'].includes(m.status));
   const [verRegistro, setVerRegistro] = useState(null);
+  const [ocAberta, setOcAberta] = useState(null);
+  const ocs = avOcorrenciasNoPeriodo(useAvOcorrencias(), f.id, inicio, fim, true);
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && aoFechar()
@@ -7413,6 +7620,15 @@ function AvResumoColaborador({
     }, r.tipoNome || t.nome), " ", formatarDataBr(r.dataOcorrido), " \u2014 ", r.descricao));
   })), /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo"
+  }, "Pontualidade e frequ\xEAncia (Comiss\xE3o)"), /*#__PURE__*/React.createElement("div", {
+    className: "av-oc-cab"
+  }, /*#__PURE__*/React.createElement(AvResumoOcorrencias, {
+    c: avContarOcorrencias(ocs)
+  })), /*#__PURE__*/React.createElement(AvListaOcorrencias, {
+    lista: ocs,
+    aoAbrir: setOcAberta
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
   }, "Metas em andamento (", ms.length, ")"), ms.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "av-vazio-pequeno"
   }, "Nenhuma meta em andamento.") : /*#__PURE__*/React.createElement("ul", {
@@ -7433,7 +7649,11 @@ function AvResumoColaborador({
     type: "button",
     className: "btn",
     onClick: aoIrTrimestrais
-  }, avaliacao ? 'Abrir avaliação' : 'Ir para Avaliações trimestrais')), verRegistro && /*#__PURE__*/React.createElement(AvModalRegistro, {
+  }, avaliacao ? 'Abrir avaliação' : 'Ir para Avaliações trimestrais')), ocAberta && /*#__PURE__*/React.createElement(AvModalOcorrencia, {
+    o: ocAberta,
+    nomeFuncionario: f.nome,
+    aoFechar: () => setOcAberta(null)
+  }), verRegistro && /*#__PURE__*/React.createElement(AvModalRegistro, {
     registro: verRegistro,
     usuario: {
       perfil: 'somenteLeitura'
@@ -7466,21 +7686,31 @@ function AvPainel({
   } = avLimites(tri);
   const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
   const sentido = r => avTipo(config, r.tipoId).sentido || r.sentido || '0';
+  const ocorrencias = useAvOcorrencias();
   const cartoes = avaliaveis.map(f => {
     const a = avaliacoes.find(x => x.id === avIdAvaliacao(f.id, tri));
     const rs = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim);
     const nota = avNotaDe(a, config);
     const avaliado = !!a && (a.status === 'aprovada' || a.status === 'feedback');
+    const oc = avContarOcorrencias(avOcorrenciasNoPeriodo(ocorrencias, f.id, inicio, fim));
     return {
       f,
       a,
       nota,
       avaliado,
+      oc,
       pos: rs.filter(r => sentido(r) === '+').length,
       neg: rs.filter(r => sentido(r) === '-').length
     };
   });
   const avaliados = cartoes.filter(c => c.avaliado);
+  const ocEquipe = cartoes.reduce((t, c) => ({
+    faltas: t.faltas + c.oc.faltas,
+    atrasos: t.atrasos + c.oc.atrasos
+  }), {
+    faltas: 0,
+    atrasos: 0
+  });
   const comNota = avaliados.filter(c => c.nota != null);
   const mediaEquipe = comNota.length ? comNota.reduce((s, c) => s + c.nota, 0) / comNota.length : null;
   const termo = avSemAcento(busca.trim());
@@ -7562,6 +7792,11 @@ function AvPainel({
     cls: "estrela",
     valor: mediaEquipe == null ? '—' : `${avNum1(mediaEquipe)}/5`,
     rotulo: mediaEquipe == null ? 'média da equipe (sem avaliações)' : `média da equipe (${comNota.length} avaliado${comNota.length > 1 ? 's' : ''})`
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u23F1",
+    cls: "pontualidade",
+    valor: `${ocEquipe.faltas} · ${ocEquipe.atrasos}`,
+    rotulo: `${ocEquipe.faltas === 1 ? 'falta' : 'faltas'} · ${ocEquipe.atrasos === 1 ? 'atraso' : 'atrasos'} no trimestre (Comissão)`
   })), (atrasadas > 0 || semFeedback > 0) && /*#__PURE__*/React.createElement("div", {
     className: "av-atencao"
   }, atrasadas > 0 && /*#__PURE__*/React.createElement("button", {
@@ -7599,7 +7834,8 @@ function AvPainel({
     nota,
     avaliado,
     pos,
-    neg
+    neg,
+    oc
   }) => /*#__PURE__*/React.createElement("div", {
     key: f.id,
     className: `av-card ${avaliado ? 'avaliado' : 'pendente'}`,
@@ -7621,7 +7857,7 @@ function AvPainel({
     className: "av-nota"
   }, /*#__PURE__*/React.createElement("strong", null, avNum1(nota)), "/5") : /*#__PURE__*/React.createElement("span", {
     className: "av-nota sem"
-  }, "Sem avalia\xE7\xE3o"), /*#__PURE__*/React.createElement(AvEstrelas, {
+  }, avaliado ? 'Aprovada sem nota' : 'Sem avaliação'), /*#__PURE__*/React.createElement(AvEstrelas, {
     nota: nota
   })), a && !avaliado && /*#__PURE__*/React.createElement("div", {
     className: "av-card-status"
@@ -7636,6 +7872,12 @@ function AvPainel({
     style: {
       width: `${nota ? nota / 5 * 100 : 0}%`
     }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-oc",
+    title: "Faltas e atrasos registrados na Comiss\xE3o (n\xE3o alteram a nota)"
+  }, /*#__PURE__*/React.createElement(AvResumoOcorrencias, {
+    c: oc,
+    compacto: true
   })), /*#__PURE__*/React.createElement("div", {
     className: "av-card-pontos"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
