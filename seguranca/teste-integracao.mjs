@@ -69,8 +69,9 @@ await gravar('loginsPublicos/walter', { email: emWAL });
 await gravar('loginsPublicos/fabio', { email: emFUN });
 await gravar('clientes/C1', { razaoSocial: 'Cliente Integração Ltda', cnpj: '11222333000181' });
 await gravar('catalogoPecas/P1', { descricao: 'Placa controladora', categoria: 'Placa', valorConserto: 300, criadoEm: new Date('2026-10-01T10:00:00Z') });
-await gravar('lotes/L1', { numero: 41, clienteId: 'C1', status: 'Em análise', arquivado: false, criadoEm: new Date('2026-10-20T10:00:00Z'), codigoAssinaturaEntrada: '1234', itens: [{ pecaDescricao: 'Placa controladora', quantidade: 2 }] });
+await gravar('lotes/L1', { numero: 41, clienteId: 'C1', status: 'Em análise', arquivado: false, criadoEm: new Date('2026-10-20T10:00:00Z'), itens: [{ pecaDescricao: 'Placa controladora', quantidade: 2 }] });
 await gravar('orcamentos/O1', { numero: 1, clienteId: 'C1', status: 'Pendente orçamento', total: 600, arquivado: false, ordemKanban: 1, criadoEm: new Date('2026-10-21T10:00:00Z'), itens: [{ descricao: 'Placa', qtd: 2, valorUnit: 300, tipo: 'consertada' }], historico: [] });
+await gravar('codigosAssinatura/entrada_L1', { tipo: 'entrada', colecao: 'lotes', documentoId: 'L1', campoAssinatura: 'assinaturaEntrada', codigo: '0372', expiraEm: new Date(Date.now() + 7 * 864e5), tentativas: 0, tentativa: '', tentativaPor: '', confirmado: false, usado: false });
 await gravar('periodosApuracao/PA1', { nome: 'Out/Nov', dataInicial: '2026-10-24', dataFinal: '2026-11-23', origem: 'manual', editadoManualmente: true });
 for (const c of ['migracaoArquivamento_v2', 'migracaoPermissoes', 'migracaoStatusRota', 'migracaoLoteConcluidoOrcado']) await gravar('config/' + c, { feito: true });
 
@@ -170,12 +171,22 @@ try {
   // 5) Assinatura por link (cliente, sem login)
   const cli = await novaPagina();
   await cli.page.goto(SITE + '?assinar=entrada&id=L1&emulador'); await cli.page.waitForSelector('input', { timeout: 30000 });
-  await cli.page.locator('input').first().fill('1234'); await cli.page.getByText('Continuar').click();
+  await cli.page.locator('input').first().fill('1111'); await cli.page.getByText('Continuar').click();
+  await cli.page.waitForSelector('text=Código incorreto', { timeout: 20000 }).catch(() => {});
+  passo('código errado é recusado pelo banco (e conta como tentativa)', await cli.page.locator('text=Código incorreto').count() === 1 && (await ler('codigosAssinatura/entrada_L1')).tentativas === 1);
+  cli.erros.length = 0; // a recusa do código errado aparece como "sem permissão" no console (esperado)
+  await cli.page.locator('input').first().fill('0372'); await cli.page.getByText('Continuar').click();
   await cli.page.waitForSelector('form input', { timeout: 20000 });
   await cli.page.locator('form input').first().fill('Maria Aparecida da Silva'); await cli.page.locator('form input').nth(1).fill('52998224725');
   await cli.page.locator('form button.btn:not(.secundario)').last().click(); await esperar(6000);
   const l1 = await ler('lotes/L1');
   passo('cliente assina pelo link como visitante (só a assinatura é gravada)', l1.assinaturaEntrada && l1.assinaturaEntrada.nome === 'Maria Aparecida da Silva' && l1.status === 'Em análise', JSON.stringify(l1.assinaturaEntrada || null).slice(0, 150));
+  const codL1 = await ler('codigosAssinatura/entrada_L1');
+  passo('código de 4 dígitos (com zero na frente) confirmado e gasto junto com a assinatura', codL1.confirmado === true && codL1.usado === true && codL1.tentativas === 2, JSON.stringify(codL1));
+  // código usado não serve de novo: outro visitante, mesmo link e mesmo código
+  const cli2 = await novaPagina();
+  await cli2.page.goto(SITE + '?assinar=entrada&id=L1&emulador'); await cli2.page.waitForTimeout(4000);
+  passo('documento já assinado: o link mostra "assinatura confirmada" e não pede código', /Assinatura confirmada/.test(await cli2.page.locator('body').innerText()));
   passo('assinatura sem erro de permissão', cli.erros.length === 0, cli.erros.join(' | '));
   // 6) Cadastro pelo próprio funcionário (fica pendente)
   const novo = await novaPagina();

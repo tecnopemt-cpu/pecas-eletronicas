@@ -1914,8 +1914,24 @@ function formatarCPF(v) {
   const d = (v || '').replace(/\D/g, '').slice(0, 11);
   return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
 }
+// Código de verificação da assinatura por link: exatamente 4 números (pode começar com zero, ex.: 0372),
+// sorteado com o gerador seguro do navegador. Fica em codigosAssinatura/<tipo>_<id>, que o cliente NÃO
+// consegue ler: a conferência é feita pelas regras do banco (máx. 3 tentativas, validade, uso único).
+const CODIGO_ASSINATURA_DIGITOS = 4;
+const CODIGO_ASSINATURA_TENTATIVAS = 3;
+const CODIGO_ASSINATURA_VALIDADE_DIAS = 7;
 function gerarCodigoAssinatura() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  const buf = new Uint16Array(1);
+  do {
+    crypto.getRandomValues(buf);
+  } while (buf[0] >= 60000); // descarta a sobra para todos os códigos terem a mesma chance
+  return String(buf[0] % 10000).padStart(CODIGO_ASSINATURA_DIGITOS, '0');
+}
+function codigoAssinaturaValido(c) {
+  return /^[0-9]{4}$/.test(String(c || ''));
+}
+function refCodigoAssinatura(tipo, id) {
+  return db.collection('codigosAssinatura').doc(`${tipo}_${id}`);
 }
 function linkAssinatura(tipo, id) {
   return `${window.location.origin}${window.location.pathname}?assinar=${tipo}&id=${id}`;
@@ -3124,7 +3140,8 @@ function FormularioAssinatura({
   documento,
   cliente,
   colecao,
-  onConcluido
+  onConcluido,
+  viaLink
 }) {
   const [nomeCompleto, setNomeCompleto] = useState('');
   const [cpf, setCpf] = useState('');
@@ -3182,7 +3199,18 @@ function FormularioAssinatura({
           id: ''
         }, tipo === 'teste' ? 'assinou o recebimento da entrega para teste.' : 'assinou o recebimento da entrega.', 'assinatura'));
       }
-      await db.collection(colecao).doc(documento.id).update(dadosSalvar);
+      if (viaLink) {
+        // assinatura por link: o código confirmado é "gasto" junto com a assinatura (não pode ser reutilizado)
+        const lote = db.batch();
+        lote.update(db.collection(colecao).doc(documento.id), dadosSalvar);
+        lote.update(refCodigoAssinatura(tipo, documento.id), {
+          usado: true,
+          usadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await lote.commit();
+      } else {
+        await db.collection(colecao).doc(documento.id).update(dadosSalvar);
+      }
       const assinaturaPdf = {
         ...assinatura,
         dataTexto: agora.toLocaleString('pt-BR')
@@ -3285,8 +3313,8 @@ function TelaAssinatura({
   const [codigoValidado, setCodigoValidado] = useState(false);
   const [erroCodigo, setErroCodigo] = useState('');
   const [concluido, setConcluido] = useState(false);
+  const [conferindo, setConferindo] = useState(false);
   const colecao = TIPOS_ASSINATURA[tipo].colecao;
-  const campoCodigo = TIPOS_ASSINATURA[tipo].campoCodigo;
   const campoAssinatura = TIPOS_ASSINATURA[tipo].campoAssinatura;
   useEffect(() => {
     (async () => {
@@ -3308,7 +3336,13 @@ function TelaAssinatura({
             const cSnap = await db.collection('clientes').doc(dados.clienteId).get();
             if (cSnap.exists) setCliente(cSnap.data());
           }
-          if (dados[campoAssinatura]) setConcluido(true);
+          if (dados[campoAssinatura]) setConcluido(true);else {
+            // este aparelho já confirmou o código antes (ex.: a página foi recarregada): vai direto para assinar
+            try {
+              const c = await refCodigoAssinatura(tipo, id).get();
+              if (c.exists && c.data().confirmado && !c.data().usado) setCodigoValidado(true);
+            } catch (e) {/* sem permissão = ainda não confirmou neste aparelho */}
+          }
         }
       } catch (err) {
         console.error(err);
@@ -3316,15 +3350,43 @@ function TelaAssinatura({
       setCarregando(false);
     })();
   }, []);
-  function validarCodigo(e) {
+  // A conferência é feita pelo banco: cada tentativa fica registrada (no máximo 3) e só a tentativa certa,
+  // dentro da validade e ainda não usada, libera a confirmação. A tela não conhece o código.
+  async function validarCodigo(e) {
     e.preventDefault();
-    if (!documento) return;
-    if (codigo.trim() === String(documento[campoCodigo] || '')) {
-      setCodigoValidado(true);
-      setErroCodigo('');
-    } else {
-      setErroCodigo('Código incorreto. Confira o código enviado.');
+    if (!documento || conferindo) return;
+    const digitado = codigo.replace(/\D/g, '');
+    if (!codigoAssinaturaValido(digitado)) {
+      setErroCodigo('O código tem exatamente 4 números.');
+      return;
     }
+    setConferindo(true);
+    setErroCodigo('');
+    const ref = refCodigoAssinatura(tipo, id);
+    try {
+      await ref.update({
+        tentativa: digitado,
+        tentativas: firebase.firestore.FieldValue.increment(1),
+        tentativaPor: authApp.currentUser.uid,
+        tentativaEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (err) {
+      console.warn('tentativa recusada', err && err.code);
+      setErroCodigo('Este código não pode mais ser usado: expirou, já foi usado ou chegou ao limite de 3 tentativas. Peça um novo código à Tecnopemt.');
+      setConferindo(false);
+      return;
+    }
+    try {
+      await ref.update({
+        confirmado: true,
+        confirmadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setCodigoValidado(true);
+    } catch (err) {
+      setCodigo('');
+      setErroCodigo(`Código incorreto. Confira o código enviado (são no máximo ${CODIGO_ASSINATURA_TENTATIVAS} tentativas).`);
+    }
+    setConferindo(false);
   }
   if (carregando) {
     return /*#__PURE__*/React.createElement("div", {
@@ -3420,8 +3482,19 @@ function TelaAssinatura({
     }
   }, "Cliente: ", /*#__PURE__*/React.createElement("strong", null, cliente?.razaoSocial || '-'), /*#__PURE__*/React.createElement("br", null), tipo === 'entrada' ? `Confirmando a entrada de ${(documento.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0)} peça(s) para análise/conserto.` : tipo === 'teste' ? `Confirmando a entrega de ${(documento.itens || []).reduce((s, i) => s + (Number(i.qtd) || 0), 0)} peça(s) para teste — não é entrega definitiva nem faturamento.` : `Confirmando a entrega e o valor do orçamento #${documento.numero}: ${formatMoeda(documento.total)}.`), /*#__PURE__*/React.createElement("label", null, "Código de verificação"), /*#__PURE__*/React.createElement("input", {
     value: codigo,
-    onChange: e => setCodigo(e.target.value),
-    placeholder: "Digite o código de 6 dígitos",
+    onChange: e => setCodigo(e.target.value.replace(/\D/g, '').slice(0, CODIGO_ASSINATURA_DIGITOS)),
+    placeholder: "Digite o código de 4 dígitos",
+    inputMode: "numeric",
+    pattern: "[0-9]{4}",
+    title: "Digite os 4 números do código",
+    maxLength: CODIGO_ASSINATURA_DIGITOS,
+    autoComplete: "one-time-code",
+    "aria-label": "Código de verificação de 4 dígitos",
+    style: {
+      fontSize: 22,
+      letterSpacing: 8,
+      textAlign: 'center'
+    },
     required: true
   }), erroCodigo && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3436,11 +3509,14 @@ function TelaAssinatura({
       justifyContent: 'center',
       marginTop: 14
     }
-  }, "Continuar")) : /*#__PURE__*/React.createElement(FormularioAssinatura, {
+    ,
+    disabled: conferindo
+  }, conferindo ? 'Conferindo...' : 'Continuar')) : /*#__PURE__*/React.createElement(FormularioAssinatura, {
     tipo: tipo,
     documento: documento,
     cliente: cliente,
     colecao: colecao,
+    viaLink: true,
     onConcluido: () => setConcluido(true)
   })));
 }
@@ -3616,7 +3692,15 @@ function BlocoAssinatura({
   const assinatura = documento[campoAssinatura];
   const campoFoto = tipo === 'entrega' ? 'fotoEntrega' : tipo === 'teste' ? 'fotoTeste' : null;
   const fotoObrigatoriaFaltando = !!campoFoto && !documento[campoFoto];
-  const codigo = documento[campoCodigo];
+  const [dadosCodigo, setDadosCodigo] = useState(null);
+  useEffect(() => {
+    if (assinatura) return;
+    return refCodigoAssinatura(tipo, documento.id).onSnapshot(s => setDadosCodigo(s.exists ? s.data() : null), err => console.error('codigosAssinatura', err));
+  }, [tipo, documento.id, !!assinatura]);
+  const codigo = dadosCodigo && dadosCodigo.codigo;
+  const codigoAntigo = !codigo && !!documento[campoCodigo]; // link gerado antes da mudança para 4 dígitos
+  const expiraCodigo = dadosCodigo && dadosCodigo.expiraEm && dadosCodigo.expiraEm.toDate ? dadosCodigo.expiraEm.toDate() : null;
+  const situacaoCodigo = !dadosCodigo ? '' : dadosCodigo.usado ? 'Este código já foi usado.' : expiraCodigo && expiraCodigo < new Date() ? 'Este código expirou. Gere um novo.' : (dadosCodigo.tentativas || 0) >= CODIGO_ASSINATURA_TENTATIVAS && !dadosCodigo.confirmado ? 'O cliente errou o código 3 vezes e ele foi bloqueado. Gere um novo código.' : '';
   async function registrarEntreguePor() {
     if (tipo === 'teste' && !documento.entreguePorTeste && usuario?.nome) {
       await db.collection(colecao).doc(documento.id).update({
@@ -3631,10 +3715,26 @@ function BlocoAssinatura({
     }
     setProcessando(true);
     await registrarEntreguePor();
-    const novoCodigo = gerarCodigoAssinatura();
-    await db.collection(colecao).doc(documento.id).update({
-      [campoCodigo]: novoCodigo
-    });
+    try {
+      await refCodigoAssinatura(tipo, documento.id).set({
+        tipo,
+        colecao,
+        documentoId: documento.id,
+        campoAssinatura,
+        codigo: gerarCodigoAssinatura(),
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        criadoPorNome: usuario?.nome || '',
+        expiraEm: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + CODIGO_ASSINATURA_VALIDADE_DIAS * 864e5)),
+        tentativas: 0,
+        tentativa: '',
+        tentativaPor: '',
+        confirmado: false,
+        usado: false
+      });
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui gerar o código. Verifique a conexão e tente de novo.');
+    }
     setProcessando(false);
   }
   function copiar(texto) {
@@ -3749,7 +3849,13 @@ function BlocoAssinatura({
     className: "btn secundario pequeno",
     disabled: processando || fotoObrigatoriaFaltando,
     onClick: gerarLink
-  }, codigo ? 'Gerar novo código' : 'Gerar link (cliente ausente)')), codigo && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, codigo || codigoAntigo ? 'Gerar novo código' : 'Gerar link (cliente ausente)')), codigoAntigo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--laranja-escuro)',
+      marginTop: 8
+    }
+  }, "O código antigo (6 dígitos) deste link não vale mais. Clique em \"Gerar novo código\" e envie o novo código de 4 dígitos ao cliente — o link continua o mesmo."), codigo && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
       color: 'var(--texto-fraco)',
@@ -3792,7 +3898,14 @@ function BlocoAssinatura({
     type: "button",
     className: "btn secundario pequeno",
     onClick: () => copiar(codigo)
-  }, "Copiar código")), /*#__PURE__*/React.createElement("button", {
+  }, "Copiar código")), /*#__PURE__*/React.createElement("div", {
+    className: "codigo-assinatura-situacao",
+    style: {
+      fontSize: 11.5,
+      marginTop: 6,
+      color: situacaoCodigo ? 'var(--vermelho)' : 'var(--texto-fraco)'
+    }
+  }, situacaoCodigo || `Válido até ${expiraCodigo ? expiraCodigo.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '-'} · uso único · ${CODIGO_ASSINATURA_TENTATIVAS} tentativas`), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     style: {

@@ -8,7 +8,7 @@
 //  - Administrador Master: tudo; administrador: gerencia funcionários comuns;
 //  - quem está com cadastro pendente: só vê a própria ficha;
 //  - cliente com link de assinatura (visitante anônimo): abre só o documento do link e grava só a
-//    própria assinatura (uma vez);
+//    própria assinatura (uma vez), depois de acertar o código de 4 números (3 tentativas, validade, uso único);
 //  - conta da rotina de backup (registrada em seguranca/backup pelo Master ou um administrador): só leitura;
 //  - avaliação de desempenho: gestão registra/avalia; funcionário vê só o que foi aprovado para ele;
 //  - qualquer outra pessoa: nada.
@@ -113,10 +113,61 @@ service cloud.firestore {
       allow delete: if administrador();
     }
 
+    // ---------- código de verificação da assinatura por link ----------
+    // codigosAssinatura/<tipo>_<id>: código de 4 números que o cliente NÃO consegue ler. Cada tentativa do
+    // cliente é registrada (no máximo 3); só a tentativa certa, dentro da validade, permite "confirmar"; e a
+    // assinatura só é aceita junto com a marcação de "usado" (uso único).
+    function codigoLiberado(tipo, id) {
+      let caminho = /databases/$(database)/documents/codigosAssinatura/$(tipo + '_' + id);
+      return exists(caminho) && get(caminho).data.get('usado', true) == false
+        && getAfter(caminho).data.usado == true
+        && getAfter(caminho).data.confirmado == true
+        && getAfter(caminho).data.tentativaPor == request.auth.uid
+        && getAfter(caminho).data.expiraEm > request.time;
+    }
+    function tipoAssinaturaOk(d) {
+      return (d.tipo == 'entrada' && d.colecao == 'lotes' && d.campoAssinatura == 'assinaturaEntrada')
+        || (d.tipo == 'entrega' && d.colecao == 'orcamentos' && d.campoAssinatura == 'assinaturaEntrega')
+        || (d.tipo == 'teste' && d.colecao == 'orcamentos' && d.campoAssinatura == 'assinaturaTeste');
+    }
+    match /codigosAssinatura/{id} {
+      allow read: if ativo();
+      // quem já confirmou o código neste aparelho pode ver que confirmou (para recarregar a página)
+      allow get: if logado() && resource.data.get('tentativaPor', '') == request.auth.uid && resource.data.get('confirmado', false) == true;
+      // equipe gera (ou gera de novo) o código: 4 números, zerado, com validade de até 7 dias
+      allow create, update: if ativo()
+        && tipoAssinaturaOk(request.resource.data)
+        && id == request.resource.data.tipo + '_' + request.resource.data.documentoId
+        && request.resource.data.codigo is string && request.resource.data.codigo.matches('^[0-9]{4}$')
+        && request.resource.data.tentativas == 0 && request.resource.data.tentativa == ''
+        && request.resource.data.confirmado == false && request.resource.data.usado == false
+        && request.resource.data.expiraEm > request.time
+        && request.resource.data.expiraEm < request.time + duration.value(8, 'd');
+      // cliente: 1) registra uma tentativa (conta mesmo se errar)
+      allow update: if logado() && resource.data.usado == false && resource.data.confirmado == false
+        && resource.data.expiraEm > request.time && resource.data.tentativas < 3
+        && mudou().hasOnly(['tentativa', 'tentativas', 'tentativaPor', 'tentativaEm'])
+        && request.resource.data.tentativas == resource.data.tentativas + 1
+        && request.resource.data.tentativa is string && request.resource.data.tentativa.matches('^[0-9]{4}$')
+        && request.resource.data.tentativaPor == request.auth.uid
+        && request.resource.data.tentativaEm == request.time;
+      //               2) confirma — só passa se a última tentativa registrada for a certa
+      allow update: if logado() && resource.data.usado == false && resource.data.confirmado == false
+        && resource.data.expiraEm > request.time
+        && resource.data.tentativa == resource.data.codigo && resource.data.tentativaPor == request.auth.uid
+        && mudou().hasOnly(['confirmado', 'confirmadoEm']) && request.resource.data.confirmado == true;
+      //               3) gasta o código junto com a assinatura (uso único)
+      allow update: if logado() && resource.data.usado == false && resource.data.confirmado == true
+        && resource.data.tentativaPor == request.auth.uid && resource.data.expiraEm > request.time
+        && mudou().hasOnly(['usado', 'usadoEm']) && request.resource.data.usado == true
+        && resource.data.campoAssinatura in getAfter(/databases/$(database)/documents/$(resource.data.colecao)/$(resource.data.documentoId)).data;
+      allow delete: if false;
+    }
+
     // ---------- assinatura por link (cliente como visitante anônimo) ----------
     match /lotes/{id} {
       allow get: if anonimo();
-      allow update: if anonimo() && resource.data.get('codigoAssinaturaEntrada', '') != ''
+      allow update: if anonimo() && codigoLiberado('entrada', id)
         && !('assinaturaEntrada' in resource.data)
         && mudou().hasOnly(['assinaturaEntrada', 'atualizadoEm']);
     }
@@ -124,8 +175,8 @@ service cloud.firestore {
       allow get: if anonimo();
       allow update: if anonimo()
         && mudou().hasOnly(['assinaturaEntrega', 'assinaturaTeste', 'historico', 'atualizadoEm'])
-        && (!('assinaturaEntrega' in mudou()) || (resource.data.get('codigoAssinaturaEntrega', '') != '' && !('assinaturaEntrega' in resource.data)))
-        && (!('assinaturaTeste' in mudou()) || (resource.data.get('codigoAssinaturaTeste', '') != '' && !('assinaturaTeste' in resource.data)))
+        && (!('assinaturaEntrega' in mudou()) || (codigoLiberado('entrega', id) && !('assinaturaEntrega' in resource.data)))
+        && (!('assinaturaTeste' in mudou()) || (codigoLiberado('teste', id) && !('assinaturaTeste' in resource.data)))
         && request.resource.data.get('historico', []).hasAll(resource.data.get('historico', []))
         && request.resource.data.get('historico', []).size() <= resource.data.get('historico', []).size() + 1;
     }
