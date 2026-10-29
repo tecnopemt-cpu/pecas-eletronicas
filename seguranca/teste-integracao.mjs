@@ -176,7 +176,7 @@ try {
   passo('código errado é recusado pelo banco (e conta como tentativa)', await cli.page.locator('text=Código incorreto').count() === 1 && (await ler('codigosAssinatura/entrada_L1')).tentativas === 1);
   cli.erros.length = 0; // a recusa do código errado aparece como "sem permissão" no console (esperado)
   await cli.page.locator('input').first().fill('0372'); await cli.page.getByText('Continuar').click();
-  await cli.page.waitForSelector('form input', { timeout: 20000 });
+  await cli.page.waitForSelector('text=Nome completo', { timeout: 20000 }); // o código é conferido pelo banco (assíncrono)
   await cli.page.locator('form input').first().fill('Maria Aparecida da Silva'); await cli.page.locator('form input').nth(1).fill('52998224725');
   await cli.page.locator('form button.btn:not(.secundario)').last().click(); await esperar(6000);
   const l1 = await ler('lotes/L1');

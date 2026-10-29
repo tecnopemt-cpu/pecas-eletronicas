@@ -1933,6 +1933,35 @@ function codigoAssinaturaValido(c) {
 function refCodigoAssinatura(tipo, id) {
   return db.collection('codigosAssinatura').doc(`${tipo}_${id}`);
 }
+// Equipe: uma única leitura ao vivo dos códigos ainda não usados, compartilhada por todos os cartões
+// (abrir e voltar ao quadro de orçamentos não lê o banco de novo).
+const CODIGOS_VIVOS = {
+  mapa: new Map(),
+  ouvintes: new Set(),
+  parar: null
+};
+function useCodigoAssinatura(tipo, id, ativo) {
+  const [, forcar] = useState(0);
+  useEffect(() => {
+    if (!ativo) return;
+    const f = () => forcar(x => x + 1);
+    CODIGOS_VIVOS.ouvintes.add(f);
+    if (!CODIGOS_VIVOS.parar) {
+      CODIGOS_VIVOS.parar = db.collection('codigosAssinatura').where('usado', '==', false).onSnapshot(snap => {
+        CODIGOS_VIVOS.mapa = new Map(snap.docs.map(d => [d.id, d.data()]));
+        CODIGOS_VIVOS.ouvintes.forEach(o => o());
+      }, err => {
+        console.warn('codigosAssinatura', err && err.code);
+        CODIGOS_VIVOS.parar = null;
+        CODIGOS_VIVOS.mapa = new Map();
+      });
+    }
+    return () => {
+      CODIGOS_VIVOS.ouvintes.delete(f);
+    };
+  }, [ativo]);
+  return ativo ? CODIGOS_VIVOS.mapa.get(`${tipo}_${id}`) || null : null;
+}
 function linkAssinatura(tipo, id) {
   return `${window.location.origin}${window.location.pathname}?assinar=${tipo}&id=${id}`;
 }
@@ -3692,15 +3721,11 @@ function BlocoAssinatura({
   const assinatura = documento[campoAssinatura];
   const campoFoto = tipo === 'entrega' ? 'fotoEntrega' : tipo === 'teste' ? 'fotoTeste' : null;
   const fotoObrigatoriaFaltando = !!campoFoto && !documento[campoFoto];
-  const [dadosCodigo, setDadosCodigo] = useState(null);
-  useEffect(() => {
-    if (assinatura) return;
-    return refCodigoAssinatura(tipo, documento.id).onSnapshot(s => setDadosCodigo(s.exists ? s.data() : null), err => console.error('codigosAssinatura', err));
-  }, [tipo, documento.id, !!assinatura]);
+  const dadosCodigo = useCodigoAssinatura(tipo, documento.id, !assinatura);
   const codigo = dadosCodigo && dadosCodigo.codigo;
   const codigoAntigo = !codigo && !!documento[campoCodigo]; // link gerado antes da mudança para 4 dígitos
   const expiraCodigo = dadosCodigo && dadosCodigo.expiraEm && dadosCodigo.expiraEm.toDate ? dadosCodigo.expiraEm.toDate() : null;
-  const situacaoCodigo = !dadosCodigo ? '' : dadosCodigo.usado ? 'Este código já foi usado.' : expiraCodigo && expiraCodigo < new Date() ? 'Este código expirou. Gere um novo.' : (dadosCodigo.tentativas || 0) >= CODIGO_ASSINATURA_TENTATIVAS && !dadosCodigo.confirmado ? 'O cliente errou o código 3 vezes e ele foi bloqueado. Gere um novo código.' : '';
+  const situacaoCodigo = !dadosCodigo ? '' : expiraCodigo && expiraCodigo < new Date() ? 'Este código expirou. Gere um novo.' : (dadosCodigo.tentativas || 0) >= CODIGO_ASSINATURA_TENTATIVAS && !dadosCodigo.confirmado ? 'O cliente errou o código 3 vezes e ele foi bloqueado. Gere um novo código.' : '';
   async function registrarEntreguePor() {
     if (tipo === 'teste' && !documento.entreguePorTeste && usuario?.nome) {
       await db.collection(colecao).doc(documento.id).update({
@@ -3942,6 +3967,14 @@ function liberarSincronizacao() {
 }
 // Saída do sistema: desliga tudo e (por padrão) apaga a cópia guardada neste aparelho.
 async function encerrarSincronizacao(apagarCopia) {
+  // códigos de assinatura (leitura compartilhada da equipe): desliga ao sair
+  if (CODIGOS_VIVOS.parar) {
+    try {
+      CODIGOS_VIVOS.parar();
+    } catch (e) {}
+    CODIGOS_VIVOS.parar = null;
+    CODIGOS_VIVOS.mapa = new Map();
+  }
   COLECOES_VIVAS.forEach(e => {
     e.encerrada = true;
     clearTimeout(e.timer);
