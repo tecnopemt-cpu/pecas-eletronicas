@@ -21,17 +21,17 @@ jobs:
           FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
           FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
           CHAVE_PUBLICA: |
-          -----BEGIN PUBLIC KEY-----
-          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEApbw4SuZu688TrQTbOpZv
-          S/V33AJMtVa6bfBeRpMh/6OrPUPxG8uNwx2rCYPmZinqiwLJn+JU063xb0kG8Wm1
-          wTv1uFrywbixL/aNZ2zxU2UL32DHd0AwJmG9TUZLd0gFet6LJENkNnvB7CMQzT77
-          L007Wmpbn1NGE7hurkmh+F8OhQORgpsG1z3XwZ9GgmsmoiL1VCHAiLEtONLRVOji
-          /4w9udt498cjuSgBfR0H3P2Vqzi5/6xjT7qwwFCUxbeojYsVSOeghjRjT9Hk+XNu
-          E1+dpbbpHR9nD5lFaMunc+8Ce5qvELBOX63JLkHa1eabsSUmyTWLwdYxy2oBpE9I
-          x0Y36o7nRcdNKiNNWeTOYxOYBUvb9iYY2V6PDK8jY4Jq2sgU3ZOMsKxorThpUpy6
-          9GfDSKBKiy4ce8m7sXQfkilS6PuO3JSHfhc6N1tgyTLv79ei2SGsNIqWyheKJ178
-          Xvl00nQ9rOWXo7QXMQKTm2Pr2Yhde6fiPzgwnxXxfso9AgMBAAE=
-          -----END PUBLIC KEY-----
+            -----BEGIN PUBLIC KEY-----
+            MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEApbw4SuZu688TrQTbOpZv
+            S/V33AJMtVa6bfBeRpMh/6OrPUPxG8uNwx2rCYPmZinqiwLJn+JU063xb0kG8Wm1
+            wTv1uFrywbixL/aNZ2zxU2UL32DHd0AwJmG9TUZLd0gFet6LJENkNnvB7CMQzT77
+            L007Wmpbn1NGE7hurkmh+F8OhQORgpsG1z3XwZ9GgmsmoiL1VCHAiLEtONLRVOji
+            /4w9udt498cjuSgBfR0H3P2Vqzi5/6xjT7qwwFCUxbeojYsVSOeghjRjT9Hk+XNu
+            E1+dpbbpHR9nD5lFaMunc+8Ce5qvELBOX63JLkHa1eabsSUmyTWLwdYxy2oBpE9I
+            x0Y36o7nRcdNKiNNWeTOYxOYBUvb9iYY2V6PDK8jY4Jq2sgU3ZOMsKxorThpUpy6
+            9GfDSKBKiy4ce8m7sXQfkilS6PuO3JSHfhc6N1tgyTLv79ei2SGsNIqWyheKJ178
+            Xvl00nQ9rOWXo7QXMQKTm2Pr2Yhde6fiPzgwnxXxfso9AgMBAAE=
+            -----END PUBLIC KEY-----
         run: node diag/diagnostico.mjs 2>/dev/null
       - name: Guardar o relatório cifrado no próprio ramo
         run: |
