@@ -1,0 +1,475 @@
+{
+  "atualizadoEm": "2026-10-31T08:09:06.276Z",
+  "politica": {
+    "diarios": 30,
+    "mensais": 12,
+    "limiteBytes": 1610612736
+  },
+  "backups": [
+    {
+      "arquivo": "backup-20261031-0808-automatico.tpbak",
+      "partes": [
+        "backup-20261031-0808-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-31T08:08:47.156Z",
+      "tipo": "automatico",
+      "tamanho": 32710291,
+      "sha256Arquivo": "06d0e98b47f7295c310cd5ff9d81f88e6e665d99eed7508e71f60e986e689edd",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 1205,
+      "imagens": 295,
+      "commitCodigo": "da40d2756dc4a24f0068fcc5e8591453ccfec14a",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261030-0817-automatico.tpbak",
+      "partes": [
+        "backup-20261030-0817-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-30T08:17:57.829Z",
+      "tipo": "automatico",
+      "tamanho": 29523839,
+      "sha256Arquivo": "f04c200032a08db2191ad29abc4d1c74f9f9e0666339af0eb8b2a0a03a65e5e2",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 1122,
+      "imagens": 266,
+      "commitCodigo": "da40d2756dc4a24f0068fcc5e8591453ccfec14a",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261029-0812-automatico.tpbak",
+      "partes": [
+        "backup-20261029-0812-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-29T08:12:38.719Z",
+      "tipo": "automatico",
+      "tamanho": 29009129,
+      "sha256Arquivo": "cb7a9976f747582dd882fb4bb4f6b6b1da7977770e83e145bdb14c4cf84d0d0b",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 1031,
+      "imagens": 263,
+      "commitCodigo": "4f367987c5b7392e712aaa9fe9140250048ccac4",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261028-0802-automatico.tpbak",
+      "partes": [
+        "backup-20261028-0802-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-28T08:02:21.546Z",
+      "tipo": "automatico",
+      "tamanho": 28315679,
+      "sha256Arquivo": "2896d0dd4c04ec83949d3510b7726115ec2d93472fe66c9df35376c8edba16c4",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 994,
+      "imagens": 256,
+      "commitCodigo": "4fa925da59b005e42138e4869f10c4d03cf4dc97",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261027-0730-automatico.tpbak",
+      "partes": [
+        "backup-20261027-0730-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-27T07:30:02.415Z",
+      "tipo": "automatico",
+      "tamanho": 26127030,
+      "sha256Arquivo": "965f628cdfbc00c3c0528245716cf9f7a89141cc6f8551b68456a6dc5ecb4eea",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 956,
+      "imagens": 235,
+      "commitCodigo": "8f49834156b171fbfc4a5705c3b4d089623773e9",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261026-0733-automatico.tpbak",
+      "partes": [
+        "backup-20261026-0733-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-26T07:33:28.191Z",
+      "tipo": "automatico",
+      "tamanho": 25457872,
+      "sha256Arquivo": "0c1d9509f473abdcd5060abe9a9e19cdc4fd1f4f82d07a5201a413cc01cc3b80",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 935,
+      "imagens": 228,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261025-0723-automatico.tpbak",
+      "partes": [
+        "backup-20261025-0723-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-25T07:23:49.525Z",
+      "tipo": "automatico",
+      "tamanho": 25457512,
+      "sha256Arquivo": "c830c9d2c16343600d53482f8b455153aae69095443c03016101e81aa9fdd726",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 935,
+      "imagens": 228,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261024-0659-automatico.tpbak",
+      "partes": [
+        "backup-20261024-0659-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-24T06:59:57.623Z",
+      "tipo": "automatico",
+      "tamanho": 25458171,
+      "sha256Arquivo": "29e90f24438e152cd4242f7f4f19e3c46f364fbbcd19c3298191e54bcd39403d",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 935,
+      "imagens": 228,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261023-0710-automatico.tpbak",
+      "partes": [
+        "backup-20261023-0710-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-23T07:10:38.162Z",
+      "tipo": "automatico",
+      "tamanho": 21460446,
+      "sha256Arquivo": "4c1a846a6f2514a7a598a1a25a561841c18fa36361887cfc1f93ef5a29cefeec",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 881,
+      "imagens": 193,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261022-0718-automatico.tpbak",
+      "partes": [
+        "backup-20261022-0718-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-22T07:18:00.232Z",
+      "tipo": "automatico",
+      "tamanho": 21110254,
+      "sha256Arquivo": "f9540d3587997fa0d0ca93013396d5c582e5fceee71dd784319bec96da44a16a",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 849,
+      "imagens": 188,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261021-0716-automatico.tpbak",
+      "partes": [
+        "backup-20261021-0716-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-21T07:16:25.127Z",
+      "tipo": "automatico",
+      "tamanho": 20355280,
+      "sha256Arquivo": "8def0eaa3daaf7cfe8a6968061e1d3d87410718a951cbff27c7de62f873e8a45",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 813,
+      "imagens": 182,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261020-0718-automatico.tpbak",
+      "partes": [
+        "backup-20261020-0718-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-20T07:18:30.183Z",
+      "tipo": "automatico",
+      "tamanho": 16402177,
+      "sha256Arquivo": "32b0dfa508714bda8d49d8c23167105194f911f3b2dae29ff7832a9ed6a6322f",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 752,
+      "imagens": 147,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261019-0728-automatico.tpbak",
+      "partes": [
+        "backup-20261019-0728-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-19T07:28:19.485Z",
+      "tipo": "automatico",
+      "tamanho": 15270631,
+      "sha256Arquivo": "e31e49c9b870ec03df430a85313474acd41d1ff6ae8620d30a04a38f69e9df98",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 727,
+      "imagens": 137,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261018-0704-automatico.tpbak",
+      "partes": [
+        "backup-20261018-0704-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-18T07:04:26.978Z",
+      "tipo": "automatico",
+      "tamanho": 15270413,
+      "sha256Arquivo": "21a8dbe3efebb7bda628512f44ded557932755a0622dffb1ebdc7fcebd70ce90",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 727,
+      "imagens": 137,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261017-0644-automatico.tpbak",
+      "partes": [
+        "backup-20261017-0644-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-17T06:44:03.645Z",
+      "tipo": "automatico",
+      "tamanho": 15271070,
+      "sha256Arquivo": "c40aa29c3ee6212565fa5b58dd4171806ad56e4cbc211c608b34aaab0878b5ae",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 727,
+      "imagens": 137,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261016-0651-automatico.tpbak",
+      "partes": [
+        "backup-20261016-0651-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-16T06:51:24.054Z",
+      "tipo": "automatico",
+      "tamanho": 14165756,
+      "sha256Arquivo": "171dc2b4865cbd993aaba7adaf7dd1e9c2a3fee4f2fd8b9b2fae68fd95902ff8",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 703,
+      "imagens": 126,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261015-0225-automatico.tpbak",
+      "partes": [
+        "backup-20261015-0225-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-15T02:25:54.529Z",
+      "tipo": "automatico",
+      "tamanho": 13264418,
+      "sha256Arquivo": "7a832112e03bd85709812c4e9e323f8d8dd8ee8f2cdf43bf2aae48479096e997",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 685,
+      "imagens": 120,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261014-0223-automatico.tpbak",
+      "partes": [
+        "backup-20261014-0223-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-14T02:23:53.078Z",
+      "tipo": "automatico",
+      "tamanho": 13263136,
+      "sha256Arquivo": "e3ded7f940a5c7617f33ead346a2f4a50fa64e6e01661749f80875c112b1e94b",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 671,
+      "imagens": 120,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261013-0216-automatico.tpbak",
+      "partes": [
+        "backup-20261013-0216-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-13T02:16:00.685Z",
+      "tipo": "automatico",
+      "tamanho": 12969883,
+      "sha256Arquivo": "c5a24457dacf1d49a64805ea6857ae5c76b9c152c5c57fcc716a990eeb5bfa20",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 660,
+      "imagens": 115,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261012-0216-automatico.tpbak",
+      "partes": [
+        "backup-20261012-0216-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-12T02:16:19.021Z",
+      "tipo": "automatico",
+      "tamanho": 12969456,
+      "sha256Arquivo": "a563ad6c683f4942d878837a6b04b84ef31e6cc4b20d999ab6bc776eae43b3dd",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 660,
+      "imagens": 115,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261011-0213-automatico.tpbak",
+      "partes": [
+        "backup-20261011-0213-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-11T02:13:13.587Z",
+      "tipo": "automatico",
+      "tamanho": 12969669,
+      "sha256Arquivo": "065e2c8bdee697d87a6dbc9831a6cf3e59d10ebe012f824f837c9e94777dffeb",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 660,
+      "imagens": 115,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261010-0214-automatico.tpbak",
+      "partes": [
+        "backup-20261010-0214-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-10T02:14:11.980Z",
+      "tipo": "automatico",
+      "tamanho": 12969844,
+      "sha256Arquivo": "a49b5379b5213992ef528243f662fbe0881344b9f340aa6e03b243b9a9269525",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 660,
+      "imagens": 115,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261009-0214-automatico.tpbak",
+      "partes": [
+        "backup-20261009-0214-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-09T02:14:39.794Z",
+      "tipo": "automatico",
+      "tamanho": 11582678,
+      "sha256Arquivo": "1b663be36cc03a5167af100cd99ed049109fd3c092ce9b41943bc712354936e7",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 633,
+      "imagens": 101,
+      "commitCodigo": "d96a553161371ae280ce4de1ce778d5d15a982d6",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261007-1730-automatico.tpbak",
+      "partes": [
+        "backup-20261007-1730-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-07T17:30:12.083Z",
+      "tipo": "automatico",
+      "tamanho": 9826954,
+      "sha256Arquivo": "122a88a8369b383f93bf704e652673f3ac428bce15384327a41d34de26f573d8",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 591,
+      "imagens": 88,
+      "commitCodigo": "7840a68c5607d75e914d346c1c923176e7cdee05",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261007-1726-automatico.tpbak",
+      "partes": [
+        "backup-20261007-1726-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-07T17:26:28.798Z",
+      "tipo": "automatico",
+      "tamanho": 9821597,
+      "sha256Arquivo": "7b1f83d4ba9de58642c2bd913c61247c2d8727f89eadde1b01ebbd74d29bf26f",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 503,
+      "imagens": 88,
+      "commitCodigo": "7840a68c5607d75e914d346c1c923176e7cdee05",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261007-1707-automatico.tpbak",
+      "partes": [
+        "backup-20261007-1707-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-07T17:07:58.824Z",
+      "tipo": "automatico",
+      "tamanho": 9821489,
+      "sha256Arquivo": "7d3cd02addd26fac118c21dc2a0ab081911eb9ada560f476c2f034b2cdb29d7f",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 503,
+      "imagens": 88,
+      "commitCodigo": "89a9a25ad9cdc01ef40956e92d6e40ac86238b59",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261007-0214-automatico.tpbak",
+      "partes": [
+        "backup-20261007-0214-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-07T02:14:48.652Z",
+      "tipo": "automatico",
+      "tamanho": 8025715,
+      "sha256Arquivo": "f33a5ece3374c31b7efd2e8994c51f8e2380cdfc3b3f5b91981b5b06771788e4",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 495,
+      "imagens": 77,
+      "commitCodigo": "98599f96aaf2982ee9fa0ff0ff30a96f8b509414",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261006-1156-automatico.tpbak",
+      "partes": [
+        "backup-20261006-1156-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-06T11:56:04.549Z",
+      "tipo": "automatico",
+      "tamanho": 6235306,
+      "sha256Arquivo": "1dbbbc5ab96e9d63a6c812a9e3a0414594a88125e15c3516ff252bc760774744",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 501,
+      "imagens": 76,
+      "commitCodigo": "a1605e8bbc93c941fc0294a3261f888bc8faa8a0",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261006-1047-automatico.tpbak",
+      "partes": [
+        "backup-20261006-1047-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-06T10:47:51.333Z",
+      "tipo": "automatico",
+      "tamanho": 6253302,
+      "sha256Arquivo": "83d8bcb742f49a41157a7561c2300fc6f1829d33f7e594025f03c1a5c42b7152",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 501,
+      "imagens": 76,
+      "commitCodigo": "fc545a9ac8901bb49b8f846d369258ab367f71b5",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261005-1209-automatico.tpbak",
+      "partes": [
+        "backup-20261005-1209-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-05T12:09:53.324Z",
+      "tipo": "automatico",
+      "tamanho": 5331891,
+      "sha256Arquivo": "f26c6cc5eff19ced0d0f914bcb227706d6c471cef38c284c78883d4ef4c22d51",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 493,
+      "imagens": 54,
+      "commitCodigo": "6e5fb198737fa3222d7343dcf9e724bcc83fbe57",
+      "verificacaoOk": true
+    },
+    {
+      "arquivo": "backup-20261005-1120-automatico.tpbak",
+      "partes": [
+        "backup-20261005-1120-automatico.tpbak"
+      ],
+      "criadoEm": "2026-10-05T11:20:49.488Z",
+      "tipo": "automatico",
+      "tamanho": 10671773,
+      "sha256Arquivo": "412c2b9a7a206c4ef4220a5ce80226759a5ce8db3e405490c6e962c9c4685fe0",
+      "chaveId": "debc1ea75db10968",
+      "totalDocumentos": 621,
+      "imagens": 158,
+      "commitCodigo": "ea91411cf60b3d9ff4aa854b9b8026c0cc29cf09",
+      "verificacaoOk": true
+    }
+  ]
+}
