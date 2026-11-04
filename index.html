@@ -1988,14 +1988,21 @@ const AVISO_LOTE_CONCLUIDO = 'A entrada só pode ficar "Concluído" quando todas
 // Elegibilidade de comissão: uma peça em Teste só libera comissão quando o teste
 // for confirmado como aprovado; se for reprovado, nunca gera comissão (mesmo que
 // o cartão seja movido depois). Fora da coluna Teste, segue como sempre funcionou.
+function testeReprovado(orcamento) {
+  return orcamento?.resultadoTeste === 'reprovado';
+}
 function comissaoElegivel(orcamento) {
   if (!orcamento) return true;
-  return orcamento.status === 'Concluído';
+  return orcamento.status === 'Concluído' && !testeReprovado(orcamento);
 }
 function statusComissaoOrcamento(orcamento) {
   if (!orcamento) return {
     rotulo: '—',
     cor: 'var(--texto-fraco)'
+  };
+  if (testeReprovado(orcamento)) return {
+    rotulo: '🔴 Teste reprovado — sem faturamento e sem comissão',
+    cor: 'var(--vermelho)'
   };
   if (orcamento.status === 'Concluído') return {
     rotulo: '🟢 Liberada',
@@ -15461,6 +15468,8 @@ function podeGerirComissao(u) {
 // ---------- Motor de cálculo do período ----------
 function orcamentoNoPeriodo(o, inicio, fim, chave) {
   if (!o || o.status !== 'Concluído') return false;
+  // teste reprovado = peça não consertada: não entra no faturamento nem gera comissão, mesmo em Concluído
+  if (testeReprovado(o)) return false;
   if (o.periodoConsolidadoId) return o.periodoConsolidadoId === (chave || idFechamentoComissao(inicio, fim));
   return dentroDoIntervalo(dataReferenciaOrcamento(o), inicio, fim);
 }
