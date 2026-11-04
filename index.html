@@ -101,6 +101,23 @@
   .filtro-liberacao button{border:1px solid var(--borda);background:var(--card);color:var(--texto-fraco);border-radius:14px;padding:3px 9px;font-size:11.5px;font-weight:600;}
   .filtro-liberacao button.ativo{background:var(--verde-bg);border-color:var(--verde);color:var(--verde);}
   @media (max-width:640px){ .indicador-liberado{width:24px;height:24px;} }
+  /* conferência das datas de faturamento */
+  .fat-modal{max-width:760px;}
+  .fat-explica{font-size:13px;color:var(--texto-fraco);margin-bottom:10px;line-height:1.45;}
+  .fat-resumo{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin-bottom:10px;}
+  .fat-resumo .laranja{color:var(--laranja-escuro);} .fat-resumo .vermelho{color:var(--vermelho);} .fat-resumo .verde{color:var(--verde);}
+  .fat-feito{background:var(--verde-bg);color:var(--verde);border-radius:8px;padding:10px 12px;font-size:13.5px;margin-bottom:10px;}
+  .fat-lista{max-height:56vh;overflow-y:auto;padding-right:4px;}
+  .fat-grupo{margin-bottom:10px;}
+  .fat-grupo-titulo{border:none;background:none;font-weight:700;font-size:14px;padding:6px 0;color:var(--texto);cursor:pointer;text-align:left;}
+  .fat-item{border:1px solid var(--borda);border-left-width:4px;border-radius:8px;padding:8px 10px;margin:6px 0;background:var(--card);}
+  .fat-item.fat-corrigir{border-left-color:var(--laranja);} .fat-item.fat-ambiguo{border-left-color:var(--vermelho);} .fat-item.fat-correto,.fat-item.fat-corrigido{border-left-color:var(--verde);} .fat-item.fat-semData{border-left-color:#B9AFAD;}
+  .fat-item-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;}
+  .fat-item-cab input{width:auto;}
+  .fat-num{border:none;background:none;padding:0;font-weight:800;color:var(--laranja-escuro);cursor:pointer;font-size:14px;}
+  .fat-datas s{color:var(--vermelho);}
+  .fat-motivo{font-size:12.5px;color:var(--vermelho);margin-top:3px;}
+  .fat-obs{font-size:12px;color:var(--texto-fraco);white-space:pre-wrap;margin-top:4px;background:var(--fundo);border-radius:6px;padding:5px 7px;}
   .badge.recusado{background:var(--vermelho-bg);color:var(--vermelho);}
   ::-webkit-scrollbar{width:10px;height:10px;}
   ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:6px;}
@@ -13315,6 +13332,293 @@ function PosicaoKanbanMenu({
     className: "kanban-posicao-dica"
   }, "Dica: no quadro, arraste o cartão (no celular, segure e arraste) para mudar a posição."));
 }
+// ======================= CONFERÊNCIA DAS DATAS DE FATURAMENTO =======================
+// Compara a data escrita na observação ("Faturado no dia 15/09/2026 NF 123") com o campo Data de
+// faturamento dos orçamentos na coluna Concluído. Só sugere correção quando a observação é clara;
+// o resto vai para conferência manual. Nada é gravado sem a pessoa revisar e confirmar.
+function fatDataValida(d, m, a) {
+  if (a < 2000 || a > 2100 || m < 1 || m > 12 || d < 1) return false;
+  return d <= new Date(a, m, 0).getDate();
+}
+function fatLerObservacao(obs) {
+  const texto = String(obs || '');
+  const achados = [];
+  const re = /fatur\w*/gi;
+  let m;
+  while (m = re.exec(texto)) {
+    const resto = texto.slice(m.index + m[0].length).split('\n')[0].slice(0, 40);
+    const d = /^[^\d\n]{0,20}?(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})(?!\d)/.exec(resto);
+    if (d && fatDataValida(+d[1], +d[2], +d[3])) achados.push({
+      ok: true,
+      data: `${d[3]}-${String(d[2]).padStart(2, '0')}-${String(d[1]).padStart(2, '0')}`,
+      trecho: (m[0] + resto).trim()
+    });else achados.push({
+      ok: false,
+      trecho: (m[0] + resto).trim()
+    });
+  }
+  return achados;
+}
+// situação: correto | corrigir | semData | ambiguo
+function fatAnalisar(o, hojeStr) {
+  const atualD = dataDe(o.dataFaturamento);
+  const atual = atualD ? chaveDia(atualD) : '';
+  const criado = dataDe(o.criadoEm) ? chaveDia(dataDe(o.criadoEm)) : '';
+  const achados = fatLerObservacao(o.observacao);
+  const base = {
+    id: o.id,
+    numero: String(o.numero || '').trim(),
+    atual,
+    observacao: o.observacao || ''
+  };
+  if (!achados.length) return {
+    ...base,
+    situacao: 'semData',
+    motivo: 'A observação não informa a data de faturamento.'
+  };
+  const ruins = achados.filter(a => !a.ok);
+  if (ruins.length) return {
+    ...base,
+    situacao: 'ambiguo',
+    motivo: `Data incompleta ou ilegível: "${ruins[0].trecho}".`
+  };
+  const datas = [...new Set(achados.map(a => a.data))];
+  if (datas.length > 1) return {
+    ...base,
+    situacao: 'ambiguo',
+    motivo: `Mais de uma data de faturamento: ${datas.map(formatarDataBr).join(', ')}.`
+  };
+  const nova = datas[0];
+  if (nova > hojeStr) return {
+    ...base,
+    nova,
+    situacao: 'ambiguo',
+    motivo: `Data no futuro (${formatarDataBr(nova)}).`
+  };
+  if (criado && nova < criado) return {
+    ...base,
+    nova,
+    situacao: 'ambiguo',
+    motivo: `Faturado (${formatarDataBr(nova)}) antes da data do orçamento (${formatarDataBr(criado)}).`
+  };
+  if (nova === atual) return {
+    ...base,
+    nova,
+    situacao: 'correto'
+  };
+  return {
+    ...base,
+    nova,
+    situacao: 'corrigir',
+    motivo: atual ? '' : 'Campo Data de faturamento vazio.'
+  };
+}
+const FAT_GRUPOS = [['corrigir', 'Data diferente da observação — corrigir', 'laranja'], ['ambiguo', 'Conferência manual (observação ambígua ou incompleta)', 'vermelho'], ['semData', 'Sem data de faturamento na observação', 'cinza'], ['correto', 'Já estão com a data correta', 'verde']];
+function ModalConferirDatasFaturamento({
+  orcamentos,
+  usuario,
+  aoFechar,
+  aoAbrirOrcamento
+}) {
+  const hoje = formatarDataInput(new Date());
+  const concluidos = orcamentos.filter(o => o.status === 'Concluído' && !o.arquivado);
+  const analise = useMemo(() => concluidos.map(o => fatAnalisar(o, hoje)).sort((a, b) => a.numero.localeCompare(b.numero, 'pt-BR', {
+    numeric: true
+  })), [orcamentos]);
+  const [marcados, setMarcados] = useState(() => new Set(analise.filter(a => a.situacao === 'corrigir').map(a => a.id)));
+  const [etapa, setEtapa] = useState('revisar'); // revisar | aplicando | feito
+  const [resultado, setResultado] = useState(null);
+  const [abertos, setAbertos] = useState({
+    corrigir: true,
+    ambiguo: true
+  });
+  const grupos = Object.fromEntries(FAT_GRUPOS.map(([k]) => [k, analise.filter(a => a.situacao === k)]));
+  const alternar = id => setMarcados(s => {
+    const n = new Set(s);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  async function aplicar() {
+    const alvo = analise.filter(a => a.situacao === 'corrigir' && marcados.has(a.id));
+    if (!alvo.length) return;
+    if (!confirm(`Corrigir a data de faturamento de ${alvo.length} orçamento(s)?\n\nSó o campo Data de faturamento muda (a observação, valores, peças, status e comissões ficam iguais). Os valores antigos ficam guardados.`)) return;
+    setEtapa('aplicando');
+    const fechamentos = await carregarFechamentosComissao();
+    const feitos = [],
+      pulados = [];
+    // cópia dos valores atuais ANTES de alterar
+    const copia = alvo.map(a => ({
+      id: a.id,
+      numero: a.numero,
+      anterior: a.atual || null,
+      nova: a.nova
+    }));
+    const idCopia = `correcaoDatasFaturamento_${new Date().toISOString().replace(/[:.]/g, '-')}`;
+    try {
+      await db.collection('config').doc(idCopia).set({
+        criadoEm: new Date().toISOString(),
+        por: usuario?.nome || '',
+        porId: usuario?.id || '',
+        itens: copia,
+        situacao: 'iniciada'
+      });
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui guardar a cópia dos valores atuais. Nada foi alterado.');
+      setEtapa('revisar');
+      return;
+    }
+    for (const a of alvo) {
+      const o = orcamentos.find(x => x.id === a.id);
+      try {
+        const original = dataDe(o.dataFaturamento) || dataDe(o.dataConclusao);
+        const consolidado = o.periodoConsolidadoId ? fechamentos.find(f => f.id === o.periodoConsolidadoId) : null;
+        const fechAntigo = consolidado || (original ? fechamentoQueContem(fechamentos, original) : null);
+        const fechNovo = fechamentoQueContem(fechamentos, new Date(a.nova + 'T12:00:00'));
+        if (fechAntigo || fechNovo) {
+          pulados.push({
+            ...a,
+            motivo: `período de comissão já fechado (${formatarDataBr((fechAntigo || fechNovo).inicio)} a ${formatarDataBr((fechAntigo || fechNovo).fim)})`
+          });
+          continue;
+        }
+        const nova = trocarDiaMantendoHora(original || new Date(a.nova + 'T12:00:00'), a.nova);
+        await db.collection('orcamentos').doc(o.id).update({
+          dataFaturamento: firebase.firestore.Timestamp.fromDate(nova),
+          correcaoDataFaturamento: {
+            anterior: a.atual || null,
+            nova: a.nova,
+            fonte: 'observação',
+            em: new Date().toISOString(),
+            por: usuario?.nome || '',
+            copiaId: idCopia
+          },
+          historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `corrigiu a data de faturamento de ${a.atual ? formatarDataBr(a.atual) : '(vazia)'} para ${formatarDataBr(a.nova)}, conforme a observação — a comissão passa para o período da data real.`, 'edicao'))
+        });
+        await vincularPeriodoAoFaturar(o.id, nova);
+        feitos.push(a);
+      } catch (err) {
+        console.error(err);
+        pulados.push({
+          ...a,
+          motivo: 'erro ao gravar (tente de novo)'
+        });
+      }
+    }
+    try {
+      await db.collection('config').doc(idCopia).update({
+        situacao: 'concluida',
+        corrigidos: feitos.map(a => a.id),
+        naoCorrigidos: pulados.map(a => ({
+          id: a.id,
+          motivo: a.motivo
+        }))
+      });
+    } catch (e) {}
+    setResultado({
+      feitos,
+      pulados,
+      idCopia
+    });
+    setEtapa('feito');
+  }
+  function textoRelatorio() {
+    const r = resultado || {
+      feitos: [],
+      pulados: []
+    };
+    const linhas = [`CONFERÊNCIA DAS DATAS DE FATURAMENTO — ${new Date().toLocaleString('pt-BR')}`, `Orçamentos analisados (coluna Concluído): ${analise.length}`, `Já estavam com a data correta: ${grupos.correto.length}`, `Datas corrigidas: ${r.feitos.length}`, `Sem data de faturamento na observação: ${grupos.semData.length}`, `Divergentes ou ambíguos (conferência manual): ${grupos.ambiguo.length}`, '', 'CORRIGIDOS (anterior → corrigida):', ...r.feitos.map(a => `#${a.numero}: ${a.atual ? formatarDataBr(a.atual) : '(vazia)'} → ${formatarDataBr(a.nova)}`), ...(r.pulados.length ? ['', 'NÃO CORRIGIDOS:', ...r.pulados.map(a => `#${a.numero}: ${a.motivo}`)] : []), '', 'CONFERÊNCIA MANUAL:', ...grupos.ambiguo.map(a => `#${a.numero}: ${a.motivo}`), '', 'SEM DATA NA OBSERVAÇÃO:', grupos.semData.map(a => '#' + a.numero).join(', ') || '-'];
+    return linhas.join('\n');
+  }
+  const Item = ({
+    a
+  }) => /*#__PURE__*/React.createElement("div", {
+    className: `fat-item fat-${a.situacao}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fat-item-cab"
+  }, a.situacao === 'corrigir' && etapa === 'revisar' && /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: marcados.has(a.id),
+    onChange: () => alternar(a.id),
+    "aria-label": `Corrigir #${a.numero}`
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "fat-num",
+    onClick: () => aoAbrirOrcamento(a.id),
+    title: "Abrir o or\xE7amento"
+  }, "#", a.numero), /*#__PURE__*/React.createElement("span", {
+    className: "fat-datas"
+  }, a.situacao === 'corrigir' ? /*#__PURE__*/React.createElement(React.Fragment, null, "Data de faturamento: ", /*#__PURE__*/React.createElement("s", null, a.atual ? formatarDataBr(a.atual) : 'vazia'), " \u2192 ", /*#__PURE__*/React.createElement("strong", null, formatarDataBr(a.nova))) : /*#__PURE__*/React.createElement(React.Fragment, null, "Data de faturamento: ", /*#__PURE__*/React.createElement("strong", null, a.atual ? formatarDataBr(a.atual) : 'vazia'), a.nova && a.situacao !== 'correto' ? /*#__PURE__*/React.createElement(React.Fragment, null, " \xB7 observa\xE7\xE3o: ", formatarDataBr(a.nova)) : ''))), a.motivo && /*#__PURE__*/React.createElement("div", {
+    className: "fat-motivo"
+  }, a.motivo), /*#__PURE__*/React.createElement("div", {
+    className: "fat-obs"
+  }, a.observacao ? a.observacao : /*#__PURE__*/React.createElement("em", null, "Sem observa\xE7\xE3o")));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && etapa !== 'aplicando' && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fat-modal"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Conferir datas de faturamento"), /*#__PURE__*/React.createElement("div", {
+    className: "fat-explica"
+  }, "Compara a data escrita na ", /*#__PURE__*/React.createElement("strong", null, "observa\xE7\xE3o"), " (ex.: \u201CFaturado no dia 15/09/2026 NF 123\u201D) com o campo ", /*#__PURE__*/React.createElement("strong", null, "Data de faturamento"), " de todos os or\xE7amentos da coluna Conclu\xEDdo. A comiss\xE3o usa esse campo para escolher o per\xEDodo. S\xF3 s\xE3o sugeridas corre\xE7\xF5es quando a observa\xE7\xE3o \xE9 clara; a observa\xE7\xE3o nunca \xE9 alterada."), /*#__PURE__*/React.createElement("div", {
+    className: "fat-resumo"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, analise.length), " analisados"), /*#__PURE__*/React.createElement("span", {
+    className: "laranja"
+  }, /*#__PURE__*/React.createElement("strong", null, grupos.corrigir.length), " a corrigir"), /*#__PURE__*/React.createElement("span", {
+    className: "vermelho"
+  }, /*#__PURE__*/React.createElement("strong", null, grupos.ambiguo.length), " confer\xEAncia manual"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, grupos.semData.length), " sem data na observa\xE7\xE3o"), /*#__PURE__*/React.createElement("span", {
+    className: "verde"
+  }, /*#__PURE__*/React.createElement("strong", null, grupos.correto.length), " corretos")), etapa === 'feito' && resultado && /*#__PURE__*/React.createElement("div", {
+    className: "fat-feito"
+  }, "\u2713 ", resultado.feitos.length, " data(s) corrigida(s).", resultado.pulados.length ? ` ${resultado.pulados.length} não corrigida(s): ${resultado.pulados.map(a => `#${a.numero} (${a.motivo})`).join('; ')}.` : '', " Os valores anteriores ficaram guardados.", /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      const t = textoRelatorio();
+      if (navigator.clipboard) navigator.clipboard.writeText(t);
+      alert('Relatório copiado.');
+    }
+  }, "\uD83D\uDCCB Copiar relat\xF3rio"))), /*#__PURE__*/React.createElement("div", {
+    className: "fat-lista"
+  }, FAT_GRUPOS.map(([k, titulo]) => grupos[k].length > 0 && /*#__PURE__*/React.createElement("div", {
+    key: k,
+    className: "fat-grupo"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "fat-grupo-titulo",
+    onClick: () => setAbertos(x => ({
+      ...x,
+      [k]: !x[k]
+    }))
+  }, abertos[k] ? '▾' : '▸', " ", titulo, " (", grupos[k].length, ")"), abertos[k] && grupos[k].map(a => /*#__PURE__*/React.createElement(Item, {
+    key: a.id,
+    a: etapa === 'feito' && resultado && resultado.feitos.some(f => f.id === a.id) ? {
+      ...a,
+      situacao: 'corrigido'
+    } : a
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar,
+    disabled: etapa === 'aplicando'
+  }, "Fechar"), etapa !== 'feito' && grupos.corrigir.length > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: aplicar,
+    disabled: etapa === 'aplicando' || !grupos.corrigir.some(a => marcados.has(a.id))
+  }, etapa === 'aplicando' ? 'Corrigindo…' : `Corrigir ${grupos.corrigir.filter(a => marcados.has(a.id)).length} data(s) selecionada(s)`))));
+}
+
 function AbaOrcamentos({
   usuario
 }) {
@@ -13329,6 +13633,7 @@ function AbaOrcamentos({
   const [funcionarios] = useColecao('funcionarios');
   const [menuOrcamento, setMenuOrcamento] = useState(null);
   const [filtroLiberacao, setFiltroLiberacao] = useState('todos');
+  const [conferirDatasAberto, setConferirDatasAberto] = useState(false);
   const [orcamentoParaCopiar, setOrcamentoParaCopiar] = useState(null);
   const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
   const [resultadoArquivado, setResultadoArquivado] = useState(null);
@@ -13516,7 +13821,11 @@ function AbaOrcamentos({
       setEditando(null);
       setModalAberto(true);
     }
-  }, "+ Novo orçamento"), /*#__PURE__*/React.createElement("button", {
+  }, "+ Novo orçamento"), ehAdministrador(usuario) && podeEditar(usuario, 'orcamentos') && /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => setConferirDatasAberto(true),
+    title: "Conferir a data de faturamento dos concluídos com a observação"
+  }, "🗓️ Conferir datas de faturamento"), /*#__PURE__*/React.createElement("button", {
     className: "btn secundario",
     onClick: () => setModalArquivadosAberto(true)
   }, "📁 Arquivados"))), /*#__PURE__*/React.createElement("div", {
@@ -13913,7 +14222,18 @@ function AbaOrcamentos({
         textAlign: 'center'
       }
     }, carregando ? 'Carregando...' : 'Nenhum orçamento aqui.')));
-  })), modalAberto && /*#__PURE__*/React.createElement(ModalOrcamento, {
+  })), conferirDatasAberto && /*#__PURE__*/React.createElement(ModalConferirDatasFaturamento, {
+    orcamentos: orcamentos,
+    usuario: usuario,
+    aoFechar: () => setConferirDatasAberto(false),
+    aoAbrirOrcamento: id => {
+      const o = orcamentos.find(x => x.id === id);
+      if (o) {
+        setEditando(o);
+        setModalAberto(true);
+      }
+    }
+  }), modalAberto && /*#__PURE__*/React.createElement(ModalOrcamento, {
     orcamento: editando,
     clientes: clientes,
     totalAtual: orcamentos.length,
