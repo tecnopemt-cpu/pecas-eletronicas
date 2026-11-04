@@ -86,6 +86,21 @@
   .badge.pendente{background:var(--laranja-bg);color:var(--laranja-escuro);}
   .badge.aprovado{background:var(--verde-bg);color:var(--verde);}
   .badge.rota{background:#E8F0FB;color:#1E4B84;}
+  /* liberado para faturar (coluna Aprovado/Aguardando pedido) */
+  .indicador-liberado{flex-shrink:0;width:20px;height:20px;margin-top:1px;border-radius:50%;border:2px solid #B9AFAD;background:#fff;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;transition:background-color .15s ease,border-color .15s ease,transform .1s ease;}
+  @media (hover:hover){ .indicador-liberado:not(.somente-leitura):hover{border-color:var(--verde);box-shadow:0 0 0 3px rgba(46,139,87,.15);} }
+  .indicador-liberado:active:not(.somente-leitura){transform:scale(.9);}
+  .indicador-liberado.marcado{background:var(--verde);border-color:var(--verde);}
+  .indicador-liberado.somente-leitura{cursor:default;}
+  .indicador-liberado:disabled{opacity:.6;}
+  .card.cartao-liberado{background:#F1F9F4 !important;border:1px solid var(--verde) !important;}
+  .selo-liberado{display:inline-block;margin:-2px 0 7px;font-size:10.5px;font-weight:800;letter-spacing:.4px;color:#fff;background:var(--verde);border-radius:5px;padding:2px 7px;}
+  .selo-liberado span{font-weight:600;letter-spacing:0;opacity:.9;}
+  .contagem-liberados{white-space:nowrap;font-size:12px;font-weight:700;color:var(--verde);background:var(--verde-bg);border:1px solid rgba(46,139,87,.35);border-radius:20px;padding:0 8px;}
+  .filtro-liberacao{display:flex;flex-wrap:wrap;gap:4px;margin:-4px 2px 9px;flex-shrink:0;}
+  .filtro-liberacao button{border:1px solid var(--borda);background:var(--card);color:var(--texto-fraco);border-radius:14px;padding:3px 9px;font-size:11.5px;font-weight:600;}
+  .filtro-liberacao button.ativo{background:var(--verde-bg);border-color:var(--verde);color:var(--verde);}
+  @media (max-width:640px){ .indicador-liberado{width:24px;height:24px;} }
   .badge.recusado{background:var(--vermelho-bg);color:var(--vermelho);}
   ::-webkit-scrollbar{width:10px;height:10px;}
   ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:6px;}
@@ -9919,6 +9934,64 @@ function ModalCliente({
 const CATEGORIAS_PECA = ['Joystick', 'Placa', 'Módulo', 'Carregador', 'Display', 'Controle', 'Outros'];
 const STATUS_LOTE = ['Em análise', 'Concluído'];
 const STATUS_ORCAMENTO = ['Pendente orçamento', 'Teste', 'Em Análise', 'Aprovado', 'Aprovado/Aguardando pedido', 'Rota', 'Concluído'];
+// "Liberado para faturar": marcação MANUAL só da coluna Aprovado/Aguardando pedido. Não muda status,
+// valores, pedido, entrega, comissão nem faturamento — é apenas a confirmação do responsável.
+const STATUS_LIBERACAO_FATURAR = 'Aprovado/Aguardando pedido';
+const FILTROS_LIBERACAO = [['todos', 'Todos'], ['liberados', 'Liberados para faturar'], ['aguardando', 'Aguardando liberação']];
+async function alternarLiberadoFaturar(o, usuario) {
+  const marcar = !o.liberadoFaturar;
+  await db.collection('orcamentos').doc(o.id).update({
+    liberadoFaturar: marcar,
+    liberadoFaturarPor: usuario?.nome || '',
+    liberadoFaturarPorId: usuario?.id || '',
+    liberadoFaturarEm: new Date().toISOString(),
+    historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, marcar ? 'marcou como LIBERADO PARA FATURAR.' : 'desmarcou a liberação para faturar (voltou a aguardar liberação).', 'edicao'))
+  });
+}
+function IndicadorLiberadoFaturar({
+  orcamento,
+  usuario,
+  podeAlterar
+}) {
+  const [salvando, setSalvando] = useState(false);
+  const marcado = !!orcamento.liberadoFaturar;
+  const titulo = marcado ? `Liberado para faturar${orcamento.liberadoFaturarPor ? ` por ${orcamento.liberadoFaturarPor}` : ''}${orcamento.liberadoFaturarEm ? ` em ${quandoBrasilia(orcamento.liberadoFaturarEm)}` : ''}${podeAlterar ? ' — clique para desmarcar' : ''}` : podeAlterar ? 'Marcar como liberado para faturar' : 'Aguardando liberação para faturar';
+  async function clicar(e) {
+    e.stopPropagation();
+    if (!podeAlterar || salvando) return;
+    setSalvando(true);
+    try {
+      await alternarLiberadoFaturar(orcamento, usuario);
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui salvar a liberação. Verifique a conexão e tente de novo.');
+    }
+    setSalvando(false);
+  }
+  return /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `indicador-liberado${marcado ? ' marcado' : ''}${podeAlterar ? '' : ' somente-leitura'}`,
+    onClick: clicar,
+    onPointerDown: e => e.stopPropagation(),
+    disabled: salvando,
+    title: titulo,
+    "aria-label": titulo,
+    "aria-pressed": marcado,
+    "data-sem-arraste": true
+  }, marcado ? /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 16 16",
+    width: 12,
+    height: 12,
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M3.5 8.5l3 3 6-6.5",
+    fill: "none",
+    stroke: "#fff",
+    strokeWidth: 2.2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  })) : null);
+}
 // "Rota" = em processo de entrega (não fatura, não gera comissão). "Concluído" = entrega concluída:
 // só aqui o orçamento entra no faturamento e na comissão, pela DATA DE CONCLUSÃO.
 // "Entregue/Faturado" era o nome antigo da coluna Rota (cartões antigos são migrados para "Rota").
@@ -13255,6 +13328,7 @@ function AbaOrcamentos({
   const [testeParaConfirmar, setTesteParaConfirmar] = useState(null);
   const [funcionarios] = useColecao('funcionarios');
   const [menuOrcamento, setMenuOrcamento] = useState(null);
+  const [filtroLiberacao, setFiltroLiberacao] = useState('todos');
   const [orcamentoParaCopiar, setOrcamentoParaCopiar] = useState(null);
   const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
   const [resultadoArquivado, setResultadoArquivado] = useState(null);
@@ -13539,7 +13613,10 @@ function AbaOrcamentos({
       paddingBottom: 12
     }
   }, STATUS_ORCAMENTO.filter(status => colunaPermitida(usuario, status)).map(status => {
-    const itensDoStatus = ordenarColunaKanban(orcamentosFiltrados.filter(o => o.status === status));
+    const colunaLiberacao = status === STATUS_LIBERACAO_FATURAR;
+    const todosDoStatus = orcamentosFiltrados.filter(o => o.status === status);
+    const qtdLiberados = colunaLiberacao ? todosDoStatus.filter(o => o.liberadoFaturar).length : 0;
+    const itensDoStatus = ordenarColunaKanban(colunaLiberacao && filtroLiberacao !== 'todos' ? todosDoStatus.filter(o => filtroLiberacao === 'liberados' ? !!o.liberadoFaturar : !o.liberadoFaturar) : todosDoStatus);
     return /*#__PURE__*/React.createElement("div", {
       key: status,
       className: "kanban-coluna",
@@ -13570,6 +13647,15 @@ function AbaOrcamentos({
       }
     }, status), /*#__PURE__*/React.createElement("span", {
       style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6
+      }
+    }, colunaLiberacao && qtdLiberados > 0 && /*#__PURE__*/React.createElement("span", {
+      className: "contagem-liberados",
+      title: `${qtdLiberados} liberado(s) para faturar`
+    }, "\u2713 ", qtdLiberados), /*#__PURE__*/React.createElement("span", {
+      style: {
         fontSize: 12,
         color: 'var(--texto-fraco)',
         background: 'var(--borda)',
@@ -13577,7 +13663,16 @@ function AbaOrcamentos({
         padding: '1px 9px',
         fontWeight: 700
       }
-    }, itensDoStatus.length)), /*#__PURE__*/React.createElement("div", {
+    }, todosDoStatus.length))), colunaLiberacao && /*#__PURE__*/React.createElement("div", {
+      className: "filtro-liberacao",
+      role: "group",
+      "aria-label": "Filtrar por liberação para faturar"
+    }, FILTROS_LIBERACAO.map(([id, rotulo]) => /*#__PURE__*/React.createElement("button", {
+      key: id,
+      type: "button",
+      className: filtroLiberacao === id ? 'ativo' : '',
+      onClick: () => setFiltroLiberacao(id)
+    }, rotulo, id === 'liberados' ? ` (${qtdLiberados})` : id === 'aguardando' ? ` (${todosDoStatus.length - qtdLiberados})` : ''))), /*#__PURE__*/React.createElement("div", {
       className: "kanban-lista",
       style: {
         display: 'flex',
@@ -13600,7 +13695,7 @@ function AbaOrcamentos({
       return /*#__PURE__*/React.createElement("div", {
         key: o.id,
         "data-orc-id": o.id,
-        className: `card clicavel kanban-cartao${arrastandoEste ? ' kanban-arrastando' : ''}`,
+        className: `card clicavel kanban-cartao${arrastandoEste ? ' kanban-arrastando' : ''}${colunaLiberacao && o.liberadoFaturar ? ' cartao-liberado' : ''}`,
         style: {
           padding: 13,
           boxShadow: '0 1px 2px rgba(69,59,60,.08)',
@@ -13612,16 +13707,23 @@ function AbaOrcamentos({
           setEditando(o);
           setModalAberto(true);
         }
-      }, /*#__PURE__*/React.createElement("div", {
+      }, colunaLiberacao && o.liberadoFaturar && /*#__PURE__*/React.createElement("div", {
+        className: "selo-liberado"
+      }, "LIBERADO PARA FATURAR", o.liberadoFaturarPor ? /*#__PURE__*/React.createElement("span", null, " · ", o.liberadoFaturarPor, o.liberadoFaturarEm ? `, ${quandoBrasilia(o.liberadoFaturarEm).split(' ')[0]}` : '') : null), /*#__PURE__*/React.createElement("div", {
         style: {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
           gap: 6
         }
-      }, /*#__PURE__*/React.createElement("div", {
+      }, colunaLiberacao && /*#__PURE__*/React.createElement(IndicadorLiberadoFaturar, {
+        orcamento: o,
+        usuario: usuario,
+        podeAlterar: podeEditar(usuario, 'orcamentos')
+      }), /*#__PURE__*/React.createElement("div", {
         style: {
-          minWidth: 0
+          minWidth: 0,
+          flex: 1
         }
       }, /*#__PURE__*/React.createElement("div", {
         style: {
