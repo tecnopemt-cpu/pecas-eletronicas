@@ -4097,6 +4097,13 @@ function liberarSincronizacao() {
 }
 // Saída do sistema: desliga tudo e (por padrão) apaga a cópia guardada neste aparelho.
 async function encerrarSincronizacao(apagarCopia) {
+  // calendário da comissão: volta a ser montado no próximo login
+  try {
+    if (CALENDARIO_CACHE.cfgUnsub) CALENDARIO_CACHE.cfgUnsub();
+    if (CALENDARIO_CACHE.pararCalendario) CALENDARIO_CACHE.pararCalendario();
+  } catch (e) {}
+  CALENDARIO_CACHE.iniciado = false;
+  CALENDARIO_CACHE.carregado = false;
   // códigos de assinatura (leitura compartilhada da equipe): desliga ao sair
   if (CODIGOS_VIVOS.parar) {
     try {
@@ -11669,6 +11676,8 @@ function ModalNovoLote({
   const [fotoAmpliadaNova, setFotoAmpliadaNova] = useState(null);
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const salvandoEntradaRef = useRef(false);
+  const novaEntradaRef = useRef(null);
   const inputCameraRef = useRef();
   function mudarItem(i, campo, valor) {
     setItens(prev => prev.map((it, idx) => idx === i ? {
@@ -11720,9 +11729,11 @@ function ModalNovoLote({
       alert('Tire ao menos 1 foto do lote antes de dar entrada.');
       return;
     }
+    if (salvandoEntradaRef.current) return; // clique repetido
+    salvandoEntradaRef.current = true;
     setSalvando(true);
-    const snapLotes = await db.collection('lotes').get();
-    const numero = snapLotes.size + 1;
+    try {
+    const numero = (await quantidadeColecao('lotes')) + 1;
     const itensLote = itensValidos.map(it => {
       const peca = catalogo.find(c => c.id === it.pecaCatalogoId);
       return {
@@ -11743,7 +11754,9 @@ function ModalNovoLote({
         valorConserto: Number(peca?.valorConserto) || 0
       };
     });
-    await db.collection('lotes').add({
+    // código escolhido na primeira tentativa: reenviar depois de uma falha grava a MESMA entrada
+    if (!novaEntradaRef.current) novaEntradaRef.current = db.collection('lotes').doc();
+    await novaEntradaRef.current.set({
       numero,
       clienteId,
       itens: itensLote,
@@ -11755,8 +11768,15 @@ function ModalNovoLote({
       arquivado: false,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
-    setSalvando(false);
     aoFechar();
+    } catch (err) {
+      console.error(err);
+      const semRede = err && (err.code === 'unavailable' || err.code === 'deadline-exceeded') || !CONEXAO.online;
+      alert(semRede ? 'Sem conexão com o banco: a entrada NÃO foi salva. Verifique a internet e clique de novo (não vai duplicar).' : `Não consegui salvar a entrada (${err && (err.code || err.message) || 'erro'}). Tente de novo — não vai duplicar.`);
+    } finally {
+      salvandoEntradaRef.current = false;
+      setSalvando(false);
+    }
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
@@ -12843,12 +12863,13 @@ function ModalConfirmarTeste({
   }, "Cancelar"))));
 }
 // Quantidade de orçamentos (para o número automático) pela cópia sincronizada, sem ler a coleção inteira do banco.
-async function quantidadeOrcamentos() {
-  const e = COLECOES_VIVAS.get('orcamentos|todos');
+async function quantidadeColecao(nome) {
+  const e = COLECOES_VIVAS.get(nome + '|todos');
   if (e && !e.carregando) return e.dados.length;
-  const snap = await db.collection('orcamentos').get();
+  const snap = await db.collection(nome).get();
   return snap.size;
 }
+const quantidadeOrcamentos = () => quantidadeColecao('orcamentos');
 function ModalCopiarOrcamento({
   orcamento,
   funcionarios,
@@ -14660,7 +14681,8 @@ function ModalOrcamento({
       // Grava só o que ESTA pessoa mudou. Se outro usuário alterou o mesmo campo enquanto a ficha estava
       // aberta, pergunta antes de substituir; campos alterados só pelo outro ficam como ele deixou.
       const vivo = orcamentoVivo || orcamento;
-      const igual = (k, a, b) => k === 'numero' ? String(a ?? '').trim() === String(b ?? '').trim() : JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+      // campo vazio e campo inexistente contam como iguais; peças comparadas como no histórico
+      const igual = (k, a, b) => k === 'itens' ? normItens(a) === normItens(b) : String(a ?? '').trim() === String(b ?? '').trim();
       const conflitos = [];
       ['numero', 'clienteId', 'numeroPedidoCompras', 'observacao', 'itens'].forEach(k => {
         if (igual(k, dados[k], orcamento[k])) {
@@ -16059,18 +16081,8 @@ function montarRegistrosPeriodo(docs, inicio, fim) {
   return Object.values(porF);
 }
 function useRegistrosApuracao(inicio, fim) {
-  const [docs, setDocs] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  useEffect(() => {
-    const unsub = db.collection('apuracaoRegistros').onSnapshot(snap => {
-      setDocs(snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      })));
-      setCarregando(false);
-    }, () => setCarregando(false));
-    return unsub;
-  }, []);
+  // coleção sincronizada (sem ler tudo de novo a cada abertura; reconecta sozinha)
+  const [docs, carregando] = useColecao('apuracaoRegistros');
   const registros = useMemo(() => inicio && fim ? montarRegistrosPeriodo(docs, inicio, fim) : [], [docs, inicio, fim]);
   return [registros, carregando];
 }
@@ -17870,42 +17882,39 @@ function iniciarCalendarioPeriodos() {
   const c = CALENDARIO_CACHE;
   if (c.iniciado || typeof db === 'undefined') return;
   c.iniciado = true;
-  let prontos = {
-    p: false,
-    f: false
-  };
+  // Períodos e fechamentos vêm das coleções sincronizadas (cópia no aparelho + só o que mudou, com
+  // reconexão automática) — antes eram escutas separadas que liam tudo de novo e não voltavam se caíssem.
+  const ep = assinarColecao('periodosApuracao'),
+    ef = assinarColecao('comissaoFechamentos');
   const avisar = () => {
+    c.periodos = (ep.dados || []).filter(p => !p.excluido);
+    c.fechamentos = ef.dados || [];
     c.calendario = montarCalendario(c.periodos, c.fechamentos);
-    c.carregado = prontos.p && prontos.f;
+    c.carregado = !ep.carregando && !ef.carregando;
     c.versao++;
     c.ouvintes.forEach(fn => fn(c.versao));
   };
-  db.collection('periodosApuracao').onSnapshot(s => {
-    c.periodos = s.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    })).filter(p => !p.excluido);
-    prontos.p = true;
-    avisar();
-  }, () => {
-    prontos.p = true;
-    avisar();
-  });
-  db.collection('comissaoFechamentos').onSnapshot(s => {
-    c.fechamentos = s.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-    prontos.f = true;
-    avisar();
-  }, () => {
-    prontos.f = true;
-    avisar();
-  });
-  db.collection('config').doc('periodosApuracao').onSnapshot(s => {
-    c.config = normalizarConfigPeriodos(s.exists ? s.data() : null);
-    avisar();
-  }, () => {});
+  ep.ouvintes.add(avisar);
+  ef.ouvintes.add(avisar);
+  c.pararCalendario = () => {
+    ep.ouvintes.delete(avisar);
+    ef.ouvintes.delete(avisar);
+  };
+  avisar();
+  let tentativas = 0;
+  const ouvirConfig = () => {
+    c.cfgUnsub = db.collection('config').doc('periodosApuracao').onSnapshot(s => {
+      tentativas = 0;
+      c.config = normalizarConfigPeriodos(s.exists ? s.data() : null);
+      avisar();
+    }, () => {
+      tentativas += 1;
+      setTimeout(() => {
+        if (c.iniciado) ouvirConfig();
+      }, [2000, 5000, 15000, 30000][tentativas - 1] || 60000);
+    });
+  };
+  ouvirConfig();
 }
 function useCalendarioPeriodos() {
   iniciarCalendarioPeriodos();
