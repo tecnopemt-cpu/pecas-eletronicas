@@ -118,6 +118,15 @@
   .fat-datas s{color:var(--vermelho);}
   .fat-motivo{font-size:12.5px;color:var(--vermelho);margin-top:3px;}
   .fat-obs{font-size:12px;color:var(--texto-fraco);white-space:pre-wrap;margin-top:4px;background:var(--fundo);border-radius:6px;padding:5px 7px;}
+  /* estado da conexão (topo) */
+  .indicador-conexao{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;border-radius:14px;padding:3px 10px;margin-right:6px;white-space:nowrap;}
+  .indicador-conexao.ok{color:#9FE3BC;background:rgba(46,139,87,.18);}
+  .indicador-conexao.reconectando{color:#fff;background:var(--laranja);}
+  .indicador-conexao.offline{color:#fff;background:var(--vermelho);}
+  @media (max-width:640px){ .indicador-conexao.ok .indicador-conexao-texto{display:none;} }
+  .msg-operacao{font-size:13px;border-radius:8px;padding:9px 11px;}
+  .msg-operacao.ok{background:var(--verde-bg);color:var(--verde);}
+  .msg-operacao.erro{background:var(--vermelho-bg);color:var(--vermelho);}
   .badge.recusado{background:var(--vermelho-bg);color:var(--vermelho);}
   ::-webkit-scrollbar{width:10px;height:10px;}
   ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:6px;}
@@ -4122,6 +4131,75 @@ async function encerrarSincronizacao(apagarCopia) {
     } catch (err) {}
   }
 }
+// ---- estado da conexão com o banco (aparece no topo da tela) e recuperação depois de cair
+const CONEXAO = {
+  online: typeof navigator === 'undefined' || navigator.onLine !== false,
+  falhas: 0,
+  ultimoErro: '',
+  ouvintes: new Set()
+};
+function conexaoSituacao() {
+  if (!CONEXAO.online) return 'offline';
+  if (CONEXAO.falhas > 0) return 'reconectando';
+  return 'ok';
+}
+function conexaoAvisar() {
+  CONEXAO.ouvintes.forEach(f => {
+    try {
+      f(conexaoSituacao());
+    } catch (e) {}
+  });
+}
+function useConexao() {
+  const [sit, setSit] = useState(conexaoSituacao());
+  useEffect(() => {
+    CONEXAO.ouvintes.add(setSit);
+    setSit(conexaoSituacao());
+    return () => CONEXAO.ouvintes.delete(setSit);
+  }, []);
+  return sit;
+}
+// Busca agora o que mudou desde a última marca (para quando a internet volta ou a aba volta a ficar
+// visível: celulares e abas em segundo plano podem ter ficado sem receber atualizações).
+function sincAtualizarAgora(motivo) {
+  COLECOES_VIVAS.forEach(e => {
+    if (e && e.recuperar && !e.encerrada) e.recuperar(motivo);
+  });
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    CONEXAO.online = true;
+    conexaoAvisar();
+    sincAtualizarAgora('online');
+  });
+  window.addEventListener('offline', () => {
+    CONEXAO.online = false;
+    conexaoAvisar();
+  });
+  let escondidoEm = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') escondidoEm = Date.now();else if (escondidoEm && Date.now() - escondidoEm > 30000) sincAtualizarAgora('voltou');
+  });
+}
+function IndicadorConexao() {
+  const sit = useConexao();
+  const info = {
+    ok: ['ok', '\u25CF', 'Sincronizado', 'Conectado: as alterações dos outros usuários aparecem sozinhas.'],
+    reconectando: ['reconectando', '\u27F3', 'Reconectando…', 'A conexão com o banco caiu. O sistema está tentando de novo sozinho; não precisa recarregar.'],
+    offline: ['offline', '\u26A0', 'Sem conexão', 'Sem internet. O que você salvar agora só vai para o banco quando a conexão voltar.']
+  }[sit];
+  return /*#__PURE__*/React.createElement("span", {
+    className: `indicador-conexao ${info[0]}`,
+    title: info[3],
+    role: "status",
+    "aria-live": "polite",
+    "data-conexao": sit
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true"
+  }, info[1]), /*#__PURE__*/React.createElement("span", {
+    className: "indicador-conexao-texto"
+  }, info[2]));
+}
 const SINC_VERSAO = 1;
 // Leituras do Firestore são consistentes: tudo gravado até a hora de uma leitura aparece nela, então
 // basta pedir o que tem carimbo MAIOR que o último carimbo já recebido do banco (sem folga).
@@ -4307,8 +4385,13 @@ function assinarColecao(nome) {
     }
   };
   // Sem cópia possível (ou erro): assinatura da coleção inteira, como antes.
+  let tentativasTudo = 0;
   const ouvirTudo = () => {
+    try {
+      if (e.unsub) e.unsub();
+    } catch (err) {}
     e.unsub = db.collection(nome).onSnapshot(snap => {
+      tentativasTudo = 0;
       e.mapa = {};
       snap.docs.forEach(d => {
         e.mapa[d.id] = d.data();
@@ -4318,7 +4401,11 @@ function assinarColecao(nome) {
       console.error(nome, err);
       e.carregando = false;
       avisar();
-      if (COLECOES_VIVAS.get(chave) === e) COLECOES_VIVAS.delete(chave);
+      // tenta de novo sozinho (antes a tela ficava sem atualizar até recarregar a página)
+      tentativasTudo += 1;
+      setTimeout(() => {
+        if (!e.encerrada && COLECOES_VIVAS.get(chave) === e) ouvirTudo();
+      }, [2000, 5000, 15000, 30000][tentativasTudo - 1] || 60000);
     });
   };
   if (!SINC_COLECOES.has(nome)) {
@@ -4356,18 +4443,71 @@ function assinarColecao(nome) {
     }
     sincLigarExclusoes();
     // daqui para frente: só o que mudou (inclusive o que outros aparelhos gravarem, ao vivo)
-    e.unsub = db.collection(nome).where('atualizadoEm', '>', firebase.firestore.Timestamp.fromMillis(e.marca - SINC_MARGEM)).onSnapshot(snap => {
-      if (!snap.docs.length) return;
-      snap.docs.forEach(d => {
+    let tentativas = 0,
+      timerReligar = null,
+      falhou = false;
+    const receber = docs => {
+      if (!docs.length) return false;
+      let mudou = false;
+      docs.forEach(d => {
         e.mapa[d.id] = d.data();
+        mudou = true;
       });
-      atualizarMarca(snap.docs);
-      publicar();
-      salvar();
-    }, err => {
-      console.error(nome, err);
-      if (COLECOES_VIVAS.get(chave) === e) COLECOES_VIVAS.delete(chave);
-    });
+      atualizarMarca(docs);
+      if (mudou) {
+        publicar();
+        salvar();
+      }
+      return mudou;
+    };
+    const religar = espera => {
+      clearTimeout(timerReligar);
+      timerReligar = setTimeout(() => {
+        if (!e.encerrada) ligar();
+      }, espera);
+    };
+    const ligar = () => {
+      try {
+        if (e.unsub) e.unsub();
+      } catch (err) {}
+      e.unsub = db.collection(nome).where('atualizadoEm', '>', firebase.firestore.Timestamp.fromMillis(e.marca - SINC_MARGEM)).onSnapshot(snap => {
+        if (falhou) {
+          falhou = false;
+          CONEXAO.falhas = Math.max(0, CONEXAO.falhas - 1);
+          conexaoAvisar();
+        }
+        tentativas = 0;
+        receber(snap.docs);
+        // a consulta "o que mudou desde X" cresce durante o dia; renova o ponto de partida para que
+        // uma reconexão não precise reenviar (e cobrar a leitura de) tudo de novo
+        if (snap.docs.length > 40) religar(5000);
+      }, err => {
+        console.error(nome, err);
+        if (!falhou) {
+          falhou = true;
+          CONEXAO.falhas += 1;
+        }
+        CONEXAO.ultimoErro = err && err.code || 'erro';
+        conexaoAvisar();
+        tentativas += 1;
+        // tenta de novo sozinho: 2s, 5s, 15s, 30s, depois a cada 60s (sem precisar recarregar a página)
+        religar([2000, 5000, 15000, 30000][tentativas - 1] || 60000);
+      });
+    };
+    ligar();
+    let recuperando = false;
+    e.recuperar = async motivo => {
+      if (recuperando) return;
+      recuperando = true;
+      try {
+        const snap = await db.collection(nome).where('atualizadoEm', '>', firebase.firestore.Timestamp.fromMillis(e.marca - SINC_MARGEM)).get();
+        receber(snap.docs);
+        if (falhou) ligar();
+      } catch (err) {
+        console.warn('recuperação ' + nome, err && err.code);
+      }
+      recuperando = false;
+    };
   })().catch(err => {
     console.error('sincronização ' + nome, err);
     if (!e.unsub && !e.encerrada) ouvirTudo();
@@ -9267,7 +9407,7 @@ function App() {
     style: {
       flex: 1
     }
-  }), /*#__PURE__*/React.createElement("button", {
+  }), /*#__PURE__*/React.createElement(IndicadorConexao, null), /*#__PURE__*/React.createElement("button", {
     onClick: atualizarApp,
     title: "Buscar a versão mais recente",
     className: "btn secundario pequeno",
@@ -11911,148 +12051,196 @@ function ModalLoteDetalhe({
       itens: itensAtualizados
     });
   }
+  // Peças classificadas e ainda não orçadas → linhas do orçamento (lidas da entrada no momento de gravar).
+  function montarLinhasOrcamento(itensLote) {
+      const linhas = [];
+      const ajustes = [];
+      (itensLote || []).forEach((it, idx) => {
+        const categoria = catalogo.find(c => c.id === it.pecaCatalogoId)?.categoria || '';
+        const pendConserto = (it.qtdConsertada || 0) - (it.qtdConsertadaOrcada || 0);
+        const pendGarantia = (it.qtdGarantia || 0) - (it.qtdGarantiaOrcada || 0);
+        const pendTeste = (it.qtdTeste || 0) - (it.qtdTesteOrcada || 0);
+        const pendSem = (it.qtdNaoConsertada || 0) - (it.qtdNaoConsertadaOrcada || 0);
+        if (pendConserto > 0) {
+          linhas.push({
+            descricao: it.pecaDescricao,
+            qtd: pendConserto,
+            ...(frotaDe(it) ? {
+              frota: frotaDe(it)
+            } : {}),
+            valorUnit: it.valorConserto || 0,
+            categoria,
+            tipo: 'consertada'
+          });
+          ajustes.push({
+            idx,
+            categoria: 'consertada',
+            qtd: pendConserto
+          });
+        }
+        if (pendGarantia > 0) {
+          // uma linha por resultado (continua sendo garantia: sem cobrança e sem comissão)
+          const pendCom = (it.qtdGarantiaComConserto || 0) - (it.qtdGarantiaComConsertoOrcada || 0);
+          const pendSem = (it.qtdGarantiaSemConserto || 0) - (it.qtdGarantiaSemConsertoOrcada || 0);
+          [['comConserto', pendCom, 'Garantia com conserto'], ['semConserto', pendSem, 'Garantia sem conserto']].forEach(([resultado, q, rotulo]) => {
+            if (q <= 0) return;
+            linhas.push({
+              descricao: `${it.pecaDescricao} (${rotulo})`,
+              qtd: q,
+              valorUnit: 0,
+              categoria,
+              tipo: 'garantia',
+              resultadoGarantia: resultado,
+              ...(frotaDe(it) ? {
+                frota: frotaDe(it)
+              } : {})
+            });
+            ajustes.push({
+              idx,
+              categoria: 'garantia',
+              qtd: q,
+              resultadoGarantia: resultado
+            });
+          });
+        }
+        if (pendTeste > 0) {
+          linhas.push({
+            descricao: `${it.pecaDescricao} (Teste)`,
+            qtd: pendTeste,
+            ...(frotaDe(it) ? {
+              frota: frotaDe(it)
+            } : {}),
+            valorUnit: it.valorConserto || 0,
+            categoria,
+            tipo: 'teste'
+          });
+          ajustes.push({
+            idx,
+            categoria: 'teste',
+            qtd: pendTeste
+          });
+        }
+        if (pendSem > 0) {
+          linhas.push({
+            descricao: `${it.pecaDescricao} (Sem conserto)`,
+            qtd: pendSem,
+            ...(frotaDe(it) ? {
+              frota: frotaDe(it)
+            } : {}),
+            valorUnit: 0,
+            categoria,
+            tipo: 'naoConsertada'
+          });
+          ajustes.push({
+            idx,
+            categoria: 'naoConsertada',
+            qtd: pendSem
+          });
+        }
+      });
+    return {
+      linhas,
+      ajustes
+    };
+  }
+  const [todosOrcamentos] = useColecao('orcamentos');
+  const gerandoRef = useRef(false);
+  const [msgOrcamento, setMsgOrcamento] = useState(null);
   async function gerarOrcamento() {
     const semResultado = (lote.itens || []).filter(it => garantiaPendenteSemResultado(it) > 0);
     if (semResultado.length) {
       alert(`Informe o resultado da garantia (com conserto ou sem conserto) antes de gerar o orçamento:\n\n${semResultado.map(it => `• ${it.pecaDescricao}: ${garantiaPendenteSemResultado(it)} peça(s) sem resultado`).join('\n')}`);
       return;
     }
-    const linhas = [];
-    const ajustes = [];
-    (lote.itens || []).forEach((it, idx) => {
-      const categoria = catalogo.find(c => c.id === it.pecaCatalogoId)?.categoria || '';
-      const pendConserto = (it.qtdConsertada || 0) - (it.qtdConsertadaOrcada || 0);
-      const pendGarantia = (it.qtdGarantia || 0) - (it.qtdGarantiaOrcada || 0);
-      const pendTeste = (it.qtdTeste || 0) - (it.qtdTesteOrcada || 0);
-      const pendSem = (it.qtdNaoConsertada || 0) - (it.qtdNaoConsertadaOrcada || 0);
-      if (pendConserto > 0) {
-        linhas.push({
-          descricao: it.pecaDescricao,
-          qtd: pendConserto,
-          ...(frotaDe(it) ? {
-            frota: frotaDe(it)
-          } : {}),
-          valorUnit: it.valorConserto || 0,
-          categoria,
-          tipo: 'consertada'
-        });
-        ajustes.push({
-          idx,
-          categoria: 'consertada',
-          qtd: pendConserto
-        });
-      }
-      if (pendGarantia > 0) {
-        // uma linha por resultado (continua sendo garantia: sem cobrança e sem comissão)
-        const pendCom = (it.qtdGarantiaComConserto || 0) - (it.qtdGarantiaComConsertoOrcada || 0);
-        const pendSem = (it.qtdGarantiaSemConserto || 0) - (it.qtdGarantiaSemConsertoOrcada || 0);
-        [['comConserto', pendCom, 'Garantia com conserto'], ['semConserto', pendSem, 'Garantia sem conserto']].forEach(([resultado, q, rotulo]) => {
-          if (q <= 0) return;
-          linhas.push({
-            descricao: `${it.pecaDescricao} (${rotulo})`,
-            qtd: q,
-            valorUnit: 0,
-            categoria,
-            tipo: 'garantia',
-            resultadoGarantia: resultado,
-            ...(frotaDe(it) ? {
-              frota: frotaDe(it)
-            } : {})
-          });
-          ajustes.push({
-            idx,
-            categoria: 'garantia',
-            qtd: q,
-            resultadoGarantia: resultado
-          });
-        });
-      }
-      if (pendTeste > 0) {
-        linhas.push({
-          descricao: `${it.pecaDescricao} (Teste)`,
-          qtd: pendTeste,
-          ...(frotaDe(it) ? {
-            frota: frotaDe(it)
-          } : {}),
-          valorUnit: it.valorConserto || 0,
-          categoria,
-          tipo: 'teste'
-        });
-        ajustes.push({
-          idx,
-          categoria: 'teste',
-          qtd: pendTeste
-        });
-      }
-      if (pendSem > 0) {
-        linhas.push({
-          descricao: `${it.pecaDescricao} (Sem conserto)`,
-          qtd: pendSem,
-          ...(frotaDe(it) ? {
-            frota: frotaDe(it)
-          } : {}),
-          valorUnit: 0,
-          categoria,
-          tipo: 'naoConsertada'
-        });
-        ajustes.push({
-          idx,
-          categoria: 'naoConsertada',
-          qtd: pendSem
-        });
-      }
-    });
-    if (linhas.length === 0) {
+    if (gerandoRef.current) return; // um clique já está em andamento
+    if (montarLinhasOrcamento(lote.itens).linhas.length === 0) {
       alert('Não há peças classificadas (conserto, garantia, teste ou sem conserto) pendentes de orçamento nesse lote.');
       return;
     }
+    gerandoRef.current = true;
     setProcessando(true);
-    const total = linhas.reduce((s, l) => s + l.qtd * l.valorUnit, 0);
-    const comissoes = calcularComissoesOrcamento(total, funcionarios, new Date());
-    const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
-    const snap = await db.collection('orcamentos').get();
-    const numero = snap.size + 1;
-    const ref = await db.collection('orcamentos').add({
-      numero,
-      clienteId: lote.clienteId,
-      itens: linhas,
-      total,
-      comissaoTotal,
-      status: 'Pendente orçamento',
-      loteId: lote.id,
-      loteAjustes: ajustes,
-      arquivado: false,
-      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-      historico: [registroHistoricoOrc(usuario, `gerou o orçamento a partir da entrada #${lote.numero || '-'}.`, 'criacao')]
-    });
-    const opBatch = db.batch();
-    comissoes.forEach(c => {
-      opBatch.set(db.collection('comissoes').doc(), {
-        funcionarioId: c.funcionarioId,
-        orcamentoId: ref.id,
-        valor: c.valor,
-        percentual: c.percentual,
-        data: firebase.firestore.FieldValue.serverTimestamp(),
-        lancadoPor: usuario?.nome || ''
+    setMsgOrcamento(null);
+    const loteRef = db.collection('lotes').doc(lote.id);
+    const orcRef = db.collection('orcamentos').doc();
+    const numero = (todosOrcamentos || []).length + 1;
+    try {
+      // Tudo numa transação: lê a entrada atualizada no banco, cria o orçamento, os lançamentos e marca as
+      // peças como orçadas — tudo ou nada. Se a mesma peça já foi orçada (clique repetido, outro usuário,
+      // conexão que caiu no meio), não cria outro orçamento.
+      const resultado = await db.runTransaction(async tx => {
+        const snapLote = await tx.get(loteRef);
+        if (!snapLote.exists) throw Object.assign(new Error('A entrada não existe mais.'), {
+          codigo: 'sem-entrada'
+        });
+        const loteAtual = snapLote.data();
+        const {
+          linhas,
+          ajustes
+        } = montarLinhasOrcamento(loteAtual.itens);
+        if (linhas.length === 0) throw Object.assign(new Error('As peças desta entrada já foram orçadas.'), {
+          codigo: 'ja-orcado'
+        });
+        const total = linhas.reduce((s, l) => s + l.qtd * l.valorUnit, 0);
+        const comissoes = calcularComissoesOrcamento(total, funcionarios, new Date());
+        const comissaoTotal = comissoes.reduce((s, c) => s + c.valor, 0);
+        tx.set(orcRef, {
+          numero,
+          clienteId: loteAtual.clienteId,
+          itens: linhas,
+          total,
+          comissaoTotal,
+          status: 'Pendente orçamento',
+          loteId: lote.id,
+          loteAjustes: ajustes,
+          arquivado: false,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+          historico: [registroHistoricoOrc(usuario, `gerou o orçamento a partir da entrada #${loteAtual.numero || '-'}.`, 'criacao')]
+        });
+        comissoes.forEach(c => {
+          tx.set(db.collection('comissoes').doc(`${orcRef.id}_${c.funcionarioId}`), {
+            funcionarioId: c.funcionarioId,
+            orcamentoId: orcRef.id,
+            valor: c.valor,
+            percentual: c.percentual,
+            data: firebase.firestore.FieldValue.serverTimestamp(),
+            lancadoPor: usuario?.nome || ''
+          });
+        });
+        // marca como já orçado tudo que estiver classificado até agora
+        const itensAtualizados = (loteAtual.itens || []).map(it => ({
+          ...it,
+          qtdConsertadaOrcada: it.qtdConsertada || 0,
+          qtdGarantiaOrcada: it.qtdGarantia || 0,
+          qtdGarantiaComConsertoOrcada: it.qtdGarantiaComConserto || 0,
+          qtdGarantiaSemConsertoOrcada: it.qtdGarantiaSemConserto || 0,
+          qtdTesteOrcada: it.qtdTeste || 0,
+          qtdNaoConsertadaOrcada: it.qtdNaoConsertada || 0
+        }));
+        tx.update(loteRef, {
+          itens: itensAtualizados,
+          // tudo classificado e agora tudo orçado → Concluído; senão continua Em análise
+          status: loteTotalmenteOrcado(itensAtualizados) ? 'Concluído' : 'Em análise'
+        });
+        return {
+          numero,
+          pecas: linhas.reduce((s, l) => s + (Number(l.qtd) || 0), 0)
+        };
       });
-    });
-    // marca como já orçado tudo que estiver classificado até agora
-    const itensAtualizados = lote.itens.map(it => ({
-      ...it,
-      qtdConsertadaOrcada: it.qtdConsertada || 0,
-      qtdGarantiaOrcada: it.qtdGarantia || 0,
-      qtdGarantiaComConsertoOrcada: it.qtdGarantiaComConserto || 0,
-      qtdGarantiaSemConsertoOrcada: it.qtdGarantiaSemConserto || 0,
-      qtdTesteOrcada: it.qtdTeste || 0,
-      qtdNaoConsertadaOrcada: it.qtdNaoConsertada || 0
-    }));
-    opBatch.update(db.collection('lotes').doc(lote.id), {
-      itens: itensAtualizados,
-      // tudo classificado e agora tudo orçado → Concluído; senão continua Em análise
-      status: loteTotalmenteOrcado(itensAtualizados) ? 'Concluído' : 'Em análise'
-    });
-    await opBatch.commit();
-    setProcessando(false);
+      setMsgOrcamento({
+        ok: true,
+        texto: `\u2713 Orçamento #${resultado.numero} gerado com ${resultado.pecas} peça(s). Ele já aparece em Orçamentos → Pendente orçamento.`
+      });
+    } catch (err) {
+      if (!err || err.codigo !== 'ja-orcado') console.error(err);
+      const semRede = err && (err.code === 'unavailable' || err.code === 'deadline-exceeded') || !CONEXAO.online;
+      setMsgOrcamento({
+        ok: false,
+        texto: err && err.codigo === 'ja-orcado' ? 'Essas peças já foram orçadas (o orçamento já existe). Nada foi duplicado.' : semRede ? 'Sem conexão com o banco: o orçamento NÃO foi gerado. Verifique a internet e clique de novo.' : `Não consegui gerar o orçamento (${err && (err.code || err.message) || 'erro'}). Nada foi gravado; tente de novo.`
+      });
+    } finally {
+      gerandoRef.current = false;
+      setProcessando(false);
+    }
   }
   async function marcarConcluido() {
     if (!loteTotalmenteOrcado(lote.itens)) {
@@ -12449,11 +12637,15 @@ function ModalLoteDetalhe({
     className: "btn",
     disabled: !temPendenteDeOrcamento || processando || somenteLeitura,
     onClick: gerarOrcamento,
+    "aria-busy": processando,
     style: {
       width: '100%',
       justifyContent: 'center'
     }
-  }, temPendenteDeOrcamento ? 'Gerar orçamento das peças classificadas' : 'Nada novo para orçar'), lote.status !== 'Concluído' && /*#__PURE__*/React.createElement("button", {
+  }, processando && gerandoRef.current ? 'Gerando orçamento…' : temPendenteDeOrcamento ? 'Gerar orçamento das peças classificadas' : 'Nada novo para orçar'), msgOrcamento && /*#__PURE__*/React.createElement("div", {
+    className: `msg-operacao ${msgOrcamento.ok ? 'ok' : 'erro'}`,
+    role: msgOrcamento.ok ? 'status' : 'alert'
+  }, msgOrcamento.texto), lote.status !== 'Concluído' && /*#__PURE__*/React.createElement("button", {
     className: "btn verde",
     disabled: processando || somenteLeitura,
     onClick: marcarConcluido,
@@ -12650,6 +12842,13 @@ function ModalConfirmarTeste({
     onClick: aoFechar
   }, "Cancelar"))));
 }
+// Quantidade de orçamentos (para o número automático) pela cópia sincronizada, sem ler a coleção inteira do banco.
+async function quantidadeOrcamentos() {
+  const e = COLECOES_VIVAS.get('orcamentos|todos');
+  if (e && !e.carregando) return e.dados.length;
+  const snap = await db.collection('orcamentos').get();
+  return snap.size;
+}
 function ModalCopiarOrcamento({
   orcamento,
   funcionarios,
@@ -12660,6 +12859,7 @@ function ModalCopiarOrcamento({
   // quantas unidades de cada item vão para a cópia (o padrão é tudo); o resto fica no original
   const [quantidades, setQuantidades] = useState(() => (orcamento.itens || []).map(it => Math.max(1, Math.floor(Number(it.qtd) || 1))));
   const [processando, setProcessando] = useState(false);
+  const copiandoRef = useRef(false);
   const qtdOriginal = it => Math.max(0, Math.floor(Number(it.qtd) || 0));
   const qtdCopia = (it, i) => Math.min(qtdOriginal(it), Math.max(1, Math.floor(Number(quantidades[i]) || 1)));
   function mudarQtd(i, v) {
@@ -12717,15 +12917,19 @@ function ModalCopiarOrcamento({
       alert('Selecione ao menos uma peça para copiar.');
       return;
     }
+    if (copiandoRef.current) return;
+    copiandoRef.current = true;
     setProcessando(true);
     try {
       const totalNovo = totalDe(itensNovos);
       const totalRestante = totalDe(itensRestantes);
       const comissoesNovas = calcularComissoesOrcamento(totalNovo, funcionarios, new Date());
       const comissaoTotalNovo = comissoesNovas.reduce((s, c) => s + c.valor, 0);
-      const snap = await db.collection('orcamentos').get();
-      const novoNumero = snap.size + 1;
-      const refNovo = await db.collection('orcamentos').add({
+      const novoNumero = (await quantidadeOrcamentos()) + 1;
+      const refNovo = db.collection('orcamentos').doc();
+      // novo orçamento, lançamentos e a saída das peças do original vão juntos (tudo ou nada)
+      const opBatch = db.batch();
+      opBatch.set(refNovo, {
         numero: novoNumero,
         clienteId: orcamento.clienteId,
         validade: orcamento.validade || '',
@@ -12740,10 +12944,9 @@ function ModalCopiarOrcamento({
         arquivado: false,
         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
       });
-      if (comissoesNovas.length > 0) {
-        const opBatch = db.batch();
+      {
         comissoesNovas.forEach(c => {
-          opBatch.set(db.collection('comissoes').doc(), {
+          opBatch.set(db.collection('comissoes').doc(`${refNovo.id}_${c.funcionarioId}`), {
             funcionarioId: c.funcionarioId,
             orcamentoId: refNovo.id,
             valor: c.valor,
@@ -12752,7 +12955,6 @@ function ModalCopiarOrcamento({
             lancadoPor: 'Cópia de orçamento'
           });
         });
-        await opBatch.commit();
       }
       const nomesTransferidos = (orcamento.itens || []).map((it, i) => {
         if (!selecionados.has(i)) return null;
@@ -12760,11 +12962,12 @@ function ModalCopiarOrcamento({
           vai = qtdCopia(it, i);
         return total > 1 && vai < total ? `${it.descricao} (${vai} de ${total})` : it.descricao;
       }).filter(Boolean).join(', ');
-      await db.collection('orcamentos').doc(orcamento.id).update({
+      opBatch.update(db.collection('orcamentos').doc(orcamento.id), {
         itens: itensRestantes,
         total: totalRestante,
         historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `separou a(s) peça(s) "${nomesTransferidos}" para o orçamento #${novoNumero}.`, 'edicao'))
       });
+      await opBatch.commit();
       // Os lançamentos do orçamento original precisam acompanhar o novo total — sem isso as
       // peças separadas ficavam com comissão nos DOIS orçamentos (lançamento em dobro).
       await recalcularLancamentosOrcamento({
@@ -12775,8 +12978,9 @@ function ModalCopiarOrcamento({
       aoFechar();
     } catch (err) {
       console.error(err);
-      alert('Não consegui criar a cópia. Tente novamente.');
+      alert('Não consegui criar a cópia (nada foi alterado). Verifique a conexão e tente novamente.');
     }
+    copiandoRef.current = false;
     setProcessando(false);
   }
   return /*#__PURE__*/React.createElement("div", {
@@ -13784,7 +13988,15 @@ function AbaOrcamentos({
       novosRegistros.push(registroHistoricoOrc(usuario, `considerou a entrega concluída reaproveitando a foto e a assinatura da entrega para teste (${o.assinaturaTeste.nome}).`, 'entrega'));
     }
     if (novosRegistros.length) dados.historico = firebase.firestore.FieldValue.arrayUnion(...novosRegistros);
-    await db.collection('orcamentos').doc(o.id).update(dados);
+    try {
+      await db.collection('orcamentos').doc(o.id).update(dados);
+    } catch (err) {
+      // o cartão volta sozinho para a coluna em que está no banco
+      console.error(err);
+      const semRede = err && (err.code === 'unavailable' || err.code === 'deadline-exceeded') || !CONEXAO.online;
+      alert(semRede ? `Sem conexão: o orçamento #${o.numero} NÃO foi movido. Ele continua em "${o.status}". Tente de novo quando a internet voltar.` : `Não consegui mover o orçamento #${o.numero} (${err && (err.code || err.message) || 'erro'}). Ele continua em "${o.status}".`);
+      return;
+    }
     if (entrouConcluido) {
       // Vincula o cartão ao período de apuração que contém a data de conclusão (periodoApuracaoId).
       if (!o.periodoConsolidadoId) await vincularPeriodoAoFaturar(o.id, agora);
@@ -14335,6 +14547,8 @@ function ModalOrcamento({
   const [funcionarios] = useColecao('funcionarios');
   // versão ao vivo do orçamento (o histórico aparece atualizado sem fechar a janela)
   const orcamentoVivo = useDocumento('orcamentos', orcamento?.id);
+  const salvandoRef = useRef(false);
+  const novoOrcRef = useRef(null);
   const orcamentoAtual = orcamento ? orcamentoVivo || orcamento : null;
   const [catalogoOrigem] = useColecao('catalogoPecas');
   const loteOrigem = useDocumento('lotes', orcamento?.loteId);
@@ -14388,7 +14602,10 @@ function ModalOrcamento({
       alert('Informe o número do orçamento.');
       return;
     }
+    if (salvandoRef.current) return; // já está salvando (clique repetido)
+    salvandoRef.current = true;
     setSalvando(true);
+    try {
     const itensComTipo = itens.map(it => {
       const item = {
         tipo: 'consertada',
@@ -14404,9 +14621,10 @@ function ModalOrcamento({
         numeroPedidoCompras,
         observacao,
         itens: itensComTipo,
-        total,
-        status: orcamento?.status || 'Pendente orçamento'
+        total
       };
+      // o status só muda pelo quadro: salvar a ficha não pode desfazer uma movimentação feita por outra pessoa
+      if (!orcamento.status) dados.status = 'Pendente orçamento';
       const novosHistoricos = [];
       if (String(numero) !== String(orcamento.numero ?? '')) novosHistoricos.push(`alterou o número do orçamento de ${orcamento.numero ?? '-'} para ${numero}.`);
       const pedAnt = String(orcamento.numeroPedidoCompras || '').trim(),
@@ -14439,6 +14657,32 @@ function ModalOrcamento({
         dados.dataConclusao = dados.dataFaturamento;
         novosHistoricos.push(`alterou a data de faturamento de ${formatarDataBr(dataFaturamentoInicial)} para ${formatarDataBr(dataFaturamento)} — a comissão passa para o período da nova data.`);
       }
+      // Grava só o que ESTA pessoa mudou. Se outro usuário alterou o mesmo campo enquanto a ficha estava
+      // aberta, pergunta antes de substituir; campos alterados só pelo outro ficam como ele deixou.
+      const vivo = orcamentoVivo || orcamento;
+      const igual = (k, a, b) => k === 'numero' ? String(a ?? '').trim() === String(b ?? '').trim() : JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+      const conflitos = [];
+      ['numero', 'clienteId', 'numeroPedidoCompras', 'observacao', 'itens'].forEach(k => {
+        if (igual(k, dados[k], orcamento[k])) {
+          delete dados[k];
+          if (k === 'itens') delete dados.total;
+          return;
+        }
+        if (!igual(k, vivo[k], orcamento[k]) && !igual(k, vivo[k], dados[k])) conflitos.push(k);
+      });
+      if (conflitos.length) {
+        const nomes = {
+          numero: 'número',
+          clienteId: 'cliente',
+          numeroPedidoCompras: 'pedido de compra',
+          observacao: 'observação',
+          itens: 'peças/valores'
+        };
+        const ultimo = (vivo.historico || []).slice(-1)[0];
+        if (!confirm(`Enquanto você editava, ${ultimo && ultimo.nome ? ultimo.nome : 'outra pessoa'} também alterou: ${conflitos.map(k => nomes[k]).join(', ')}.\n\nOK = salvar a sua versão desses campos (substitui a dela).\nCancelar = não salvar agora (feche e abra o orçamento para ver a versão atual).`)) {
+          return;
+        }
+      }
       if (novosHistoricos.length) dados.historico = firebase.firestore.FieldValue.arrayUnion(...novosHistoricos.map(texto => registroHistoricoOrc(usuario, texto, 'edicao')));
       await db.collection('orcamentos').doc(orcamento.id).update(dados);
       if (novaDataFat) await vincularPeriodoAoFaturar(orcamento.id, novaDataFat);
@@ -14447,7 +14691,7 @@ function ModalOrcamento({
         ...dadosCalculo
       } = dados;
       const rc = await recalcularLancamentosOrcamento({
-        ...orcamento,
+        ...vivo,
         ...dadosCalculo
       }, funcionarios);
       if (rc.fechamento) alert(`Orçamento salvo. Ele pertence ao período de comissão já fechado (${formatarDataBr(rc.fechamento.inicio)} a ${formatarDataBr(rc.fechamento.fim)}), então os lançamentos de comissão não foram alterados.`);
@@ -14469,10 +14713,14 @@ function ModalOrcamento({
         criadoEm: diaOrc === hojeStr ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.Timestamp.fromDate(new Date(diaOrc + 'T12:00:00')),
         historico: [registroHistoricoOrc(usuario, `criou o orçamento (data do orçamento ${formatarDataBr(diaOrc)}).`, 'criacao')]
       };
-      const ref = await db.collection('orcamentos').add(dados);
+      // o orçamento e os lançamentos vão juntos (tudo ou nada). O código do novo orçamento é escolhido
+      // ao abrir a ficha: repetir o clique ou reenviar depois de uma falha grava o MESMO orçamento.
+      if (!novoOrcRef.current) novoOrcRef.current = db.collection('orcamentos').doc();
+      const ref = novoOrcRef.current;
       const opBatch = db.batch();
+      opBatch.set(ref, dados);
       comissoes.forEach(c => {
-        opBatch.set(db.collection('comissoes').doc(), {
+        opBatch.set(db.collection('comissoes').doc(`${ref.id}_${c.funcionarioId}`), {
           funcionarioId: c.funcionarioId,
           orcamentoId: ref.id,
           valor: c.valor,
@@ -14482,8 +14730,15 @@ function ModalOrcamento({
       });
       await opBatch.commit();
     }
-    setSalvando(false);
     aoFechar();
+    } catch (err) {
+      console.error(err);
+      const semRede = err && (err.code === 'unavailable' || err.code === 'deadline-exceeded') || !CONEXAO.online;
+      alert(semRede ? 'Sem conexão com o banco: o orçamento NÃO foi salvo. Verifique a internet e clique em Salvar de novo (não vai duplicar).' : `Não consegui salvar o orçamento (${err && (err.code || err.message) || 'erro'}). Tente de novo — não vai duplicar.`);
+    } finally {
+      salvandoRef.current = false;
+      setSalvando(false);
+    }
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",

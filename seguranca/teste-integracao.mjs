@@ -243,6 +243,45 @@ try {
   const tf = await fabio.page.locator('.av-modulo').innerText().catch(() => '');
   passo('avaliação: funcionário vê a própria avaliação aprovada e a meta, sem os registros', /trimestre de/.test(tf) && /Conferir as peças/.test(tf) && !/Organizou a bancada/.test(tf), tf.slice(0, 300));
   passo('avaliação: funcionário sem erro de permissão', fabio.erros.length === 0, fabio.erros.join(' | '));
+  // 8) Tempo real entre dois usuários (Orçamentos): o que um faz aparece para o outro sem recarregar
+  etapa = 'tempo real';
+  const A = w.page, B = fabio.page;
+  const ate = async (fn, ms = 15000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (await fn()) return true; } catch (e) {} await esperar(300); } return false; };
+  await A.locator('.sidebar-item', { hasText: 'Orçamento' }).first().click();
+  await B.locator('.sidebar-item', { hasText: 'Orçamento' }).first().click();
+  await esperar(2000);
+  w.erros.length = 0; fabio.erros.length = 0;
+  const idRT = await A.evaluate(async () => { const ref = db.collection('orcamentos').doc(); await ref.set({ numero: 7001, clienteId: 'C1', status: 'Pendente orçamento', total: 800, arquivado: false, ordemKanban: 1, criadoEm: firebase.firestore.FieldValue.serverTimestamp(), historico: [], itens: [{ descricao: 'Placa tempo real', qtd: 1, valorUnit: 800, tipo: 'consertada' }] }); return ref.id; });
+  const cartaoB = B.locator(`[data-orc-id="${idRT}"]`);
+  passo('tempo real: A cria orçamento, B vê sem recarregar', await ate(async () => await cartaoB.count() === 1));
+  await A.locator(`[data-orc-id="${idRT}"] select`).selectOption('Aprovado/Aguardando pedido');
+  passo('tempo real: A move o cartão, B vê na nova coluna', await ate(async () => await cartaoB.locator('select').inputValue() === 'Aprovado/Aguardando pedido'));
+  await A.evaluate(id => db.collection('orcamentos').doc(id).update({ numeroPedidoCompras: '4455' }), idRT);
+  passo('tempo real: A altera o pedido de compra, B vê no cartão', await ate(async () => /Pedido: 4455/.test(await cartaoB.innerText())));
+  await A.locator(`[data-orc-id="${idRT}"] .indicador-liberado`).click();
+  passo('tempo real: A marca "liberado para faturar", B vê o destaque', await ate(async () => /cartao-liberado/.test(await cartaoB.getAttribute('class') || '')));
+  await A.locator(`[data-orc-id="${idRT}"] select`).selectOption('Concluído');
+  passo('tempo real: A conclui, B vê em Concluído', await ate(async () => await cartaoB.locator('select').inputValue() === 'Concluído'));
+  // queda de conexão de B e volta
+  await fabio.ctx.setOffline(true);
+  passo('sem internet: B vê o aviso "Sem conexão"', await ate(async () => await B.locator('.indicador-conexao').getAttribute('data-conexao') === 'offline', 5000));
+  await A.evaluate(id => db.collection('orcamentos').doc(id).update({ numeroPedidoCompras: '9999' }), idRT);
+  await esperar(1500);
+  await fabio.ctx.setOffline(false);
+  passo('internet volta: B recebe o que mudou enquanto estava sem conexão', await ate(async () => /Pedido: 9999/.test(await cartaoB.innerText()), 30000), await cartaoB.innerText().catch(() => ''));
+  passo('internet volta: indicador de B volta a "Sincronizado"', await ate(async () => await B.locator('.indicador-conexao').getAttribute('data-conexao') === 'ok', 20000));
+  // dois usuários editando o mesmo orçamento: ninguém perde o que fez
+  etapa = 'concorrência';
+  await cartaoB.getByText('📅', { exact: false }).click(); await B.waitForSelector('form.modal');
+  await A.evaluate(id => db.collection('orcamentos').doc(id).update({ observacao: 'Observação de A' }), idRT);
+  await esperar(2500);
+  const campoPedidoB = B.locator('form.modal input[placeholder*="edido" i]').first();
+  if (await campoPedidoB.count()) await campoPedidoB.fill('PED-B'); else await B.locator('form.modal label', { hasText: /pedido/i }).locator('xpath=following::input[1]').fill('PED-B');
+  await B.locator('form.modal button.btn:not(.secundario)').last().click(); await esperar(3000);
+  const rt = await ler('orcamentos/' + idRT);
+  passo('concorrência: B salva o pedido sem apagar a observação que A gravou', rt.numeroPedidoCompras === 'PED-B' && rt.observacao === 'Observação de A' && rt.status === 'Concluído', JSON.stringify({ p: rt.numeroPedidoCompras, o: rt.observacao, s: rt.status }));
+  passo('nenhum orçamento duplicado', (await listar('orcamentos')).filter(o => o.numero === 7001).length === 1);
+  passo('tempo real sem erros de permissão', w.erros.length === 0 && fabio.erros.length === 0, [...w.erros, ...fabio.erros].join(' | '));
   // 7) Estranho: nada sem login
   const r = await fetch(`${FS}/clientes/C1`);
   passo('sem login, o banco não entrega dados (acesso direto à API)', r.status === 403 || r.status === 401, r.status);
