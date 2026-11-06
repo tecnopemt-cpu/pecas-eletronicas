@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { spawnSync, spawn } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
@@ -282,7 +282,7 @@ try {
   passo('concorrência: B salva o pedido sem apagar a observação que A gravou', rt.numeroPedidoCompras === 'PED-B' && rt.observacao === 'Observação de A' && rt.status === 'Concluído', JSON.stringify({ p: rt.numeroPedidoCompras, o: rt.observacao, s: rt.status }));
   passo('nenhum orçamento duplicado', (await listar('orcamentos')).filter(o => o.numero === 7001).length === 1);
   passo('tempo real sem erros de permissão', w.erros.length === 0 && fabio.erros.length === 0, [...w.erros, ...fabio.erros].join(' | '));
-  // 9) Desenvolvimento profissional: curso com certificado, resumo com IA pela rotina (IA simulada), funcionário vê o seu
+  // 9) Desenvolvimento profissional: curso com certificado, resumo montado pelo sistema, funcionário vê o seu
   etapa = 'formação';
   w.erros.length = 0; fabio.erros.length = 0;
   await w.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await esperar(1200);
@@ -301,22 +301,13 @@ try {
   const cursosI = await listar('cursosProfissionais');
   const certI = await listar('certificadosPartes');
   passo('formação: gestão cadastra curso com certificado (regras aceitam curso + certificado em partes)', cursosI.length === 1 && cursosI[0].funcionarioId === 'FUN' && cursosI[0].certificado && certI.length === cursosI[0].certificado.partes && certI.length >= 2, JSON.stringify(cursosI.map(c => c.nome)) + ' ' + certI.length + ' ' + w.erros.join('|'));
-  await w.page.locator('.fp-btn-ia').click(); await esperar(1500);
-  passo('formação: gestão pede o resumo com IA', (await ler('resumosProfissionais/FUN'))?.pedido?.status === 'pedido');
-  // IA simulada (a rotina de verdade chama o GitHub Models com o token automático da rotina)
-  let pedidoIA = null;
-  const iaFake = http.createServer((req, res) => { let b = ''; req.on('data', c => b += c); req.on('end', () => { pedidoIA = JSON.parse(b); res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ model: 'modelo-teste', choices: [{ message: { role: 'assistant', tool_calls: [{ type: 'function', function: { name: 'registrar_resumo', arguments: JSON.stringify({ formacao: 'Curso técnico.', cursos: '• Eletrônica de Potência — Senai, 60 h', conhecimentos: 'Conversores', aplicacao: 'Possível contribuição no conserto de inversores.', desenvolvimento: 'Buscou capacitação técnica.', sintese: 'Resumo de integração' }) } }] } }] })); }); }).listen(5052);
-  const rotina = await new Promise(ok => { const p = spawn('node', [path.join(RAIZ, 'backup/resumo-ia.mjs')], { env: { ...process.env, FIRESTORE_BASE: 'http://127.0.0.1:8080/v1', AUTH_BASE: AUTH, FIREBASE_PROJECT_ID: PROJ, FIREBASE_API_KEY: 'fake', FIREBASE_EMAIL: bEmail, FIREBASE_SENHA: bSenha, GITHUB_TOKEN: 'token-teste', MODELOS_BASE: 'http://127.0.0.1:5052' } }); let out = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => out += d); p.on('close', code => ok({ code, out })); });
-  iaFake.close();
+  await w.page.locator('.fp-btn-ia').click(); await esperar(2000);
   const resI = await ler('resumosProfissionais/FUN');
-  passo('formação: rotina (conta do backup) gera o resumo com as regras valendo', rotina.code === 0 && resI?.pedido?.status === 'pronto' && resI?.atual?.secoes?.sintese === 'Resumo de integração', rotina.out.slice(-300) + ' ' + JSON.stringify(resI?.pedido));
-  passo('formação: a IA recebeu só os dados digitados (sem o arquivo e sem o sobrenome)', !!pedidoIA && /Eletrônica de Potência/.test(JSON.stringify(pedidoIA)) && !/PDF-1\.4|yyyy|Teste/.test(JSON.stringify(pedidoIA.messages)));
-  passo('formação: o registro da rotina não mostra nomes nem textos', !/Fábio|Eletrônica|Resumo de integração/.test(rotina.out), rotina.out.slice(-200));
-  await esperar(1500);
-  passo('formação: resumo aparece na tela da gestão sozinho', /Resumo de integração/.test(await w.page.locator('.fp-resumo').innerText()));
+  passo('formação: gestão gera o resumo profissional (montado pelo sistema) com as regras valendo', !!resI?.atual?.secoes?.sintese && /Eletrônica de Potência/.test(resI.atual.secoes.cursos) && resI.atual.cursosConsiderados.length === 1, JSON.stringify(resI).slice(0, 300) + ' ' + w.erros.join('|'));
+  passo('formação: resumo aparece na tela da gestão', /Eletrônica de Potência/.test(await w.page.locator('.fp-resumo').innerText()));
   await fabio.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await esperar(2500);
   const tfF = await fabio.page.locator('.fp-minhas').innerText().catch(() => '');
-  passo('formação: funcionário vê o próprio curso e o resumo', /Eletrônica de Potência/.test(tfF) && /Resumo de integração/.test(tfF), tfF.slice(0, 200));
+  passo('formação: funcionário vê o próprio curso e o resumo', /Eletrônica de Potência/.test(tfF) && /Síntese profissional/.test(tfF), tfF.slice(0, 200));
   await fabio.page.locator('.fp-minhas .fp-item button', { hasText: 'Ver / baixar' }).click();
   await fabio.page.waitForSelector('.fp-visor-pdf, .fp-visor .av-erro', { timeout: 15000 }).catch(() => {});
   passo('formação: funcionário abre o próprio certificado', await fabio.page.locator('.fp-visor-pdf').count() === 1);

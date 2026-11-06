@@ -317,22 +317,17 @@ service cloud.firestore {
         && request.resource.data.dados is string && request.resource.data.dados.size() <= 900000;
       allow update, delete: if false;
     }
-    // resumo profissional (id = funcionário): a gestão pede e confirma; a rotina do GitHub (conta do
-    // backup) só preenche o resultado. Um resumo confirmado nunca é trocado sem confirmação, e as versões
-    // anteriores ficam guardadas.
+    // resumo profissional (id = funcionário): montado pelo sistema e gravado pela gestão. As versões
+    // anteriores nunca são apagadas.
     match /resumosProfissionais/{fidAlvo} {
       allow write: if restauracao();
       allow read: if podeVer(fidAlvo);
       allow create: if gestorDe(fidAlvo) && request.resource.data.funcionarioId == fidAlvo
         && request.resource.data.get('versoes', []).size() == 0;
-      allow update: if (gestorDe(fidAlvo)
-          && !mudou().hasAny(['funcionarioId'])
-          && request.resource.data.get('versoes', []).hasAll(resource.data.get('versoes', []))
-          && request.resource.data.get('versoes', []).size() <= resource.data.get('versoes', []).size() + 1)
-        || (backup()
-          && mudou().hasOnly(['pedido', 'pendente', 'atual'])
-          && (!('atual' in mudou()) || !('atual' in resource.data))
-          && request.resource.data.pedido.status in ['processando', 'pronto', 'erro']);
+      allow update: if gestorDe(fidAlvo)
+        && !mudou().hasAny(['funcionarioId'])
+        && request.resource.data.get('versoes', []).hasAll(resource.data.get('versoes', []))
+        && request.resource.data.get('versoes', []).size() <= resource.data.get('versoes', []).size() + 1;
       allow delete: if false;
     }
 
