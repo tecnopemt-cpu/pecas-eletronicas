@@ -305,13 +305,16 @@ try {
   const cursosI = await listar('cursosProfissionais');
   const certI = await listar('certificadosPartes');
   passo('formação: gestão cadastra curso com certificado (regras aceitam curso + certificado em partes)', cursosI.length === 1 && cursosI[0].funcionarioId === 'FUN' && cursosI[0].certificado && certI.length === cursosI[0].certificado.partes && certI.length >= 2, JSON.stringify(cursosI.map(c => c.nome)) + ' ' + certI.length + ' ' + w.erros.join('|'));
-  await w.page.locator('.fp-btn-ia').click(); await esperar(2000);
-  const resI = await ler('resumosProfissionais/FUN');
-  passo('formação: gestão gera o resumo profissional (montado pelo sistema) com as regras valendo', !!resI?.atual?.secoes?.sintese && /Eletrônica de Potência/.test(resI.atual.secoes.cursos) && resI.atual.cursosConsiderados.length === 1, JSON.stringify(resI).slice(0, 300) + ' ' + w.erros.join('|'));
-  passo('formação: resumo aparece na tela da gestão', /Eletrônica de Potência/.test(await w.page.locator('.fp-resumo').innerText()));
+  // relatório geral: só leituras, com as regras valendo (gestão lê registros, avaliações, metas e cursos do colaborador)
+  await w.page.locator('.fp-resumo button', { hasText: 'Gerar relatório geral' }).click();
+  await w.page.waitForSelector('.rg-corpo, .rg-modal .av-erro', { timeout: 20000 }).catch(() => {});
+  const rgT = await w.page.locator('.rg-modal').innerText().catch(() => '');
+  passo('relatório geral: monta com as regras valendo (registro, avaliação aprovada, meta e curso do Fábio)', /Organizou a bancada e as peças/.test(rgT) && /Aprovada/.test(rgT) && /Conferir as peças antes de separar/.test(rgT) && /Eletrônica de Potência/.test(rgT) && /Certificado anexado: potencia\.pdf/.test(rgT), rgT.slice(0, 300));
+  passo('relatório geral: não grava nada', !(await ler('resumosProfissionais/FUN')));
+  await w.page.locator('.rg-modal button', { hasText: 'Fechar' }).first().click();
   await fabio.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await esperar(2500);
   const tfF = await fabio.page.locator('.fp-minhas').innerText().catch(() => '');
-  passo('formação: funcionário vê o próprio curso e o resumo', /Eletrônica de Potência/.test(tfF) && /Síntese profissional/.test(tfF), tfF.slice(0, 200));
+  passo('formação: funcionário vê o próprio curso', /Eletrônica de Potência/.test(tfF), tfF.slice(0, 200));
   await fabio.page.locator('.fp-minhas .fp-item button', { hasText: 'Ver / baixar' }).click();
   await fabio.page.waitForSelector('.fp-visor-pdf, .fp-visor .av-erro', { timeout: 15000 }).catch(() => {});
   passo('formação: funcionário abre o próprio certificado', await fabio.page.locator('.fp-visor-pdf').count() === 1);

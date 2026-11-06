@@ -396,6 +396,43 @@
     .av-evolucao-barra{grid-column:1 / -1;order:3;}
   }
 
+  /* ---- Relatório geral do colaborador ---- */
+  .rg-modal{max-width:920px;width:100%;display:flex;flex-direction:column;gap:12px;}
+  .rg-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .rg-filtros{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .rg-filtros select{width:auto;min-width:200px;}
+  .rg-datas{display:flex;gap:10px;flex-wrap:wrap;}
+  .rg-datas label{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;}
+  .rg-datas input{width:auto;}
+  .rg-periodo{font-size:13.5px;padding:8px 12px;border-radius:8px;background:#EEF3F9;color:#1F3B5C;}
+  .rg-acoes{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .rg-corpo{display:flex;flex-direction:column;gap:6px;}
+  .rg-secao{border-top:1px solid var(--borda);padding-top:12px;margin-top:4px;}
+  .rg-secao h4{margin:0 0 8px;font-size:15px;color:var(--texto);}
+  .rg-secao h5{margin:8px 0 4px;font-size:13.5px;}
+  .rg-ident{display:grid;grid-template-columns:200px 1fr;gap:4px 12px;margin:0;font-size:13.5px;}
+  .rg-ident dt{color:var(--texto-fraco);}
+  .rg-ident dd{margin:0;font-weight:600;}
+  .rg-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .rg-lista li{padding:9px 11px;border:1px solid var(--borda);border-radius:8px;background:var(--card);font-size:13.5px;}
+  .rg-data{font-weight:700;color:var(--laranja-escuro);}
+  .rg-texto{margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere;}
+  .rg-meta{margin-top:3px;font-size:12px;color:var(--texto-fraco);}
+  .rg-status{font-weight:600;}
+  .rg-cert{margin-top:4px;font-size:12px;color:#6B6B6B;}
+  .rg-cert.ok{color:#1F7A3D;font-weight:600;}
+  .rg-vazio{font-size:13px;font-style:italic;color:var(--texto-fraco);}
+  .rg-total{font-size:13px;margin:4px 0 8px;}
+  .rg-chamada{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-radius:12px;border:1px solid #E9D9CC;background:#FFFBF7;margin-bottom:16px;}
+  .rg-chamada div{display:flex;flex-direction:column;gap:3px;flex:1;min-width:220px;}
+  .rg-chamada span{font-size:12.5px;color:var(--texto-fraco);}
+  @media (max-width:640px){
+    .rg-ident{grid-template-columns:1fr;gap:0 0;}
+    .rg-ident dd{margin-bottom:6px;}
+    .rg-filtros select{min-width:0;width:100%;}
+    .rg-chamada .btn{width:100%;}
+  }
+
   /* ---- Desenvolvimento profissional (cursos, certificados, resumo com IA) ---- */
   .fp-secao{display:flex;flex-direction:column;gap:10px;}
   .fp-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
@@ -8456,105 +8493,7 @@ function FpVerCertificado({
   })));
 }
 
-// ---- resumo profissional: montado pelo próprio sistema, no aparelho, só com o que foi cadastrado
-// (nada sai do sistema, nada é inventado, sem custo). Áreas da empresa reconhecidas por palavras do curso.
-const FP_AREAS = [{
-  area: 'diagnóstico e conserto de placas e componentes eletrônicos',
-  palavras: ['eletronic', 'placa', 'solda', 'componente', 'smd', 'circuito', 'multimetro', 'osciloscop', 'esquema eletric', 'reparo de placa']
-}, {
-  area: 'segurança em instalações e serviços com eletricidade',
-  palavras: ['nr 10', 'nr10', 'eletricidade', 'eletrica', 'eletricista', 'instalacoes eletricas']
-}, {
-  area: 'operação e manutenção de plataformas elevatórias e trabalho em altura',
-  palavras: ['nr 35', 'nr35', 'altura', 'plataforma', 'pemt', 'elevatori', 'nr 18', 'nr18', 'tesoura', 'lanca']
-}, {
-  area: 'automação, inversores e acionamentos',
-  palavras: ['inversor', 'automacao', 'clp', 'plc', 'acionamento', 'motor eletrico', 'servo', 'controlador']
-}, {
-  area: 'diagnóstico de circuitos microcontrolados e programação de equipamentos',
-  palavras: ['microcontrolador', 'arduino', 'firmware', 'programacao', 'embarcad', 'eletronica digital']
-}, {
-  area: 'manutenção de sistemas hidráulicos e mecânicos',
-  palavras: ['hidraulic', 'mecanic', 'pneumatic', 'manutencao industrial']
-}, {
-  area: 'atendimento ao cliente e relacionamento comercial',
-  palavras: ['atendimento', 'cliente', 'venda', 'comercial', 'negociacao']
-}, {
-  area: 'rotinas administrativas, controles e uso de sistemas',
-  palavras: ['informatica', 'excel', 'office', 'administra', 'financeir', 'computador', 'planilha']
-}, {
-  area: 'controle de estoque, compras e logística de peças',
-  palavras: ['estoque', 'logistica', 'almoxarifado', 'compras', 'suprimento']
-}, {
-  area: 'organização da equipe, liderança e gestão',
-  palavras: ['lideranca', 'gestao', 'gerencia', 'supervisao', 'qualidade', '5s']
-}, {
-  area: 'segurança do trabalho e prevenção de acidentes',
-  palavras: ['seguranca do trabalho', 'cipa', 'primeiros socorros', 'epi', 'nr 06', 'nr 12', 'nr12', 'brigada']
-}];
-// temas ligados ao dia a dia da Tecnopemt, sugeridos quando ainda não há curso cadastrado sobre eles
-const FP_TEMAS_EMPRESA = [['diagnóstico e conserto de placas e componentes eletrônicos', 'eletrônica e conserto de placas'], ['segurança em instalações e serviços com eletricidade', 'segurança em eletricidade (NR-10)'], ['operação e manutenção de plataformas elevatórias e trabalho em altura', 'trabalho em altura e plataformas elevatórias (NR-35)'], ['automação, inversores e acionamentos', 'inversores, automação e acionamentos']];
-const FP_CAT_FORMACAO = ['Formação acadêmica', 'Curso técnico', 'Especialização', 'Certificação profissional'];
-function fpMesAno(d) {
-  return d ? `${d.slice(5, 7)}/${d.slice(0, 4)}` : 'sem data';
-}
-function fpListaNomes(l) {
-  return l.length <= 1 ? l[0] || '' : `${l.slice(0, -1).join(', ')} e ${l[l.length - 1]}`;
-}
-function fpAreasDoCurso(c) {
-  const t = ` ${fpNorm(`${c.nome} ${c.descricao || ''} ${c.categoria || ''}`)} `;
-  return FP_AREAS.filter(a => a.palavras.some(p => t.includes(` ${fpNorm(p)}`))).map(a => a.area);
-}
-function fpGerarResumo(funcionario, cursosEntrada) {
-  const cursos = fpOrdenar(cursosEntrada);
-  const nome = avPrimeiroNome(funcionario) || 'O colaborador';
-  const horas = cursos.reduce((s, c) => s + (Number(c.cargaHoraria) || 0), 0);
-  const comCert = cursos.filter(c => c.certificado),
-    semCert = cursos.filter(c => !c.certificado);
-  const linha = c => `• ${c.nome}${c.instituicao ? ` — ${c.instituicao}` : ''} (${[c.categoria, c.cargaHoraria ? fpHoras(c.cargaHoraria) : 'carga horária não informada', c.dataConclusao ? `concluído em ${fpMesAno(c.dataConclusao)}` : 'data não informada', c.certificado ? 'com certificado' : 'sem certificado'].filter(Boolean).join(', ')})`;
-  // 1. formação
-  const form = cursos.filter(c => FP_CAT_FORMACAO.includes(c.categoria));
-  const formacao = form.length ? `${avPlural(form.length, 'formação registrada', 'formações registradas')} (acadêmica, técnica, especialização ou certificação):\n${form.map(linha).join('\n')}` : 'Nenhuma formação acadêmica, curso técnico, especialização ou certificação profissional cadastrada.';
-  // 2. cursos e capacitações
-  const outros = cursos.filter(c => !FP_CAT_FORMACAO.includes(c.categoria));
-  const principais = cursos.slice().sort((a, b) => (Number(b.cargaHoraria) || 0) - (Number(a.cargaHoraria) || 0)).slice(0, 8);
-  const semHoras = cursos.filter(c => !c.cargaHoraria).length;
-  const cursosTxt = [`${avPlural(cursos.length, 'qualificação cadastrada', 'qualificações cadastradas')}${horas ? `, somando ${fpHoras(horas)} de carga horária informada` : ''}${semHoras ? ` (${semHoras} sem carga horária informada)` : ''}.`, `${avPlural(comCert.length, 'comprovada', 'comprovadas')} por certificado anexado; ${avPlural(semCert.length, 'declarada', 'declaradas')} sem certificado.`, outros.length ? `Treinamentos, capacitações e cursos livres: ${avPlural(outros.length, 'registro', 'registros')}.` : '', `Principais, por carga horária:\n${principais.map(linha).join('\n')}`].filter(Boolean).join('\n');
-  // 3. conhecimentos (só do que foi escrito no cadastro)
-  const conhecimentos = `Conforme o conteúdo informado no cadastro de cada curso:\n${cursos.map(c => `• ${c.nome}: ${c.descricao ? c.descricao.replace(/\s+/g, ' ').trim().slice(0, 220) + (c.descricao.length > 220 ? '…' : '') : 'conteúdo não descrito no cadastro (conhecimento indicado apenas pelo nome do curso)'}`).join('\n')}`;
-  // 4. aplicação (possibilidades)
-  const porArea = new Map();
-  cursos.forEach(c => fpAreasDoCurso(c).forEach(a => {
-    if (!porArea.has(a)) porArea.set(a, []);
-    porArea.get(a).push(c.nome);
-  }));
-  const aplicacao = porArea.size ? `Possíveis contribuições para as atividades da empresa${funcionario && funcionario.cargo ? ` (função atual: ${funcionario.cargo})` : ''} — são possibilidades indicadas pelos cursos, a confirmar na prática, e não competências comprovadas:\n${[...porArea].map(([a, ns]) => `• ${a.charAt(0).toUpperCase() + a.slice(1)} (relacionado a: ${fpListaNomes(ns)})`).join('\n')}` : 'Os cursos cadastrados não puderam ser relacionados automaticamente às atividades da empresa. A gestão pode avaliar a aplicação caso a caso.';
-  // 5. desenvolvimento
-  const cats = {};
-  cursos.forEach(c => {
-    cats[c.categoria || 'Sem categoria'] = (cats[c.categoria || 'Sem categoria'] || 0) + 1;
-  });
-  const datas = cursos.map(c => c.dataConclusao).filter(Boolean).sort();
-  const ultima = datas[datas.length - 1];
-  const hoje = avHoje(),
-    umAno = `${Number(hoje.slice(0, 4)) - 1}${hoje.slice(4)}`,
-    doisAnos = `${Number(hoje.slice(0, 4)) - 2}${hoje.slice(4)}`;
-  const recentes = datas.filter(d => d >= umAno).length;
-  const faltaTema = FP_TEMAS_EMPRESA.filter(([a]) => !porArea.has(a)).map(([, t]) => t);
-  const semData = cursos.filter(c => !c.dataConclusao).map(c => c.nome);
-  const desenvolvimento = [`Já buscou capacitação em: ${Object.entries(cats).map(([k, n]) => `${k} (${n})`).join(', ')}.`, ultima ? `Conclusão mais recente: ${fpMesAno(ultima)}; ${avPlural(recentes, 'conclusão', 'conclusões')} nos últimos 12 meses.${ultima < doisAnos ? ' Não há conclusões cadastradas nos últimos 2 anos.' : ''}` : 'Nenhuma data de conclusão informada.', 'Oportunidades:', semCert.length ? `• Anexar o certificado de: ${fpListaNomes(semCert.map(c => c.nome))}.` : '', semData.length ? `• Informar a data de conclusão de: ${fpListaNomes(semData)}.` : '', faltaTema.length ? `• Temas ligados às atividades da empresa ainda sem curso cadastrado (sugestão, se fizer sentido para a função): ${fpListaNomes(faltaTema)}.` : '• Os principais temas técnicos da empresa já têm curso cadastrado; pode haver aprofundamento ou reciclagem.'].filter(Boolean).join('\n');
-  // 6. síntese
-  const areasTxt = [...porArea.keys()].slice(0, 3);
-  const sintese = `${nome}${funcionario && funcionario.cargo ? `, ${funcionario.cargo},` : ''} tem ${avPlural(cursos.length, 'qualificação cadastrada', 'qualificações cadastradas')}${horas ? ` (${fpHoras(horas)})` : ''}, ${comCert.length === cursos.length ? 'todas com certificado' : comCert.length ? `${comCert.length} com certificado` : 'nenhuma com certificado anexado'}.${areasTxt.length ? ` Os cursos se concentram em ${fpListaNomes(areasTxt)}.` : ''}${ultima ? ` Última conclusão em ${fpMesAno(ultima)}.` : ''} Estas informações descrevem formação e qualificação; não medem o desempenho no trabalho.`;
-  return {
-    formacao,
-    cursos: cursosTxt,
-    conhecimentos,
-    aplicacao,
-    desenvolvimento,
-    sintese
-  };
-}
+// ---- resumo profissional salvo anteriormente (só exibição; nada novo é gerado)
 function FpTextoSecoes({
   secoes
 }) {
@@ -8581,48 +8520,6 @@ function FpResumo({
   const ref = db.collection('resumosProfissionais').doc(funcionario.id);
   const atual = doc && doc.atual;
   const pendente = doc && doc.pendente;
-  const desatualizado = atual && fpResumoDesatualizado(atual, cursos);
-  async function gerar() {
-    if (!cursos.length) {
-      setErro('Cadastre ao menos um curso ou formação antes de gerar o resumo.');
-      return;
-    }
-    setOcupado(true);
-    setErro('');
-    const resumo = {
-      secoes: fpGerarResumo(funcionario, cursos),
-      geradoEm: new Date().toISOString(),
-      geradoPorNome: usuario.nome || '-',
-      origem: 'sistema',
-      cursosConsiderados: cursos.map(c => ({
-        id: c.id,
-        nome: c.nome,
-        versao: (c.historico || []).length
-      }))
-    };
-    try {
-      // o primeiro vale direto; depois, o novo fica aguardando confirmação (nunca troca sozinho)
-      if (atual) await ref.set({
-        funcionarioId: funcionario.id,
-        pendente: resumo
-      }, {
-        merge: true
-      });else await ref.set({
-        funcionarioId: funcionario.id,
-        atual: {
-          ...resumo,
-          confirmadoEm: resumo.geradoEm,
-          confirmadoPorNome: usuario.nome || '-'
-        }
-      }, {
-        merge: true
-      });
-    } catch (err) {
-      console.error(err);
-      setErro('Não consegui gravar o resumo. Verifique a conexão.');
-    }
-    setOcupado(false);
-  }
   async function decidir(usar) {
     if (!pendente) return;
     if (usar && atual && !confirm('Substituir o resumo atual por este novo? O atual fica guardado nas versões anteriores.')) return;
@@ -8670,31 +8567,32 @@ function FpResumo({
     setOcupado(false);
   }
   const versoes = doc && doc.versoes || [];
+  const podeRelatorio = gestao && !consulta && usuario.id !== funcionario.id && avPodeAvaliar(usuario, funcionario);
+  if (!podeRelatorio && !atual) return null;
+  // O resumo automático deu lugar ao "Relatório geral" (só organiza o que está cadastrado, sem IA).
+  // Resumos gravados antes continuam guardados e visíveis aqui, sem nada novo ser gerado.
   return /*#__PURE__*/React.createElement("div", {
     className: "fp-resumo"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, podeRelatorio && /*#__PURE__*/React.createElement("div", {
     className: "fp-resumo-cab"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo",
     style: {
       margin: 0
     }
-  }, "Resumo profissional"), /*#__PURE__*/React.createElement("div", {
+  }, "Relat\xF3rio geral"), /*#__PURE__*/React.createElement("div", {
     className: "av-dica"
-  }, atual ? `Gerado em ${fpQuando(atual.geradoEm)}${atual.cursosConsiderados ? ` · ${avPlural(atual.cursosConsiderados.length, 'curso considerado', 'cursos considerados')}` : ''}${atual.confirmadoPorNome ? ` · por ${atual.confirmadoPorNome}` : ''}` : 'Ainda não gerado.')), gestao && !consulta && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn fp-btn-ia",
-    onClick: gerar,
-    disabled: ocupado || !!pendente
-  }, "\uD83D\uDCDD ", atual ? 'Gerar novamente' : 'Gerar resumo profissional')), erroDoc && /*#__PURE__*/React.createElement("div", {
+  }, "Re\xFAne registros di\xE1rios, avalia\xE7\xF5es, notas, metas, cursos e certificados deste colaborador \u2014 s\xF3 o que est\xE1 cadastrado, sem IA.")), /*#__PURE__*/React.createElement(BotaoRelatorioGeral, {
+    funcionario: funcionario,
+    usuario: usuario,
+    className: "btn fp-btn-ia"
+  })), erroDoc && /*#__PURE__*/React.createElement("div", {
     className: "av-erro"
   }, erroDoc), gestao && !consulta && pendente && /*#__PURE__*/React.createElement("div", {
     className: "fp-pendente"
   }, /*#__PURE__*/React.createElement("div", {
     className: "fp-pendente-cab"
-  }, /*#__PURE__*/React.createElement("strong", null, "Novo resumo gerado em ", fpQuando(pendente.geradoEm)), /*#__PURE__*/React.createElement("span", {
-    className: "av-dica"
-  }, "Confira antes de usar. O resumo atual s\xF3 \xE9 trocado se voc\xEA confirmar.")), /*#__PURE__*/React.createElement(FpTextoSecoes, {
+  }, /*#__PURE__*/React.createElement("strong", null, "Resumo gerado em ", fpQuando(pendente.geradoEm), " aguardando decis\xE3o")), /*#__PURE__*/React.createElement(FpTextoSecoes, {
     secoes: pendente.secoes
   }), /*#__PURE__*/React.createElement("div", {
     className: "fp-acoes"
@@ -8708,17 +8606,11 @@ function FpResumo({
     className: "btn",
     onClick: () => decidir(true),
     disabled: ocupado
-  }, "Usar este resumo"))), desatualizado && gestao && !consulta && !pendente && /*#__PURE__*/React.createElement("div", {
-    className: "fp-aviso"
-  }, "H\xE1 cursos novos ou alterados depois deste resumo. Clique em \u201CGerar novamente\u201D para inclu\xED-los."), atual ? /*#__PURE__*/React.createElement(FpTextoSecoes, {
+  }, "Usar este resumo"))), atual && /*#__PURE__*/React.createElement("details", {
+    className: "fp-versoes fp-resumo-antigo"
+  }, /*#__PURE__*/React.createElement("summary", null, "Resumo profissional salvo em ", fpQuando(atual.geradoEm), versoes.length ? ` (+ ${versoes.length} versão(ões) anterior(es))` : ''), /*#__PURE__*/React.createElement(FpTextoSecoes, {
     secoes: atual.secoes
-  }) : /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio-pequeno"
-  }, gestao ? 'Cadastre os cursos e clique em “Gerar resumo profissional”.' : 'A gestão ainda não gerou o seu resumo profissional.'), atual && /*#__PURE__*/React.createElement("div", {
-    className: "av-dica fp-aviso-ia"
-  }, "Montado pelo sistema a partir dos cursos cadastrados, sem intelig\xEAncia artificial e sem enviar nada para fora. Qualifica\xE7\xE3o n\xE3o \xE9 o mesmo que desempenho observado e n\xE3o gera nota."), gestao && !consulta && versoes.length > 0 && /*#__PURE__*/React.createElement("details", {
-    className: "fp-versoes"
-  }, /*#__PURE__*/React.createElement("summary", null, "Vers\xF5es anteriores (", versoes.length, ")"), versoes.slice().reverse().map((v, i) => /*#__PURE__*/React.createElement("details", {
+  }), gestao && !consulta && versoes.slice().reverse().map((v, i) => /*#__PURE__*/React.createElement("details", {
     key: i,
     className: "fp-versao"
   }, /*#__PURE__*/React.createElement("summary", null, fpQuando(v.geradoEm), " \u2014 ", v.descartado ? `descartada por ${v.descartadoPorNome}` : `substituída em ${fpQuando(v.substituidoEm)} por ${v.substituidoPorNome || '-'}`), /*#__PURE__*/React.createElement(FpTextoSecoes, {
@@ -9626,7 +9518,7 @@ function AvMinhas({
 // EQUIPE → COLABORADOR → FUNCIONALIDADE. Só reorganiza as telas que já existiam (registros, avaliações,
 // metas, cursos, relatórios): os dados, as coleções e as regras de acesso são os mesmos.
 // Painel da equipe, relatórios gerais, configurações e "Minhas avaliações" ficam em botões discretos no topo.
-const AV_SECOES_PERFIL = [['visao', '📋', 'Visão geral', 'Situação, média e o período atual'], ['registros', '📝', 'Registros diários', 'Observações do dia a dia, por texto ou voz'], ['avaliacoes', '⭐', 'Avaliações trimestrais', 'Gerar, revisar e aprovar'], ['metas', '🎯', 'Metas e PDI', 'Objetivos, compromissos e desenvolvimento'], ['cursos', '🎓', 'Cursos e formação', 'Cursos, certificados e resumo profissional'], ['relatorios', '📄', 'Relatórios', 'PDFs das avaliações'], ['historico', '📈', 'Histórico', 'Evolução ao longo dos trimestres']];
+const AV_SECOES_PERFIL = [['visao', '📋', 'Visão geral', 'Situação, média e o período atual'], ['registros', '📝', 'Registros diários', 'Observações do dia a dia, por texto ou voz'], ['avaliacoes', '⭐', 'Avaliações trimestrais', 'Gerar, revisar e aprovar'], ['metas', '🎯', 'Metas e PDI', 'Objetivos, compromissos e desenvolvimento'], ['cursos', '🎓', 'Cursos e formação', 'Cursos, certificados e resumo profissional'], ['relatorios', '📄', 'Relatórios', 'Relatório geral e PDFs das avaliações'], ['historico', '📈', 'Histórico', 'Evolução ao longo dos trimestres']];
 function avTopo() {
   try {
     const el = document.querySelector('.av-modulo');
@@ -9954,14 +9846,21 @@ function AvPerfilColaborador({
   }), secao === 'cursos' && /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
     funcionario: f,
     usuario: usuario
-  }), secao === 'relatorios' && /*#__PURE__*/React.createElement(AvRelatorios, {
+  }), secao === 'relatorios' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "rg-chamada"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Relat\xF3rio geral do colaborador"), /*#__PURE__*/React.createElement("span", null, "Toda a trajet\xF3ria: registros, avalia\xE7\xF5es, notas, metas, cursos e certificados \u2014 todo o hist\xF3rico, um trimestre ou um intervalo de datas. Na tela e em PDF.")), /*#__PURE__*/React.createElement(BotaoRelatorioGeral, {
+    funcionario: f,
+    usuario: usuario
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "PDFs das avalia\xE7\xF5es trimestrais"), /*#__PURE__*/React.createElement(AvRelatorios, {
     usuario: usuario,
     funcionarios: funcionarios,
     avaliacoes: avaliacoes,
     config: config,
     metas: metas,
     fixoId: f.id
-  }), secao === 'historico' && /*#__PURE__*/React.createElement(AvPerfilHistorico, {
+  })), secao === 'historico' && /*#__PURE__*/React.createElement(AvPerfilHistorico, {
     f: f,
     avaliacoes: avaliacoes,
     registros: registros,
@@ -9973,6 +9872,7 @@ function AvPerfilVisao({
   f,
   s,
   tri,
+  usuario,
   avaliacoes,
   metas,
   config,
@@ -10047,7 +9947,11 @@ function AvPerfilVisao({
     type: "button",
     className: "btn secundario",
     onClick: () => aoIr('avaliacoes')
-  }, s.a ? 'Abrir avaliação' : 'Avaliações trimestrais')));
+  }, s.a ? 'Abrir avaliação' : 'Avaliações trimestrais'), /*#__PURE__*/React.createElement(BotaoRelatorioGeral, {
+    funcionario: f,
+    usuario: usuario,
+    className: "btn secundario"
+  })));
 }
 function AvPerfilAvaliacoes({
   f,
@@ -10479,6 +10383,569 @@ function AbaAvaliacoes({
     funcionarios: lista,
     registros: registros,
     aoFechar: () => setNovaMeta(null)
+  }));
+}
+// ======================= RELATÓRIO GERAL DO COLABORADOR =======================
+// Reúne o que JÁ está cadastrado sobre UM colaborador (registros diários, avaliações, notas, metas, cursos e
+// certificados) e só organiza: não usa IA nem serviço externo, não cria texto, conclusão, nota ou recomendação,
+// e não grava nada (só leituras). A mesma montagem alimenta a tela e o PDF.
+const RG_VAZIO = 'Não há registros cadastrados.';
+const RG_PERFIS = {
+  master: 'Administrador Master',
+  administrador: 'Administrador',
+  funcionario: 'Funcionário'
+};
+const RG_STATUS_METAS = {
+  concluidas: ['Concluída', 'Parcialmente concluída'],
+  pendentes: ['Não iniciada', 'Em andamento']
+};
+function rgDataIso(v) {
+  if (!v) return '';
+  if (typeof v === 'string') return v.slice(0, 10);
+  const d = v.toDate ? v.toDate() : v instanceof Date ? v : null;
+  return d && !isNaN(d) ? d.toLocaleDateString('sv-SE') : '';
+}
+function rgDentro(data, p) {
+  return !!data && (!p.de || data >= p.de) && (!p.ate || data <= p.ate);
+}
+function rgTriNoPeriodo(tri, p) {
+  const {
+    inicio,
+    fim
+  } = avLimites(tri);
+  return (!p.de || fim >= p.de) && (!p.ate || inicio <= p.ate);
+}
+function rgRotuloPeriodo(p) {
+  if (p.tipo === 'tri') return `${avRotuloTri(p.tri)} (${formatarDataBr(p.de)} a ${formatarDataBr(p.ate)})`;
+  if (p.tipo === 'datas') return `${p.de ? formatarDataBr(p.de) : 'início'} a ${p.ate ? formatarDataBr(p.ate) : 'hoje'}`;
+  return 'Todo o histórico disponível';
+}
+// lê os dados do colaborador (só dele) no banco — consultas pontuais, sem gravar nada
+async function rgCarregar(fid) {
+  const ler = async c => (await db.collection(c).where('funcionarioId', '==', fid).get()).docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  }));
+  const [registros, avaliacoes, metas, cursos] = await Promise.all(['avaliacaoRegistros', 'avaliacoesTrimestrais', 'avaliacaoMetas', 'cursosProfissionais'].map(ler));
+  return {
+    registros,
+    avaliacoes,
+    metas,
+    cursos
+  };
+}
+// organiza os dados no período escolhido (função pura: mesma entrada → mesmo relatório)
+function rgMontar(f, dados, config, periodo, emissor) {
+  const p = periodo;
+  const tudo = p.tipo === 'tudo';
+  const regs = dados.registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && (tudo || rgDentro(r.dataOcorrido, p))).sort((a, b) => (a.dataOcorrido || '').localeCompare(b.dataOcorrido || '') || (a.horaOcorrido || '').localeCompare(b.horaOcorrido || ''));
+  const sentido = r => avTipo(config, r.tipoId).sentido || r.sentido || '0';
+  const linhaReg = r => ({
+    data: r.dataOcorrido || '',
+    categoria: r.categoria || '-',
+    tipo: r.tipoNome || avTipo(config, r.tipoId).nome || '-',
+    descricao: r.descricao || '-',
+    por: r.registradoPorNome || '-',
+    sentido: sentido(r)
+  });
+  const avs = dados.avaliacoes.filter(a => a.funcionarioId === f.id && a.trimestre && (tudo || rgTriNoPeriodo(a.trimestre, p))).sort((a, b) => a.trimestre.localeCompare(b.trimestre));
+  const avaliacoes = avs.map(a => {
+    const pub = avPublicacao(a, f, config, []);
+    const final = a.status === 'aprovada' || a.status === 'feedback';
+    return {
+      trimestre: a.trimestre,
+      status: AV_STATUS[a.status] || a.status,
+      final,
+      aprovadoPor: a.aprovadoPorNome || '',
+      aprovadaEm: rgDataIso(a.aprovadaEm),
+      feedbackEm: rgDataIso(a.feedbackEm),
+      resumo: final ? pub.resumo : '',
+      pontosPositivos: final ? pub.pontosPositivos : [],
+      melhorias: final ? pub.melhorias : [],
+      comentarios: final ? pub.comentariosAvaliador : '',
+      notas: final ? pub.notas.filter(n => n.nota) : [],
+      media: avNotaDe(a, config)
+    };
+  });
+  const comMedia = avaliacoes.filter(a => a.media != null);
+  const metasF = dados.metas.filter(m => m.funcionarioId === f.id && (tudo || rgDentro(m.prazo, p) || rgDentro(rgDataIso(m.criadoEm), p) || !m.prazo && !m.criadoEm)).sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999'));
+  const linhaMeta = m => ({
+    descricao: m.descricao || '-',
+    status: m.status || '-',
+    prazo: m.prazo || '',
+    criterio: m.criterioConclusao || '',
+    origem: m.origemAvaliacaoId ? `avaliação do ${avRotuloTri(String(m.origemAvaliacaoId).split('_').pop())}` : ''
+  });
+  const cursos = fpOrdenar(dados.cursos.filter(c => c.funcionarioId === f.id && c.status !== 'excluido' && (tudo || rgDentro(c.dataConclusao, p)))).reverse();
+  // evolução: um período por trimestre em que exista algum dado
+  const triDe = d => d ? avTrimestreDe(d) : null;
+  const tris = [...new Set([...regs.map(r => triDe(r.dataOcorrido)), ...avs.map(a => a.trimestre), ...cursos.map(c => triDe(c.dataConclusao)), ...metasF.filter(m => RG_STATUS_METAS.concluidas.includes(m.status)).map(m => triDe(m.prazo))].filter(Boolean))].sort();
+  const evolucao = tris.map(t => {
+    const rs = regs.filter(r => triDe(r.dataOcorrido) === t);
+    const a = avaliacoes.find(x => x.trimestre === t);
+    return {
+      trimestre: t,
+      registros: rs.length,
+      fortes: rs.filter(r => sentido(r) === '+').length,
+      melhorias: rs.filter(r => sentido(r) === '-').length,
+      avaliacao: a ? a.status : 'Sem avaliação',
+      media: a ? a.media : null,
+      metasConcluidas: metasF.filter(m => RG_STATUS_METAS.concluidas.includes(m.status) && triDe(m.prazo) === t).length,
+      cursos: cursos.filter(c => triDe(c.dataConclusao) === t).length
+    };
+  });
+  const local = [f.cidade, f.uf].filter(Boolean).join('/');
+  return {
+    periodo: {
+      ...p,
+      rotulo: rgRotuloPeriodo(p)
+    },
+    emitidoEm: new Date().toISOString(),
+    emitidoPor: emissor || '-',
+    ident: [['Nome', f.nome || '-'], ['Cargo / função', f.cargo || 'Não informado'], ['Usuário no sistema', f.login || '-'], ['Perfil de acesso', RG_PERFIS[f.perfil] || 'Funcionário'], ['Situação', (f.status || 'ativo') === 'ativo' ? 'Ativo' : f.status], ...(local ? [['Cidade', local]] : []), ...(rgDataIso(f.criadoEm) ? [['Cadastrado no sistema em', formatarDataBr(rgDataIso(f.criadoEm))]] : [])],
+    registros: regs.map(linhaReg),
+    avaliacoes,
+    mediaGeral: comMedia.length ? comMedia.reduce((s, a) => s + a.media, 0) / comMedia.length : null,
+    qtdMedias: comMedia.length,
+    fortes: regs.filter(r => sentido(r) === '+').map(linhaReg),
+    melhorias: regs.filter(r => sentido(r) === '-').map(linhaReg),
+    metas: {
+      concluidas: metasF.filter(m => RG_STATUS_METAS.concluidas.includes(m.status)).map(linhaMeta),
+      pendentes: metasF.filter(m => RG_STATUS_METAS.pendentes.includes(m.status)).map(linhaMeta),
+      outras: metasF.filter(m => ![...RG_STATUS_METAS.concluidas, ...RG_STATUS_METAS.pendentes].includes(m.status)).map(linhaMeta)
+    },
+    cursos: cursos.map(c => ({
+      nome: c.nome,
+      instituicao: c.instituicao || '',
+      categoria: c.categoria || '',
+      carga: c.cargaHoraria || null,
+      data: c.dataConclusao || '',
+      certificado: c.certificado ? c.certificado.nome || 'anexado' : ''
+    })),
+    horasCursos: cursos.reduce((s, c) => s + (Number(c.cargaHoraria) || 0), 0),
+    evolucao
+  };
+}
+const RG_SECOES = ['Identificação do colaborador', 'Histórico de registros diários', 'Avaliações de desempenho', 'Resultados e médias por trimestre', 'Pontos fortes registrados', 'Oportunidades de melhoria registradas', 'Metas e desenvolvimento individual', 'Cursos, formações e certificados', 'Evolução ao longo dos períodos'];
+const rgData = d => d ? formatarDataBr(d) : 'sem data';
+const rgNota = n => n == null ? '—' : `${avNum1(n)}/5`;
+
+// ---- PDF (mesmo conteúdo da tela)
+async function gerarPdfRelatorioGeral(r, f) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const mx = 16,
+    larg = 210 - mx * 2,
+    limite = 280;
+  let y = 0;
+  const garantir = async h => {
+    if (y + h > limite) {
+      doc.addPage();
+      y = 20;
+    }
+  };
+  const texto = async (t, tam = 9.5, estilo = 'normal', recuo = 0, cor = [40, 34, 33]) => {
+    doc.setFont('helvetica', estilo);
+    doc.setFontSize(tam);
+    doc.setTextColor(...cor);
+    for (const l of doc.splitTextToSize(String(t ?? '-'), larg - recuo)) {
+      await garantir(4.8);
+      doc.text(l, mx + recuo, y);
+      y += 4.8;
+    }
+  };
+  const secao = async (n, titulo) => {
+    y += 4;
+    await garantir(16);
+    desenharTituloSecaoTimbrado(doc, `${n}. ${titulo}`, mx, y, larg);
+    y += 8;
+  };
+  const vazio = () => texto(RG_VAZIO, 9.5, 'italic', 0, [120, 110, 108]);
+  const sub = t => texto(t, 10, 'bold');
+  await desenharTimbradoCabecalho(doc);
+  y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text('RELATÓRIO GERAL DO COLABORADOR', mx, y);
+  y += 10;
+  desenharCampoTimbrado(doc, 'Colaborador', f.nome || '-', mx, y);
+  desenharCampoTimbrado(doc, 'Cargo / função', f.cargo || 'Não informado', mx + 110, y);
+  y += 11;
+  desenharCampoTimbrado(doc, 'Período analisado', r.periodo.rotulo, mx, y);
+  desenharCampoTimbrado(doc, 'Emitido em', `${new Date(r.emitidoEm).toLocaleString('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  })} por ${r.emitidoPor}`, mx + 110, y);
+  y += 9;
+  await texto('Relatório montado automaticamente com os dados cadastrados no sistema, sem interpretação: os textos são os originais de cada registro.', 8.5, 'italic', 0, [120, 110, 108]);
+  // 1
+  await secao(1, RG_SECOES[0]);
+  for (const [k, v] of r.ident) await texto(`${k}: ${v}`);
+  // 2
+  await secao(2, RG_SECOES[1]);
+  if (!r.registros.length) await vazio();else {
+    await texto(`${avPlural(r.registros.length, 'registro', 'registros')} no período.`, 9, 'italic');
+    for (const x of r.registros) {
+      await texto(`${rgData(x.data)} · ${x.tipo} · ${x.categoria} · registrado por ${x.por}`, 9, 'bold');
+      await texto(x.descricao, 9.5, 'normal', 3);
+      y += 1;
+    }
+  }
+  // 3
+  await secao(3, RG_SECOES[2]);
+  if (!r.avaliacoes.length) await vazio();else for (const a of r.avaliacoes) {
+    await sub(`${avRotuloTri(a.trimestre)} — ${a.status}`);
+    if (a.final) {
+      await texto(`Aprovada${a.aprovadaEm ? ` em ${rgData(a.aprovadaEm)}` : ''}${a.aprovadoPor ? ` por ${a.aprovadoPor}` : ''}${a.feedbackEm ? ` · feedback em ${rgData(a.feedbackEm)}` : ''}`, 9);
+      if (a.resumo) await texto(`Resumo: ${a.resumo}`, 9.5, 'normal', 3);
+      if (a.pontosPositivos.length) {
+        await texto('Pontos positivos da avaliação:', 9, 'bold', 3);
+        for (const t of a.pontosPositivos) await texto(`• ${t}`, 9.5, 'normal', 5);
+      }
+      if (a.melhorias.length) {
+        await texto('Oportunidades de melhoria da avaliação:', 9, 'bold', 3);
+        for (const t of a.melhorias) await texto(`• ${t}`, 9.5, 'normal', 5);
+      }
+      if (a.comentarios) await texto(`Comentários do avaliador: ${a.comentarios}`, 9.5, 'normal', 3);
+    } else await texto('Avaliação ainda não aprovada: o conteúdo e as notas não são apresentados.', 9, 'italic', 3);
+    y += 1.5;
+  }
+  // 4
+  await secao(4, RG_SECOES[3]);
+  const comNotas = r.avaliacoes.filter(a => a.final);
+  if (!comNotas.length) await vazio();else {
+    for (const a of comNotas) {
+      await sub(`${avRotuloTri(a.trimestre)}: média ${rgNota(a.media)}`);
+      for (const n of a.notas) await texto(`${n.criterio} (peso ${n.peso}): ${n.nota} — ${AV_ESCALA[n.nota] || ''}`, 9, 'normal', 3);
+    }
+    y += 1;
+    await texto(r.mediaGeral != null ? `Média das avaliações aprovadas no período (${r.qtdMedias}): ${rgNota(r.mediaGeral)}` : 'Sem médias registradas no período.', 10, 'bold');
+  }
+  // 5 e 6
+  for (const [n, lista] of [[5, r.fortes], [6, r.melhorias]]) {
+    await secao(n, RG_SECOES[n - 1]);
+    if (!lista.length) await vazio();else for (const x of lista) await texto(`• ${rgData(x.data)} — ${x.descricao} (${x.categoria}; ${x.por})`, 9.5);
+  }
+  // 7
+  await secao(7, RG_SECOES[6]);
+  const todas = [...r.metas.concluidas, ...r.metas.pendentes, ...r.metas.outras];
+  if (!todas.length) await vazio();else for (const [t, l] of [['Metas concluídas', r.metas.concluidas], ['Metas pendentes', r.metas.pendentes], ['Outras situações', r.metas.outras]]) {
+    if (!l.length && t === 'Outras situações') continue;
+    await sub(`${t} (${l.length})`);
+    if (!l.length) await vazio();
+    for (const m of l) await texto(`• ${m.descricao} — ${m.status}${m.prazo ? ` · prazo ${rgData(m.prazo)}` : ''}${m.criterio ? ` · concluída quando: ${m.criterio}` : ''}${m.origem ? ` · ${m.origem}` : ''}`, 9.5, 'normal', 2);
+  }
+  // 8
+  await secao(8, RG_SECOES[7]);
+  if (!r.cursos.length) await vazio();else {
+    await texto(`${avPlural(r.cursos.length, 'curso ou formação', 'cursos e formações')}${r.horasCursos ? ` · ${fpHoras(r.horasCursos)} de carga horária informada` : ''} · ${r.cursos.filter(c => c.certificado).length} com certificado anexado`, 9, 'italic');
+    for (const c of r.cursos) {
+      await texto(`• ${c.nome}`, 9.5, 'bold');
+      await texto([c.instituicao, c.categoria, c.carga ? fpHoras(c.carga) : 'carga horária não informada', c.data ? `concluído em ${rgData(c.data)}` : 'data não informada', c.certificado ? `certificado anexado (${c.certificado})` : 'sem certificado anexado'].filter(Boolean).join(' · '), 9, 'normal', 3);
+    }
+  }
+  // 9
+  await secao(9, RG_SECOES[8]);
+  if (!r.evolucao.length) await vazio();else for (const e of r.evolucao) await texto(`${avRotuloTri(e.trimestre)}: ${avPlural(e.registros, 'registro', 'registros')} (${e.fortes} fortes, ${e.melhorias} de melhoria) · avaliação: ${e.avaliacao}${e.media != null ? ` (${rgNota(e.media)})` : ''} · metas concluídas: ${e.metasConcluidas} · cursos concluídos: ${e.cursos}`, 9.5);
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(140, 130, 128);
+    doc.text(`Relatório geral — ${f.nome || ''} — ${r.periodo.rotulo}`, mx, 290);
+    doc.text(`Página ${i} de ${total}`, 210 - mx, 290, {
+      align: 'right'
+    });
+  }
+  doc.save(`Relatório geral - ${(f.nome || '').slice(0, 40)} - ${r.periodo.tipo === 'tudo' ? 'todo o histórico' : r.periodo.rotulo.replace(/\//g, '-')}.pdf`);
+}
+
+// ---- tela
+function RgLista({
+  itens,
+  render
+}) {
+  return itens.length ? /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, itens.map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, render(x)))) : /*#__PURE__*/React.createElement("div", {
+    className: "rg-vazio"
+  }, RG_VAZIO);
+}
+function RelatorioGeralColaborador({
+  funcionario: f,
+  usuario,
+  config,
+  aoFechar
+}) {
+  const tris = avTrimestresRecentes(8);
+  const [tipo, setTipo] = useState('tudo');
+  const [tri, setTri] = useState(tris[1]);
+  const [de, setDe] = useState('');
+  const [ate, setAte] = useState('');
+  const [dados, setDados] = useState(null);
+  const [erro, setErro] = useState('');
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+  useEffect(() => {
+    let vivo = true;
+    rgCarregar(f.id).then(d => vivo && setDados(d)).catch(err => {
+      console.error(err);
+      if (vivo) setErro(err && err.code === 'permission-denied' ? 'Você não tem permissão para ver todos os dados deste colaborador.' : 'Não consegui carregar os dados. Verifique a conexão.');
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [f.id]);
+  const periodo = tipo === 'tri' ? {
+    tipo,
+    tri,
+    ...(() => {
+      const l = avLimites(tri);
+      return {
+        de: l.inicio,
+        ate: l.fim
+      };
+    })()
+  } : tipo === 'datas' ? {
+    tipo,
+    de,
+    ate
+  } : {
+    tipo: 'tudo',
+    de: '',
+    ate: ''
+  };
+  const datasInvalidas = tipo === 'datas' && de && ate && de > ate;
+  const r = dados && !datasInvalidas ? rgMontar(f, dados, config, periodo, usuario.nome) : null;
+  async function pdf() {
+    setGerandoPdf(true);
+    try {
+      await gerarPdfRelatorioGeral(r, f);
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui gerar o PDF.');
+    }
+    setGerandoPdf(false);
+  }
+  const Sec = ({
+    n,
+    children
+  }) => /*#__PURE__*/React.createElement("section", {
+    className: "rg-secao"
+  }, /*#__PURE__*/React.createElement("h4", null, n, ". ", RG_SECOES[n - 1]), children);
+  const Reg = x => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    className: "rg-data"
+  }, rgData(x.data)), " ", /*#__PURE__*/React.createElement("strong", null, x.tipo), " \xB7 ", x.categoria, /*#__PURE__*/React.createElement("div", {
+    className: "rg-texto"
+  }, x.descricao), /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "registrado por ", x.por));
+  // portal no <body>: o relatório é longo e precisa rolar inteiro, fora de qualquer contêiner da tela
+  return ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal rg-modal",
+    role: "dialog",
+    "aria-label": `Relatório geral de ${f.nome}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rg-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0
+    }
+  }, "Relat\xF3rio geral do colaborador"), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, f.nome, " \xB7 ", f.cargo || 'Cargo não informado')), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: aoFechar
+  }, "Fechar")), /*#__PURE__*/React.createElement("div", {
+    className: "rg-filtros"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro",
+    role: "group",
+    "aria-label": "Per\xEDodo"
+  }, [['tudo', 'Todo o histórico'], ['tri', 'Um trimestre'], ['datas', 'Intervalo de datas']].map(([k, t]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `av-chip ${tipo === k ? 'ativo' : ''}`,
+    onClick: () => setTipo(k)
+  }, t))), tipo === 'tri' && /*#__PURE__*/React.createElement("select", {
+    value: tri,
+    onChange: e => setTri(e.target.value),
+    "aria-label": "Trimestre do relat\xF3rio"
+  }, tris.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t,
+    value: t
+  }, avRotuloTri(t)))), tipo === 'datas' && /*#__PURE__*/React.createElement("div", {
+    className: "rg-datas"
+  }, /*#__PURE__*/React.createElement("label", null, "De ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: de,
+    onChange: e => setDe(e.target.value),
+    "aria-label": "Data inicial"
+  })), /*#__PURE__*/React.createElement("label", null, "at\xE9 ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: ate,
+    onChange: e => setAte(e.target.value),
+    "aria-label": "Data final"
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "rg-periodo",
+    role: "status"
+  }, "Per\xEDodo: ", /*#__PURE__*/React.createElement("strong", null, rgRotuloPeriodo(periodo))), datasInvalidas && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, "A data inicial \xE9 depois da data final."), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro), !r ? !erro && !datasInvalidas && /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Reunindo os dados\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "rg-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: pdf,
+    disabled: gerandoPdf
+  }, gerandoPdf ? 'Gerando PDF…' : '⬇ Exportar PDF'), /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "S\xF3 organiza o que est\xE1 cadastrado \u2014 nada \xE9 criado, interpretado ou alterado.")), /*#__PURE__*/React.createElement("div", {
+    className: "rg-corpo"
+  }, /*#__PURE__*/React.createElement(Sec, {
+    n: 1
+  }, /*#__PURE__*/React.createElement("dl", {
+    className: "rg-ident"
+  }, r.ident.map(([k, v]) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: k
+  }, /*#__PURE__*/React.createElement("dt", null, k), /*#__PURE__*/React.createElement("dd", null, v))))), /*#__PURE__*/React.createElement(Sec, {
+    n: 2
+  }, r.registros.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "rg-total"
+  }, avPlural(r.registros.length, 'registro', 'registros'), " no per\xEDodo"), /*#__PURE__*/React.createElement(RgLista, {
+    itens: r.registros,
+    render: Reg
+  })), /*#__PURE__*/React.createElement(Sec, {
+    n: 3
+  }, /*#__PURE__*/React.createElement(RgLista, {
+    itens: r.avaliacoes,
+    render: a => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("strong", null, avRotuloTri(a.trimestre)), " \u2014 ", /*#__PURE__*/React.createElement("span", {
+      className: "rg-status"
+    }, a.status), a.final ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: "rg-meta"
+    }, "Aprovada", a.aprovadaEm ? ` em ${rgData(a.aprovadaEm)}` : '', a.aprovadoPor ? ` por ${a.aprovadoPor}` : '', a.feedbackEm ? ` · feedback em ${rgData(a.feedbackEm)}` : ''), a.resumo && /*#__PURE__*/React.createElement("div", {
+      className: "rg-texto"
+    }, a.resumo), a.pontosPositivos.length > 0 && /*#__PURE__*/React.createElement("div", {
+      className: "rg-texto"
+    }, /*#__PURE__*/React.createElement("em", null, "Pontos positivos:"), " ", a.pontosPositivos.join(' · ')), a.melhorias.length > 0 && /*#__PURE__*/React.createElement("div", {
+      className: "rg-texto"
+    }, /*#__PURE__*/React.createElement("em", null, "Oportunidades de melhoria:"), " ", a.melhorias.join(' · ')), a.comentarios && /*#__PURE__*/React.createElement("div", {
+      className: "rg-texto"
+    }, /*#__PURE__*/React.createElement("em", null, "Coment\xE1rios do avaliador:"), " ", a.comentarios)) : /*#__PURE__*/React.createElement("div", {
+      className: "rg-meta"
+    }, "Ainda n\xE3o aprovada: conte\xFAdo e notas n\xE3o s\xE3o apresentados."))
+  })), /*#__PURE__*/React.createElement(Sec, {
+    n: 4
+  }, r.avaliacoes.some(a => a.final) ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela rg-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Trimestre"), /*#__PURE__*/React.createElement("th", null, "M\xE9dia"), /*#__PURE__*/React.createElement("th", null, "Notas por crit\xE9rio"))), /*#__PURE__*/React.createElement("tbody", null, r.avaliacoes.filter(a => a.final).map(a => /*#__PURE__*/React.createElement("tr", {
+    key: a.trimestre
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Trimestre"
+  }, avRotuloTri(a.trimestre)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "M\xE9dia"
+  }, /*#__PURE__*/React.createElement("strong", null, rgNota(a.media))), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Notas"
+  }, a.notas.length ? a.notas.map(n => `${n.criterio}: ${n.nota}`).join(' · ') : '—')))))), /*#__PURE__*/React.createElement("div", {
+    className: "rg-total"
+  }, r.mediaGeral != null ? /*#__PURE__*/React.createElement(React.Fragment, null, "M\xE9dia das avalia\xE7\xF5es aprovadas no per\xEDodo (", r.qtdMedias, "): ", /*#__PURE__*/React.createElement("strong", null, rgNota(r.mediaGeral))) : 'Sem médias registradas no período.')) : /*#__PURE__*/React.createElement("div", {
+    className: "rg-vazio"
+  }, RG_VAZIO)), /*#__PURE__*/React.createElement(Sec, {
+    n: 5
+  }, /*#__PURE__*/React.createElement(RgLista, {
+    itens: r.fortes,
+    render: Reg
+  })), /*#__PURE__*/React.createElement(Sec, {
+    n: 6
+  }, /*#__PURE__*/React.createElement(RgLista, {
+    itens: r.melhorias,
+    render: Reg
+  })), /*#__PURE__*/React.createElement(Sec, {
+    n: 7
+  }, [...r.metas.concluidas, ...r.metas.pendentes, ...r.metas.outras].length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "rg-vazio"
+  }, RG_VAZIO) : [['Metas concluídas', r.metas.concluidas], ['Metas pendentes', r.metas.pendentes], ['Outras situações', r.metas.outras]].filter(([t, l]) => l.length || t !== 'Outras situações').map(([t, l]) => /*#__PURE__*/React.createElement("div", {
+    key: t,
+    className: "rg-sub"
+  }, /*#__PURE__*/React.createElement("h5", null, t, " (", l.length, ")"), /*#__PURE__*/React.createElement(RgLista, {
+    itens: l,
+    render: m => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("strong", null, m.descricao), " \u2014 ", m.status, m.prazo ? ` · prazo ${rgData(m.prazo)}` : '', m.criterio && /*#__PURE__*/React.createElement("div", {
+      className: "rg-meta"
+    }, "Conclu\xEDda quando: ", m.criterio), m.origem && /*#__PURE__*/React.createElement("div", {
+      className: "rg-meta"
+    }, m.origem))
+  })))), /*#__PURE__*/React.createElement(Sec, {
+    n: 8
+  }, r.cursos.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "rg-total"
+  }, avPlural(r.cursos.length, 'curso ou formação', 'cursos e formações'), r.horasCursos ? ` · ${fpHoras(r.horasCursos)}` : '', " \xB7 ", r.cursos.filter(c => c.certificado).length, " com certificado anexado"), /*#__PURE__*/React.createElement(RgLista, {
+    itens: r.cursos,
+    render: c => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("strong", null, c.nome), /*#__PURE__*/React.createElement("div", {
+      className: "rg-meta"
+    }, [c.instituicao, c.categoria, c.carga ? fpHoras(c.carga) : 'carga horária não informada', c.data ? `concluído em ${rgData(c.data)}` : 'data não informada'].filter(Boolean).join(' · ')), /*#__PURE__*/React.createElement("div", {
+      className: c.certificado ? 'rg-cert ok' : 'rg-cert'
+    }, c.certificado ? `📎 Certificado anexado: ${c.certificado}` : 'Sem certificado anexado'))
+  })), /*#__PURE__*/React.createElement(Sec, {
+    n: 9
+  }, r.evolucao.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "rg-vazio"
+  }, RG_VAZIO) : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela rg-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Per\xEDodo"), /*#__PURE__*/React.createElement("th", null, "Registros"), /*#__PURE__*/React.createElement("th", null, "Fortes"), /*#__PURE__*/React.createElement("th", null, "Melhoria"), /*#__PURE__*/React.createElement("th", null, "Avalia\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "M\xE9dia"), /*#__PURE__*/React.createElement("th", null, "Metas concl."), /*#__PURE__*/React.createElement("th", null, "Cursos"))), /*#__PURE__*/React.createElement("tbody", null, r.evolucao.map(e => /*#__PURE__*/React.createElement("tr", {
+    key: e.trimestre
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Per\xEDodo"
+  }, avRotuloTri(e.trimestre)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Registros"
+  }, e.registros), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Fortes"
+  }, e.fortes), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Melhoria"
+  }, e.melhorias), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Avalia\xE7\xE3o"
+  }, e.avaliacao), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "M\xE9dia"
+  }, rgNota(e.media)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Metas concl."
+  }, e.metasConcluidas), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Cursos"
+  }, e.cursos))))))))))), document.body);
+}
+// botão "Gerar relatório geral" (só para quem pode ver os dados de avaliação do colaborador)
+function BotaoRelatorioGeral({
+  funcionario,
+  usuario,
+  className
+}) {
+  const [aberto, setAberto] = useState(false);
+  const config = useAvConfig();
+  if (!funcionario || !avEhGestor(usuario) || !(usuario.id !== funcionario.id && avPodeAvaliar(usuario, funcionario))) return null;
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: className || 'btn',
+    onClick: () => setAberto(true)
+  }, "\uD83D\uDCC4 Gerar relat\xF3rio geral"), aberto && /*#__PURE__*/React.createElement(RelatorioGeralColaborador, {
+    funcionario: funcionario,
+    usuario: usuario,
+    config: config,
+    aoFechar: () => setAberto(false)
   }));
 }
 
