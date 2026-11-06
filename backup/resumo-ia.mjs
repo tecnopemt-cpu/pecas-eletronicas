@@ -78,7 +78,8 @@ export async function chamarIA({ sistema, usuario }, chave, fetcher = fetch) {
     const r = await fetcher(`${API}/chat/completions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${chave}`, accept: 'application/json' },
-      body: JSON.stringify({ model: modelo, temperature: 0.3, max_tokens: 3000, messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }], tools: [ferramenta], tool_choice: { type: 'function', function: { name: 'registrar_resumo' } } }),
+      // resposta em JSON (as seis seções); a descrição de cada campo vai junto no pedido
+      body: JSON.stringify({ model: modelo, temperature: 0.3, max_tokens: 3000, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: sistema }, { role: 'user', content: `${usuario.replace('com a ferramenta registrar_resumo', 'em JSON')}\n\nResponda APENAS com um objeto JSON com exatamente estas chaves (todas texto):\n${Object.entries(ferramenta.function.parameters.properties).map(([k, v]) => `- "${k}": ${v.description}`).join('\n')}` }] }),
       signal: AbortSignal.timeout(120000)
     });
     const j = await r.json().catch(() => ({}));
@@ -92,7 +93,7 @@ export async function chamarIA({ sistema, usuario }, chave, fetcher = fetch) {
     const msg = j.choices && j.choices[0] && j.choices[0].message || {};
     const chamada = (msg.tool_calls || []).find(c => c.function && c.function.name === 'registrar_resumo');
     let entrada = null;
-    try { entrada = JSON.parse(chamada ? chamada.function.arguments : String(msg.content || '').replace(/^```(json)?|```$/g, '')); } catch (e) { entrada = null; }
+    try { entrada = JSON.parse(chamada ? chamada.function.arguments : String(msg.content || '').trim().replace(/^```(?:json)?\s*|\s*```$/g, '')); } catch (e) { entrada = null; }
     if (!entrada) { const e = new Error('a IA não devolveu o resumo no formato esperado; peça de novo'); e.detalhe = JSON.stringify({ modelo: j.model || modelo, fim: j.choices && j.choices[0] && j.choices[0].finish_reason, chamadas: (msg.tool_calls || []).map(c => c.function && c.function.name), args: chamada ? String(chamada.function.arguments).slice(0, 300) : null, conteudo: String(msg.content || '').slice(0, 300) }); throw e; }
     const secoes = {};
     for (const k of SECOES) secoes[k] = String(entrada[k] || '').trim().slice(0, 4000);
