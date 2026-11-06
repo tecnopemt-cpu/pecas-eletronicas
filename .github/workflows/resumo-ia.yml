@@ -1,0 +1,40 @@
+name: Resumo profissional com IA
+
+# A cada 5 minutos confere se a gestão pediu algum "Resumo profissional com IA" no sistema e, se pediu,
+# gera o texto com a IA (Claude, da Anthropic) a partir dos DADOS DIGITADOS dos cursos — os arquivos dos
+# certificados não são lidos nem enviados. A chave da IA fica só aqui, no segredo ANTHROPIC_API_KEY
+# (Settings → Secrets and variables → Actions); o site nunca vê a chave.
+# Sem pedido em aberto, termina em segundos. O registro não mostra nomes nem textos (repositório público).
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: resumo-ia
+  cancel-in-progress: false
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            backup
+            index.html
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Gerar os resumos pedidos
+        env:
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RESUMO_IA_MODELO: ${{ vars.RESUMO_IA_MODELO }}
+        run: node backup/resumo-ia.mjs

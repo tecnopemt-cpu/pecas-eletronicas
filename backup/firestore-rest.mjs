@@ -119,6 +119,12 @@ export function clienteFirestore({ projeto, apiKey, base, credenciais }) {
     async obterComVersao(col, id) {
       try { const r = await req(`${docs}/${col}/${id}`); return r ? { fields: r.fields || {}, updateTime: r.updateTime } : null; } catch (e) { if (e.status === 404) return null; throw e; }
     },
+    // Consulta simples (campo == valor), com a versão de cada documento.
+    async consultar(col, campo, valor) {
+      const corpo = { structuredQuery: { from: [{ collectionId: col }], where: { fieldFilter: { field: { fieldPath: campo }, op: 'EQUAL', value: typeof valor === 'string' ? { stringValue: valor } : typeof valor === 'boolean' ? { booleanValue: valor } : { integerValue: String(valor) } } }, limit: 50 } };
+      const r = await req(`${docs}:runQuery`, { method: 'POST', body: JSON.stringify(corpo) });
+      return (r || []).filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), fields: x.document.fields || {}, updateTime: x.document.updateTime }));
+    },
     // Um commit (atômico) — devolve os resultados (updateTime de cada escrita).
     async commit(writes) { return req(`${docs}:commit`, { method: 'POST', body: JSON.stringify({ writes }) }, 1); },
     async obterDocumento(col, id) {

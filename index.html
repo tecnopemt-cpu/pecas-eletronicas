@@ -345,6 +345,67 @@
     .acesso-btn-sec{font-size:13px;padding:6px 10px;}
   }
 
+  /* ---- Desenvolvimento profissional (cursos, certificados, resumo com IA) ---- */
+  .fp-secao{display:flex;flex-direction:column;gap:10px;}
+  .fp-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  .fp-titulo{font-size:16px;font-weight:700;color:var(--texto);}
+  .fp-filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0;}
+  .fp-filtros select{max-width:240px;}
+  .fp-periodo{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--texto-fraco);margin:0;}
+  .fp-periodo input{width:auto;min-width:140px;}
+  .fp-totais{font-size:12.5px;color:var(--texto-fraco);}
+  .fp-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .fp-item{display:flex;gap:12px;padding:12px;border:1px solid var(--borda);border-radius:10px;background:#fff;}
+  .fp-item-data{flex:0 0 78px;font-size:12px;font-weight:700;color:var(--laranja-escuro);padding-top:2px;}
+  .fp-item-corpo{flex:1;min-width:0;}
+  .fp-item-nome{font-weight:700;font-size:14.5px;overflow-wrap:anywhere;}
+  .fp-item-info{font-size:12.5px;color:var(--texto-fraco);margin-top:2px;}
+  .fp-item-desc{font-size:13px;margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere;}
+  .fp-item-rodape{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+  .fp-selo{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid transparent;font-family:inherit;}
+  .fp-selo.ok{background:#E8F5EC;color:#1F7A3D;border-color:#BFE3CB;}
+  button.fp-selo.ok{cursor:pointer;}
+  .fp-selo.sem{background:#F1F1F1;color:#6B6B6B;border-color:#E0E0E0;}
+  .fp-perigo{color:var(--vermelho) !important;}
+  .fp-modal{max-width:620px;}
+  .fp-modal label{display:block;margin-top:10px;}
+  .fp-linha{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .fp-anexo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:4px 0 6px;}
+  .fp-anexo .fp-btn-arquivo{display:inline-flex;margin:0;cursor:pointer;}
+  .fp-acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .fp-visor{max-width:900px;width:100%;display:flex;flex-direction:column;gap:10px;}
+  .fp-visor-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .fp-visor-cab strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .fp-visor-cab span{display:flex;gap:6px;flex-shrink:0;}
+  .fp-visor-pdf{width:100%;height:70vh;border:1px solid var(--borda);border-radius:8px;background:#fff;}
+  .fp-visor-img{max-width:100%;max-height:72vh;object-fit:contain;align-self:center;border-radius:6px;}
+  .fp-resumo{margin-top:8px;padding:14px;border-radius:12px;border:1px solid #E9D9CC;background:#FFFBF7;display:flex;flex-direction:column;gap:10px;}
+  .fp-resumo-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+  .fp-btn-ia{background:linear-gradient(180deg,#F07C12,#E36C02);}
+  .fp-resumo-secoes{display:flex;flex-direction:column;gap:10px;}
+  .fp-resumo-titulo{font-weight:700;font-size:13.5px;color:var(--texto);margin-bottom:2px;}
+  .fp-pre{white-space:pre-wrap;}
+  .fp-aviso{font-size:12.5px;padding:8px 10px;border-radius:8px;background:#EEF4FB;color:#24476E;}
+  .fp-aviso-ia{font-style:italic;}
+  .fp-pendente{border:1px dashed var(--laranja);border-radius:10px;padding:12px;background:#fff;display:flex;flex-direction:column;gap:10px;}
+  .fp-pendente-cab{display:flex;flex-direction:column;gap:2px;}
+  .fp-versoes summary,.fp-versao summary{cursor:pointer;font-size:13px;}
+  .fp-versao{margin:6px 0 0 10px;}
+  .fp-check{display:flex;align-items:center;gap:8px;font-size:13px;margin:8px 0;cursor:pointer;}
+  .fp-check input{width:auto;margin:0;}
+  .fp-na-avaliacao summary{cursor:pointer;}
+  .fp-minhas{margin-top:22px;padding-top:14px;border-top:1px solid var(--borda);}
+  @media (max-width:640px){
+    .fp-linha{grid-template-columns:1fr;gap:0;}
+    .fp-item{flex-direction:column;gap:4px;padding:11px;}
+    .fp-item-data{flex:none;}
+    .fp-cab .btn,.fp-btn-ia{width:100%;}
+    .fp-filtros select{max-width:none;flex:1 1 100%;}
+    .fp-periodo{flex:1 1 45%;}
+    .fp-periodo input{min-width:0;flex:1;}
+    .fp-visor-pdf{height:62vh;}
+  }
+
   /* ---- Período de Apuração (modal) ---- */
   .modal-fundo:has(.modal-apuracao){background:rgba(12,24,40,.55);backdrop-filter:blur(1.5px);}
   .modal-apuracao{position:relative;max-width:1180px !important;width:100%;padding:28px 30px 22px;border-radius:18px;border:1px solid rgba(15,42,71,.08);background:rgba(255,255,255,.97);box-shadow:0 30px 80px rgba(8,20,36,.35),0 4px 14px rgba(8,20,36,.12);color:#2B3445;isolation:isolate;overflow:hidden;max-height:calc(100dvh - 60px);overflow-y:auto;}
@@ -6965,7 +7026,20 @@ function avPublicacao(av, funcionario, config, metasNovas) {
 }
 
 // ---- PDF da avaliação aprovada (sem anotações internas, transcrições ou dados de outras pessoas)
-async function gerarPdfAvaliacao(p, preliminar) {
+// PDF com a seção opcional de formação (carregada na hora; não mexe nas notas)
+async function avGerarPdf(p, preliminar, incluirFormacao) {
+  let formacao = null;
+  if (incluirFormacao) {
+    try {
+      formacao = await fpDadosParaPdf(p.funcionarioId);
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui carregar os cursos e o resumo profissional. O PDF sai sem essa seção.');
+    }
+  }
+  return gerarPdfAvaliacao(p, preliminar, formacao);
+}
+async function gerarPdfAvaliacao(p, preliminar, formacao) {
   const {
     jsPDF
   } = window.jspdf;
@@ -7056,6 +7130,28 @@ async function gerarPdfAvaliacao(p, preliminar) {
   await paragrafo(p.comentariosAvaliador || '-');
   await secao('Feedback');
   await paragrafo(p.feedbackEm ? `Feedback realizado em ${formatarDataBr(p.feedbackEm)}.${p.compromissosFeedback ? ' Compromissos: ' + p.compromissosFeedback : ''}` : 'Feedback ainda não registrado.');
+  if (formacao) {
+    // seção separada, depois de tudo o que é desempenho: qualificação não é nota
+    y += 4;
+    await secao('Formação e Desenvolvimento Profissional');
+    await paragrafo('Informação complementar sobre formação e qualificação. Não compõe as notas nem a média desta avaliação.', 9, 'italic');
+    y += 1.5;
+    if (!formacao.cursos.length) await paragrafo('Nenhum curso ou formação cadastrado.', 9.5, 'italic');
+    for (const c of formacao.cursos) {
+      await paragrafo(`• ${c.nome}`, 10, 'bold');
+      await paragrafo(`   ${[c.instituicao, c.categoria, c.cargaHoraria ? fpHoras(c.cargaHoraria) : '', c.dataConclusao ? 'concluído em ' + formatarDataBr(c.dataConclusao) : 'sem data de conclusão', c.certificado ? 'certificado anexado' : 'sem certificado'].filter(Boolean).join(' · ')}`, 9);
+    }
+    if (formacao.resumo && formacao.resumo.secoes) {
+      y += 2;
+      await garantir(12);
+      await paragrafo(`Resumo profissional (gerado com IA em ${fpQuando(formacao.resumo.geradoEm)}${formacao.resumo.confirmadoPorNome ? ', revisado por ' + formacao.resumo.confirmadoPorNome : ''})`, 10, 'bold');
+      for (const [k, t] of FP_SECOES) if (formacao.resumo.secoes[k]) {
+        y += 1;
+        await paragrafo(t, 9.5, 'bold');
+        await paragrafo(formacao.resumo.secoes[k], 9.5);
+      }
+    }
+  }
   const total = doc.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
@@ -7089,6 +7185,7 @@ function AvEditorAvaliacao({
   const [feedback, setFeedback] = useState(null);
   const [corrigindo, setCorrigindo] = useState(null);
   const [ocAberta, setOcAberta] = useState(null);
+  const [pdfFormacao, setPdfFormacao] = useState(false);
   // faltas e atrasos da Comissão no trimestre (só para quem avalia; não mexem na nota)
   const todasOcorrencias = useAvOcorrencias();
   const limTri = avLimites(avaliacao.trimestre);
@@ -7414,6 +7511,16 @@ function AvEditorAvaliacao({
   }, "Na aprova\xE7\xE3o eram ", avPlural(avaliacao.pontualidade.faltas, 'falta', 'faltas'), " e ", avPlural(avaliacao.pontualidade.atrasos, 'atraso', 'atrasos'), "; a Comiss\xE3o foi alterada depois."), /*#__PURE__*/React.createElement(AvListaOcorrencias, {
     lista: ocTri,
     aoAbrir: setOcAberta
+  })), funcionario && /*#__PURE__*/React.createElement("details", {
+    className: "av-secao fp-na-avaliacao"
+  }, /*#__PURE__*/React.createElement("summary", {
+    className: "av-secao-titulo"
+  }, "Forma\xE7\xE3o e desenvolvimento profissional ", /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "(consulta \u2014 n\xE3o altera a nota)")), /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
+    funcionario: funcionario,
+    usuario: usuario,
+    consulta: true
   })), /*#__PURE__*/React.createElement("div", {
     className: "av-secao"
   }, /*#__PURE__*/React.createElement("div", {
@@ -7571,7 +7678,13 @@ function AvEditorAvaliacao({
   }, msg), erro && /*#__PURE__*/React.createElement("div", {
     className: "av-erro",
     role: "alert"
-  }, erro), /*#__PURE__*/React.createElement("div", {
+  }, erro), /*#__PURE__*/React.createElement("label", {
+    className: "fp-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: pdfFormacao,
+    onChange: e => setPdfFormacao(e.target.checked)
+  }), " Incluir \u201CForma\xE7\xE3o e Desenvolvimento Profissional\u201D no PDF"), /*#__PURE__*/React.createElement("div", {
     className: "av-acoes"
   }, editavel && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -7581,10 +7694,10 @@ function AvEditorAvaliacao({
   }, "Montar de novo pelos registros"), ehMaster(usuario) && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario",
-    onClick: () => gerarPdfAvaliacao(avPublicacao({
+    onClick: () => avGerarPdf(avPublicacao({
       ...av,
       aprovadoPorNome: ''
-    }, funcionario, config, []), true)
+    }, funcionario, config, []), true, pdfFormacao)
   }, "PDF preliminar"), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario",
@@ -7611,7 +7724,7 @@ function AvEditorAvaliacao({
   }, "Registrar feedback"), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn",
-    onClick: () => gerarPdfAvaliacao(avPublicacao(avaliacao, funcionario, config, (metas || []).filter(m => m.origemAvaliacaoId === avaliacao.id)), false)
+    onClick: () => avGerarPdf(avPublicacao(avaliacao, funcionario, config, (metas || []).filter(m => m.origemAvaliacaoId === avaliacao.id)), false, pdfFormacao)
   }, "Gerar PDF"))), ocAberta && /*#__PURE__*/React.createElement(AvModalOcorrencia, {
     o: ocAberta,
     nomeFuncionario: funcionario ? funcionario.nome : avaliacao.funcionarioNome,
@@ -8176,6 +8289,860 @@ function AvPainel({
     }
   }));
 }
+// ======================= DESENVOLVIMENTO PROFISSIONAL (cursos, formações, certificados, resumo com IA) =======================
+// Cada curso é um registro em cursosProfissionais (ligado ao funcionário pelo funcionarioId). O certificado
+// (PDF/JPG/PNG) fica em certificados + certificadosPartes (o arquivo em partes, nunca dentro do curso), e só
+// o próprio funcionário e a gestão conseguem abrir (regras do banco). Nada é apagado: excluir marca o curso
+// como excluído e guarda no histórico.
+// Formação NÃO gera nota: é informação complementar para contextualizar a avaliação.
+// O resumo com IA é feito por uma rotina no GitHub (a chave da IA fica lá, em segredo): o sistema só grava
+// o pedido; a rotina lê os DADOS DIGITADOS dos cursos (os arquivos não saem do sistema) e devolve o texto.
+// Um resumo novo só substitui o anterior depois que a gestão confirma; as versões anteriores ficam guardadas.
+const FP_CATEGORIAS = ['Formação acadêmica', 'Curso técnico', 'Especialização', 'Certificação profissional', 'Treinamento', 'Capacitação interna', 'Capacitação externa', 'Curso livre', 'Outros conhecimentos'];
+const FP_TIPOS = {
+  'application/pdf': 'PDF',
+  'image/jpeg': 'JPG',
+  'image/png': 'PNG'
+};
+const FP_MAX_BYTES = 4 * 1024 * 1024; // depois de reduzir as fotos
+const FP_PARTE = 700000; // caracteres de base64 por documento (o Firestore aceita até ~1 MB por documento)
+const FP_SECOES = [['formacao', '1. Formação e qualificação'], ['cursos', '2. Cursos e capacitações'], ['conhecimentos', '3. Conhecimentos identificados'], ['aplicacao', '4. Aplicação nas atividades da empresa'], ['desenvolvimento', '5. Desenvolvimento profissional'], ['sintese', '6. Síntese profissional']];
+const FP_PEDIDO_ATRASADO_MIN = 30;
+function fpNorm(t) {
+  return avSemAcento(String(t || '')).replace(/[^a-z0-9]+/g, ' ').trim();
+}
+function fpChave(c) {
+  return `${fpNorm(c.nome)}|${fpNorm(c.instituicao)}|${c.dataConclusao || ''}`;
+}
+function fpHoras(n) {
+  const v = Number(n) || 0;
+  return v ? `${String(v).replace('.', ',')} h` : '';
+}
+function fpOrdenar(lista) {
+  return lista.slice().sort((a, b) => (b.dataConclusao || '').localeCompare(a.dataConclusao || '') || String(a.nome).localeCompare(String(b.nome)));
+}
+function fpPodeCuidar(usuario, funcionario) {
+  if (!usuario || !funcionario) return false;
+  if (usuario.id === funcionario.id) return true;
+  return ehAdministrador(usuario) && (ehMaster(usuario) || funcionario.perfil !== 'master');
+}
+function fpEhGestao(usuario, funcionario) {
+  return !!funcionario && ehAdministrador(usuario) && (ehMaster(usuario) || funcionario.perfil !== 'master' || usuario.id === funcionario.id);
+}
+function fpHist(usuario, texto, extra) {
+  return {
+    em: new Date().toISOString(),
+    porId: usuario.id,
+    porNome: usuario.nome || '-',
+    texto,
+    ...(extra || {})
+  };
+}
+function fpQuando(v) {
+  if (!v) return '';
+  const d = typeof v === 'string' ? new Date(v) : v.toDate ? v.toDate() : v instanceof Date ? v : null;
+  return d && !isNaN(d) ? d.toLocaleString('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }) : '';
+}
+
+// ---- arquivo do certificado: fotos grandes são reduzidas (continuam legíveis); PDF vai como está
+function fpLerComoBase64(blob) {
+  return new Promise((ok, falha) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(',')[1] || '');
+    r.onerror = () => falha(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+async function fpReduzirImagem(file) {
+  if (file.size <= 1.2 * 1024 * 1024) return file;
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, falha) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = falha;
+      i.src = url;
+    });
+    const max = 2200,
+      esc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.naturalWidth * esc);
+    cv.height = Math.round(img.naturalHeight * esc);
+    const g = cv.getContext('2d');
+    g.fillStyle = '#fff';
+    g.fillRect(0, 0, cv.width, cv.height);
+    g.drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', 0.86));
+    return blob ? new File([blob], file.name.replace(/\.(png|jpe?g)$/i, '') + '.jpg', {
+      type: 'image/jpeg'
+    }) : file;
+  } catch (e) {
+    return file;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+async function fpPrepararArquivo(file) {
+  if (!file) return null;
+  const tipo = file.type === 'image/jpg' ? 'image/jpeg' : file.type;
+  if (!FP_TIPOS[tipo]) throw new Error('Formato não aceito. Envie PDF, JPG ou PNG.');
+  const final = tipo.startsWith('image/') ? await fpReduzirImagem(file) : file;
+  if (final.size > FP_MAX_BYTES) throw new Error(`Arquivo grande demais (${(final.size / 1048576).toFixed(1).replace('.', ',')} MB). O limite é 4 MB — para PDF, tente salvar em tamanho menor ou fotografar o certificado.`);
+  const base64 = await fpLerComoBase64(final);
+  return {
+    nome: final.name || file.name || 'certificado',
+    tipo: final.type === 'image/jpg' ? 'image/jpeg' : final.type,
+    tamanho: final.size,
+    base64
+  };
+}
+// grava o certificado (registro + partes) dentro do mesmo lote do curso — tudo ou nada
+function fpGravarCertificado(lote, arq, funcionarioId, cursoId, usuario) {
+  const ref = db.collection('certificados').doc();
+  const partes = [];
+  for (let i = 0; i < arq.base64.length; i += FP_PARTE) partes.push(arq.base64.slice(i, i + FP_PARTE));
+  partes.forEach((dados, n) => lote.set(db.collection('certificadosPartes').doc(`${ref.id}_${n}`), {
+    funcionarioId,
+    certificadoId: ref.id,
+    n,
+    dados
+  }));
+  const info = {
+    id: ref.id,
+    nome: arq.nome,
+    tipo: arq.tipo,
+    tamanho: arq.tamanho,
+    partes: partes.length,
+    enviadoEm: new Date().toISOString(),
+    enviadoPorNome: usuario.nome || '-'
+  };
+  lote.set(ref, {
+    ...info,
+    funcionarioId,
+    cursoId,
+    enviadoPorId: usuario.id,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  return info;
+}
+async function fpBaixarArquivo(cert) {
+  const partes = await Promise.all(Array.from({
+    length: cert.partes || 1
+  }, (_, n) => db.collection('certificadosPartes').doc(`${cert.id}_${n}`).get()));
+  if (partes.some(p => !p.exists)) throw new Error('arquivo incompleto');
+  const bin = atob(partes.map(p => p.data().dados).join(''));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], {
+    type: cert.tipo || 'application/octet-stream'
+  });
+}
+function useFpCursos(fid, ativo = true) {
+  const [lista, carregando, erro] = useAvConsulta('cursosProfissionais', [['funcionarioId', '==', fid || '-']], ativo && !!fid);
+  return [fpOrdenar(lista.filter(c => c.status !== 'excluido')), carregando, erro];
+}
+function useFpResumo(fid, ativo = true) {
+  const [doc, setDoc] = useState(null);
+  const [erro, setErro] = useState('');
+  useEffect(() => {
+    if (!fid || !ativo) {
+      setDoc(null);
+      return;
+    }
+    return db.collection('resumosProfissionais').doc(fid).onSnapshot(s => {
+      setDoc(s.exists ? {
+        id: s.id,
+        ...s.data()
+      } : null);
+      setErro('');
+    }, err => {
+      console.error('resumosProfissionais', err);
+      setErro('Não consegui carregar o resumo.');
+    });
+  }, [fid, ativo]);
+  return [doc, erro];
+}
+// o resumo ficou para trás? (curso novo, editado ou excluído depois que ele foi gerado)
+function fpResumoDesatualizado(resumo, cursos) {
+  if (!resumo || !resumo.cursosConsiderados) return false;
+  const antes = new Map(resumo.cursosConsiderados.map(c => [c.id, c.versao || 0]));
+  if (antes.size !== cursos.length) return true;
+  return cursos.some(c => !antes.has(c.id) || antes.get(c.id) !== (c.historico || []).length);
+}
+
+// ---- modal: adicionar / editar curso
+function FpModalCurso({
+  funcionario,
+  usuario,
+  curso,
+  cursos,
+  aoFechar
+}) {
+  const editando = !!curso;
+  const [f, setF] = useState(() => ({
+    nome: curso?.nome || '',
+    instituicao: curso?.instituicao || '',
+    categoria: curso?.categoria || '',
+    dataConclusao: curso?.dataConclusao || '',
+    cargaHoraria: curso?.cargaHoraria ?? '',
+    descricao: curso?.descricao || '',
+    observacoes: curso?.observacoes || ''
+  }));
+  const [arquivo, setArquivo] = useState(null); // {nome,tipo,tamanho,base64}
+  const [tirarCertificado, setTirarCertificado] = useState(false);
+  const [lendo, setLendo] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  const salvandoRef = useRef(false);
+  const novoId = useRef(db.collection('cursosProfissionais').doc().id);
+  const set = (k, v) => setF(x => ({
+    ...x,
+    [k]: v
+  }));
+  async function escolherArquivo(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    setErro('');
+    setLendo(true);
+    try {
+      setArquivo(await fpPrepararArquivo(file));
+      setTirarCertificado(false);
+    } catch (err) {
+      setErro(err.message || 'Não consegui ler o arquivo.');
+    }
+    setLendo(false);
+  }
+  async function salvar(e) {
+    e.preventDefault();
+    if (salvandoRef.current) return;
+    const dados = {
+      nome: f.nome.trim(),
+      instituicao: f.instituicao.trim(),
+      categoria: f.categoria,
+      dataConclusao: f.dataConclusao,
+      cargaHoraria: f.cargaHoraria === '' ? null : Number(String(f.cargaHoraria).replace(',', '.')),
+      descricao: f.descricao.trim(),
+      observacoes: f.observacoes.trim()
+    };
+    if (!dados.nome) {
+      setErro('Informe o nome do curso ou formação.');
+      return;
+    }
+    if (!dados.categoria) {
+      setErro('Escolha a categoria.');
+      return;
+    }
+    if (dados.cargaHoraria !== null && (!isFinite(dados.cargaHoraria) || dados.cargaHoraria < 0 || dados.cargaHoraria > 20000)) {
+      setErro('Carga horária inválida (em horas).');
+      return;
+    }
+    if (dados.dataConclusao && dados.dataConclusao > avHoje()) {
+      setErro('A data de conclusão não pode ser no futuro.');
+      return;
+    }
+    const chave = fpChave(dados);
+    if (cursos.some(c => c.id !== (curso && curso.id) && fpChave(c) === chave)) {
+      setErro('Este curso já está cadastrado para este colaborador (mesmo nome, instituição e data de conclusão).');
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false && arquivo) {
+      setErro('Sem conexão com a internet. O certificado só pode ser enviado com conexão.');
+      return;
+    }
+    salvandoRef.current = true;
+    setSalvando(true);
+    setErro('');
+    try {
+      const lote = db.batch();
+      if (!editando) {
+        const ref = db.collection('cursosProfissionais').doc(novoId.current);
+        const doc = {
+          ...dados,
+          chave,
+          funcionarioId: funcionario.id,
+          funcionarioNome: funcionario.nome || '',
+          status: 'ativo',
+          certificado: null,
+          criadoPorId: usuario.id,
+          criadoPorNome: usuario.nome || '-',
+          criadoEm: new Date().toISOString(),
+          historico: []
+        };
+        if (arquivo) doc.certificado = fpGravarCertificado(lote, arquivo, funcionario.id, ref.id, usuario);
+        lote.set(ref, doc);
+      } else {
+        const ref = db.collection('cursosProfissionais').doc(curso.id);
+        const mud = {},
+          antes = {};
+        Object.keys(dados).forEach(k => {
+          const a = curso[k] ?? (k === 'cargaHoraria' ? null : '');
+          if (a !== dados[k]) {
+            mud[k] = dados[k];
+            antes[k] = a;
+          }
+        });
+        let texto = Object.keys(mud).length ? `editou: ${Object.keys(mud).join(', ')}` : '';
+        if (arquivo) {
+          mud.certificado = fpGravarCertificado(lote, arquivo, funcionario.id, curso.id, usuario);
+          texto = [texto, curso.certificado ? 'substituiu o certificado (o anterior continua guardado)' : 'anexou o certificado'].filter(Boolean).join('; ');
+        } else if (tirarCertificado && curso.certificado) {
+          mud.certificado = null;
+          texto = [texto, 'retirou o certificado do curso (o arquivo continua guardado)'].filter(Boolean).join('; ');
+        }
+        if (!texto) {
+          aoFechar();
+          return;
+        }
+        if ('certificado' in mud && curso.certificado) antes.certificadoId = curso.certificado.id;
+        mud.chave = chave;
+        mud.historico = [...(curso.historico || []), fpHist(usuario, texto, {
+          antes
+        })];
+        lote.update(ref, mud);
+      }
+      await lote.commit();
+      aoFechar(true);
+    } catch (err) {
+      console.error(err);
+      setErro(err && err.code === 'permission-denied' ? 'Você não tem permissão para alterar os cursos deste colaborador.' : 'Não consegui salvar (verifique a conexão). Nada foi gravado — tente de novo.');
+    }
+    salvandoRef.current = false;
+    setSalvando(false);
+  }
+  const certAtual = editando && curso.certificado && !tirarCertificado ? curso.certificado : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && !salvando && aoFechar()
+  }, /*#__PURE__*/React.createElement("form", {
+    className: "modal fp-modal",
+    onSubmit: salvar
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0
+    }
+  }, editando ? 'Editar curso ou formação' : 'Adicionar curso ou formação'), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, funcionario.nome), /*#__PURE__*/React.createElement("label", null, "Nome do curso ou forma\xE7\xE3o *"), /*#__PURE__*/React.createElement("input", {
+    value: f.nome,
+    onChange: e => set('nome', e.target.value),
+    maxLength: 160,
+    required: true,
+    "aria-label": "Nome do curso ou forma\xE7\xE3o"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "fp-linha"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Institui\xE7\xE3o respons\xE1vel"), /*#__PURE__*/React.createElement("input", {
+    value: f.instituicao,
+    onChange: e => set('instituicao', e.target.value),
+    maxLength: 140,
+    "aria-label": "Institui\xE7\xE3o respons\xE1vel"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Categoria *"), /*#__PURE__*/React.createElement("select", {
+    value: f.categoria,
+    onChange: e => set('categoria', e.target.value),
+    "aria-label": "Categoria"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Escolha\u2026"), FP_CATEGORIAS.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c))))), /*#__PURE__*/React.createElement("div", {
+    className: "fp-linha"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de conclus\xE3o"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.dataConclusao,
+    max: avHoje(),
+    onChange: e => set('dataConclusao', e.target.value),
+    "aria-label": "Data de conclus\xE3o"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Carga hor\xE1ria (horas)"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    value: f.cargaHoraria,
+    onChange: e => set('cargaHoraria', e.target.value.replace(/[^0-9,.]/g, '')),
+    placeholder: "Ex.: 40",
+    "aria-label": "Carga hor\xE1ria"
+  }))), /*#__PURE__*/React.createElement("label", null, "Descri\xE7\xE3o ou conte\xFAdo estudado"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: f.descricao,
+    onChange: e => set('descricao', e.target.value),
+    maxLength: 2000,
+    placeholder: "Principais assuntos, pr\xE1ticas, equipamentos\u2026",
+    "aria-label": "Descri\xE7\xE3o"
+  }), /*#__PURE__*/React.createElement("label", null, "Observa\xE7\xF5es"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: f.observacoes,
+    onChange: e => set('observacoes', e.target.value),
+    maxLength: 1000,
+    "aria-label": "Observa\xE7\xF5es"
+  }), /*#__PURE__*/React.createElement("label", null, "Certificado ou documento comprobat\xF3rio (PDF, JPG ou PNG)"), /*#__PURE__*/React.createElement("div", {
+    className: "fp-anexo"
+  }, arquivo ? /*#__PURE__*/React.createElement("span", {
+    className: "fp-selo ok"
+  }, "\uD83D\uDCCE ", arquivo.nome, " \xB7 ", (arquivo.tamanho / 1048576).toFixed(2).replace('.', ','), " MB") : certAtual ? /*#__PURE__*/React.createElement("span", {
+    className: "fp-selo ok"
+  }, "\uD83D\uDCCE ", certAtual.nome) : /*#__PURE__*/React.createElement("span", {
+    className: "fp-selo sem"
+  }, "Sem certificado anexado"), /*#__PURE__*/React.createElement("label", {
+    className: "btn secundario pequeno fp-btn-arquivo"
+  }, lendo ? 'Lendo…' : arquivo || certAtual ? 'Trocar arquivo' : 'Anexar arquivo', /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png",
+    onChange: escolherArquivo,
+    disabled: lendo || salvando,
+    hidden: true
+  })), arquivo && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => setArquivo(null)
+  }, "N\xE3o enviar este arquivo"), !arquivo && certAtual && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => setTirarCertificado(true)
+  }, "Retirar certificado")), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Pode salvar sem certificado: o curso fica marcado como \u201Csem certificado\u201D. O arquivo s\xF3 pode ser aberto por ", funcionario.id === usuario.id ? 'você' : 'o colaborador', " e pela gest\xE3o."), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoFechar(),
+    disabled: salvando
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "submit",
+    className: "btn",
+    disabled: salvando || lendo
+  }, salvando ? arquivo ? 'Enviando certificado…' : 'Salvando…' : 'Salvar'))));
+}
+
+// ---- ver o certificado (imagem ou PDF) com opção de baixar
+function FpVerCertificado({
+  cert,
+  aoFechar
+}) {
+  const [url, setUrl] = useState('');
+  const [erro, setErro] = useState('');
+  useEffect(() => {
+    let u = '',
+      vivo = true;
+    fpBaixarArquivo(cert).then(b => {
+      if (!vivo) return;
+      u = URL.createObjectURL(b);
+      setUrl(u);
+    }).catch(err => {
+      console.error(err);
+      if (vivo) setErro(err && err.code === 'permission-denied' ? 'Você não tem acesso a este documento.' : 'Não consegui abrir o arquivo. Verifique a conexão.');
+    });
+    return () => {
+      vivo = false;
+      if (u) URL.revokeObjectURL(u);
+    };
+  }, [cert.id]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fp-visor"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-visor-cab"
+  }, /*#__PURE__*/React.createElement("strong", {
+    title: cert.nome
+  }, cert.nome), /*#__PURE__*/React.createElement("span", null, url && /*#__PURE__*/React.createElement("a", {
+    className: "btn pequeno",
+    href: url,
+    download: cert.nome
+  }, "Baixar"), " ", /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: aoFechar
+  }, "Fechar"))), erro ? /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro) : !url ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Abrindo\u2026") : cert.tipo === 'application/pdf' ? /*#__PURE__*/React.createElement("iframe", {
+    className: "fp-visor-pdf",
+    src: url,
+    title: cert.nome
+  }) : /*#__PURE__*/React.createElement("img", {
+    className: "fp-visor-img",
+    src: url,
+    alt: cert.nome
+  })));
+}
+
+// ---- resumo profissional (IA)
+function FpTextoSecoes({
+  secoes
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fp-resumo-secoes"
+  }, FP_SECOES.map(([k, t]) => secoes && secoes[k] ? /*#__PURE__*/React.createElement("div", {
+    key: k
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-resumo-titulo"
+  }, t), /*#__PURE__*/React.createElement("div", {
+    className: "av-texto fp-pre"
+  }, secoes[k])) : null));
+}
+function FpResumo({
+  funcionario,
+  usuario,
+  cursos,
+  consulta
+}) {
+  const [doc, erroDoc] = useFpResumo(funcionario.id);
+  const gestao = fpEhGestao(usuario, funcionario);
+  const [ocupado, setOcupado] = useState(false);
+  const [erro, setErro] = useState('');
+  const ref = db.collection('resumosProfissionais').doc(funcionario.id);
+  const atual = doc && doc.atual;
+  const pendente = doc && doc.pendente;
+  const pedido = doc && doc.pedido;
+  const emAndamento = pedido && (pedido.status === 'pedido' || pedido.status === 'processando');
+  const pedidoEm = pedido && pedido.pedidoEmIso ? new Date(pedido.pedidoEmIso) : null;
+  const atrasado = emAndamento && pedidoEm && Date.now() - pedidoEm.getTime() > FP_PEDIDO_ATRASADO_MIN * 60000;
+  const desatualizado = atual && fpResumoDesatualizado(atual, cursos);
+  async function pedir() {
+    if (!cursos.length) {
+      setErro('Cadastre ao menos um curso ou formação antes de gerar o resumo.');
+      return;
+    }
+    if (pendente) {
+      setErro('Há um resumo novo aguardando confirmação. Use ou descarte antes de pedir outro.');
+      return;
+    }
+    setOcupado(true);
+    setErro('');
+    try {
+      await ref.set({
+        funcionarioId: funcionario.id,
+        pedido: {
+          status: 'pedido',
+          pedidoEm: firebase.firestore.FieldValue.serverTimestamp(),
+          pedidoEmIso: new Date().toISOString(),
+          pedidoPorId: usuario.id,
+          pedidoPorNome: usuario.nome || '-'
+        }
+      }, {
+        merge: true
+      });
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui enviar o pedido. Verifique a conexão.');
+    }
+    setOcupado(false);
+  }
+  async function decidir(usar) {
+    if (!pendente) return;
+    if (usar && atual && !confirm('Substituir o resumo atual por este novo? O atual fica guardado nas versões anteriores.')) return;
+    setOcupado(true);
+    setErro('');
+    try {
+      await db.runTransaction(async tx => {
+        const s = await tx.get(ref);
+        const d = s.data() || {};
+        if (!d.pendente) throw new Error('nada-pendente');
+        const versoes = [...(d.versoes || [])];
+        const quando = new Date().toISOString();
+        if (usar) {
+          if (d.atual) versoes.push({
+            ...d.atual,
+            substituidoEm: quando,
+            substituidoPorNome: usuario.nome || '-'
+          });
+          tx.update(ref, {
+            atual: {
+              ...d.pendente,
+              confirmadoEm: quando,
+              confirmadoPorNome: usuario.nome || '-'
+            },
+            pendente: firebase.firestore.FieldValue.delete(),
+            versoes
+          });
+        } else {
+          versoes.push({
+            ...d.pendente,
+            descartado: true,
+            descartadoEm: quando,
+            descartadoPorNome: usuario.nome || '-'
+          });
+          tx.update(ref, {
+            pendente: firebase.firestore.FieldValue.delete(),
+            versoes
+          });
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      if (!(err && err.message === 'nada-pendente')) setErro('Não consegui gravar a decisão. Nada foi alterado.');
+    }
+    setOcupado(false);
+  }
+  const versoes = doc && doc.versoes || [];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fp-resumo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-resumo-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo",
+    style: {
+      margin: 0
+    }
+  }, "Resumo profissional"), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, atual ? `Gerado com IA em ${fpQuando(atual.geradoEm)}${atual.cursosConsiderados ? ` · ${avPlural(atual.cursosConsiderados.length, 'curso considerado', 'cursos considerados')}` : ''}${atual.confirmadoPorNome ? ` · confirmado por ${atual.confirmadoPorNome}` : ''}` : 'Ainda não gerado.')), gestao && !consulta && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn fp-btn-ia",
+    onClick: pedir,
+    disabled: ocupado || emAndamento && !atrasado || !!pendente
+  }, "\u2728 ", atual ? 'Gerar novamente com IA' : 'Gerar resumo profissional com IA')), erroDoc && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erroDoc), gestao && emAndamento && !atrasado && /*#__PURE__*/React.createElement("div", {
+    className: "fp-aviso"
+  }, "\u23F3 Pedido enviado em ", fpQuando(pedido.pedidoEmIso), " por ", pedido.pedidoPorNome, ". A IA costuma responder em 5 a 15 minutos \u2014 pode sair desta tela; o resumo aparece aqui sozinho."), gestao && atrasado && /*#__PURE__*/React.createElement("div", {
+    className: "av-alerta"
+  }, "O pedido de ", fpQuando(pedido.pedidoEmIso), " ainda n\xE3o foi respondido. Confira no GitHub se a rotina \u201CResumo profissional com IA\u201D est\xE1 ativa e se a chave da IA foi cadastrada. Voc\xEA pode pedir de novo."), gestao && pedido && pedido.status === 'erro' && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, "N\xE3o foi poss\xEDvel gerar o resumo: ", pedido.erro || 'erro desconhecido', "."), gestao && pendente && /*#__PURE__*/React.createElement("div", {
+    className: "fp-pendente"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-pendente-cab"
+  }, /*#__PURE__*/React.createElement("strong", null, "Novo resumo gerado em ", fpQuando(pendente.geradoEm)), /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "Confira antes de usar. ", atual ? 'O resumo atual só é trocado se você confirmar.' : '')), /*#__PURE__*/React.createElement(FpTextoSecoes, {
+    secoes: pendente.secoes
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => decidir(false),
+    disabled: ocupado
+  }, atual ? 'Manter o anterior' : 'Descartar'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => decidir(true),
+    disabled: ocupado
+  }, "Usar este resumo"))), desatualizado && gestao && !consulta && /*#__PURE__*/React.createElement("div", {
+    className: "fp-aviso"
+  }, "H\xE1 cursos novos ou alterados depois deste resumo. Gere novamente para inclu\xED-los."), atual ? /*#__PURE__*/React.createElement(FpTextoSecoes, {
+    secoes: atual.secoes
+  }) : !pendente && /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, gestao ? 'Cadastre os cursos e clique em “Gerar resumo profissional com IA”.' : 'A gestão ainda não gerou o seu resumo profissional.'), atual && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica fp-aviso-ia"
+  }, "Texto gerado por IA a partir dos cursos cadastrados (os arquivos dos certificados n\xE3o s\xE3o enviados). Qualifica\xE7\xE3o n\xE3o \xE9 o mesmo que desempenho observado e n\xE3o gera nota."), gestao && !consulta && versoes.length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "fp-versoes"
+  }, /*#__PURE__*/React.createElement("summary", null, "Vers\xF5es anteriores (", versoes.length, ")"), versoes.slice().reverse().map((v, i) => /*#__PURE__*/React.createElement("details", {
+    key: i,
+    className: "fp-versao"
+  }, /*#__PURE__*/React.createElement("summary", null, fpQuando(v.geradoEm), " \u2014 ", v.descartado ? `descartada por ${v.descartadoPorNome}` : `substituída em ${fpQuando(v.substituidoEm)} por ${v.substituidoPorNome || '-'}`), /*#__PURE__*/React.createElement(FpTextoSecoes, {
+    secoes: v.secoes
+  })))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro));
+}
+
+// ---- seção completa (perfil do colaborador, Avaliação e "Minhas avaliações")
+function DesenvolvimentoProfissional({
+  funcionario,
+  usuario,
+  consulta
+}) {
+  const [cursos, carregando, erro] = useFpCursos(funcionario && funcionario.id);
+  const [modal, setModal] = useState(null); // {curso?}
+  const [vendo, setVendo] = useState(null);
+  const [cat, setCat] = useState('');
+  const [de, setDe] = useState('');
+  const [ate, setAte] = useState('');
+  const [msg, setMsg] = useState('');
+  if (!funcionario) return null;
+  const pode = !consulta && fpPodeCuidar(usuario, funcionario);
+  const filtrados = cursos.filter(c => (!cat || c.categoria === cat) && (!de || c.dataConclusao && c.dataConclusao >= de) && (!ate || c.dataConclusao && c.dataConclusao <= ate));
+  const horas = filtrados.reduce((s, c) => s + (Number(c.cargaHoraria) || 0), 0);
+  const comCert = filtrados.filter(c => c.certificado).length;
+  async function excluir(c) {
+    const motivo = prompt(`Excluir “${c.nome}”? O registro sai da lista, mas fica guardado no histórico.\n\nMotivo (opcional):`, '');
+    if (motivo === null) return;
+    try {
+      await db.collection('cursosProfissionais').doc(c.id).update({
+        status: 'excluido',
+        excluidoEm: new Date().toISOString(),
+        excluidoPorNome: usuario.nome || '-',
+        motivoExclusao: motivo.trim(),
+        historico: [...(c.historico || []), fpHist(usuario, 'excluiu o curso' + (motivo.trim() ? `: ${motivo.trim()}` : ''))]
+      });
+      setMsg('Curso excluído (continua guardado no histórico).');
+    } catch (err) {
+      console.error(err);
+      setMsg('Não consegui excluir. Verifique a conexão.');
+    }
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fp-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "fp-titulo"
+  }, "Desenvolvimento Profissional"), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Cursos, forma\xE7\xF5es e certifica\xE7\xF5es. Servem de contexto para a avalia\xE7\xE3o \u2014 ", /*#__PURE__*/React.createElement("strong", null, "n\xE3o geram nota"), ".")), pode && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => {
+      setMsg('');
+      setModal({});
+    }
+  }, "+ Adicionar curso ou forma\xE7\xE3o")), /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros fp-filtros"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: cat,
+    onChange: e => setCat(e.target.value),
+    "aria-label": "Filtrar por categoria"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todas as categorias"), FP_CATEGORIAS.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c))), /*#__PURE__*/React.createElement("label", {
+    className: "fp-periodo"
+  }, "De ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: de,
+    onChange: e => setDe(e.target.value),
+    "aria-label": "Conclu\xEDdo a partir de"
+  })), /*#__PURE__*/React.createElement("label", {
+    className: "fp-periodo"
+  }, "at\xE9 ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: ate,
+    onChange: e => setAte(e.target.value),
+    "aria-label": "Conclu\xEDdo at\xE9"
+  })), (cat || de || ate) && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => {
+      setCat('');
+      setDe('');
+      setAte('');
+    }
+  }, "Limpar filtros")), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica",
+    role: "status"
+  }, msg), carregando ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Carregando\u2026") : filtrados.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, cursos.length ? 'Nenhum curso com esses filtros.' : 'Nenhum curso ou formação cadastrado ainda.') : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "fp-totais"
+  }, avPlural(filtrados.length, 'registro', 'registros'), horas ? ` · ${fpHoras(horas)} no total` : '', " \xB7 ", comCert, " com certificado"), /*#__PURE__*/React.createElement("ul", {
+    className: "fp-lista"
+  }, filtrados.map(c => /*#__PURE__*/React.createElement("li", {
+    key: c.id,
+    className: "fp-item"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-item-data"
+  }, c.dataConclusao ? formatarDataBr(c.dataConclusao) : 'Sem data'), /*#__PURE__*/React.createElement("div", {
+    className: "fp-item-corpo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-item-nome"
+  }, c.nome), /*#__PURE__*/React.createElement("div", {
+    className: "fp-item-info"
+  }, [c.instituicao, c.categoria, fpHoras(c.cargaHoraria)].filter(Boolean).join(' · ')), c.descricao && /*#__PURE__*/React.createElement("div", {
+    className: "fp-item-desc"
+  }, c.descricao), /*#__PURE__*/React.createElement("div", {
+    className: "fp-item-rodape"
+  }, c.certificado ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "fp-selo ok",
+    onClick: () => setVendo(c.certificado),
+    title: "Ver o certificado"
+  }, "\uD83D\uDCCE Certificado anexado") : /*#__PURE__*/React.createElement("span", {
+    className: "fp-selo sem"
+  }, "Sem certificado"), !consulta && c.certificado && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => setVendo(c.certificado)
+  }, "Ver / baixar"), pode && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => {
+      setMsg('');
+      setModal({
+        curso: c
+      });
+    }
+  }, "Editar"), pode && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link fp-perigo",
+    onClick: () => excluir(c)
+  }, "Excluir"))))))), /*#__PURE__*/React.createElement(FpResumo, {
+    funcionario: funcionario,
+    usuario: usuario,
+    cursos: cursos,
+    consulta: consulta
+  }), modal && /*#__PURE__*/React.createElement(FpModalCurso, {
+    funcionario: funcionario,
+    usuario: usuario,
+    curso: modal.curso,
+    cursos: cursos,
+    aoFechar: ok => {
+      setModal(null);
+      if (ok) setMsg('✓ Salvo.');
+    }
+  }), vendo && /*#__PURE__*/React.createElement(FpVerCertificado, {
+    cert: vendo,
+    aoFechar: () => setVendo(null)
+  }));
+}
+
+// ---- aba "Formação" da Avaliação (gestão): escolhe o colaborador
+function AvFormacao({
+  usuario,
+  funcionarios
+}) {
+  const lista = (funcionarios || []).filter(f => (f.status || 'ativo') === 'ativo' && fpEhGestao(usuario, f)).sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+  const [fid, setFid] = useState('');
+  const f = lista.find(x => x.id === fid);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: fid,
+    onChange: e => setFid(e.target.value),
+    "aria-label": "Colaborador"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Escolha o colaborador\u2026"), lista.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome)))), f ? /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
+    key: f.id,
+    funcionario: f,
+    usuario: usuario
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Escolha um colaborador para ver e cadastrar cursos, forma\xE7\xF5es e o resumo profissional."));
+}
+
+// ---- dados para o PDF (seção opcional "Formação e Desenvolvimento Profissional")
+async function fpDadosParaPdf(funcionarioId) {
+  const [cs, rs] = await Promise.all([db.collection('cursosProfissionais').where('funcionarioId', '==', funcionarioId).get(), db.collection('resumosProfissionais').doc(funcionarioId).get()]);
+  const cursos = fpOrdenar(cs.docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  })).filter(c => c.status !== 'excluido'));
+  const r = rs.exists ? rs.data() : null;
+  return {
+    cursos,
+    resumo: r && r.atual ? r.atual : null
+  };
+}
 
 // ---- metas e plano de desenvolvimento
 function AvModalMeta({
@@ -8737,6 +9704,7 @@ function AvRelatorios({
   metas
 }) {
   const [filtroF, setFiltroF] = useState('');
+  const [pdfFormacao, setPdfFormacao] = useState(false);
   const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
   const ids = new Set(avaliaveis.map(x => x.id));
   const lista = avaliacoes.filter(a => ids.has(a.funcionarioId) && (!filtroF || a.funcionarioId === filtroF)).sort((a, b) => b.trimestre.localeCompare(a.trimestre) || String(a.funcionarioNome).localeCompare(String(b.funcionarioNome)));
@@ -8751,7 +9719,13 @@ function AvRelatorios({
   }, "Todos os funcion\xE1rios"), avaliaveis.map(x => /*#__PURE__*/React.createElement("option", {
     key: x.id,
     value: x.id
-  }, x.nome)))), /*#__PURE__*/React.createElement("div", {
+  }, x.nome)))), /*#__PURE__*/React.createElement("label", {
+    className: "fp-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: pdfFormacao,
+    onChange: e => setPdfFormacao(e.target.checked)
+  }), " Incluir \u201CForma\xE7\xE3o e Desenvolvimento Profissional\u201D no PDF (cursos e resumo, em se\xE7\xE3o separada das notas)"), /*#__PURE__*/React.createElement("div", {
     className: "av-dica"
   }, "O PDF oficial s\xF3 sai de avalia\xE7\xE3o aprovada. ", ehMaster(usuario) ? 'Como Master, você pode gerar uma versão preliminar (marcada como não aprovada).' : ''), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "av-vazio"
@@ -8777,11 +9751,11 @@ function AvRelatorios({
     }, a.media ? String(a.media).replace('.', ',') : '—'), /*#__PURE__*/React.createElement("td", null, aprovada ? /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn pequeno",
-      onClick: () => gerarPdfAvaliacao(avPublicacao(a, f, config, metas.filter(m => m.origemAvaliacaoId === a.id)), false)
+      onClick: () => avGerarPdf(avPublicacao(a, f, config, metas.filter(m => m.origemAvaliacaoId === a.id)), false, pdfFormacao)
     }, "Gerar PDF") : ehMaster(usuario) ? /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn secundario pequeno",
-      onClick: () => gerarPdfAvaliacao(avPublicacao(a, f, config, []), true)
+      onClick: () => avGerarPdf(avPublicacao(a, f, config, []), true, pdfFormacao)
     }, "PDF preliminar") : /*#__PURE__*/React.createElement("span", {
       className: "av-dica"
     }, "Aguardando aprova\xE7\xE3o")));
@@ -8797,6 +9771,7 @@ function AvMinhas({
   const [metas] = useAvConsulta('avaliacaoMetas', [['funcionarioId', '==', usuario.id], ['visivelFuncionario', '==', true]]);
   const [registros] = useAvConsulta('avaliacaoRegistros', [['funcionarioId', '==', usuario.id], ['status', '==', 'ativo']], config.registrosVisiveisFuncionario);
   const [aberta, setAberta] = useState(null);
+  const [pdfFormacao, setPdfFormacao] = useState(false);
   const lista = publicadas.slice().sort((a, b) => b.trimestre.localeCompare(a.trimestre));
   const p = aberta ? lista.find(x => x.id === aberta) : null;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -8826,8 +9801,14 @@ function AvMinhas({
   }, "Ver"), " ", /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn pequeno",
-    onClick: () => gerarPdfAvaliacao(a, false)
-  }, "PDF"))))))), p && /*#__PURE__*/React.createElement("div", {
+    onClick: () => avGerarPdf(a, false, pdfFormacao)
+  }, "PDF"))))))), lista.length > 0 && /*#__PURE__*/React.createElement("label", {
+    className: "fp-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: pdfFormacao,
+    onChange: e => setPdfFormacao(e.target.checked)
+  }), " Incluir meus cursos e o resumo profissional no PDF"), p && /*#__PURE__*/React.createElement("div", {
     className: "card av-minha"
   }, /*#__PURE__*/React.createElement("div", {
     className: "av-cab-avaliacao"
@@ -8867,7 +9848,12 @@ function AvMinhas({
     className: "av-lista"
   }, metas.slice().sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999')).map(m => /*#__PURE__*/React.createElement("li", {
     key: m.id
-  }, /*#__PURE__*/React.createElement("strong", null, m.descricao), " \u2014 ", m.status, m.prazo ? ` · prazo ${formatarDataBr(m.prazo)}` : '', m.criterioConclusao ? ` · concluída quando: ${m.criterioConclusao}` : ''))), config.registrosVisiveisFuncionario && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, m.descricao), " \u2014 ", m.status, m.prazo ? ` · prazo ${formatarDataBr(m.prazo)}` : '', m.criterioConclusao ? ` · concluída quando: ${m.criterioConclusao}` : ''))), /*#__PURE__*/React.createElement("div", {
+    className: "fp-minhas"
+  }, /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
+    funcionario: usuario,
+    usuario: usuario
+  })), config.registrosVisiveisFuncionario && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo"
   }, "Meus registros"), registros.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "av-vazio"
@@ -8899,7 +9885,7 @@ function AbaAvaliacoes({
   return /*#__PURE__*/React.createElement("div", {
     className: "av-modulo"
   }, /*#__PURE__*/React.createElement(AbasInternas, {
-    abas: [['painel', 'Painel'], ['historico', 'Histórico'], ['trimestrais', 'Avaliações trimestrais'], ['metas', 'Metas e PDI'], ['relatorios', 'Relatórios'], ['config', 'Critérios e configurações'], ['minhas', 'Minhas avaliações']],
+    abas: [['painel', 'Painel'], ['historico', 'Histórico'], ['trimestrais', 'Avaliações trimestrais'], ['metas', 'Metas e PDI'], ['relatorios', 'Relatórios'], ['formacao', 'Formação'], ['config', 'Critérios e configurações'], ['minhas', 'Minhas avaliações']],
     ativa: aba,
     aoMudar: setAba
   }), erroReg && /*#__PURE__*/React.createElement("div", {
@@ -8951,6 +9937,9 @@ function AbaAvaliacoes({
     avaliacoes: avaliacoes,
     config: config,
     metas: metas
+  }), aba === 'formacao' && /*#__PURE__*/React.createElement(AvFormacao, {
+    usuario: usuario,
+    funcionarios: lista
   }), aba === 'config' && /*#__PURE__*/React.createElement(AvConfiguracoes, {
     usuario: usuario,
     config: config
@@ -22536,7 +23525,7 @@ function ModalFuncionarioDetalhe({
       borderBottom: '1px solid var(--borda)',
       overflowX: 'auto'
     }
-  }, [['dados', 'Dados pessoais'], ['acesso', 'Acesso'], ['permissoes', 'Permissões'], ['historico', 'Histórico']].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [['dados', 'Dados pessoais'], ['acesso', 'Acesso'], ['permissoes', 'Permissões'], ...(fpPodeCuidar(usuarioLogado, funcionario) ? [['desenvolvimento', 'Desenvolvimento']] : []), ['historico', 'Histórico']].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
     key: id,
     type: "button",
     onClick: () => setAba(id),
@@ -22577,6 +23566,9 @@ function ModalFuncionarioDetalhe({
     funcionario: funcionario,
     usuarioLogado: usuarioLogado,
     podeEditar: podeGerenciar
+  }), aba === 'desenvolvimento' && /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
+    funcionario: funcionario,
+    usuario: usuarioLogado
   }), aba === 'historico' && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,

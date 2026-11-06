@@ -276,6 +276,66 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---------- desenvolvimento profissional (cursos, formações, certificados e resumo) ----------
+    // Cada registro pertence a um funcionário (funcionarioId). Quem pode mexer: o próprio funcionário
+    // (nos próprios cursos) e a gestão (Master e administradores; administrador não mexe nos do Master).
+    // Ninguém vê documentos de outro funcionário. Nada é apagado: excluir = marcar como excluído.
+    function gestorDe(fidAlvo) {
+      return administrador() && (master() || fidAlvo == fid()
+        || get(/databases/$(database)/documents/funcionarios/$(fidAlvo)).data.get('perfil', 'funcionario') != 'master');
+    }
+    function cuidaDe(fidAlvo) { return (ativo() && fidAlvo == fid()) || gestorDe(fidAlvo); }
+    function podeVer(fidAlvo) { return backup() || (ativo() && fidAlvo == fid()) || gestorDe(fidAlvo); }
+    match /cursosProfissionais/{id} {
+      allow write: if restauracao();
+      allow read: if podeVer(resource.data.funcionarioId);
+      allow create: if cuidaDe(request.resource.data.funcionarioId)
+        && request.resource.data.criadoPorId == fid()
+        && request.resource.data.status == 'ativo'
+        && request.resource.data.get('historico', []).size() == 0
+        && request.resource.data.nome is string && request.resource.data.nome.size() > 0;
+      // editar ou excluir: sempre uma entrada a mais no histórico; dono e criação não mudam; excluído não volta
+      allow update: if cuidaDe(resource.data.funcionarioId)
+        && resource.data.status == 'ativo'
+        && request.resource.data.status in ['ativo', 'excluido']
+        && !mudou().hasAny(['funcionarioId', 'criadoPorId', 'criadoPorNome', 'criadoEm'])
+        && request.resource.data.get('historico', []).hasAll(resource.data.get('historico', []))
+        && request.resource.data.get('historico', []).size() == resource.data.get('historico', []).size() + 1;
+      allow delete: if false;
+    }
+    // certificado: dados do arquivo em partes (certificadosPartes/<id>_<n>), cada uma com o funcionarioId
+    match /certificados/{id} {
+      allow write: if restauracao();
+      allow read: if podeVer(resource.data.funcionarioId);
+      allow create: if cuidaDe(request.resource.data.funcionarioId) && request.resource.data.enviadoPorId == fid();
+      allow update, delete: if false;
+    }
+    match /certificadosPartes/{id} {
+      allow write: if restauracao();
+      allow read: if podeVer(resource.data.funcionarioId);
+      allow create: if cuidaDe(request.resource.data.funcionarioId)
+        && request.resource.data.dados is string && request.resource.data.dados.size() <= 900000;
+      allow update, delete: if false;
+    }
+    // resumo profissional (id = funcionário): a gestão pede e confirma; a rotina do GitHub (conta do
+    // backup) só preenche o resultado. Um resumo confirmado nunca é trocado sem confirmação, e as versões
+    // anteriores ficam guardadas.
+    match /resumosProfissionais/{fidAlvo} {
+      allow write: if restauracao();
+      allow read: if podeVer(fidAlvo);
+      allow create: if gestorDe(fidAlvo) && request.resource.data.funcionarioId == fidAlvo
+        && request.resource.data.get('versoes', []).size() == 0;
+      allow update: if (gestorDe(fidAlvo)
+          && !mudou().hasAny(['funcionarioId'])
+          && request.resource.data.get('versoes', []).hasAll(resource.data.get('versoes', []))
+          && request.resource.data.get('versoes', []).size() <= resource.data.get('versoes', []).size() + 1)
+        || (backup()
+          && mudou().hasOnly(['pedido', 'pendente', 'atual'])
+          && (!('atual' in mudou()) || !('atual' in resource.data))
+          && request.resource.data.pedido.status in ['processando', 'pronto', 'erro']);
+      allow delete: if false;
+    }
+
     // ---------- configuração de segurança (Master e administradores: conta da rotina de backup) ----------
     match /seguranca/{id} {
       allow read, write: if administrador();
