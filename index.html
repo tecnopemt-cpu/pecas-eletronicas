@@ -345,6 +345,57 @@
     .acesso-btn-sec{font-size:13px;padding:6px 10px;}
   }
 
+  /* ---- Avaliação: navegação por colaborador (Equipe → Colaborador → Funcionalidade) ---- */
+  .av-barra-modulo{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--borda);}
+  .av-atalhos{display:flex;gap:6px;flex-wrap:wrap;}
+  .av-atalho{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;border:1px solid var(--borda);background:var(--card);color:var(--texto);font:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+  .av-atalho.ativo{border-color:var(--laranja);color:var(--laranja-escuro);background:var(--laranja-bg);}
+  .av-voltar{display:inline-flex;align-items:center;gap:4px;padding:7px 12px 7px 8px;border-radius:999px;border:1px solid var(--borda);background:var(--card);color:var(--texto);font:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+  .av-voltar:hover,.av-atalho:hover{border-color:var(--laranja);}
+  .av-card-clicavel{font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%;}
+  .av-card-clicavel:hover{border-color:var(--laranja);box-shadow:0 6px 18px rgba(69,59,60,.12);transform:translateY(-1px);}
+  .av-card-clicavel:focus-visible,.av-opcao:focus-visible{outline:3px solid rgba(233,115,7,.4);outline-offset:2px;}
+  .av-card-abrir{font-size:13px;font-weight:700;color:var(--laranja-escuro);}
+  .av-perfil-cab{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:16px;border:1px solid var(--borda);border-radius:14px;background:var(--card);margin-bottom:16px;}
+  .av-perfil-nome{font-size:19px;}
+  .av-perfil-situacao{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .av-opcoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+  .av-opcao{display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;border:1px solid var(--borda);background:var(--card);font:inherit;color:inherit;text-align:left;cursor:pointer;min-height:76px;transition:border-color .15s ease,box-shadow .15s ease;}
+  .av-opcao:hover{border-color:var(--laranja);box-shadow:0 6px 18px rgba(69,59,60,.1);}
+  .av-opcao-icone{flex:0 0 46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:#EEF3F9;}
+  .av-opcao-txt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .av-opcao-txt strong{font-size:15px;}
+  .av-opcao-txt span{font-size:12.5px;color:var(--texto-fraco);}
+  .av-opcao-seta{font-size:22px;color:var(--laranja);}
+  .av-secao-cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .av-secao-cab h3{margin:0;font-size:18px;}
+  .av-visao{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:12px;}
+  .av-visao-item{display:flex;flex-direction:column;gap:3px;padding:14px;border-radius:12px;border:1px solid var(--borda);background:var(--card);font:inherit;color:inherit;text-align:left;cursor:pointer;}
+  .av-visao-item:disabled{cursor:default;opacity:1;}
+  .av-visao-item:not(:disabled):hover{border-color:var(--laranja);}
+  .av-visao-item span{font-size:12px;color:var(--texto-fraco);}
+  .av-visao-item strong{font-size:18px;}
+  .av-visao-item em{font-style:normal;font-size:12px;color:var(--texto-fraco);}
+  .av-linha-destaque td{background:var(--laranja-bg);}
+  .av-evolucao{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;}
+  .av-evolucao-linha{display:grid;grid-template-columns:170px 1fr 110px 90px;align-items:center;gap:10px;font-size:13px;}
+  .av-evolucao-barra{margin:0;}
+  .av-evolucao-nota{font-weight:700;}
+  .av-alertas{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13.5px;}
+  @media (max-width:640px){
+    .av-barra-modulo{gap:8px;}
+    .av-atalho{padding:8px 10px;}
+    .av-atalho-txt{display:none;}
+    .av-atalho span[aria-hidden]{font-size:17px;}
+    .av-perfil-cab{padding:12px;}
+    .av-perfil-situacao{width:100%;}
+    .av-opcoes{grid-template-columns:1fr;gap:8px;}
+    .av-opcao{padding:12px;min-height:64px;}
+    .av-visao{grid-template-columns:1fr 1fr;}
+    .av-evolucao-linha{grid-template-columns:1fr auto;}
+    .av-evolucao-barra{grid-column:1 / -1;order:3;}
+  }
+
   /* ---- Desenvolvimento profissional (cursos, certificados, resumo com IA) ---- */
   .fp-secao{display:flex;flex-direction:column;gap:10px;}
   .fp-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
@@ -6679,14 +6730,17 @@ function AvModalRegistro({
     disabled: salvando
   }, salvando ? 'Salvando…' : 'Salvar correção'))));
 }
+
+// fixoId: dentro do perfil de um colaborador (lista só dele, sem o seletor de funcionário)
 function AvHistorico({
   usuario,
   funcionarios,
   config,
-  registros
+  registros,
+  fixoId
 }) {
   const [filtro, setFiltro] = useState({
-    funcionarioId: '',
+    funcionarioId: fixoId || '',
     de: '',
     ate: '',
     categoria: '',
@@ -6745,7 +6799,7 @@ function AvHistorico({
   const registroAberto = aberto ? todos.find(r => r.id === aberto) : null;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "av-filtros"
-  }, /*#__PURE__*/React.createElement("select", {
+  }, !fixoId && /*#__PURE__*/React.createElement("select", {
     value: filtro.funcionarioId,
     onChange: e => set('funcionarioId', e.target.value),
     "aria-label": "Funcion\xE1rio"
@@ -7740,6 +7794,32 @@ function AvEditorAvaliacao({
     aoFechar: () => setVerRegistro(null)
   })));
 }
+
+// gera a avaliação preliminar (rascunho) a partir dos registros — nunca duplica (id = funcionário_trimestre)
+async function avGerarAvaliacao(f, tri, usuario, registros, metas, config) {
+  const id = avIdAvaliacao(f.id, tri);
+  const refDoc = db.collection('avaliacoesTrimestrais').doc(id);
+  const existe = await refDoc.get();
+  if (existe.exists) return id;
+  const g = avGerarRascunho(f.id, tri, registros, metas, config);
+  await refDoc.set({
+    funcionarioId: f.id,
+    funcionarioNome: f.nome,
+    trimestre: tri,
+    status: 'rascunho',
+    geradoEm: new Date().toISOString(),
+    geradoPorNome: usuario.nome || '-',
+    ...g,
+    comentariosAvaliador: '',
+    historico: [{
+      em: new Date().toISOString(),
+      porNome: usuario.nome || '-',
+      texto: 'gerou a avaliação preliminar a partir dos registros'
+    }],
+    versoes: []
+  });
+  return id;
+}
 function AvTrimestrais({
   usuario,
   funcionarios,
@@ -7765,32 +7845,7 @@ function AvTrimestrais({
     setGerando(f.id);
     setErro('');
     try {
-      const id = avIdAvaliacao(f.id, tri);
-      const refDoc = db.collection('avaliacoesTrimestrais').doc(id);
-      const existe = await refDoc.get();
-      if (existe.exists) {
-        setAberta(id);
-        setGerando('');
-        return;
-      } // nunca duplica
-      const g = avGerarRascunho(f.id, tri, registros, metas, config);
-      await refDoc.set({
-        funcionarioId: f.id,
-        funcionarioNome: f.nome,
-        trimestre: tri,
-        status: 'rascunho',
-        geradoEm: new Date().toISOString(),
-        geradoPorNome: usuario.nome || '-',
-        ...g,
-        comentariosAvaliador: '',
-        historico: [{
-          em: new Date().toISOString(),
-          porNome: usuario.nome || '-',
-          texto: 'gerou a avaliação preliminar a partir dos registros'
-        }],
-        versoes: []
-      });
-      setAberta(id);
+      setAberta(await avGerarAvaliacao(f, tri, usuario, registros, metas, config));
     } catch (err) {
       console.error(err);
       setErro('Não consegui gerar a avaliação. Verifique a conexão.');
@@ -7918,376 +7973,6 @@ function AvAvatar({
     },
     "aria-hidden": "true"
   }, txt);
-}
-// detalhes de quem ainda não tem avaliação no trimestre (dados reais: registros e metas; nada é criado)
-function AvResumoColaborador({
-  f,
-  tri,
-  registros,
-  metas,
-  config,
-  avaliacao,
-  aoFechar,
-  aoIrTrimestrais,
-  aoRegistrar
-}) {
-  const {
-    inicio,
-    fim
-  } = avLimites(tri);
-  const rs = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim).sort((a, b) => b.dataOcorrido.localeCompare(a.dataOcorrido));
-  const ms = metas.filter(m => m.funcionarioId === f.id && ['Não iniciada', 'Em andamento'].includes(m.status));
-  const [verRegistro, setVerRegistro] = useState(null);
-  const [ocAberta, setOcAberta] = useState(null);
-  const ocs = avOcorrenciasNoPeriodo(useAvOcorrencias(), f.id, inicio, fim, true);
-  return /*#__PURE__*/React.createElement("div", {
-    className: "modal-fundo",
-    onClick: e => e.target === e.currentTarget && aoFechar()
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "modal av-modal-registro"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-cab-avaliacao"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-card-pessoa"
-  }, /*#__PURE__*/React.createElement(AvAvatar, {
-    f: f,
-    tamanho: 44
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      margin: 0
-    }
-  }, f.nome), /*#__PURE__*/React.createElement("div", {
-    className: "av-sub"
-  }, f.cargo || 'Cargo não informado', " \xB7 ", avRotuloTri(tri)))), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario pequeno",
-    onClick: aoFechar
-  }, "Fechar")), /*#__PURE__*/React.createElement("div", {
-    className: "av-alerta"
-  }, avaliacao ? `Avaliação ${AV_STATUS[avaliacao.status].toLowerCase()} — a nota aparece quando for aprovada.` : 'Ainda sem avaliação neste trimestre.'), /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo"
-  }, "Registros do trimestre (", rs.length, ")"), rs.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio-pequeno"
-  }, "Nenhum registro no per\xEDodo.") : /*#__PURE__*/React.createElement("ul", {
-    className: "av-lista av-lista-registros"
-  }, rs.map(r => {
-    const t = avTipo(config, r.tipoId);
-    return /*#__PURE__*/React.createElement("li", {
-      key: r.id
-    }, /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "av-link-texto",
-      onClick: () => setVerRegistro(r)
-    }, /*#__PURE__*/React.createElement("span", {
-      className: `av-chip-tipo s${t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : 'z'}`
-    }, r.tipoNome || t.nome), " ", formatarDataBr(r.dataOcorrido), " \u2014 ", r.descricao));
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo"
-  }, "Pontualidade e frequ\xEAncia (Comiss\xE3o)"), /*#__PURE__*/React.createElement("div", {
-    className: "av-oc-cab"
-  }, /*#__PURE__*/React.createElement(AvResumoOcorrencias, {
-    c: avContarOcorrencias(ocs)
-  })), /*#__PURE__*/React.createElement(AvListaOcorrencias, {
-    lista: ocs,
-    aoAbrir: setOcAberta
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo"
-  }, "Metas em andamento (", ms.length, ")"), ms.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio-pequeno"
-  }, "Nenhuma meta em andamento.") : /*#__PURE__*/React.createElement("ul", {
-    className: "av-lista"
-  }, ms.map(m => /*#__PURE__*/React.createElement("li", {
-    key: m.id
-  }, m.descricao, m.prazo ? ` — prazo ${formatarDataBr(m.prazo)}` : '', avMetaAtrasada(m) ? /*#__PURE__*/React.createElement("span", {
-    className: "av-atrasada"
-  }, " atrasada") : ''))), /*#__PURE__*/React.createElement("div", {
-    className: "av-acoes"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: () => aoRegistrar({
-      funcionarioId: f.id
-    })
-  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn",
-    onClick: aoIrTrimestrais
-  }, avaliacao ? 'Abrir avaliação' : 'Ir para Avaliações trimestrais')), ocAberta && /*#__PURE__*/React.createElement(AvModalOcorrencia, {
-    o: ocAberta,
-    nomeFuncionario: f.nome,
-    aoFechar: () => setOcAberta(null)
-  }), verRegistro && /*#__PURE__*/React.createElement(AvModalRegistro, {
-    registro: verRegistro,
-    usuario: {
-      perfil: 'somenteLeitura'
-    },
-    funcionarios: [f],
-    config: config,
-    aoFechar: () => setVerRegistro(null)
-  })));
-}
-function AvPainel({
-  usuario,
-  funcionarios,
-  registros,
-  avaliacoes,
-  metas,
-  config,
-  aoRegistrar,
-  aoIr,
-  aoNovaMeta
-}) {
-  const tris = avTrimestresRecentes(6);
-  // padrão: o trimestre que está sendo avaliado (o anterior ao atual)
-  const [tri, setTri] = useState(() => tris[1]);
-  const [busca, setBusca] = useState('');
-  const [filtro, setFiltro] = useState('todos');
-  const [aberto, setAberto] = useState(null);
-  const {
-    inicio,
-    fim
-  } = avLimites(tri);
-  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
-  const sentido = r => avTipo(config, r.tipoId).sentido || r.sentido || '0';
-  const ocorrencias = useAvOcorrencias();
-  const cartoes = avaliaveis.map(f => {
-    const a = avaliacoes.find(x => x.id === avIdAvaliacao(f.id, tri));
-    const rs = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim);
-    const nota = avNotaDe(a, config);
-    const avaliado = !!a && (a.status === 'aprovada' || a.status === 'feedback');
-    const oc = avContarOcorrencias(avOcorrenciasNoPeriodo(ocorrencias, f.id, inicio, fim));
-    return {
-      f,
-      a,
-      nota,
-      avaliado,
-      oc,
-      pos: rs.filter(r => sentido(r) === '+').length,
-      neg: rs.filter(r => sentido(r) === '-').length
-    };
-  });
-  const avaliados = cartoes.filter(c => c.avaliado);
-  const ocEquipe = cartoes.reduce((t, c) => ({
-    faltas: t.faltas + c.oc.faltas,
-    atrasos: t.atrasos + c.oc.atrasos
-  }), {
-    faltas: 0,
-    atrasos: 0
-  });
-  const comNota = avaliados.filter(c => c.nota != null);
-  const mediaEquipe = comNota.length ? comNota.reduce((s, c) => s + c.nota, 0) / comNota.length : null;
-  const termo = avSemAcento(busca.trim());
-  const visiveis = cartoes.filter(c => (!termo || avSemAcento(`${c.f.nome} ${c.f.cargo || ''}`).includes(termo)) && (filtro === 'todos' || (filtro === 'avaliados' ? c.avaliado : !c.avaliado)));
-  const hoje = avHoje();
-  const atrasadas = metas.filter(m => avaliaveis.some(f => f.id === m.funcionarioId) && avMetaAtrasada(m)).length;
-  const semFeedback = avaliacoes.filter(a => a.status === 'aprovada' && avaliaveis.some(f => f.id === a.funcionarioId)).length;
-  const abertoC = aberto ? cartoes.find(c => c.f.id === aberto) : null;
-  const Resumo = ({
-    icone,
-    cls,
-    valor,
-    rotulo
-  }) => /*#__PURE__*/React.createElement("div", {
-    className: "av-resumo-card"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: `av-resumo-icone ${cls}`,
-    "aria-hidden": "true"
-  }, icone), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, valor), /*#__PURE__*/React.createElement("span", null, rotulo)));
-  return /*#__PURE__*/React.createElement("div", {
-    className: "av-painel"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-painel-cab"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
-    className: "av-painel-titulo"
-  }, /*#__PURE__*/React.createElement("span", {
-    "aria-hidden": "true"
-  }, "\u2605"), " Avalia\xE7\xE3o de Desempenho"), /*#__PURE__*/React.createElement("div", {
-    className: "av-sub"
-  }, avRotuloTri(tri), " \xB7 ", formatarDataBr(inicio), " a ", formatarDataBr(fim), tri === tris[0] ? ' (em andamento)' : '')), /*#__PURE__*/React.createElement("select", {
-    className: "av-select-tri",
-    value: tri,
-    onChange: e => setTri(e.target.value),
-    "aria-label": "Trimestre"
-  }, tris.map(t => /*#__PURE__*/React.createElement("option", {
-    key: t,
-    value: t
-  }, avRotuloTri(t), t === tris[0] ? ' (em andamento)' : '')))), /*#__PURE__*/React.createElement("div", {
-    className: "av-botoes-rapidos"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn",
-    onClick: () => aoRegistrar({})
-  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn av-btn-voz",
-    onClick: () => aoRegistrar({
-      voz: true
-    })
-  }, "\uD83C\uDFA4 Registrar por voz"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: () => aoIr('trimestrais')
-  }, "Avalia\xE7\xF5es trimestrais"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: () => aoIr('metas')
-  }, "Metas")), /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo av-titulo-grande"
-  }, "Desempenho da equipe"), /*#__PURE__*/React.createElement("div", {
-    className: "av-resumo"
-  }, /*#__PURE__*/React.createElement(Resumo, {
-    icone: "\uD83D\uDC64",
-    cls: "azul",
-    valor: avaliaveis.length,
-    rotulo: "colaboradores"
-  }), /*#__PURE__*/React.createElement(Resumo, {
-    icone: "\u2713",
-    cls: "verde",
-    valor: avaliados.length,
-    rotulo: "avaliados"
-  }), /*#__PURE__*/React.createElement(Resumo, {
-    icone: "\u25F7",
-    cls: "laranja",
-    valor: avaliaveis.length - avaliados.length,
-    rotulo: "pendentes"
-  }), /*#__PURE__*/React.createElement(Resumo, {
-    icone: "\u2605",
-    cls: "estrela",
-    valor: mediaEquipe == null ? '—' : `${avNum1(mediaEquipe)}/5`,
-    rotulo: mediaEquipe == null ? 'média da equipe (sem avaliações)' : `média da equipe (${comNota.length} avaliado${comNota.length > 1 ? 's' : ''})`
-  }), /*#__PURE__*/React.createElement(Resumo, {
-    icone: "\u23F1",
-    cls: "pontualidade",
-    valor: `${ocEquipe.faltas} · ${ocEquipe.atrasos}`,
-    rotulo: `${ocEquipe.faltas === 1 ? 'falta' : 'faltas'} · ${ocEquipe.atrasos === 1 ? 'atraso' : 'atrasos'} no trimestre (Comissão)`
-  })), (atrasadas > 0 || semFeedback > 0) && /*#__PURE__*/React.createElement("div", {
-    className: "av-atencao"
-  }, atrasadas > 0 && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "av-chip-atencao",
-    onClick: () => aoIr('metas')
-  }, "\u26A0 ", atrasadas, " meta", atrasadas > 1 ? 's' : '', " atrasada", atrasadas > 1 ? 's' : ''), semFeedback > 0 && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "av-chip-atencao",
-    onClick: () => aoIr('trimestrais')
-  }, "\uD83D\uDCAC ", semFeedback, " aprovada", semFeedback > 1 ? 's' : '', " aguardando feedback")), /*#__PURE__*/React.createElement("div", {
-    className: "av-filtros av-filtros-painel"
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "search",
-    value: busca,
-    onChange: e => setBusca(e.target.value),
-    placeholder: "Buscar por nome ou cargo\u2026",
-    "aria-label": "Buscar colaborador"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-chips-filtro",
-    role: "group",
-    "aria-label": "Filtrar por status"
-  }, [['todos', `Todos (${cartoes.length})`], ['avaliados', `Avaliados (${avaliados.length})`], ['pendentes', `Pendentes (${cartoes.length - avaliados.length})`]].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
-    key: k,
-    type: "button",
-    className: `av-chip ${filtro === k ? 'ativo' : ''}`,
-    onClick: () => setFiltro(k)
-  }, n)))), visiveis.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio"
-  }, cartoes.length ? 'Ninguém encontrado com essa busca.' : 'Nenhum colaborador para avaliar.') : /*#__PURE__*/React.createElement("div", {
-    className: "av-grade"
-  }, visiveis.map(({
-    f,
-    a,
-    nota,
-    avaliado,
-    pos,
-    neg,
-    oc
-  }) => /*#__PURE__*/React.createElement("div", {
-    key: f.id,
-    className: `av-card ${avaliado ? 'avaliado' : 'pendente'}`,
-    "data-funcionario": f.id
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-card-topo"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-card-pessoa"
-  }, /*#__PURE__*/React.createElement(AvAvatar, {
-    f: f
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-card-nome"
-  }, /*#__PURE__*/React.createElement("strong", null, f.nome), /*#__PURE__*/React.createElement("span", null, f.cargo || 'Cargo não informado'))), /*#__PURE__*/React.createElement("span", {
-    className: `av-selo ${avaliado ? 'avaliado' : 'pendente'}`,
-    title: a && !avaliado ? AV_STATUS[a.status] : ''
-  }, avaliado ? '✓ Avaliado' : '◷ Pendente')), /*#__PURE__*/React.createElement("div", {
-    className: "av-card-nota"
-  }, nota != null ? /*#__PURE__*/React.createElement("span", {
-    className: "av-nota"
-  }, /*#__PURE__*/React.createElement("strong", null, avNum1(nota)), "/5") : /*#__PURE__*/React.createElement("span", {
-    className: "av-nota sem"
-  }, avaliado ? 'Aprovada sem nota' : 'Sem avaliação'), /*#__PURE__*/React.createElement(AvEstrelas, {
-    nota: nota
-  })), a && !avaliado && /*#__PURE__*/React.createElement("div", {
-    className: "av-card-status"
-  }, AV_STATUS[a.status]), /*#__PURE__*/React.createElement("div", {
-    className: "av-barra",
-    role: "progressbar",
-    "aria-valuemin": 0,
-    "aria-valuemax": 5,
-    "aria-valuenow": nota || 0,
-    "aria-label": "Desempenho"
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: `${nota ? nota / 5 * 100 : 0}%`
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "av-card-oc",
-    title: "Faltas e atrasos registrados na Comiss\xE3o (n\xE3o alteram a nota)"
-  }, /*#__PURE__*/React.createElement(AvResumoOcorrencias, {
-    c: oc,
-    compacto: true
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "av-card-pontos"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    className: "av-ponto pos",
-    "aria-hidden": "true"
-  }, "\u2191"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Pontos positivos"), /*#__PURE__*/React.createElement("strong", null, pos))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    className: "av-ponto neg",
-    "aria-hidden": "true"
-  }, "\u2212"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Pontos a melhorar"), /*#__PURE__*/React.createElement("strong", null, neg)))), /*#__PURE__*/React.createElement("div", {
-    className: "av-card-rodape"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "av-link",
-    onClick: () => aoRegistrar({
-      funcionarioId: f.id
-    })
-  }, "+ Registro"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario pequeno av-ver",
-    onClick: () => setAberto(f.id)
-  }, "Ver avalia\xE7\xE3o \u203A"))))), abertoC && abertoC.a && (abertoC.avaliado || abertoC.a.status === 'rascunho' || abertoC.a.status === 'em_revisao') ? /*#__PURE__*/React.createElement(AvEditorAvaliacao, {
-    key: abertoC.a.id + abertoC.a.status + (abertoC.a.versoes || []).length,
-    avaliacao: abertoC.a,
-    funcionario: abertoC.f,
-    usuario: usuario,
-    config: config,
-    registros: registros,
-    metas: metas,
-    aoFechar: () => setAberto(null),
-    aoNovaMeta: aoNovaMeta
-  }) : abertoC && /*#__PURE__*/React.createElement(AvResumoColaborador, {
-    f: abertoC.f,
-    tri: tri,
-    registros: registros,
-    metas: metas,
-    config: config,
-    avaliacao: abertoC.a,
-    aoFechar: () => setAberto(null),
-    aoIrTrimestrais: () => {
-      setAberto(null);
-      aoIr('trimestrais');
-    },
-    aoRegistrar: o => {
-      setAberto(null);
-      aoRegistrar(o);
-    }
-  }));
 }
 // ======================= DESENVOLVIMENTO PROFISSIONAL (cursos, formações, certificados, resumo profissional) =======================
 // Cada curso é um registro em cursosProfissionais (ligado ao funcionário pelo funcionarioId). O certificado
@@ -9199,34 +8884,6 @@ function DesenvolvimentoProfissional({
   }));
 }
 
-// ---- aba "Formação" da Avaliação (gestão): escolhe o colaborador
-function AvFormacao({
-  usuario,
-  funcionarios
-}) {
-  const lista = (funcionarios || []).filter(f => (f.status || 'ativo') === 'ativo' && fpEhGestao(usuario, f)).sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
-  const [fid, setFid] = useState('');
-  const f = lista.find(x => x.id === fid);
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "av-filtros"
-  }, /*#__PURE__*/React.createElement("select", {
-    value: fid,
-    onChange: e => setFid(e.target.value),
-    "aria-label": "Colaborador"
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Escolha o colaborador\u2026"), lista.map(x => /*#__PURE__*/React.createElement("option", {
-    key: x.id,
-    value: x.id
-  }, x.nome)))), f ? /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
-    key: f.id,
-    funcionario: f,
-    usuario: usuario
-  }) : /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio"
-  }, "Escolha um colaborador para ver e cadastrar cursos, forma\xE7\xF5es e o resumo profissional."));
-}
-
 // ---- dados para o PDF (seção opcional "Formação e Desenvolvimento Profissional")
 async function fpDadosParaPdf(funcionarioId) {
   const [cs, rs] = await Promise.all([db.collection('cursosProfissionais').where('funcionarioId', '==', funcionarioId).get(), db.collection('resumosProfissionais').doc(funcionarioId).get()]);
@@ -9483,9 +9140,10 @@ function AvMetas({
   funcionarios,
   registros,
   metas,
-  aoNovaMeta
+  aoNovaMeta,
+  fixoId
 }) {
-  const [filtroF, setFiltroF] = useState('');
+  const [filtroF, setFiltroF] = useState(fixoId || '');
   const [filtroS, setFiltroS] = useState('abertas');
   const [aberta, setAberta] = useState(null);
   const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
@@ -9494,7 +9152,7 @@ function AvMetas({
   const metaAberta = aberta ? metas.find(m => m.id === aberta) : null;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "av-filtros"
-  }, /*#__PURE__*/React.createElement("select", {
+  }, !fixoId && /*#__PURE__*/React.createElement("select", {
     value: filtroF,
     onChange: e => setFiltroF(e.target.value),
     "aria-label": "Funcion\xE1rio"
@@ -9519,7 +9177,9 @@ function AvMetas({
   }, s))), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn pequeno",
-    onClick: () => aoNovaMeta({})
+    onClick: () => aoNovaMeta(fixoId ? {
+      funcionarioId: fixoId
+    } : {})
   }, "+ Nova meta")), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "av-vazio"
   }, "Nenhuma meta com esses filtros.") : /*#__PURE__*/React.createElement("div", {
@@ -9798,14 +9458,15 @@ function AvRelatorios({
   funcionarios,
   avaliacoes,
   config,
-  metas
+  metas,
+  fixoId
 }) {
-  const [filtroF, setFiltroF] = useState('');
+  const [filtroF, setFiltroF] = useState(fixoId || '');
   const [pdfFormacao, setPdfFormacao] = useState(false);
   const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
   const ids = new Set(avaliaveis.map(x => x.id));
   const lista = avaliacoes.filter(a => ids.has(a.funcionarioId) && (!filtroF || a.funcionarioId === filtroF)).sort((a, b) => b.trimestre.localeCompare(a.trimestre) || String(a.funcionarioNome).localeCompare(String(b.funcionarioNome)));
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", null, !fixoId && /*#__PURE__*/React.createElement("div", {
     className: "av-filtros"
   }, /*#__PURE__*/React.createElement("select", {
     value: filtroF,
@@ -9960,6 +9621,749 @@ function AvMinhas({
     key: r.id
   }, formatarDataBr(r.dataOcorrido), " \xB7 ", r.tipoNome, " \xB7 ", r.categoria, ": ", r.descricao)))));
 }
+
+// ======================= NAVEGAÇÃO POR COLABORADOR =======================
+// EQUIPE → COLABORADOR → FUNCIONALIDADE. Só reorganiza as telas que já existiam (registros, avaliações,
+// metas, cursos, relatórios): os dados, as coleções e as regras de acesso são os mesmos.
+// Painel da equipe, relatórios gerais, configurações e "Minhas avaliações" ficam em botões discretos no topo.
+const AV_SECOES_PERFIL = [['visao', '📋', 'Visão geral', 'Situação, média e o período atual'], ['registros', '📝', 'Registros diários', 'Observações do dia a dia, por texto ou voz'], ['avaliacoes', '⭐', 'Avaliações trimestrais', 'Gerar, revisar e aprovar'], ['metas', '🎯', 'Metas e PDI', 'Objetivos, compromissos e desenvolvimento'], ['cursos', '🎓', 'Cursos e formação', 'Cursos, certificados e resumo profissional'], ['relatorios', '📄', 'Relatórios', 'PDFs das avaliações'], ['historico', '📈', 'Histórico', 'Evolução ao longo dos trimestres']];
+function avTopo() {
+  try {
+    const el = document.querySelector('.av-modulo');
+    if (el && el.scrollIntoView) el.scrollIntoView({
+      block: 'start'
+    });
+  } catch (e) {}
+}
+// situação de um colaborador num trimestre (mesmos cálculos do antigo painel)
+function avSituacao(f, tri, avaliacoes, registros, config, ocorrencias) {
+  const {
+    inicio,
+    fim
+  } = avLimites(tri);
+  const a = avaliacoes.find(x => x.id === avIdAvaliacao(f.id, tri));
+  const rs = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim);
+  const sentido = r => avTipo(config, r.tipoId).sentido || r.sentido || '0';
+  const avaliado = !!a && (a.status === 'aprovada' || a.status === 'feedback');
+  const status = a ? a.status : tri === avTrimestreDe(avHoje()) ? 'em_formacao' : 'aguardando';
+  return {
+    f,
+    a,
+    avaliado,
+    status,
+    nota: avNotaDe(a, config),
+    registros: rs,
+    pos: rs.filter(r => sentido(r) === '+').length,
+    neg: rs.filter(r => sentido(r) === '-').length,
+    oc: avContarOcorrencias(avOcorrenciasNoPeriodo(ocorrencias, f.id, inicio, fim))
+  };
+}
+function avMediaAnteriores(fid, avaliacoes, config) {
+  const notas = avaliacoes.filter(a => a.funcionarioId === fid).map(a => avNotaDe(a, config)).filter(n => n != null);
+  return notas.length ? {
+    media: notas.reduce((s, n) => s + n, 0) / notas.length,
+    qtd: notas.length
+  } : null;
+}
+function AvSeloSituacao({
+  s
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    className: `av-selo ${s.avaliado ? 'avaliado' : 'pendente'}`
+  }, s.avaliado ? '✓ Avaliado' : s.a ? `◷ ${AV_STATUS[s.status]}` : '◷ Pendente');
+}
+function AvSeletorTri({
+  tri,
+  setTri
+}) {
+  const tris = avTrimestresRecentes(6);
+  return /*#__PURE__*/React.createElement("select", {
+    className: "av-select-tri",
+    value: tri,
+    onChange: e => setTri(e.target.value),
+    "aria-label": "Trimestre"
+  }, tris.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t,
+    value: t
+  }, avRotuloTri(t), t === tris[0] ? ' (em andamento)' : '')));
+}
+
+// ---- barra do módulo: voltar + atalhos discretos (sem fileira de abas)
+function AvBarraModulo({
+  tela,
+  aoIr
+}) {
+  const naEquipe = tela.nome === 'equipe';
+  const atalho = (nome, icone, rotulo) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `av-atalho ${tela.nome === nome ? 'ativo' : ''}`,
+    onClick: () => aoIr({
+      nome
+    }),
+    title: rotulo,
+    "aria-label": rotulo
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true"
+  }, icone), /*#__PURE__*/React.createElement("span", {
+    className: "av-atalho-txt"
+  }, rotulo));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-barra-modulo"
+  }, naEquipe ? /*#__PURE__*/React.createElement("h2", {
+    className: "av-painel-titulo"
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true"
+  }, "\u2605"), " Avalia\xE7\xE3o de Desempenho") : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-voltar",
+    onClick: () => aoIr({
+      nome: 'equipe'
+    })
+  }, "\u2039 Equipe"), /*#__PURE__*/React.createElement("div", {
+    className: "av-atalhos"
+  }, atalho('painel', '📊', 'Painel da equipe'), atalho('relatorios', '📄', 'Relatórios gerais'), atalho('minhas', '👤', 'Minhas avaliações'), atalho('config', '⚙️', 'Configurações')));
+}
+
+// ---- 1. tela principal: cartões da equipe
+function AvEquipe({
+  usuario,
+  funcionarios,
+  registros,
+  avaliacoes,
+  config,
+  tri,
+  setTri,
+  aoAbrir
+}) {
+  const [busca, setBusca] = useState('');
+  const [filtro, setFiltro] = useState('todos');
+  const ocorrencias = useAvOcorrencias();
+  const {
+    inicio,
+    fim
+  } = avLimites(tri);
+  const cartoes = avFuncionariosAvaliaveis(usuario, funcionarios).map(f => avSituacao(f, tri, avaliacoes, registros, config, ocorrencias));
+  const avaliados = cartoes.filter(c => c.avaliado).length;
+  const termo = avSemAcento(busca.trim());
+  const visiveis = cartoes.filter(c => (!termo || avSemAcento(`${c.f.nome} ${c.f.cargo || ''}`).includes(termo)) && (filtro === 'todos' || (filtro === 'avaliados' ? c.avaliado : !c.avaliado)));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-equipe"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-painel-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo av-titulo-grande",
+    style: {
+      margin: 0
+    }
+  }, "Equipe"), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, avRotuloTri(tri), " \xB7 ", formatarDataBr(inicio), " a ", formatarDataBr(fim))), /*#__PURE__*/React.createElement(AvSeletorTri, {
+    tri: tri,
+    setTri: setTri
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros av-filtros-painel"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "search",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    placeholder: "Buscar por nome ou cargo\u2026",
+    "aria-label": "Buscar colaborador"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro",
+    role: "group",
+    "aria-label": "Filtrar por situa\xE7\xE3o"
+  }, [['todos', `Todos (${cartoes.length})`], ['avaliados', `Avaliados (${avaliados})`], ['pendentes', `Pendentes (${cartoes.length - avaliados})`]].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `av-chip ${filtro === k ? 'ativo' : ''}`,
+    onClick: () => setFiltro(k)
+  }, n)))), visiveis.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, cartoes.length ? 'Ninguém encontrado com essa busca.' : 'Nenhum colaborador para avaliar.') : /*#__PURE__*/React.createElement("div", {
+    className: "av-grade"
+  }, visiveis.map(c => /*#__PURE__*/React.createElement("button", {
+    key: c.f.id,
+    type: "button",
+    className: `av-card av-card-clicavel ${c.avaliado ? 'avaliado' : 'pendente'}`,
+    "data-funcionario": c.f.id,
+    onClick: () => aoAbrir(c.f.id),
+    "aria-label": `Abrir o perfil de ${c.f.nome}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-topo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pessoa"
+  }, /*#__PURE__*/React.createElement(AvAvatar, {
+    f: c.f
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-nome"
+  }, /*#__PURE__*/React.createElement("strong", null, c.f.nome), /*#__PURE__*/React.createElement("span", null, c.f.cargo || 'Cargo não informado'))), /*#__PURE__*/React.createElement(AvSeloSituacao, {
+    s: c
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-nota"
+  }, c.nota != null ? /*#__PURE__*/React.createElement("span", {
+    className: "av-nota"
+  }, /*#__PURE__*/React.createElement("strong", null, avNum1(c.nota)), "/5") : /*#__PURE__*/React.createElement("span", {
+    className: "av-nota sem"
+  }, c.avaliado ? 'Aprovada sem nota' : 'Sem avaliação'), /*#__PURE__*/React.createElement(AvEstrelas, {
+    nota: c.nota
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-barra",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: `${c.nota ? c.nota / 5 * 100 : 0}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-oc",
+    title: "Faltas e atrasos registrados na Comiss\xE3o (n\xE3o alteram a nota)"
+  }, /*#__PURE__*/React.createElement(AvResumoOcorrencias, {
+    c: c.oc,
+    compacto: true
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pontos"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "av-ponto pos",
+    "aria-hidden": "true"
+  }, "\u2191"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Pontos positivos"), /*#__PURE__*/React.createElement("strong", null, c.pos))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "av-ponto neg",
+    "aria-hidden": "true"
+  }, "\u2212"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Pontos a melhorar"), /*#__PURE__*/React.createElement("strong", null, c.neg)))), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-rodape"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, avPlural(c.registros.length, 'registro', 'registros'), " no trimestre"), /*#__PURE__*/React.createElement("span", {
+    className: "av-card-abrir"
+  }, "Abrir perfil \u203A"))))));
+}
+
+// ---- 2. perfil individual
+function AvPerfilColaborador({
+  f,
+  usuario,
+  funcionarios,
+  registros,
+  avaliacoes,
+  metas,
+  config,
+  tri,
+  setTri,
+  secao,
+  setSecao,
+  aoRegistrar,
+  aoNovaMeta
+}) {
+  const ocorrencias = useAvOcorrencias();
+  const s = avSituacao(f, tri, avaliacoes, registros, config, ocorrencias);
+  const titulo = AV_SECOES_PERFIL.find(x => x[0] === secao);
+  const ir = k => {
+    setSecao(k);
+    avTopo();
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-perfil"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-perfil-cab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pessoa"
+  }, /*#__PURE__*/React.createElement(AvAvatar, {
+    f: f,
+    tamanho: 60
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-nome"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "av-perfil-nome"
+  }, f.nome), /*#__PURE__*/React.createElement("span", null, f.cargo || 'Cargo não informado'))), /*#__PURE__*/React.createElement("div", {
+    className: "av-perfil-situacao"
+  }, /*#__PURE__*/React.createElement(AvSeloSituacao, {
+    s: s
+  }), /*#__PURE__*/React.createElement(AvSeletorTri, {
+    tri: tri,
+    setTri: setTri
+  }))), !secao ? /*#__PURE__*/React.createElement("div", {
+    className: "av-opcoes"
+  }, AV_SECOES_PERFIL.map(([k, icone, nome, sub]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: "av-opcao",
+    "data-secao": k,
+    onClick: () => ir(k)
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "av-opcao-icone",
+    "aria-hidden": "true"
+  }, icone), /*#__PURE__*/React.createElement("span", {
+    className: "av-opcao-txt"
+  }, /*#__PURE__*/React.createElement("strong", null, nome), /*#__PURE__*/React.createElement("span", null, sub)), /*#__PURE__*/React.createElement("span", {
+    className: "av-opcao-seta",
+    "aria-hidden": "true"
+  }, "\u203A")))) : /*#__PURE__*/React.createElement("div", {
+    className: "av-perfil-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-cab"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-voltar",
+    onClick: () => ir(null)
+  }, "\u2039 ", avPrimeiroNome(f)), /*#__PURE__*/React.createElement("h3", null, titulo ? `${titulo[1]} ${titulo[2]}` : '')), secao === 'visao' && /*#__PURE__*/React.createElement(AvPerfilVisao, {
+    f: f,
+    s: s,
+    tri: tri,
+    usuario: usuario,
+    avaliacoes: avaliacoes,
+    metas: metas,
+    config: config,
+    aoRegistrar: aoRegistrar,
+    aoIr: ir
+  }), secao === 'registros' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-botoes-rapidos"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => aoRegistrar({
+      funcionarioId: f.id
+    })
+  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-btn-voz",
+    onClick: () => aoRegistrar({
+      funcionarioId: f.id,
+      voz: true
+    })
+  }, "\uD83C\uDFA4 Registrar por voz")), /*#__PURE__*/React.createElement(AvHistorico, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    config: config,
+    registros: registros,
+    fixoId: f.id
+  })), secao === 'avaliacoes' && /*#__PURE__*/React.createElement(AvPerfilAvaliacoes, {
+    f: f,
+    usuario: usuario,
+    funcionarios: funcionarios,
+    registros: registros,
+    avaliacoes: avaliacoes,
+    metas: metas,
+    config: config,
+    tri: tri,
+    aoNovaMeta: aoNovaMeta
+  }), secao === 'metas' && /*#__PURE__*/React.createElement(AvMetas, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    registros: registros,
+    metas: metas,
+    aoNovaMeta: aoNovaMeta,
+    fixoId: f.id
+  }), secao === 'cursos' && /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
+    funcionario: f,
+    usuario: usuario
+  }), secao === 'relatorios' && /*#__PURE__*/React.createElement(AvRelatorios, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    avaliacoes: avaliacoes,
+    config: config,
+    metas: metas,
+    fixoId: f.id
+  }), secao === 'historico' && /*#__PURE__*/React.createElement(AvPerfilHistorico, {
+    f: f,
+    avaliacoes: avaliacoes,
+    registros: registros,
+    metas: metas,
+    config: config
+  })));
+}
+function AvPerfilVisao({
+  f,
+  s,
+  tri,
+  avaliacoes,
+  metas,
+  config,
+  aoRegistrar,
+  aoIr
+}) {
+  const ant = avMediaAnteriores(f.id, avaliacoes, config);
+  const ultima = avaliacoes.filter(a => a.funcionarioId === f.id && avNotaDe(a, config) != null).sort((a, b) => b.trimestre.localeCompare(a.trimestre))[0];
+  const ms = metas.filter(m => m.funcionarioId === f.id && ['Não iniciada', 'Em andamento'].includes(m.status));
+  const atrasadas = ms.filter(m => avMetaAtrasada(m)).length;
+  const [cursos] = useFpCursos(f.id);
+  const Item = ({
+    rotulo,
+    valor,
+    sub,
+    ir
+  }) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-visao-item",
+    onClick: ir ? () => aoIr(ir) : undefined,
+    disabled: !ir
+  }, /*#__PURE__*/React.createElement("span", null, rotulo), /*#__PURE__*/React.createElement("strong", null, valor), sub && /*#__PURE__*/React.createElement("em", null, sub));
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-visao"
+  }, /*#__PURE__*/React.createElement(Item, {
+    rotulo: `Avaliação — ${avRotuloTri(tri)}`,
+    valor: s.a ? AV_STATUS[s.status] : s.status === 'em_formacao' ? 'Trimestre em andamento' : 'Ainda não gerada',
+    sub: s.nota != null ? `nota ${avNum1(s.nota)}/5` : '',
+    ir: "avaliacoes"
+  }), /*#__PURE__*/React.createElement(Item, {
+    rotulo: "M\xE9dia das avalia\xE7\xF5es",
+    valor: ant ? `${avNum1(ant.media)}/5` : '—',
+    sub: ant ? `${avPlural(ant.qtd, 'avaliação aprovada', 'avaliações aprovadas')}${ultima ? ` · última: ${avRotuloTri(ultima.trimestre)}` : ''}` : 'nenhuma avaliação aprovada',
+    ir: "historico"
+  }), /*#__PURE__*/React.createElement(Item, {
+    rotulo: "Registros no trimestre",
+    valor: s.registros.length,
+    sub: `↑ ${s.pos} positivos · − ${s.neg} a melhorar`,
+    ir: "registros"
+  }), /*#__PURE__*/React.createElement(Item, {
+    rotulo: "Faltas e atrasos (Comiss\xE3o)",
+    valor: `${s.oc.faltas} · ${s.oc.atrasos}`,
+    sub: "n\xE3o alteram a nota"
+  }), /*#__PURE__*/React.createElement(Item, {
+    rotulo: "Metas em andamento",
+    valor: ms.length,
+    sub: atrasadas ? `${atrasadas} atrasada${atrasadas > 1 ? 's' : ''}` : 'nenhuma atrasada',
+    ir: "metas"
+  }), /*#__PURE__*/React.createElement(Item, {
+    rotulo: "Cursos e forma\xE7\xE3o",
+    valor: cursos.length,
+    sub: `${fpHoras(cursos.reduce((t, c) => t + (Number(c.cargaHoraria) || 0), 0)) || '0 h'} · ${cursos.filter(c => c.certificado).length} com certificado`,
+    ir: "cursos"
+  })), s.registros.length < AV_MIN_EVIDENCIAS && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Poucos registros no trimestre (", s.registros.length, "). Avalia\xE7\xF5es com menos de ", AV_MIN_EVIDENCIAS, " registros ficam marcadas como \u201Cevid\xEAncias insuficientes\u201D."), /*#__PURE__*/React.createElement("div", {
+    className: "av-botoes-rapidos"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => aoRegistrar({
+      funcionarioId: f.id
+    })
+  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-btn-voz",
+    onClick: () => aoRegistrar({
+      funcionarioId: f.id,
+      voz: true
+    })
+  }, "\uD83C\uDFA4 Registrar por voz"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => aoIr('avaliacoes')
+  }, s.a ? 'Abrir avaliação' : 'Avaliações trimestrais')));
+}
+function AvPerfilAvaliacoes({
+  f,
+  usuario,
+  funcionarios,
+  registros,
+  avaliacoes,
+  metas,
+  config,
+  tri,
+  aoNovaMeta
+}) {
+  const [aberta, setAberta] = useState(null);
+  const [gerando, setGerando] = useState('');
+  const [erro, setErro] = useState('');
+  const ocorrencias = useAvOcorrencias();
+  const triAtual = avTrimestreDe(avHoje());
+  // trimestres recentes + qualquer outro em que ele já tenha avaliação (nada fica de fora)
+  const tris = [...new Set([...avTrimestresRecentes(6), ...avaliacoes.filter(a => a.funcionarioId === f.id).map(a => a.trimestre)])].sort().reverse();
+  const podeAvaliar = avPodeAvaliar(usuario, f) && usuario.id !== f.id;
+  async function gerar(t) {
+    setGerando(t);
+    setErro('');
+    try {
+      setAberta(await avGerarAvaliacao(f, t, usuario, registros, metas, config));
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui gerar a avaliação. Verifique a conexão.');
+    }
+    setGerando('');
+  }
+  const avAberta = aberta ? avaliacoes.find(a => a.id === aberta) : null;
+  return /*#__PURE__*/React.createElement("div", null, erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "A avalia\xE7\xE3o \xE9 montada pelo sistema a partir dos registros do trimestre (evid\xEAncias) e s\xF3 vale depois de revisada e aprovada."), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Per\xEDodo"), /*#__PURE__*/React.createElement("th", null, "Registros"), /*#__PURE__*/React.createElement("th", null, "Situa\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, tris.map(t => {
+    const st = avSituacao(f, t, avaliacoes, registros, config, ocorrencias);
+    return /*#__PURE__*/React.createElement("tr", {
+      key: t,
+      className: t === tri ? 'av-linha-destaque' : ''
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Per\xEDodo"
+    }, avRotuloTri(t), t === triAtual ? ' (em andamento)' : ''), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Registros"
+    }, st.registros.length, st.registros.length < AV_MIN_EVIDENCIAS ? /*#__PURE__*/React.createElement("span", {
+      className: "av-dica"
+    }, " \xB7 evid\xEAncias insuficientes") : ''), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Situa\xE7\xE3o"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `av-status s-${st.status}`
+    }, AV_STATUS[st.status]), st.a && st.a.media ? ` · média ${String(st.a.media).replace('.', ',')}` : ''), /*#__PURE__*/React.createElement("td", null, st.a ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => setAberta(st.a.id)
+    }, "Abrir") : podeAvaliar ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn pequeno",
+      disabled: !!gerando,
+      onClick: () => gerar(t)
+    }, gerando === t ? 'Gerando…' : t === triAtual ? 'Gerar prévia' : 'Gerar avaliação preliminar') : /*#__PURE__*/React.createElement("span", {
+      className: "av-dica"
+    }, "\u2014")));
+  })))), avAberta && /*#__PURE__*/React.createElement(AvEditorAvaliacao, {
+    key: avAberta.id + avAberta.status + (avAberta.versoes || []).length,
+    avaliacao: avAberta,
+    funcionario: f,
+    usuario: usuario,
+    config: config,
+    registros: registros,
+    metas: metas,
+    aoFechar: () => setAberta(null),
+    aoNovaMeta: aoNovaMeta
+  }));
+}
+function AvPerfilHistorico({
+  f,
+  avaliacoes,
+  registros,
+  metas,
+  config
+}) {
+  const [cursos] = useFpCursos(f.id);
+  const doFunc = avaliacoes.filter(a => a.funcionarioId === f.id);
+  const tris = [...new Set([...doFunc.map(a => a.trimestre), ...registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido).map(r => avTrimestreDe(r.dataOcorrido))])].sort().reverse();
+  const concluidas = metas.filter(m => m.funcionarioId === f.id && ['Concluída', 'Parcialmente concluída'].includes(m.status));
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Evolu\xE7\xE3o por trimestre"), tris.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Ainda n\xE3o h\xE1 registros nem avalia\xE7\xF5es.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-evolucao"
+  }, tris.map(t => {
+    const a = doFunc.find(x => x.trimestre === t);
+    const nota = avNotaDe(a, config);
+    const {
+      inicio,
+      fim
+    } = avLimites(t);
+    const n = registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && r.dataOcorrido >= inicio && r.dataOcorrido <= fim).length;
+    return /*#__PURE__*/React.createElement("div", {
+      key: t,
+      className: "av-evolucao-linha"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "av-evolucao-tri"
+    }, avRotuloTri(t)), /*#__PURE__*/React.createElement("span", {
+      className: "av-barra av-evolucao-barra",
+      "aria-hidden": "true"
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: `${nota ? nota / 5 * 100 : 0}%`
+      }
+    })), /*#__PURE__*/React.createElement("span", {
+      className: "av-evolucao-nota"
+    }, nota != null ? `${avNum1(nota)}/5` : a ? AV_STATUS[a.status] : 'sem avaliação'), /*#__PURE__*/React.createElement("span", {
+      className: "av-dica"
+    }, avPlural(n, 'registro', 'registros')));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Metas conclu\xEDdas (", concluidas.length, ")"), concluidas.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhuma meta conclu\xEDda.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, concluidas.map(m => /*#__PURE__*/React.createElement("li", {
+    key: m.id
+  }, m.descricao, " \u2014 ", m.status, m.prazo ? ` (prazo ${formatarDataBr(m.prazo)})` : ''))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Cursos conclu\xEDdos (", cursos.length, ")"), cursos.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhum curso cadastrado.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, cursos.map(c => /*#__PURE__*/React.createElement("li", {
+    key: c.id
+  }, c.dataConclusao ? formatarDataBr(c.dataConclusao) : 'sem data', " \u2014 ", c.nome, c.instituicao ? ` (${c.instituicao})` : ''))));
+}
+
+// ---- painel geral da equipe (área secundária) + listas gerais que já existiam
+function AvPainelGeral({
+  usuario,
+  funcionarios,
+  registros,
+  avaliacoes,
+  metas,
+  config,
+  tri,
+  setTri,
+  aoAbrir,
+  aoNovaMeta,
+  aoRegistrar
+}) {
+  const [lista, setLista] = useState(null); // registros | metas | trimestrais
+  const ocorrencias = useAvOcorrencias();
+  const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
+  const cartoes = avaliaveis.map(f => avSituacao(f, tri, avaliacoes, registros, config, ocorrencias));
+  const avaliados = cartoes.filter(c => c.avaliado);
+  const comNota = avaliados.filter(c => c.nota != null);
+  const media = comNota.length ? comNota.reduce((t, c) => t + c.nota, 0) / comNota.length : null;
+  const ocEquipe = cartoes.reduce((t, c) => ({
+    faltas: t.faltas + c.oc.faltas,
+    atrasos: t.atrasos + c.oc.atrasos
+  }), {
+    faltas: 0,
+    atrasos: 0
+  });
+  const triAtual = avTrimestreDe(avHoje());
+  const triAnt = avTriAnterior(triAtual);
+  const atrasadasAv = avaliaveis.filter(f => {
+    const a = avaliacoes.find(x => x.id === avIdAvaliacao(f.id, triAnt));
+    return !a || a.status === 'rascunho' || a.status === 'em_revisao';
+  });
+  const metasAtrasadas = metas.filter(m => avaliaveis.some(f => f.id === m.funcionarioId) && avMetaAtrasada(m));
+  const semFeedback = avaliacoes.filter(a => a.status === 'aprovada' && avaliaveis.some(f => f.id === a.funcionarioId));
+  const fimAtual = avLimites(triAtual).fim;
+  const dias = Math.round((new Date(fimAtual + 'T12:00:00') - new Date(avHoje() + 'T12:00:00')) / 864e5);
+  const Resumo = ({
+    icone,
+    cls,
+    valor,
+    rotulo
+  }) => /*#__PURE__*/React.createElement("div", {
+    className: "av-resumo-card"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `av-resumo-icone ${cls}`,
+    "aria-hidden": "true"
+  }, icone), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, valor), /*#__PURE__*/React.createElement("span", null, rotulo)));
+  if (lista) return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-cab"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-voltar",
+    onClick: () => setLista(null)
+  }, "\u2039 Painel da equipe"), /*#__PURE__*/React.createElement("h3", null, lista === 'registros' ? 'Todos os registros' : lista === 'metas' ? 'Todas as metas' : 'Avaliações da equipe por trimestre')), lista === 'registros' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-botoes-rapidos"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => aoRegistrar({})
+  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-btn-voz",
+    onClick: () => aoRegistrar({
+      voz: true
+    })
+  }, "\uD83C\uDFA4 Registrar por voz")), /*#__PURE__*/React.createElement(AvHistorico, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    config: config,
+    registros: registros
+  })), lista === 'metas' && /*#__PURE__*/React.createElement(AvMetas, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    registros: registros,
+    metas: metas,
+    aoNovaMeta: aoNovaMeta
+  }), lista === 'trimestrais' && /*#__PURE__*/React.createElement(AvTrimestrais, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    config: config,
+    registros: registros,
+    avaliacoes: avaliacoes,
+    metas: metas,
+    aoNovaMeta: aoNovaMeta
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-painel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-painel-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo av-titulo-grande",
+    style: {
+      margin: 0
+    }
+  }, "Painel da equipe"), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, avRotuloTri(tri))), /*#__PURE__*/React.createElement(AvSeletorTri, {
+    tri: tri,
+    setTri: setTri
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-resumo"
+  }, /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\uD83D\uDC64",
+    cls: "azul",
+    valor: avaliaveis.length,
+    rotulo: "colaboradores"
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u2713",
+    cls: "verde",
+    valor: avaliados.length,
+    rotulo: "avalia\xE7\xF5es conclu\xEDdas"
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u25F7",
+    cls: "laranja",
+    valor: avaliaveis.length - avaliados.length,
+    rotulo: "pendentes"
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u2605",
+    cls: "estrela",
+    valor: media == null ? '—' : `${avNum1(media)}/5`,
+    rotulo: media == null ? 'média da equipe (sem avaliações)' : `média da equipe (${comNota.length} avaliado${comNota.length > 1 ? 's' : ''})`
+  }), /*#__PURE__*/React.createElement(Resumo, {
+    icone: "\u23F1",
+    cls: "pontualidade",
+    valor: `${ocEquipe.faltas} · ${ocEquipe.atrasos}`,
+    rotulo: "faltas \xB7 atrasos no trimestre (Comiss\xE3o)"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Pr\xF3ximas avalia\xE7\xF5es"), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "O ", avRotuloTri(triAtual), " termina em ", formatarDataBr(fimAtual), dias >= 0 ? ` (${avPlural(dias, 'dia', 'dias')})` : '', ". As avalia\xE7\xF5es dele s\xE3o feitas depois do fechamento."), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Alertas"), atrasadasAv.length === 0 && metasAtrasadas.length === 0 && semFeedback.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhum alerta.") : /*#__PURE__*/React.createElement("ul", {
+    className: "av-alertas"
+  }, atrasadasAv.length > 0 && /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "Avalia\xE7\xF5es do ", avRotuloTri(triAnt), " ainda n\xE3o aprovadas (", atrasadasAv.length, "):"), " ", atrasadasAv.map((f, i) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: f.id
+  }, i ? ', ' : '', /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => aoAbrir(f.id, 'avaliacoes')
+  }, f.nome)))), metasAtrasadas.length > 0 && /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "Metas atrasadas (", metasAtrasadas.length, "):"), " ", metasAtrasadas.map((m, i) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: m.id
+  }, i ? '; ' : '', /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => aoAbrir(m.funcionarioId, 'metas')
+  }, m.funcionarioNome, ": ", m.descricao)))), semFeedback.length > 0 && /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "Aprovadas aguardando feedback (", semFeedback.length, "):"), " ", semFeedback.map((a, i) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: a.id
+  }, i ? ', ' : '', /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-link",
+    onClick: () => aoAbrir(a.funcionarioId, 'avaliacoes')
+  }, a.funcionarioNome, " (", avRotuloTri(a.trimestre), ")"))))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "Listas gerais da equipe"), /*#__PURE__*/React.createElement("div", {
+    className: "av-botoes-rapidos"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setLista('trimestrais')
+  }, "\u2B50 Avalia\xE7\xF5es por trimestre"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setLista('registros')
+  }, "\uD83D\uDCDD Todos os registros"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setLista('metas')
+  }, "\uD83C\uDFAF Todas as metas")));
+}
+
+// ---- entrada do módulo
 function AbaAvaliacoes({
   usuario,
   funcionarios
@@ -9969,7 +10373,10 @@ function AbaAvaliacoes({
   const [registros,, erroReg] = useAvConsulta('avaliacaoRegistros', [], gestor);
   const [avaliacoes] = useAvConsulta('avaliacoesTrimestrais', [], gestor);
   const [metas] = useAvConsulta('avaliacaoMetas', [], gestor);
-  const [aba, setAba] = useState('painel');
+  const [tela, setTela] = useState({
+    nome: 'equipe'
+  });
+  const [tri, setTri] = useState(() => avTrimestresRecentes(2)[1]); // o trimestre que está sendo avaliado
   const [registrando, setRegistrando] = useState(null);
   const [novaMeta, setNovaMeta] = useState(null);
   if (!gestor) return /*#__PURE__*/React.createElement("div", {
@@ -9979,68 +10386,82 @@ function AbaAvaliacoes({
     config: config
   }));
   const lista = funcionarios || [];
+  const ir = t => {
+    setTela({
+      ...t,
+      n: Date.now()
+    });
+    avTopo();
+  }; // n: clicar de novo no atalho volta ao início dele
+  const perfil = tela.nome === 'perfil' ? lista.find(x => x.id === tela.fid) : null;
+  const abrirPerfil = (fid, secao) => ir({
+    nome: 'perfil',
+    fid,
+    secao: secao || null
+  });
   return /*#__PURE__*/React.createElement("div", {
     className: "av-modulo"
-  }, /*#__PURE__*/React.createElement(AbasInternas, {
-    abas: [['painel', 'Painel'], ['historico', 'Histórico'], ['trimestrais', 'Avaliações trimestrais'], ['metas', 'Metas e PDI'], ['relatorios', 'Relatórios'], ['formacao', 'Formação'], ['config', 'Critérios e configurações'], ['minhas', 'Minhas avaliações']],
-    ativa: aba,
-    aoMudar: setAba
+  }, /*#__PURE__*/React.createElement(AvBarraModulo, {
+    tela: tela,
+    aoIr: ir
   }), erroReg && /*#__PURE__*/React.createElement("div", {
     className: "av-erro"
-  }, erroReg), aba === 'painel' && /*#__PURE__*/React.createElement(AvPainel, {
+  }, erroReg), tela.nome === 'equipe' && /*#__PURE__*/React.createElement(AvEquipe, {
+    usuario: usuario,
+    funcionarios: lista,
+    registros: registros,
+    avaliacoes: avaliacoes,
+    config: config,
+    tri: tri,
+    setTri: setTri,
+    aoAbrir: fid => abrirPerfil(fid)
+  }), tela.nome === 'perfil' && (perfil ? /*#__PURE__*/React.createElement(AvPerfilColaborador, {
+    key: perfil.id,
+    f: perfil,
     usuario: usuario,
     funcionarios: lista,
     registros: registros,
     avaliacoes: avaliacoes,
     metas: metas,
     config: config,
+    tri: tri,
+    setTri: setTri,
+    secao: tela.secao,
+    setSecao: secao => setTela(t => ({
+      ...t,
+      secao
+    })),
     aoRegistrar: setRegistrando,
-    aoIr: setAba,
     aoNovaMeta: setNovaMeta
-  }), aba === 'historico' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "av-botoes-rapidos"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn",
-    onClick: () => setRegistrando({})
-  }, "+ Novo registro"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn av-btn-voz",
-    onClick: () => setRegistrando({
-      voz: true
-    })
-  }, "\uD83C\uDFA4 Registrar por voz")), /*#__PURE__*/React.createElement(AvHistorico, {
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Colaborador n\xE3o encontrado.")), tela.nome === 'painel' && /*#__PURE__*/React.createElement(AvPainelGeral, {
+    key: tela.n,
     usuario: usuario,
     funcionarios: lista,
-    config: config,
-    registros: registros
-  })), aba === 'trimestrais' && /*#__PURE__*/React.createElement(AvTrimestrais, {
-    usuario: usuario,
-    funcionarios: lista,
-    config: config,
     registros: registros,
     avaliacoes: avaliacoes,
     metas: metas,
-    aoNovaMeta: setNovaMeta
-  }), aba === 'metas' && /*#__PURE__*/React.createElement(AvMetas, {
-    usuario: usuario,
-    funcionarios: lista,
-    registros: registros,
-    metas: metas,
-    aoNovaMeta: setNovaMeta
-  }), aba === 'relatorios' && /*#__PURE__*/React.createElement(AvRelatorios, {
+    config: config,
+    tri: tri,
+    setTri: setTri,
+    aoAbrir: abrirPerfil,
+    aoNovaMeta: setNovaMeta,
+    aoRegistrar: setRegistrando
+  }), tela.nome === 'relatorios' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-cab"
+  }, /*#__PURE__*/React.createElement("h3", null, "\uD83D\uDCC4 Relat\xF3rios gerais")), /*#__PURE__*/React.createElement(AvRelatorios, {
     usuario: usuario,
     funcionarios: lista,
     avaliacoes: avaliacoes,
     config: config,
     metas: metas
-  }), aba === 'formacao' && /*#__PURE__*/React.createElement(AvFormacao, {
-    usuario: usuario,
-    funcionarios: lista
-  }), aba === 'config' && /*#__PURE__*/React.createElement(AvConfiguracoes, {
+  })), tela.nome === 'config' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-cab"
+  }, /*#__PURE__*/React.createElement("h3", null, "\u2699\uFE0F Configura\xE7\xF5es da avalia\xE7\xE3o")), /*#__PURE__*/React.createElement(AvConfiguracoes, {
     usuario: usuario,
     config: config
-  }), aba === 'minhas' && /*#__PURE__*/React.createElement(AvMinhas, {
+  })), tela.nome === 'minhas' && /*#__PURE__*/React.createElement(AvMinhas, {
     usuario: usuario,
     config: config
   }), registrando && /*#__PURE__*/React.createElement(AvFormRegistro, {

@@ -206,16 +206,19 @@ try {
   await w.page.goto(SITE + '?emulador'); await w.page.waitForSelector('.sidebar', { timeout: 30000 });
   w.erros.length = 0;
   etapa = 'avaliação passo 1'; await w.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await w.page.waitForTimeout(1200);
-  etapa = 'avaliação passo 2'; await w.page.locator('.av-botoes-rapidos button', { hasText: 'Novo registro' }).click();
+  // navegação por colaborador: Equipe → cartão do Fábio → Registros diários
+  etapa = 'avaliação passo 2'; await w.page.locator('.av-card', { hasText: 'Fábio' }).click(); await w.page.locator('.av-opcao[data-secao=registros]').click(); await w.page.waitForTimeout(500);
+  await w.page.locator('.av-perfil-secao .av-botoes-rapidos button', { hasText: 'Novo registro' }).click();
   const mr = w.page.locator('.av-modal-registro');
-  await mr.locator('select').nth(0).selectOption('FUN'); await mr.locator('select').nth(1).selectOption('Organização'); await mr.locator('select').nth(2).selectOption('positivo');
+  passo('avaliação: registro aberto pelo perfil já vem com o colaborador', await mr.locator('select').nth(0).inputValue() === 'FUN');
+  await mr.locator('select').nth(1).selectOption('Organização'); await mr.locator('select').nth(2).selectOption('positivo');
   await mr.locator('textarea').first().fill('Organizou a bancada antes do serviço.');
   etapa = 'avaliação passo 3'; await mr.locator('button', { hasText: 'Revisar e salvar' }).click(); await mr.locator('button', { hasText: 'Salvar registro' }).click();
   await w.page.waitForSelector('.av-sucesso-titulo', { timeout: 15000 }).catch(() => {});
   let regsAv = await listar('avaliacaoRegistros');
   passo('avaliação: registro diário gravado com o banco fechado', regsAv.length === 1 && regsAv[0].funcionarioId === 'FUN' && regsAv[0].registradoPorId === 'WAL', JSON.stringify(regsAv).slice(0, 200));
   etapa = 'avaliação passo 4'; await mr.locator('button', { hasText: 'Fechar' }).click();
-  etapa = 'avaliação passo 5'; await w.page.locator('.abas-internas button', { hasText: 'Histórico' }).click(); await w.page.waitForTimeout(800);
+  etapa = 'avaliação passo 5'; await w.page.waitForTimeout(800);
   etapa = 'avaliação passo 6'; await w.page.locator('.av-tabela tr', { hasText: 'Organizou a bancada' }).click(); await w.page.waitForTimeout(500);
   const mc = w.page.locator('.modal').last();
   etapa = 'avaliação passo 7'; await mc.locator('button', { hasText: 'Corrigir' }).click(); await mc.locator('textarea').first().fill('Organizou a bancada e as peças antes do serviço.');
@@ -223,15 +226,16 @@ try {
   regsAv = await listar('avaliacaoRegistros');
   passo('avaliação: correção gravada com histórico', /e as peças/.test(regsAv[0].descricao) && regsAv[0].historicoAlteracoes.length === 1, JSON.stringify(regsAv[0]).slice(0, 300));
   etapa = 'avaliação passo 9'; await mc.locator('button', { hasText: 'Fechar' }).first().click();
-  etapa = 'avaliação passo 10'; await w.page.locator('.abas-internas button', { hasText: 'Avaliações trimestrais' }).click(); await w.page.waitForTimeout(800);
-  etapa = 'avaliação passo 11'; await w.page.locator('.av-tabela tr', { hasText: 'Fábio' }).locator('button').click(); await w.page.waitForSelector('.av-modal-avaliacao', { timeout: 15000 });
+  etapa = 'avaliação passo 10'; await w.page.locator('.av-secao-cab .av-voltar').click(); await w.page.locator('.av-opcao[data-secao=avaliacoes]').click(); await w.page.waitForTimeout(800);
+  // 2ª linha = trimestre anterior (o que está sendo avaliado)
+  etapa = 'avaliação passo 11'; await w.page.locator('.av-perfil-secao .av-tabela tbody tr').nth(1).locator('button').click(); await w.page.waitForSelector('.av-modal-avaliacao', { timeout: 15000 });
   etapa = 'avaliação passo 12'; await w.page.locator('.av-modal-avaliacao button', { hasText: 'Salvar revisão' }).click(); await esperar(1200);
   etapa = 'avaliação passo 13'; await w.page.locator('.av-modal-avaliacao button', { hasText: 'Aprovar…' }).click();
   etapa = 'avaliação passo 14'; await w.page.locator('.av-modal-avaliacao .av-confirmar button', { hasText: /^Aprovar$/ }).click(); await esperar(2000);
   const avs = await listar('avaliacoesTrimestrais'), pubs = await listar('avaliacoesPublicadas');
   passo('avaliação: gerada, revisada, aprovada e publicada', avs.length === 1 && avs[0].status === 'aprovada' && pubs.length === 1 && pubs[0].funcionarioId === 'FUN', JSON.stringify(avs.map(a => a.status)) + ' ' + pubs.length);
   etapa = 'avaliação passo 15'; await w.page.locator('.av-modal-avaliacao button', { hasText: 'Fechar' }).first().click();
-  etapa = 'avaliação passo 16'; await w.page.locator('.abas-internas button', { hasText: 'Metas e PDI' }).click(); await w.page.waitForTimeout(500);
+  etapa = 'avaliação passo 16'; await w.page.locator('.av-secao-cab .av-voltar').click(); await w.page.locator('.av-opcao[data-secao=metas]').click(); await w.page.waitForTimeout(500);
   etapa = 'avaliação passo 17'; await w.page.locator('.av-filtros button', { hasText: 'Nova meta' }).click();
   const mm = w.page.locator('.modal').last();
   await mm.locator('select').first().selectOption('FUN'); await mm.locator('textarea').first().fill('Conferir as peças antes de separar');
@@ -286,8 +290,8 @@ try {
   etapa = 'formação';
   w.erros.length = 0; fabio.erros.length = 0;
   await w.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await esperar(1200);
-  await w.page.locator('.abas-internas button', { hasText: 'Formação' }).click(); await esperar(500);
-  await w.page.locator('.av-modulo select[aria-label="Colaborador"]').selectOption('FUN'); await esperar(800);
+  await w.page.locator('.av-barra-modulo .av-voltar', { hasText: 'Equipe' }).click().catch(() => {}); await esperar(300);
+  await w.page.locator('.av-card', { hasText: 'Fábio' }).click(); await w.page.locator('.av-opcao[data-secao=cursos]').click(); await esperar(800);
   await w.page.locator('.fp-cab button', { hasText: 'Adicionar curso ou formação' }).click();
   const fm = w.page.locator('.fp-modal');
   await fm.locator('input[aria-label="Nome do curso ou formação"]').fill('Eletrônica de Potência');
