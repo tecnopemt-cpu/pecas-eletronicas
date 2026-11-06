@@ -145,5 +145,9 @@ export async function processar(fsCli, { chave = process.env.ANTHROPIC_API_KEY, 
 if (import.meta.url === `file://${process.argv[1]}`) {
   if (!process.env.FIREBASE_EMAIL || !process.env.FIREBASE_SENHA) { console.log('Sem a conta da rotina (BACKUP_EMAIL/BACKUP_SENHA): nada a fazer.'); process.exit(0); }
   const fsCli = clienteFirestore(configFirebase());
-  processar(fsCli).then(r => process.exit(0)).catch(e => { console.log('Falha: ' + (e.status || '') + ' ' + String(e.message || e).slice(0, 160)); process.exit(1); });
+  processar(fsCli).then(() => process.exit(0)).catch(e => {
+    // 403 = as regras novas do banco ainda não foram publicadas no Firebase: não é falha da rotina
+    if (e.status === 403) { console.log('::warning::Sem permissão para ler os pedidos de resumo: publique as regras novas (seguranca/firestore.rules) no Firebase.'); process.exit(0); }
+    console.log('Falha: ' + (e.status || '') + ' ' + String(e.message || e).slice(0, 160)); process.exit(1);
+  });
 }
