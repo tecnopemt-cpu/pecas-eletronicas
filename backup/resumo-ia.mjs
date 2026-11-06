@@ -4,14 +4,16 @@
 //  2. pega os pedidos em aberto e lê os cursos do colaborador — só os DADOS DIGITADOS (nome, instituição,
 //     categoria, data, carga horária, descrição, observações e se há certificado). Os arquivos dos
 //     certificados NÃO são lidos nem enviados;
-//  3. chama a IA (Claude, da Anthropic) com a chave guardada no segredo ANTHROPIC_API_KEY;
+//  3. chama a IA do GitHub Models (gratuita, com limite de uso) usando o token automático da própria
+//     rotina (GITHUB_TOKEN) — sem chave paga, sem cadastro extra e sem custo;
 //  4. grava o texto: se já existe um resumo confirmado, o novo fica "pendente" até a gestão confirmar.
 // O repositório é público: o registro desta rotina não mostra nomes, cursos nem textos — só contagens.
 import { configFirebase, clienteFirestore } from './firestore-rest.mjs';
 import { campos } from './lembretes-avaliacao.mjs';
 
-const MODELO = process.env.RESUMO_IA_MODELO || 'claude-sonnet-5';
-const API = process.env.ANTHROPIC_BASE || 'https://api.anthropic.com';
+// modelos tentados em ordem (se um não estiver disponível no GitHub Models, tenta o próximo)
+const MODELOS = [process.env.RESUMO_IA_MODELO, 'openai/gpt-4.1-mini', 'openai/gpt-4o-mini', 'openai/gpt-4.1', 'openai/gpt-4o'].filter(Boolean);
+const API = process.env.MODELOS_BASE || 'https://models.github.ai/inference';
 const MAX_POR_RODADA = 10;
 const PROCESSANDO_VENCIDO_MS = 20 * 60000;
 
@@ -53,39 +55,51 @@ Regras obrigatórias:
 
 export async function chamarIA({ sistema, usuario }, chave, fetcher = fetch) {
   const ferramenta = {
-    name: 'registrar_resumo',
-    description: 'Registra o resumo profissional, uma seção por campo.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        formacao: { type: 'string', description: 'Formação e qualificação: formações acadêmicas, técnicas e profissionais registradas.' },
-        cursos: { type: 'string', description: 'Cursos e capacitações: principais cursos, cargas horárias e instituições.' },
-        conhecimentos: { type: 'string', description: 'Conhecimentos identificados a partir dos cursos cadastrados.' },
-        aplicacao: { type: 'string', description: 'Aplicação nas atividades da empresa: possíveis contribuições (possibilidades, não competências comprovadas).' },
-        desenvolvimento: { type: 'string', description: 'Desenvolvimento profissional: áreas em que já buscou capacitação e oportunidades complementares.' },
-        sintese: { type: 'string', description: 'Síntese profissional objetiva da trajetória de formação.' }
-      },
-      required: SECOES
+    type: 'function',
+    function: {
+      name: 'registrar_resumo',
+      description: 'Registra o resumo profissional, uma seção por campo.',
+      parameters: {
+        type: 'object',
+        properties: {
+          formacao: { type: 'string', description: 'Formação e qualificação: formações acadêmicas, técnicas e profissionais registradas.' },
+          cursos: { type: 'string', description: 'Cursos e capacitações: principais cursos, cargas horárias e instituições.' },
+          conhecimentos: { type: 'string', description: 'Conhecimentos identificados a partir dos cursos cadastrados.' },
+          aplicacao: { type: 'string', description: 'Aplicação nas atividades da empresa: possíveis contribuições (possibilidades, não competências comprovadas).' },
+          desenvolvimento: { type: 'string', description: 'Desenvolvimento profissional: áreas em que já buscou capacitação e oportunidades complementares.' },
+          sintese: { type: 'string', description: 'Síntese profissional objetiva da trajetória de formação.' }
+        },
+        required: SECOES
+      }
     }
   };
-  const r = await fetcher(`${API}/v1/messages`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': chave, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model: MODELO, max_tokens: 3000, system: sistema, tools: [ferramenta], tool_choice: { type: 'tool', name: 'registrar_resumo' }, messages: [{ role: 'user', content: usuario }] }),
-    signal: AbortSignal.timeout(120000)
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    const tipo = (j.error && j.error.type) || r.status;
-    const e = new Error(r.status === 401 ? 'a chave da IA foi recusada (confira o segredo ANTHROPIC_API_KEY no GitHub)' : r.status === 429 || r.status === 529 ? 'a IA está ocupada agora; peça de novo em alguns minutos' : `a IA respondeu com erro (${tipo})`);
-    e.status = r.status; throw e;
+  let ultimoErro = null;
+  for (const modelo of MODELOS) {
+    const r = await fetcher(`${API}/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${chave}`, accept: 'application/json' },
+      body: JSON.stringify({ model: modelo, temperature: 0.3, max_tokens: 3000, messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }], tools: [ferramenta], tool_choice: { type: 'function', function: { name: 'registrar_resumo' } } }),
+      signal: AbortSignal.timeout(120000)
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const cod = (j.error && (j.error.code || j.error.type)) || r.status;
+      // modelo indisponível: tenta o próximo da lista
+      if (r.status === 404 || r.status === 400 && /model/i.test(String(cod) + JSON.stringify(j.error || {}))) { ultimoErro = new Error(`modelo indisponível (${modelo})`); continue; }
+      const e = new Error(r.status === 401 || r.status === 403 ? 'a rotina não tem permissão para usar a IA gratuita do GitHub (confira "models: read" na rotina)' : r.status === 429 ? 'o limite diário gratuito da IA foi atingido; peça de novo mais tarde (ou amanhã)' : `a IA respondeu com erro (${cod})`);
+      e.status = r.status; throw e;
+    }
+    const msg = j.choices && j.choices[0] && j.choices[0].message || {};
+    const chamada = (msg.tool_calls || []).find(c => c.function && c.function.name === 'registrar_resumo');
+    let entrada = null;
+    try { entrada = JSON.parse(chamada ? chamada.function.arguments : String(msg.content || '').replace(/^```(json)?|```$/g, '')); } catch (e) { entrada = null; }
+    if (!entrada) throw new Error('a IA não devolveu o resumo no formato esperado; peça de novo');
+    const secoes = {};
+    for (const k of SECOES) secoes[k] = String(entrada[k] || '').trim().slice(0, 4000);
+    if (!SECOES.some(k => secoes[k])) throw new Error('a IA devolveu um resumo vazio');
+    return { secoes, modelo: j.model || modelo };
   }
-  const uso = (j.content || []).find(c => c.type === 'tool_use' && c.name === 'registrar_resumo');
-  if (!uso || !uso.input) throw new Error('a IA não devolveu o resumo no formato esperado');
-  const secoes = {};
-  for (const k of SECOES) secoes[k] = String(uso.input[k] || '').trim().slice(0, 4000);
-  if (!SECOES.some(k => secoes[k])) throw new Error('a IA devolveu um resumo vazio');
-  return { secoes, modelo: j.model || MODELO };
+  throw ultimoErro || new Error('nenhum modelo de IA disponível no GitHub Models');
 }
 
 function pedidoComStatus(pedidoTipado, status, extra = {}) {
@@ -95,7 +109,7 @@ function pedidoComStatus(pedidoTipado, status, extra = {}) {
   return T.map(f);
 }
 
-export async function processar(fsCli, { chave = process.env.ANTHROPIC_API_KEY, fetcher = fetch, log = console.log } = {}) {
+export async function processar(fsCli, { chave = process.env.GITHUB_TOKEN, fetcher = fetch, log = console.log } = {}) {
   const abertos = [...await fsCli.consultar('resumosProfissionais', 'pedido.status', 'pedido'), ...await fsCli.consultar('resumosProfissionais', 'pedido.status', 'processando')]
     .filter(d => {
       const p = campos(d.fields).pedido || {};
@@ -120,7 +134,7 @@ export async function processar(fsCli, { chave = process.env.ANTHROPIC_API_KEY, 
       const ficha = campos(await fsCli.obterDocumento('funcionarios', fid) || {});
       const cursos = (await fsCli.consultar('cursosProfissionais', 'funcionarioId', fid)).map(x => ({ id: x.id, ...campos(x.fields) })).filter(c => c.status !== 'excluido');
       if (!cursos.length) throw new Error('não há cursos cadastrados para este colaborador');
-      if (!chave) throw new Error('a IA ainda não foi configurada: falta cadastrar a chave no GitHub (segredo ANTHROPIC_API_KEY)');
+      if (!chave) throw new Error('a rotina não recebeu o token do GitHub para usar a IA');
       const { secoes, modelo } = await chamarIA(montarPrompt(ficha, cursos, doc.atual), chave, fetcher);
       const pedidoPor = doc.pedido && doc.pedido.pedidoPorNome || '';
       const resumo = T.map({
@@ -143,6 +157,12 @@ export async function processar(fsCli, { chave = process.env.ANTHROPIC_API_KEY, 
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  // --testar: confere se a IA gratuita responde, com um curso inventado (nenhum dado do banco)
+  if (process.argv.includes('--testar')) {
+    const exemplo = montarPrompt({ nome: 'Exemplo', cargo: 'Técnico' }, [{ nome: 'Eletrônica básica (exemplo)', instituicao: 'Escola exemplo', categoria: 'Curso técnico', dataConclusao: '2024-01-01', cargaHoraria: 40, descricao: 'Componentes e solda', certificado: null }], null);
+    chamarIA(exemplo, process.env.GITHUB_TOKEN).then(r => { console.log(`::notice::IA gratuita OK — modelo ${r.modelo}, ${Object.values(r.secoes).filter(Boolean).length}/6 seções.`); process.exit(0); })
+      .catch(e => { console.log(`::error::IA gratuita falhou: ${e.status || ''} ${e.message}`); process.exit(1); });
+  } else {
   if (!process.env.FIREBASE_EMAIL || !process.env.FIREBASE_SENHA) { console.log('Sem a conta da rotina (BACKUP_EMAIL/BACKUP_SENHA): nada a fazer.'); process.exit(0); }
   const fsCli = clienteFirestore(configFirebase());
   processar(fsCli).then(() => process.exit(0)).catch(e => {
@@ -150,4 +170,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (e.status === 403) { console.log('::warning::Sem permissão para ler os pedidos de resumo: publique as regras novas (seguranca/firestore.rules) no Firebase.'); process.exit(0); }
     console.log('Falha: ' + (e.status || '') + ' ' + String(e.message || e).slice(0, 160)); process.exit(1);
   });
+  }
 }

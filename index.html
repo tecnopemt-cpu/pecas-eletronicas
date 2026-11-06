@@ -8295,7 +8295,7 @@ function AvPainel({
 // o próprio funcionário e a gestão conseguem abrir (regras do banco). Nada é apagado: excluir marca o curso
 // como excluído e guarda no histórico.
 // Formação NÃO gera nota: é informação complementar para contextualizar a avaliação.
-// O resumo com IA é feito por uma rotina no GitHub (a chave da IA fica lá, em segredo): o sistema só grava
+// O resumo com IA é feito por uma rotina no GitHub, com a IA gratuita do GitHub Models (sem chave paga): o sistema só grava
 // o pedido; a rotina lê os DADOS DIGITADOS dos cursos (os arquivos não saem do sistema) e devolve o texto.
 // Um resumo novo só substitui o anterior depois que a gestão confirma; as versões anteriores ficam guardadas.
 const FP_CATEGORIAS = ['Formação acadêmica', 'Curso técnico', 'Especialização', 'Certificação profissional', 'Treinamento', 'Capacitação interna', 'Capacitação externa', 'Curso livre', 'Outros conhecimentos'];
@@ -8904,7 +8904,7 @@ function FpResumo({
     className: "fp-aviso"
   }, "\u23F3 Pedido enviado em ", fpQuando(pedido.pedidoEmIso), " por ", pedido.pedidoPorNome, ". A IA costuma responder em 5 a 15 minutos \u2014 pode sair desta tela; o resumo aparece aqui sozinho."), gestao && atrasado && /*#__PURE__*/React.createElement("div", {
     className: "av-alerta"
-  }, "O pedido de ", fpQuando(pedido.pedidoEmIso), " ainda n\xE3o foi respondido. Confira no GitHub se a rotina \u201CResumo profissional com IA\u201D est\xE1 ativa e se a chave da IA foi cadastrada. Voc\xEA pode pedir de novo."), gestao && pedido && pedido.status === 'erro' && /*#__PURE__*/React.createElement("div", {
+  }, "O pedido de ", fpQuando(pedido.pedidoEmIso), " ainda n\xE3o foi respondido. Confira no GitHub se a rotina \u201CResumo profissional com IA\u201D est\xE1 ativa. Voc\xEA pode pedir de novo."), gestao && pedido && pedido.status === 'erro' && /*#__PURE__*/React.createElement("div", {
     className: "av-erro"
   }, "N\xE3o foi poss\xEDvel gerar o resumo: ", pedido.erro || 'erro desconhecido', "."), gestao && pendente && /*#__PURE__*/React.createElement("div", {
     className: "fp-pendente"
