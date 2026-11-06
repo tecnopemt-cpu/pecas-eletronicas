@@ -93,7 +93,7 @@ export async function chamarIA({ sistema, usuario }, chave, fetcher = fetch) {
     const chamada = (msg.tool_calls || []).find(c => c.function && c.function.name === 'registrar_resumo');
     let entrada = null;
     try { entrada = JSON.parse(chamada ? chamada.function.arguments : String(msg.content || '').replace(/^```(json)?|```$/g, '')); } catch (e) { entrada = null; }
-    if (!entrada) throw new Error('a IA não devolveu o resumo no formato esperado; peça de novo');
+    if (!entrada) { const e = new Error('a IA não devolveu o resumo no formato esperado; peça de novo'); e.detalhe = JSON.stringify({ modelo: j.model || modelo, fim: j.choices && j.choices[0] && j.choices[0].finish_reason, chamadas: (msg.tool_calls || []).map(c => c.function && c.function.name), args: chamada ? String(chamada.function.arguments).slice(0, 300) : null, conteudo: String(msg.content || '').slice(0, 300) }); throw e; }
     const secoes = {};
     for (const k of SECOES) secoes[k] = String(entrada[k] || '').trim().slice(0, 4000);
     if (!SECOES.some(k => secoes[k])) throw new Error('a IA devolveu um resumo vazio');
@@ -161,7 +161,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (process.argv.includes('--testar')) {
     const exemplo = montarPrompt({ nome: 'Exemplo', cargo: 'Técnico' }, [{ nome: 'Eletrônica básica (exemplo)', instituicao: 'Escola exemplo', categoria: 'Curso técnico', dataConclusao: '2024-01-01', cargaHoraria: 40, descricao: 'Componentes e solda', certificado: null }], null);
     chamarIA(exemplo, process.env.GITHUB_TOKEN).then(r => { console.log(`::notice::IA gratuita OK — modelo ${r.modelo}, ${Object.values(r.secoes).filter(Boolean).length}/6 seções.`); process.exit(0); })
-      .catch(e => { console.log(`::error::IA gratuita falhou: ${e.status || ''} ${e.message}`); process.exit(1); });
+      .catch(e => { console.log(`::error::IA gratuita falhou: ${e.status || ''} ${e.message} ${e.detalhe || ''}`.replace(/\n/g, ' ')); process.exit(1); });
   } else {
   if (!process.env.FIREBASE_EMAIL || !process.env.FIREBASE_SENHA) { console.log('Sem a conta da rotina (BACKUP_EMAIL/BACKUP_SENHA): nada a fazer.'); process.exit(0); }
   const fsCli = clienteFirestore(configFirebase());
