@@ -50,10 +50,11 @@ async function serie(token, projeto, metrica, agruparPor) {
     if (!r.ok) {
       // motivo dado pelo Google (sem dados nem segredos): API desativada, papel ausente etc.
       const er = j.error || {}, info = (er.details || []).find(x => x.reason) || {};
-      const motivo = info.reason === 'SERVICE_DISABLED' || /has not been used|is disabled/i.test(er.message || '') ? 'a Cloud Monitoring API não está ativada no projeto (ou acabou de ser ativada: aguarde alguns minutos)'
+      const motivo = /requires billing/i.test(er.message || '') ? 'o Google só libera a consulta dessas métricas para projetos com faturamento ativo (plano pago Blaze); no plano gratuito elas aparecem apenas no console do Firebase'
+        : info.reason === 'SERVICE_DISABLED' || /has not been used|is disabled/i.test(er.message || '') ? 'a Cloud Monitoring API não está ativada no projeto (ou acabou de ser ativada: aguarde alguns minutos)'
         : r.status === 403 ? `a conta de serviço não tem o papel “Visualizador de monitoramento” neste projeto (ou o papel acabou de ser dado: aguarde alguns minutos) [${info.reason || er.status || 403}]`
           : `o Cloud Monitoring respondeu com erro ${r.status} [${info.reason || er.status || ''}]`;
-      throw Object.assign(new Error(`${motivo} — Google: ${String(er.message || '').replace(/\s+/g, ' ').slice(0, 220)}`), { status: r.status });
+      throw Object.assign(new Error(motivo), { status: r.status, exigeFaturamento: /requires billing/i.test(er.message || '') });
     }
     for (const ts of j.timeSeries || []) {
       const rotulo = agruparPor ? ((ts.metric || {}).labels || {})[agruparPor.split('.').pop()] || '' : '';
@@ -89,7 +90,6 @@ async function coletarFaturamento(token, projeto) {
 export async function coletarOperacoes(projeto, chave) {
   if (chave.project_id && chave.project_id !== projeto) throw new Error(`a chave foi criada em outro projeto do Google Cloud (“${chave.project_id}”); ela precisa ser do projeto “${projeto}”`);
   const token = await tokenGoogle(chave);
-  console.log(`Conta de serviço usada: ${String(chave.client_email || '').split('@')[0]} (projeto ${chave.project_id || '?'}).`);
   const [leit, grav, excl] = await Promise.all([serie(token, projeto, 'read_ops_count'), serie(token, projeto, 'write_ops_count', 'metric.label.op_type'), serie(token, projeto, 'delete_ops_count')]);
   const dias = {}, diasCota = {};
   const somar = (alvo, dia, campo, v) => { alvo[dia] = alvo[dia] || { leituras: 0, gravacoes: 0, criacoes: 0, atualizacoes: 0, exclusoes: 0 }; alvo[dia][campo] += v; };
@@ -109,8 +109,7 @@ export async function coletarOperacoes(projeto, chave) {
     for (const [campo, pts] of [['saida', saida], ['entrada', entrada]]) for (const pt of pts) { const d = diaBr(pt.inicio); porDia[d] = porDia[d] || { saida: 0, entrada: 0 }; porDia[d][campo] += pt.valor; }
     transferencia = Object.keys(porDia).length ? { disponivel: true, dias: porDia } : { disponivel: false, motivo: 'o Cloud Monitoring não devolveu dados de tamanho das respostas da API do Firestore para este projeto' };
   } catch (e) { transferencia = { disponivel: false, motivo: e.message }; }
-  const faturamento = await coletarFaturamento(token, projeto).catch(e => ({ disponivel: false, motivo: e.message }));
-  return { dias, diasCota, transferencia, faturamento };
+  return { dias, diasCota, transferencia };
 }
 
 // ---- 2. GitHub
@@ -179,13 +178,19 @@ export async function coletar({ fsCli, projeto, chaveGcp }) {
   if (!chaveGcp) { fontes.transferenciaOficial = { disponivel: false, motivo: 'depende da mesma chave GCP_MONITORAMENTO_CHAVE' }; fontes.faturamento = { disponivel: false, motivo: 'depende da mesma chave GCP_MONITORAMENTO_CHAVE' }; }
   if (!chaveGcp) fontes.firestoreOficial = { disponivel: false, motivo: 'Falta o segredo GCP_MONITORAMENTO_CHAVE no GitHub (conta de serviço com o papel “Leitor do Monitoring”). Sem ele, as leituras, gravações e exclusões oficiais do Firebase não podem ser consultadas automaticamente.' };
   else {
+    const chaveObj = JSON.parse(chaveGcp);
+    try { fontes.faturamento = await coletarFaturamento(await tokenGoogle(chaveObj), projeto); } catch (e) { fontes.faturamento = { disponivel: false, motivo: e.message }; }
     try {
-      operacoes = await coletarOperacoes(projeto, JSON.parse(chaveGcp));
+      operacoes = await coletarOperacoes(projeto, chaveObj);
       fontes.firestoreOficial = { disponivel: true, dias: Object.keys(operacoes.dias).length };
       fontes.transferenciaOficial = operacoes.transferencia.disponivel ? { disponivel: true } : { disponivel: false, motivo: operacoes.transferencia.motivo };
-      fontes.faturamento = operacoes.faturamento;
     }
-    catch (e) { fontes.firestoreOficial = { disponivel: false, motivo: `Não consegui consultar o Cloud Monitoring: ${e.message}.` }; log(`Cloud Monitoring: falhou (${e.status || ''}).`); }
+    catch (e) {
+      const motivo = e.exigeFaturamento ? `${e.message.charAt(0).toUpperCase() + e.message.slice(1)}.` : `Não consegui consultar o Cloud Monitoring: ${e.message}.`;
+      fontes.firestoreOficial = { disponivel: false, motivo, exigeFaturamento: !!e.exigeFaturamento };
+      fontes.transferenciaOficial = { disponivel: false, motivo, exigeFaturamento: !!e.exigeFaturamento };
+      log(`Cloud Monitoring: falhou (${e.status || ''}).`);
+    }
   }
   const github = await coletarGithub().catch(e => ({ disponivel: false, motivo: String(e.message || e).slice(0, 160) }));
   fontes.github = { disponivel: github.disponivel !== false };

@@ -5632,6 +5632,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -12042,6 +12043,13 @@ function monAlertas(d, cfg, oper, app) {
     });
   }
   const hojeApp = (app.porDia || {})[monDiaBr()];
+  if (!oper.lista.length && hojeApp) for (const [k, rot] of [['leituras', 'Leituras'], ['gravacoes', 'Gravações'], ['exclusoes', 'Exclusões']]) {
+    const pc = monPct(hojeApp[k] || 0, MON_COTA[k]);
+    if (nivel(pc)) out.push({
+      nivel: nivel(pc),
+      texto: `${rot} de hoje em cerca de ${pc.toFixed(0)}% da cota diária gratuita (contagem do aplicativo — confira no console do Firebase).`
+    });
+  }
   if (hojeApp && hojeApp.erros + hojeApp.falhas >= cfg.errosPorDia) out.push({
     nivel: 'alto',
     texto: `Erros frequentes no aplicativo hoje: ${hojeApp.erros + hojeApp.falhas} registrados (limite configurado: ${cfg.errosPorDia}).`
@@ -12201,6 +12209,7 @@ function MonGeral({
   const arquivos = banco ? (banco.midias.bytes || 0) + (banco.certificados.bytes || 0) : null;
   const registros = banco ? Object.entries(banco.colecoes).filter(([c]) => !['midias', 'certificadosPartes', 'monitoramento', 'monitoramentoUso'].includes(c)).reduce((s, [, x]) => s + x.documentos, 0) : null;
   const usuarios = (funcionarios || []).length;
+  const plano = d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.exigeFaturamento;
   const op = (k, rot) => oficialOk ? /*#__PURE__*/React.createElement(MonCartao, {
     titulo: rot,
     valor: monNum(oper.total[k] || 0),
@@ -12211,6 +12220,16 @@ function MonGeral({
     fonte: /*#__PURE__*/React.createElement(MonFonte, {
       tipo: "oficial",
       em: monQuando(oper.atualizadoEm)
+    })
+  }) : plano ? /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: rot,
+    valor: monNum(app.soma(k)),
+    sub: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: app.soma(k),
+      anterior: appAnt.soma(k)
+    }), /*#__PURE__*/React.createElement("br", null), "Contados pelo pr\xF3prio sistema nos aparelhos. O n\xFAmero oficial do Google, no plano gratuito, s\xF3 aparece no console do Firebase (Firestore \u2192 Uso)."),
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "app"
     })
   }) : /*#__PURE__*/React.createElement(MonCartao, {
     titulo: rot,
@@ -12504,9 +12523,11 @@ function MonOperacoes({
       cor: MON_CORES.exclusoes,
       valores: meses.map(m => m.t.exclusoes || 0)
     }]
-  })) : /*#__PURE__*/React.createElement(MonIndisponivel, {
+  })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonIndisponivel, {
     motivo: motivoOficial
-  })), /*#__PURE__*/React.createElement("div", {
+  }), d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.exigeFaturamento && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Para ver os n\xFAmeros oficiais: console do Firebase \u2192 Firestore Database \u2192 aba ", /*#__PURE__*/React.createElement("b", null, "Uso"), ". Abaixo, a contagem feita pelo pr\xF3prio sistema."))), /*#__PURE__*/React.createElement("div", {
     className: "mon-bloco"
   }, /*#__PURE__*/React.createElement("h3", null, "Por m\xF3dulo (contagem do pr\xF3prio aplicativo)"), /*#__PURE__*/React.createElement(MonFonte, {
     tipo: "app"
