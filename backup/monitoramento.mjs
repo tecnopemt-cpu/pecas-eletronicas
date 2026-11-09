@@ -87,6 +87,7 @@ async function coletarFaturamento(token, projeto) {
   return { disponivel: true, faturamentoAtivo: !!j.billingEnabled, conta: j.billingAccountName ? 'ligada' : 'nenhuma', verificadoEm: new Date().toISOString() };
 }
 export async function coletarOperacoes(projeto, chave) {
+  if (chave.project_id && chave.project_id !== projeto) throw new Error(`a chave foi criada em outro projeto do Google Cloud (“${chave.project_id}”); ela precisa ser do projeto “${projeto}”`);
   const token = await tokenGoogle(chave);
   const [leit, grav, excl] = await Promise.all([serie(token, projeto, 'read_ops_count'), serie(token, projeto, 'write_ops_count', 'metric.label.op_type'), serie(token, projeto, 'delete_ops_count')]);
   const dias = {}, diasCota = {};
