@@ -397,92 +397,296 @@
   }
 
   /* ---- Central de Monitoramento ---- */
-  .mon{display:flex;flex-direction:column;gap:14px;--mon-azul:#0F2A47;}
-  .mon-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#0F2A47,#1B3D63);color:#fff;}
-  .mon-cab h2{margin:0;font-size:21px;color:#fff;}
-  .mon-cab .av-sub,.mon-cab .av-dica{color:#C9D6E5;}
-  .mon-cab-acoes{display:flex;align-items:center;gap:10px;}
-  .mon-cab .btn.secundario{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3);}
-  .mon-faixa-alerta{display:block;width:100%;text-align:left;font:inherit;font-weight:700;padding:10px 14px;border-radius:10px;border:1px solid #F0B37A;background:#FFF4EA;color:#9A4A00;cursor:pointer;}
-  .mon-faixa-alerta.n-critico{border-color:#E8A0A0;background:#FDECEC;color:#9B1C1C;}
-  .mon-nav{display:flex;gap:6px;flex-wrap:wrap;}
-  .mon-periodo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-  .mon-periodo-rot{font-size:13px;color:var(--texto-fraco);}
-  .mon-grade-cartoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
-  .mon-mini{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));margin:8px 0;}
-  .mon-cartao{display:flex;flex-direction:column;gap:5px;padding:14px;border-radius:12px;border:1px solid var(--borda);background:var(--card);border-top:3px solid #1F4E79;min-width:0;}
-  .mon-cartao.indisp{border-top-color:#9AA5B1;background:#F8F9FA;}
-  .mon-cartao-titulo{font-size:12.5px;color:var(--texto-fraco);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
-  .mon-cartao-valor{font-size:21px;color:var(--texto);overflow-wrap:anywhere;}
-  .mon-cartao.indisp .mon-cartao-valor{font-size:16px;color:#5A6B80;}
-  .mon-cartao-sub{font-size:12.5px;color:var(--texto-fraco);}
-  .mon-fonte{display:inline-block;align-self:flex-start;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#EEF3F9;color:#1F3B5C;margin-top:2px;}
-  .mon-fonte.f-oficial{background:#E5F2EA;color:#1F6B3D;}
-  .mon-fonte.f-app{background:#FFF1E3;color:#9A4A00;}
-  .mon-fonte.f-estimativa{background:#F3EAF8;color:#6B3A8A;}
-  .mon-var{font-size:12px;}
-  .mon-var.sobe{color:#B54708;}
-  .mon-var.desce{color:#1F7A3D;}
-  .mon-var.neutro{color:var(--texto-fraco);}
-  .mon-barra{position:relative;display:flex;height:10px;border-radius:999px;background:#E6EAEF;overflow:hidden;margin-top:4px;}
-  .mon-barra-real{background:#1F4E79;}
+  .mon{--mon-marinho:#0F2A47;--mon-marinho2:#1B3D63;--mon-azul:#2F6FB5;--mon-laranja:#E97307;--mon-laranja-esc:#C86206;--mon-verde:#1F8A4C;--mon-amarelo:#B7860B;--mon-vermelho:#C0392B;--mon-fundo:#F5F7FA;--mon-borda:#E4E9F0;--mon-texto:#14253A;--mon-fraco:#5D6D80;
+    display:flex;flex-direction:column;gap:16px;color:var(--mon-texto);container-type:inline-size;container-name:mon;min-width:0;}
+  .mon .mon-ic{flex:0 0 auto;display:block;}
+  .mon-cab{display:flex;justify-content:space-between;align-items:center;gap:14px 20px;flex-wrap:wrap;padding:16px 20px;border-radius:16px;background:linear-gradient(120deg,#0F2A47 0%,#173A60 100%);color:#fff;}
+  .mon-cab-tit{display:flex;align-items:center;gap:14px;min-width:0;}
+  .mon-cab-ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:rgba(233,115,7,.16);color:#FF9A3D;flex:0 0 auto;}
+  .mon-cab h2{margin:0;font-size:21px;line-height:1.2;color:#fff;font-weight:700;}
+  .mon-cab p{margin:3px 0 0;font-size:13.5px;color:#C4D2E3;line-height:1.35;}
+  .mon-cab-acoes{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .mon-cab-hora{display:flex;align-items:center;gap:9px;color:#C4D2E3;font-size:12px;line-height:1.3;}
+  .mon-cab-hora > span{display:flex;flex-direction:column;}
+  .mon-cab-hora b{color:#fff;font-size:13.5px;font-weight:600;}
+  .mon-btn-atualizar{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:10px;padding:10px 18px;background:var(--mon-laranja);color:#fff;font-weight:700;font-size:14.5px;box-shadow:0 2px 6px rgba(233,115,7,.35);transition:background .15s ease, transform .1s ease;}
+  .mon-btn-atualizar:hover{background:var(--mon-laranja-esc);}
+  .mon-btn-atualizar:active{transform:translateY(1px);}
+  /* abas */
+  .mon-nav{display:flex;gap:4px;padding:5px;border-radius:14px;background:#fff;border:1px solid var(--mon-borda);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
+  .mon-nav::-webkit-scrollbar{display:none;}
+  .mon-aba{flex:1 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 10px;border:none;border-radius:10px;background:transparent;color:var(--mon-fraco);font-size:13.5px;font-weight:600;white-space:nowrap;transition:background .15s ease,color .15s ease;}
+  .mon-aba:hover{background:var(--mon-fundo);color:var(--mon-texto);}
+  .mon-aba.ativo{background:var(--mon-laranja);color:#fff;box-shadow:0 2px 6px rgba(233,115,7,.28);}
+  .mon-aba-cont{font-style:normal;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#F3C27F;color:#5C2D00;font-size:11.5px;display:inline-grid;place-items:center;}
+  .mon-aba-cont.critico{background:var(--mon-vermelho);color:#fff;}
+  .mon-aba.ativo .mon-aba-cont{background:#fff;color:var(--mon-laranja-esc);}
+  /* faixa de alertas e período */
+  .mon-faixa-alerta{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;font-size:13.5px;padding:10px 14px;border-radius:12px;border:1px solid #F0C28F;background:#FFF6EC;color:#8A4300;cursor:pointer;}
+  .mon-faixa-alerta.n-critico{border-color:#EDB1AA;background:#FDF0EE;color:#9B1C1C;}
+  .mon-faixa-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mon-faixa-ver{display:inline-flex;align-items:center;gap:4px;font-weight:700;white-space:nowrap;}
+  .mon-periodo{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;}
+  .mon-periodo-rot{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mon-fraco);}
+  .mon-seg{display:inline-flex;gap:3px;padding:3px;border-radius:11px;background:#fff;border:1px solid var(--mon-borda);max-width:100%;overflow-x:auto;scrollbar-width:none;}
+  .mon-seg::-webkit-scrollbar{display:none;}
+  .mon-seg button{flex:0 0 auto;border:none;background:transparent;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--mon-fraco);white-space:nowrap;}
+  .mon-seg button:hover{color:var(--mon-texto);background:var(--mon-fundo);}
+  .mon-seg button.ativo{background:var(--mon-marinho);color:#fff;}
+  .mon-seg.pequeno button{padding:5px 10px;font-size:12.5px;}
+  .mon-datas{display:flex;gap:8px;flex-wrap:wrap;}
+  .mon-datas label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mon-fraco);margin:0;}
+  .mon-datas input{width:auto;padding:7px 10px;font-size:14px;}
+  .mon-conteudo{min-width:0;}
+  .mon-secao{display:flex;flex-direction:column;gap:16px;min-width:0;}
+  /* cartões principais */
+  .mon-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;}
+  .mon-kpi{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;text-align:left;font:inherit;color:inherit;padding:16px;border-radius:16px;background:#fff;border:1px solid var(--mon-borda);box-shadow:0 1px 2px rgba(15,42,71,.04);cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease,transform .15s ease;}
+  .mon-kpi:hover{border-color:#CBD5E2;box-shadow:0 6px 18px rgba(15,42,71,.08);transform:translateY(-1px);}
+  .mon-kpi:focus-visible{outline:3px solid rgba(233,115,7,.4);outline-offset:2px;}
+  .mon-kpi-topo{display:flex;align-items:center;gap:9px;width:100%;}
+  .mon-kpi-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;}
+  .mon-kpi.c-laranja .mon-kpi-ic{background:#FDEBD8;color:var(--mon-laranja-esc);}
+  .mon-kpi.c-azul .mon-kpi-ic{background:#E3EEFA;color:var(--mon-azul);}
+  .mon-kpi.c-marinho .mon-kpi-ic{background:#E5EAF1;color:var(--mon-marinho);}
+  .mon-kpi.c-verde .mon-kpi-ic{background:#E1F3E8;color:var(--mon-verde);}
+  .mon-kpi-tit{font-size:13.5px;font-weight:600;color:var(--mon-fraco);flex:1;min-width:0;line-height:1.2;}
+  .mon-kpi-ir{color:#B3BFCC;opacity:0;transition:opacity .15s ease;}
+  .mon-kpi:hover .mon-kpi-ir{opacity:1;}
+  .mon-kpi-valor{font-size:27px;line-height:1.1;font-weight:700;color:var(--mon-marinho);letter-spacing:-.3px;margin-top:4px;overflow-wrap:anywhere;}
+  .mon-kpi-valor small,.mon-cartao-valor small{font-size:.58em;font-weight:600;color:var(--mon-fraco);letter-spacing:0;}
+  .mon-kpi.indisp .mon-kpi-valor{font-size:18px;color:var(--mon-fraco);}
+  .mon-kpi-extra{display:flex;flex-direction:column;gap:6px;width:100%;font-size:12.5px;color:var(--mon-fraco);}
+  .mon-kpi-comp{font-size:12.5px;color:var(--mon-fraco);line-height:1.3;}
+  .mon-kpi-rodape{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:auto;padding-top:4px;}
+  .mon-tag{display:inline-block;font-size:11px;font-weight:600;color:var(--mon-fraco);background:var(--mon-fundo);border-radius:6px;padding:2px 7px;}
+  /* selo de situação */
+  .mon-status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;line-height:1.35;background:#EEF1F5;color:#4A5A6C;}
+  .mon-status i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto;}
+  .mon-status.s-ok{background:#E3F4EA;color:#1A7A42;}
+  .mon-status.s-atencao{background:#FDF4D9;color:#8A6400;}
+  .mon-status.s-alto{background:#FDEBDB;color:#A54F00;}
+  .mon-status.s-critico{background:#FCE5E2;color:#A3241A;}
+  .mon-status.s-info{background:#E3EEFA;color:#1F5590;}
+  .mon-var{font-size:12.5px;color:var(--mon-fraco);}
+  .mon-var b{font-weight:700;}
+  .mon-var.sobe b{color:#B05A00;}
+  .mon-var.desce b{color:var(--mon-verde);}
+  /* painéis */
+  .mon-painel{display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:16px;background:#fff;border:1px solid var(--mon-borda);box-shadow:0 1px 2px rgba(15,42,71,.04);min-width:0;}
+  .mon-painel-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .mon-painel-cab h3{display:flex;align-items:center;gap:9px;margin:0;font-size:16.5px;font-weight:700;color:var(--mon-marinho);}
+  .mon-painel-ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#E8EDF4;color:var(--mon-marinho);flex:0 0 auto;}
+  .mon-painel-fonte{margin-top:-8px;}
+  .mon-painel h4{margin:4px 0 -4px;font-size:14px;color:var(--mon-marinho);}
+  .mon-carregando{color:var(--mon-fraco);text-align:center;padding:40px 18px;}
+  .mon-linha2{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;}
+  .mon-linha2.inv{grid-template-columns:minmax(0,6fr) minmax(0,6fr);}
+  .mon-linha2.meio{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  .mon-nota{margin:0;font-size:12.5px;color:var(--mon-fraco);line-height:1.45;}
+  .mon-fraco{color:var(--mon-fraco);font-size:12px;}
+  .mon-link{display:inline-flex;align-items:center;gap:4px;align-self:flex-start;border:none;background:none;padding:2px 0;font:inherit;font-size:13px;font-weight:700;color:var(--mon-laranja-esc);cursor:pointer;}
+  .mon-link:hover{text-decoration:underline;}
+  .mon-fonte{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-size:11.5px;font-weight:600;color:var(--mon-fraco);}
+  .mon-fonte::before{content:'';width:6px;height:6px;border-radius:50%;background:#9AABBE;}
+  .mon-fonte.f-oficial::before{background:var(--mon-verde);}
+  .mon-fonte.f-app::before{background:var(--mon-laranja);}
+  .mon-fonte.f-estimativa::before{background:#8C5BB8;}
+  .mon-fonte.f-github::before{background:var(--mon-marinho);}
+  /* indicadores menores */
+  .mon-grade-cartoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+  .mon-cartao{display:flex;flex-direction:column;gap:5px;padding:14px 15px;border-radius:13px;background:var(--mon-fundo);min-width:0;}
+  .mon-secao > .mon-grade-cartoes > .mon-cartao{background:#fff;border:1px solid var(--mon-borda);}
+  .mon-cartao-titulo{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mon-fraco);font-weight:600;}
+  .mon-cartao-titulo .mon-ic{color:#8A9AAD;}
+  .mon-cartao-valor{font-size:21px;font-weight:700;color:var(--mon-marinho);overflow-wrap:anywhere;line-height:1.2;}
+  .mon-cartao-sub{font-size:12.5px;color:var(--mon-fraco);line-height:1.35;}
+  /* barras */
+  .mon-barra{position:relative;display:flex;width:100%;height:9px;border-radius:999px;background:#E8EDF3;overflow:hidden;}
+  .mon-barra-real{background:var(--mon-verde);border-radius:999px 0 0 999px;}
   .mon-barra.atencao .mon-barra-real{background:#D4A017;}
-  .mon-barra.alto .mon-barra-real{background:#E97307;}
-  .mon-barra.critico .mon-barra-real{background:#C0392B;}
-  .mon-barra-est{background:repeating-linear-gradient(45deg,#8FA9C7,#8FA9C7 4px,#C7D5E6 4px,#C7D5E6 8px);}
-  .mon-barra i{position:absolute;top:0;bottom:0;width:1px;background:rgba(15,42,71,.35);}
-  .mon-indisp{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:10px;border:1px dashed #B8C2CC;background:#F8F9FA;font-size:13px;}
-  .mon-indisp strong{color:#5A6B80;}
-  .mon-indisp span{color:var(--texto-fraco);}
-  .mon-secao{display:flex;flex-direction:column;gap:14px;}
-  .mon-bloco{padding:16px;border-radius:12px;border:1px solid var(--borda);background:var(--card);display:flex;flex-direction:column;gap:10px;min-width:0;}
-  .mon-bloco h3{margin:0;font-size:16px;}
-  .mon-bloco h4{margin:6px 0 0;font-size:14px;}
-  .mon-servico{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-bottom:1px solid var(--borda);}
-  .mon-servico:last-child{border-bottom:none;}
-  .mon-servico > div:first-child{display:flex;flex-direction:column;gap:2px;}
-  .mon-servico span{font-size:12.5px;color:var(--texto-fraco);}
-  .mon-linha-barra{display:grid;grid-template-columns:200px 90px 1fr;gap:10px;align-items:center;font-size:13px;}
-  .mon-grafico{width:100%;}
-  .mon-grafico svg{width:100%;height:180px;display:block;}
-  .mon-grade{stroke:#E6EAEF;stroke-width:1;}
-  .mon-limite{stroke:#C0392B;stroke-width:1.5;stroke-dasharray:5 4;}
-  .mon-eixo{font-size:10px;fill:#7A8794;}
-  .mon-legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--texto-fraco);margin-top:4px;}
-  .mon-legenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
-  .mon-legenda-limite{background:#C0392B;height:2px !important;}
-  .mon-situacao{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:12px;border:1px solid;font-size:13px;}
-  .mon-situacao strong{font-size:16px;}
-  .mon-situacao.s-ok{border-color:#BFE3CB;background:#EEF8F1;color:#1F6B3D;}
-  .mon-situacao.s-critico{border-color:#E8A0A0;background:#FDECEC;color:#9B1C1C;}
-  .mon-linha-erro td{background:#FDF1F1;}
-  .mon-erros-curto{font-size:12px;max-width:360px;overflow-wrap:anywhere;}
-  .mon-grade-falhas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
-  .mon-grade-falhas div{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:8px;background:#F4F6F8;font-size:13px;}
-  .mon-grade-falhas div.tem{background:#FFF4EA;color:#9A4A00;}
-  .mon-estimativa{border-style:dashed;background:#FCFAFE;}
-  .mon-alertas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
-  .mon-alertas li{padding:9px 12px;border-radius:8px;font-size:13.5px;border-left:4px solid;}
-  .mon-alertas li.n-critico{border-color:#C0392B;background:#FDECEC;}
-  .mon-alertas li.n-alto{border-color:#E97307;background:#FFF4EA;}
-  .mon-alertas li.n-atencao{border-color:#D4A017;background:#FFF9E6;}
-  .mon-campos{display:flex;flex-direction:column;gap:10px;}
-  .mon-campo{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:0;}
-  .mon-campo span{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .mon-barra.alto .mon-barra-real{background:var(--mon-laranja);}
+  .mon-barra.critico .mon-barra-real{background:var(--mon-vermelho);}
+  .mon-barra-est{background:repeating-linear-gradient(45deg,#9FB7D2,#9FB7D2 3px,#D3DFEC 3px,#D3DFEC 6px);}
+  .mon-barra i{position:absolute;top:0;bottom:0;width:2px;background:#fff;opacity:.9;}
+  .mon-progs{display:flex;flex-direction:column;gap:16px;}
+  .mon-progs.compacto{gap:12px;}
+  .mon-prog{display:flex;flex-direction:column;gap:7px;}
+  .mon-prog-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .mon-prog-nome{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;}
+  .mon-prog-ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;background:#E8EDF4;color:var(--mon-marinho);}
+  .mon-prog-ic.c-laranja{background:#FDEBD8;color:var(--mon-laranja-esc);}
+  .mon-prog-ic.c-azul{background:#E3EEFA;color:var(--mon-azul);}
+  .mon-prog-ic.c-roxo{background:#EFE8F8;color:#6A44A0;}
+  .mon-prog-ic.c-verde{background:#E1F3E8;color:var(--mon-verde);}
+  .mon-prog-ic.c-cinza{background:#EEF1F5;color:#6B7A8C;}
+  .mon-prog-val{font-size:13px;color:var(--mon-fraco);}
+  .mon-prog-val b{font-size:14.5px;color:var(--mon-texto);}
+  .mon-prog-rodape{display:flex;justify-content:space-between;align-items:center;gap:6px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--mon-fraco);}
+  .mon-prog-rodape > span:first-child{flex:1;min-width:0;}
+  .mon-prog-pct{font-weight:700;color:var(--mon-texto);white-space:nowrap;}
+  .mon-linha-barra{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;font-size:13.5px;}
+  .mon-linha-barra > span{display:flex;align-items:center;gap:8px;}
+  .mon-linha-barra > span i{width:10px;height:10px;border-radius:3px;flex:0 0 auto;}
+  .mon-barra-simples{grid-column:1 / -1;height:8px;border-radius:999px;background:#E8EDF3;overflow:hidden;}
+  .mon-barra-simples span{display:block;height:100%;border-radius:999px;}
+  /* rosca */
+  .mon-rosca-linha{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .mon-rosca{width:150px;height:150px;flex:0 0 auto;}
+  .mon-rosca-fundo{fill:none;stroke:#E8EDF3;stroke-width:16;}
+  .mon-rosca-v{font-size:22px;font-weight:700;fill:var(--mon-marinho);}
+  .mon-rosca-s{font-size:11px;fill:var(--mon-fraco);font-weight:600;}
+  .mon-rosca-leg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;flex:1;min-width:170px;}
+  .mon-rosca-leg li{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--mon-fraco);}
+  .mon-rosca-leg i{width:10px;height:10px;border-radius:50%;margin-top:4px;flex:0 0 auto;}
+  .mon-rosca-leg span{display:flex;flex-direction:column;}
+  .mon-rosca-leg b{color:var(--mon-texto);font-size:14px;}
+  .mon-totais{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--mon-borda);padding-top:12px;}
+  .mon-totais > div{display:flex;flex-direction:column;gap:1px;}
+  .mon-totais > div + div{border-left:1px solid var(--mon-borda);padding-left:14px;text-align:right;}
+  .mon-totais span{font-size:12.5px;color:var(--mon-fraco);}
+  .mon-totais b{font-size:19px;color:var(--mon-marinho);}
+  .mon-totais small{font-size:11px;color:var(--mon-fraco);}
+  /* gráficos */
+  .mon-grafico{width:100%;min-width:0;display:flex;flex-direction:column;gap:8px;}
+  .mon-grafico-area{width:100%;min-width:0;overflow:hidden;}
+  .mon-grafico-area svg{display:block;}
+  .mon-grafico-vazio{display:grid;place-items:center;min-height:90px;padding:16px;border-radius:12px;background:var(--mon-fundo);color:var(--mon-fraco);font-size:13px;text-align:center;}
+  .mon-grade{stroke:#EDF1F5;stroke-width:1;}
+  .mon-grade.base{stroke:#D5DDE6;}
+  .mon-limite{stroke:var(--mon-vermelho);stroke-width:1.5;stroke-dasharray:5 4;}
+  .mon-eixo{font-size:11px;fill:#7D8B9A;}
+  .mon-legenda{display:flex;gap:6px 16px;flex-wrap:wrap;justify-content:center;font-size:12.5px;color:var(--mon-fraco);}
+  .mon-legenda span{display:inline-flex;align-items:center;gap:6px;}
+  .mon-legenda i{display:inline-block;width:10px;height:10px;border-radius:3px;}
+  .mon-legenda-limite{background:var(--mon-vermelho);height:2px !important;}
+  /* aviso compacto de métrica indisponível */
+  .mon-indisp{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border-radius:12px;border:1px dashed #C6D1DE;background:var(--mon-fundo);font-size:13px;}
+  .mon-indisp-ic{color:var(--mon-azul);margin-top:1px;}
+  .mon-indisp > div{display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .mon-indisp strong{color:var(--mon-texto);font-size:14px;}
+  .mon-indisp span{color:var(--mon-fraco);}
+  .mon-indisp-det{margin:4px 0 0;padding:9px 11px;border-radius:8px;background:#fff;border:1px solid var(--mon-borda);color:var(--mon-fraco);font-size:12.5px;overflow-wrap:anywhere;}
+  /* saúde */
+  .mon-saude-grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+  .mon-saude-grade.grande{grid-template-columns:repeat(6,minmax(0,1fr));}
+  .mon-saude-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:14px 8px;border-radius:13px;background:var(--mon-fundo);min-width:0;}
+  .mon-saude-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#fff;color:var(--mon-marinho);box-shadow:0 1px 2px rgba(15,42,71,.06);}
+  .mon-saude-item.s-ok .mon-saude-ic{color:var(--mon-verde);}
+  .mon-saude-item.s-atencao .mon-saude-ic{color:var(--mon-amarelo);}
+  .mon-saude-item.s-alto .mon-saude-ic{color:var(--mon-laranja);}
+  .mon-saude-item.s-critico .mon-saude-ic{color:var(--mon-vermelho);}
+  .mon-saude-item.s-critico{background:#FDF0EE;}
+  .mon-saude-nome{font-size:13.5px;font-weight:700;color:var(--mon-texto);}
+  .mon-saude-det{font-size:11.5px;color:var(--mon-fraco);overflow-wrap:anywhere;}
+  /* histórico de backups */
+  .mon-hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+  .mon-hist li{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #EEF1F5;}
+  .mon-hist li:last-child{border-bottom:none;}
+  .mon-hist-ic{color:#8A9AAD;margin-top:1px;}
+  .mon-hist li.ok .mon-hist-ic{color:var(--mon-verde);}
+  .mon-hist li.mon-linha-erro .mon-hist-ic{color:var(--mon-vermelho);}
+  .mon-hist-txt{display:flex;flex-direction:column;gap:2px;font-size:13.5px;min-width:0;}
+  .mon-hist-txt small{font-size:12px;color:var(--mon-fraco);}
+  .mon-erros-curto{font-size:12px;overflow-wrap:anywhere;color:#A3241A;}
+  td.mon-erros-curto{max-width:360px;color:inherit;}
+  /* destaque (backup, custos) */
+  .mon-hero{display:flex;flex-wrap:wrap;align-items:center;gap:18px 28px;padding:20px;border-radius:16px;background:#fff;border:1px solid var(--mon-borda);border-left:5px solid #9AABBE;}
+  .mon-hero.s-ok{border-left-color:var(--mon-verde);}
+  .mon-hero.s-atencao,.mon-hero.s-alto{border-left-color:var(--mon-laranja);}
+  .mon-hero.s-critico{border-left-color:var(--mon-vermelho);background:#FFFBFA;}
+  .mon-hero.compacto{padding:14px 16px;}
+  .mon-hero > .mon-fonte{flex-basis:100%;}
+  .mon-hero-principal{display:flex;gap:16px;align-items:flex-start;flex:1 1 300px;min-width:0;}
+  .mon-hero-ic{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;flex:0 0 auto;background:#EEF1F5;color:#6B7A8C;}
+  .mon-hero.s-ok .mon-hero-ic{background:#E1F3E8;color:var(--mon-verde);}
+  .mon-hero.s-critico .mon-hero-ic{background:#FCE5E2;color:var(--mon-vermelho);}
+  .mon-hero.compacto .mon-hero-ic{width:44px;height:44px;border-radius:12px;}
+  .mon-hero-txt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;}
+  .mon-hero-rot{font-size:13px;font-weight:600;color:var(--mon-fraco);}
+  .mon-hero-txt strong{font-size:22px;color:var(--mon-marinho);line-height:1.2;}
+  .mon-hero-det{font-size:12.5px;color:var(--mon-fraco);line-height:1.4;}
+  .mon-hero-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;flex:2 1 460px;min-width:0;}
+  .mon-hero-stats > div{display:flex;flex-direction:column;gap:3px;padding:12px;border-radius:12px;background:var(--mon-fundo);min-width:0;}
+  .mon-hero-stats span{font-size:12px;color:var(--mon-fraco);font-weight:600;}
+  .mon-hero-stats b{font-size:16px;color:var(--mon-marinho);overflow-wrap:anywhere;}
+  .mon-hero-stats small{font-size:11.5px;color:var(--mon-fraco);}
+  /* tabelas e detalhes */
+  .mon .mon-tabela{font-size:13px;}
+  .mon .mon-tabela th{background:var(--mon-fundo);color:var(--mon-fraco);font-weight:600;}
+  .mon-linha-erro td{background:#FDF3F1;}
+  .mon-det{padding:0;gap:0;}
+  .mon-det > summary{cursor:pointer;list-style:none;padding:15px 18px;font-weight:700;font-size:14px;color:var(--mon-marinho);display:flex;align-items:center;gap:8px;}
+  .mon-det > summary::-webkit-details-marker{display:none;}
+  .mon-det > summary::before{content:'';width:7px;height:7px;border-right:2px solid var(--mon-laranja);border-bottom:2px solid var(--mon-laranja);transform:rotate(-45deg);transition:transform .15s ease;}
+  .mon-det[open] > summary::before{transform:rotate(45deg);}
+  .mon-det > :not(summary){margin:0 18px 18px;}
+  .mon-grade-falhas{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;}
+  .mon-grade-falhas div{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:10px;background:var(--mon-fundo);font-size:13px;}
+  .mon-grade-falhas div.tem{background:#FFF3E6;color:#8A4300;}
+  .mon-estimativa{border-style:dashed;}
+  .mon-marcos{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+  .mon-marcos div{display:flex;flex-direction:column;gap:2px;padding:11px 13px;border-radius:11px;background:#F6F1FB;}
+  .mon-marcos span{font-size:12px;color:var(--mon-fraco);font-weight:600;}
+  .mon-marcos b{font-size:14px;color:#4E2C78;}
+  /* alertas */
+  .mon-alertas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .mon-alertas li{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:11px;font-size:13.5px;line-height:1.4;}
+  .mon-alerta-ic{margin-top:1px;}
+  .mon-alertas li.n-critico{background:#FDF0EE;color:#7E1A12;}
+  .mon-alertas li.n-critico .mon-alerta-ic{color:var(--mon-vermelho);}
+  .mon-alertas li.n-alto{background:#FFF3E6;color:#7A3B00;}
+  .mon-alertas li.n-alto .mon-alerta-ic{color:var(--mon-laranja);}
+  .mon-alertas li.n-atencao{background:#FDF6DF;color:#6B4E00;}
+  .mon-alertas li.n-atencao .mon-alerta-ic{color:var(--mon-amarelo);}
+  .mon-campos{display:flex;flex-direction:column;gap:12px;}
+  .mon-campo{display:flex;flex-direction:column;gap:5px;font-size:13.5px;margin:0;color:var(--mon-texto);}
+  .mon-campo span{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:var(--mon-fraco);}
   .mon-campo input{width:80px;}
-  @media (max-width:640px){
-    .mon-cab{padding:14px;}
-    .mon-cab h2{font-size:18px;}
-    .mon-grade-cartoes,.mon-mini{grid-template-columns:1fr 1fr;gap:8px;}
-    .mon-cartao{padding:11px;}
-    .mon-cartao-valor{font-size:17px;}
-    .mon-linha-barra{grid-template-columns:1fr auto;}
-    .mon-linha-barra .mon-barra{grid-column:1 / -1;}
-    .mon-grafico svg{height:150px;}
-    .mon-nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;}
-    .mon-nav .av-chip{flex:0 0 auto;}
+  /* largura disponível (o menu do sistema ocupa parte da tela) */
+  @container mon (max-width:1180px){
+    .mon-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .mon-saude-grade.grande{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .mon-nav{gap:1px;}
+    .mon-aba{font-size:13px;padding:8px 8px;gap:5px;}
   }
-  @media (max-width:380px){ .mon-grade-cartoes,.mon-mini{grid-template-columns:1fr;} }
+  @container mon (max-width:980px){
+    .mon-linha2,.mon-linha2.inv,.mon-linha2.meio{grid-template-columns:minmax(0,1fr);}
+    .mon-hero-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+  @container mon (max-width:640px){
+    .mon{gap:12px;}
+    .mon-cab{padding:14px 15px;border-radius:14px;}
+    .mon-cab-ic{width:40px;height:40px;}
+    .mon-cab h2{font-size:18px;}
+    .mon-cab p{font-size:12.5px;}
+    .mon-cab-acoes{width:100%;justify-content:space-between;gap:10px;}
+    .mon-btn-atualizar{padding:9px 14px;font-size:14px;}
+    .mon-nav{margin:0 -2px;}
+    .mon-aba{flex:0 0 auto;padding:8px 11px;font-size:13px;}
+    .mon-seg{width:100%;}
+    .mon-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .mon-kpi{padding:13px;border-radius:14px;gap:5px;}
+    .mon-kpi-ic{width:30px;height:30px;}
+    .mon-kpi-tit{font-size:12.5px;}
+    .mon-kpi-valor{font-size:22px;}
+    .mon-kpi.indisp .mon-kpi-valor{font-size:16px;}
+    .mon-kpi-ir{display:none;}
+    .mon-painel{padding:15px;border-radius:14px;}
+    .mon-saude-grade,.mon-saude-grade.grande{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .mon-grade-cartoes{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .mon-cartao{padding:12px;}
+    .mon-cartao-valor{font-size:18px;}
+    .mon-rosca-linha{justify-content:center;}
+    .mon-rosca{width:132px;height:132px;}
+    .mon-hero{padding:16px;}
+    .mon-hero-txt strong{font-size:19px;}
+    .mon-faixa-txt{white-space:normal;}
+    .mon-faixa-alerta{align-items:flex-start;flex-wrap:wrap;}
+  }
+  @container mon (max-width:350px){
+    .mon-kpis,.mon-grade-cartoes,.mon-hero-stats{grid-template-columns:minmax(0,1fr);}
+  }
 
   /* ---- Relatório geral do colaborador ---- */
   .rg-modal{max-width:920px;width:100%;display:flex;flex-direction:column;gap:12px;}
@@ -5628,6 +5832,9 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -11679,6 +11886,98 @@ const MON_CONFIG_PADRAO = {
 };
 
 // ---------- 3. componentes visuais ----------
+// Ícones de traço (estilo Lucide, licença ISC), desenhados inline para não depender de arquivos externos.
+const MON_ICONES = {
+  painel: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+  disco: '<line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/>',
+  banco: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
+  trafego: '<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>',
+  escudo: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  pulso: '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>',
+  tendencia: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  moeda: '<circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/>',
+  sino: '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>',
+  arquivo: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  olho: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+  lapis: '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+  lixeira: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  imagem: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+  atualizar: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  relogio: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  globo: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+  servidor: '<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>',
+  usuarios: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  chama: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  alerta: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  ok: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  erro: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+  seta: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  calendario: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+  sinc: '<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>',
+  nuvem: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+  bug: '<path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>'
+};
+function MonIcone({
+  n,
+  tam = 20
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    className: "mon-ic",
+    width: tam,
+    height: tam,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    focusable: "false",
+    dangerouslySetInnerHTML: {
+      __html: MON_ICONES[n] || ''
+    }
+  });
+}
+const monNivel = (pct, nv) => pct == null || isNaN(pct) ? null : pct >= nv[2] ? 'critico' : pct >= nv[1] ? 'alto' : pct >= nv[0] ? 'atencao' : 'ok';
+const MON_ROT_NIVEL = {
+  ok: 'Normal',
+  atencao: 'Atenção',
+  alto: 'Alto',
+  critico: 'Crítico'
+};
+const monPctTxt = p => p == null || isNaN(p) ? '—' : `${p.toFixed(p < 10 ? 1 : 0).replace('.', ',')}%`;
+const monCurto = n => {
+  if (n == null || isNaN(n)) return '—';
+  const a = Math.abs(n);
+  if (a >= 1e6) return `${(n / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace('.', ',')} mi`;
+  if (a >= 1e4) return `${Math.round(n / 1e3)} mil`;
+  return monNum(n);
+};
+const monDataHora = iso => {
+  if (!iso) return null;
+  const d = new Date(iso.toDate ? iso.toDate() : iso);
+  if (isNaN(d)) return null;
+  return {
+    data: d.toLocaleDateString('pt-BR'),
+    hora: d.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  };
+};
+const monRotDia = x => `${x.slice(8)}/${x.slice(5, 7)}`;
+// selo de situação (bolinha + texto curto)
+function MonStatus({
+  s,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    className: `mon-status s-${s || 'neutro'}`
+  }, /*#__PURE__*/React.createElement("i", {
+    "aria-hidden": "true"
+  }), children);
+}
 function MonBarra({
   valor,
   limite,
@@ -11697,26 +11996,45 @@ function MonBarra({
   }, /*#__PURE__*/React.createElement("span", {
     className: "mon-barra-real",
     style: {
-      width: `${p}%`
+      width: `${Math.max(p, valor ? 0.8 : 0)}%`
     }
   }), pe > 0 && /*#__PURE__*/React.createElement("span", {
     className: "mon-barra-est",
     style: {
       width: `${pe}%`
     }
-  }), nv.map(n => /*#__PURE__*/React.createElement("i", {
+  }), nv.filter(n => n <= 100).map(n => /*#__PURE__*/React.createElement("i", {
     key: n,
     style: {
       left: `${n}%`
     }
   })));
 }
+// aviso compacto: título + uma linha; a explicação técnica completa fica atrás de "Ver detalhes"
 function MonIndisponivel({
-  motivo
+  motivo,
+  titulo = 'Métrica indisponível',
+  resumo,
+  children
 }) {
+  const [aberto, setAberto] = useState(false);
+  const curto = resumo || (motivo ? 'Configure a integração para visualizar este indicador.' : '');
+  const temDetalhe = motivo && motivo !== curto;
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-indisp"
-  }, /*#__PURE__*/React.createElement("strong", null, "M\xE9trica indispon\xEDvel"), /*#__PURE__*/React.createElement("span", null, motivo));
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-indisp-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "info",
+    tam: 18
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, titulo), curto && /*#__PURE__*/React.createElement("span", null, curto), temDetalhe && aberto && /*#__PURE__*/React.createElement("p", {
+    className: "mon-indisp-det"
+  }, motivo), children, temDetalhe && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "mon-link",
+    "aria-expanded": aberto,
+    onClick: () => setAberto(a => !a)
+  }, aberto ? 'Ocultar detalhes' : 'Ver detalhes')));
 }
 function MonFonte({
   tipo,
@@ -11731,7 +12049,7 @@ function MonFonte({
   }[tipo] || tipo;
   return /*#__PURE__*/React.createElement("span", {
     className: `mon-fonte f-${tipo}`
-  }, t, em ? ` · atualizado ${em}` : '');
+  }, t, em ? ` · ${em}` : '');
 }
 const monQuando = iso => {
   if (!iso) return '';
@@ -11743,77 +12061,165 @@ const monQuando = iso => {
 };
 function MonVariacao({
   atual,
-  anterior
+  anterior,
+  curto,
+  formato
 }) {
   if (atual == null || anterior == null || !anterior) return /*#__PURE__*/React.createElement("span", {
     className: "mon-var neutro"
-  }, "sem per\xEDodo anterior para comparar");
+  }, curto ? 'sem período anterior' : 'sem período anterior para comparar');
   const p = (atual - anterior) / anterior * 100;
+  const cls = p > 0.5 ? 'sobe' : p < -0.5 ? 'desce' : 'neutro';
   return /*#__PURE__*/React.createElement("span", {
-    className: `mon-var ${p > 0 ? 'sobe' : p < 0 ? 'desce' : 'neutro'}`
-  }, p > 0 ? '▲' : p < 0 ? '▼' : '=', " ", Math.abs(p).toFixed(0), "% vs. per\xEDodo anterior (", monNum(anterior), ")");
+    className: `mon-var ${cls}`,
+    title: `período anterior: ${(formato || monNum)(anterior)}`
+  }, /*#__PURE__*/React.createElement("b", null, cls === 'sobe' ? '↑' : cls === 'desce' ? '↓' : '=', " ", Math.abs(p).toFixed(0), "%"), " vs. per\xEDodo anterior", curto ? '' : ` (${(formato || monNum)(anterior)})`);
 }
-// gráfico de barras simples (SVG); series: [{nome, cor, valores}], categorias: rótulos do eixo X
+// largura real do contêiner (o gráfico é desenhado no tamanho certo, sem esticar o texto)
+function useMonLargura(padrao = 640) {
+  const ref = useRef(null);
+  const [w, setW] = useState(padrao);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const medir = () => {
+      const x = Math.round(el.getBoundingClientRect().width);
+      if (x > 0) setW(x);
+    };
+    medir();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', medir);
+      return () => window.removeEventListener('resize', medir);
+    }
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, w];
+}
+const monTeto = v => {
+  if (!(v > 0)) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(v)));
+  const f = v / e;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+};
+// gráfico (SVG) de barras ou de linhas; series: [{nome, cor, valores}], categorias: rótulos do eixo X
 function MonGrafico({
   categorias,
   series,
   formato,
-  altura = 170,
-  linhaLimite
+  altura = 210,
+  linhaLimite,
+  tipo = 'barras'
 }) {
+  const [ref, L] = useMonLargura();
   const n = categorias.length;
-  if (!n) return /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio-pequeno"
+  const temDado = n > 0 && series.some(s => s.valores.some(v => v != null));
+  const fmt = formato || monCurto;
+  let corpo = /*#__PURE__*/React.createElement("div", {
+    className: "mon-grafico-vazio"
   }, "Sem dados no per\xEDodo.");
-  const max = Math.max(1, linhaLimite || 0, ...series.flatMap(s => s.valores.map(v => v || 0)));
-  const L = 640,
-    A = altura,
-    pe = 34,
-    pb = 22,
-    larg = (L - pe) / n,
-    gb = Math.max(1, larg * 0.8 / series.length);
-  const y = v => A - pb - (v || 0) / max * (A - pb - 8);
-  const passo = Math.ceil(n / 8);
+  if (temDado) {
+    const bruto = Math.max(1, linhaLimite || 0, ...series.flatMap(s => s.valores.map(v => v || 0)));
+    const un = formato === monFormatarBytes ? Math.pow(1024, Math.min(3, Math.floor(Math.log(bruto) / Math.log(1024)))) : 1;
+    const passoY = monTeto(bruto / 4 / un) * un,
+      nTicks = Math.max(1, Math.ceil(bruto / passoY - 1e-9)),
+      max = passoY * nTicks;
+    const A = altura,
+      pe = formato ? 62 : 46,
+      pd = 8,
+      pt = 10,
+      pb = 24,
+      util = Math.max(40, L - pe - pd),
+      larg = util / n;
+    const y = v => pt + (A - pt - pb) * (1 - (v || 0) / max);
+    const x = i => pe + larg * (i + 0.5);
+    const cabe = Math.max(2, Math.floor(util / 52)),
+      passo = Math.ceil(n / cabe);
+    const gb = Math.max(2, Math.min(22, larg * 0.72 / series.length));
+    corpo = /*#__PURE__*/React.createElement("svg", {
+      width: L,
+      height: A,
+      viewBox: `0 0 ${L} ${A}`,
+      role: "img",
+      "aria-label": series.map(s => s.nome).join(', ')
+    }, Array.from({
+      length: nTicks + 1
+    }, (_, i) => i / nTicks).map(f => /*#__PURE__*/React.createElement("g", {
+      key: f
+    }, /*#__PURE__*/React.createElement("line", {
+      x1: pe,
+      x2: L - pd,
+      y1: y(max * f),
+      y2: y(max * f),
+      className: f ? 'mon-grade' : 'mon-grade base'
+    }), /*#__PURE__*/React.createElement("text", {
+      x: pe - 8,
+      y: y(max * f) + 4,
+      className: "mon-eixo",
+      textAnchor: "end"
+    }, fmt(max * f)))), linhaLimite ? /*#__PURE__*/React.createElement("line", {
+      x1: pe,
+      x2: L - pd,
+      y1: y(linhaLimite),
+      y2: y(linhaLimite),
+      className: "mon-limite"
+    }) : null, tipo === 'barras' && categorias.map((c, i) => series.map((s, j) => s.valores[i] != null && /*#__PURE__*/React.createElement("rect", {
+      key: `${i}-${j}`,
+      x: x(i) - gb * series.length / 2 + j * gb + 0.5,
+      y: y(s.valores[i]),
+      width: Math.max(1.5, gb - 1),
+      height: Math.max(0, A - pb - y(s.valores[i])),
+      rx: Math.min(3, gb / 3),
+      fill: s.cor
+    }, /*#__PURE__*/React.createElement("title", null, `${c} — ${s.nome}: ${(formato || monNum)(s.valores[i])}`)))), tipo === 'linhas' && series.map(s => {
+      const trechos = [];
+      let atual = [];
+      s.valores.forEach((v, i) => {
+        if (v == null) {
+          if (atual.length) trechos.push(atual);
+          atual = [];
+        } else atual.push([x(i), y(v)]);
+      });
+      if (atual.length) trechos.push(atual);
+      return /*#__PURE__*/React.createElement("g", {
+        key: s.nome
+      }, trechos.map((t, k) => /*#__PURE__*/React.createElement("g", {
+        key: k
+      }, /*#__PURE__*/React.createElement("path", {
+        d: `M${t.map(p => p.join(',')).join(' L')} L${t[t.length - 1][0]},${A - pb} L${t[0][0]},${A - pb} Z`,
+        fill: s.cor,
+        opacity: "0.07"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: 'M' + t.map(p => p.join(',')).join(' L'),
+        fill: "none",
+        stroke: s.cor,
+        strokeWidth: "2.5",
+        strokeLinejoin: "round",
+        strokeLinecap: "round"
+      }))), s.valores.map((v, i) => v != null && (n <= 40 || i === n - 1) && /*#__PURE__*/React.createElement("circle", {
+        key: i,
+        cx: x(i),
+        cy: y(v),
+        r: n <= 14 ? 4 : 3,
+        fill: "#fff",
+        stroke: s.cor,
+        strokeWidth: "2"
+      }, /*#__PURE__*/React.createElement("title", null, `${categorias[i]} — ${s.nome}: ${(formato || monNum)(v)}`))));
+    }), categorias.map((c, i) => (i % passo === 0 || i === n - 1 && n - 1 - i < passo && (n - 1) % passo > passo / 2) && /*#__PURE__*/React.createElement("text", {
+      key: c + i,
+      x: x(i),
+      y: A - 6,
+      className: "mon-eixo",
+      textAnchor: "middle"
+    }, c)));
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-grafico"
-  }, /*#__PURE__*/React.createElement("svg", {
-    viewBox: `0 0 ${L} ${A}`,
-    preserveAspectRatio: "none",
-    role: "img",
-    "aria-label": series.map(s => s.nome).join(', ')
-  }, [0, 0.5, 1].map(f => /*#__PURE__*/React.createElement("g", {
-    key: f
-  }, /*#__PURE__*/React.createElement("line", {
-    x1: pe,
-    x2: L,
-    y1: y(max * f),
-    y2: y(max * f),
-    className: "mon-grade"
-  }), /*#__PURE__*/React.createElement("text", {
-    x: pe - 4,
-    y: y(max * f) + 3,
-    className: "mon-eixo",
-    textAnchor: "end"
-  }, formato ? formato(max * f) : monNum(max * f)))), linhaLimite ? /*#__PURE__*/React.createElement("line", {
-    x1: pe,
-    x2: L,
-    y1: y(linhaLimite),
-    y2: y(linhaLimite),
-    className: "mon-limite"
-  }) : null, categorias.map((c, i) => series.map((s, j) => s.valores[i] != null && /*#__PURE__*/React.createElement("rect", {
-    key: `${i}-${j}`,
-    x: pe + i * larg + larg * 0.1 + j * gb,
-    y: y(s.valores[i]),
-    width: Math.max(1, gb - 1),
-    height: Math.max(0, A - pb - y(s.valores[i])),
-    fill: s.cor
-  }, /*#__PURE__*/React.createElement("title", null, `${c} — ${s.nome}: ${formato ? formato(s.valores[i]) : monNum(s.valores[i])}`)))), categorias.map((c, i) => i % passo === 0 && /*#__PURE__*/React.createElement("text", {
-    key: c,
-    x: pe + i * larg + larg / 2,
-    y: A - 6,
-    className: "mon-eixo",
-    textAnchor: "middle"
-  }, c))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: ref,
+    className: "mon-grafico-area"
+  }, corpo), temDado && /*#__PURE__*/React.createElement("div", {
     className: "mon-legenda"
   }, series.map(s => /*#__PURE__*/React.createElement("span", {
     key: s.nome
@@ -11831,9 +12237,222 @@ const MON_CORES = {
   exclusoes: '#9AA5B1',
   fotos: '#E97307',
   docs: '#1F4E79',
-  cert: '#3C8D5A',
-  backup: '#6B5B95'
+  cert: '#2E9A63',
+  backup: '#7A5BB0',
+  total: '#E97307',
+  arquivos: '#2F6FB5'
 };
+// rosca: partes de um total conhecido (o resto do círculo é o espaço livre)
+function MonRosca({
+  partes,
+  total,
+  centro,
+  sub
+}) {
+  const R = 54,
+    C = 2 * Math.PI * R;
+  let acc = 0;
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 140 140",
+    className: "mon-rosca",
+    role: "img",
+    "aria-label": `${centro} ${sub}`
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "70",
+    cy: "70",
+    r: R,
+    className: "mon-rosca-fundo"
+  }), partes.map(p => {
+    const len = Math.max(0, Math.min(1, p.valor / total)) * C;
+    const vis = Math.max(len, p.valor > 0 ? 1.5 : 0);
+    const el = /*#__PURE__*/React.createElement("circle", {
+      key: p.nome,
+      cx: "70",
+      cy: "70",
+      r: R,
+      fill: "none",
+      stroke: p.cor,
+      strokeWidth: "16",
+      strokeDasharray: `${vis} ${C - vis}`,
+      strokeDashoffset: -acc,
+      transform: "rotate(-90 70 70)",
+      opacity: p.estimado ? 0.45 : 1
+    });
+    acc += len;
+    return el;
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "70",
+    y: "70",
+    textAnchor: "middle",
+    className: "mon-rosca-v"
+  }, centro), /*#__PURE__*/React.createElement("text", {
+    x: "70",
+    y: "88",
+    textAnchor: "middle",
+    className: "mon-rosca-s"
+  }, sub));
+}
+// número grande com a unidade menor ("69,0 MB" → 69,0 + MB)
+function MonValor({
+  v
+}) {
+  const m = /^(-?[\d.,]+)\s(\S+)$/.exec(String(v));
+  return m ? /*#__PURE__*/React.createElement(React.Fragment, null, m[1], " ", /*#__PURE__*/React.createElement("small", null, m[2])) : /*#__PURE__*/React.createElement(React.Fragment, null, v);
+}
+// cartão principal da visão geral (clicável: abre a seção com os detalhes)
+function MonKpi({
+  icone,
+  cor,
+  titulo,
+  valor,
+  extra,
+  comparacao,
+  status,
+  rotStatus,
+  tag,
+  aoClicar,
+  indisp
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `mon-kpi c-${cor}${indisp ? ' indisp' : ''}`,
+    onClick: aoClicar,
+    "aria-label": `${titulo}: ${valor}. Ver detalhes`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-kpi-topo"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-kpi-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: icone,
+    tam: 19
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "mon-kpi-tit"
+  }, titulo), /*#__PURE__*/React.createElement("span", {
+    className: "mon-kpi-ir"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "seta",
+    tam: 15
+  }))), /*#__PURE__*/React.createElement("strong", {
+    className: "mon-kpi-valor"
+  }, /*#__PURE__*/React.createElement(MonValor, {
+    v: valor
+  })), extra, comparacao && /*#__PURE__*/React.createElement("span", {
+    className: "mon-kpi-comp"
+  }, comparacao), /*#__PURE__*/React.createElement("span", {
+    className: "mon-kpi-rodape"
+  }, rotStatus && /*#__PURE__*/React.createElement(MonStatus, {
+    s: status
+  }, rotStatus), tag && /*#__PURE__*/React.createElement("span", {
+    className: "mon-tag"
+  }, tag)));
+}
+// painel (bloco branco com título e ícone)
+function MonPainel({
+  titulo,
+  icone,
+  acao,
+  fonte,
+  children,
+  className = ''
+}) {
+  return /*#__PURE__*/React.createElement("section", {
+    className: `mon-painel ${className}`
+  }, (titulo || acao) && /*#__PURE__*/React.createElement("header", {
+    className: "mon-painel-cab"
+  }, /*#__PURE__*/React.createElement("h3", null, icone && /*#__PURE__*/React.createElement("span", {
+    className: "mon-painel-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: icone,
+    tam: 18
+  })), titulo), acao), fonte && /*#__PURE__*/React.createElement("div", {
+    className: "mon-painel-fonte"
+  }, fonte), children);
+}
+// indicador menor (dentro das seções)
+function MonCartao({
+  titulo,
+  valor,
+  sub,
+  fonte,
+  children,
+  destaque,
+  icone
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: `mon-cartao ${destaque || ''}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-cartao-titulo"
+  }, icone && /*#__PURE__*/React.createElement(MonIcone, {
+    n: icone,
+    tam: 15
+  }), titulo), /*#__PURE__*/React.createElement("strong", {
+    className: "mon-cartao-valor"
+  }, /*#__PURE__*/React.createElement(MonValor, {
+    v: valor
+  })), sub && /*#__PURE__*/React.createElement("span", {
+    className: "mon-cartao-sub"
+  }, sub), children, fonte);
+}
+// linha de armazenamento com barra horizontal; sem limite conhecido, diz isso em vez de inventar percentual
+function MonProgresso({
+  icone,
+  cor = 'azul',
+  nome,
+  valor,
+  limite,
+  estimado,
+  detalhe,
+  tag,
+  niveis,
+  rotLimite
+}) {
+  const pct = limite && valor != null ? monPct(valor + (estimado || 0), limite) : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-prog"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-prog-cab"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-prog-nome"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `mon-prog-ic c-${cor}`
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: icone || 'disco',
+    tam: 16
+  })), nome), /*#__PURE__*/React.createElement("span", {
+    className: "mon-prog-val"
+  }, valor != null ? /*#__PURE__*/React.createElement("b", null, monFormatarBytes(valor)) : null, limite && valor != null ? /*#__PURE__*/React.createElement(React.Fragment, null, " de ", monFormatarBytes(limite), rotLimite ? ` ${rotLimite}` : '') : null)), limite && valor != null ? /*#__PURE__*/React.createElement(MonBarra, {
+    valor: valor,
+    estimado: estimado,
+    limite: limite,
+    niveis: niveis
+  }) : null, /*#__PURE__*/React.createElement("div", {
+    className: "mon-prog-rodape"
+  }, /*#__PURE__*/React.createElement("span", null, detalhe), tag || (pct != null ? /*#__PURE__*/React.createElement("span", {
+    className: "mon-prog-pct"
+  }, monPctTxt(pct), " usado", estimado ? ' (com estimativa)' : '') : valor != null ? /*#__PURE__*/React.createElement("span", {
+    className: "mon-tag"
+  }, "limite n\xE3o informado") : null)));
+}
+// barra de seleção (segmentos) usada no período e nos gráficos
+function MonSegmentos({
+  opcoes,
+  valor,
+  aoMudar,
+  rotulo,
+  classe = ''
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: `mon-seg ${classe}`,
+    role: "group",
+    "aria-label": rotulo
+  }, opcoes.map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: valor === k ? 'ativo' : '',
+    "aria-pressed": valor === k,
+    onClick: () => aoMudar(k)
+  }, n)));
+}
 
 // ---------- 4. cálculos ----------
 function monOperacoesOficiais(operacoes, p) {
@@ -12062,7 +12681,178 @@ function monAlertas(d, cfg, oper, app) {
 }
 
 // ---------- 5. painel ----------
-const MON_SECOES = [['geral', 'Visão geral'], ['armazenamento', 'Armazenamento'], ['operacoes', 'Leituras e gravações'], ['trafego', 'Tráfego'], ['backups', 'Backups'], ['saude', 'Saúde'], ['crescimento', 'Crescimento'], ['custos', 'Custos'], ['alertas', 'Alertas']];
+const MON_SECOES = [['geral', 'Visão geral', 'painel'], ['armazenamento', 'Armazenamento', 'disco'], ['operacoes', 'Banco de dados', 'banco'], ['trafego', 'Tráfego', 'trafego'], ['backups', 'Backups', 'escudo'], ['saude', 'Saúde do sistema', 'pulso'], ['crescimento', 'Crescimento', 'tendencia'], ['custos', 'Custos', 'moeda'], ['alertas', 'Alertas', 'sino']];
+const MON_COM_PERIODO = ['geral', 'operacoes', 'trafego', 'saude'];
+const MON_PERIODOS = [['hoje', 'Hoje'], ['7d', '7 dias'], ['30d', '30 dias'], ['mes', 'Mês atual'], ['mesAnt', 'Mês anterior'], ['pers', 'Personalizado']];
+// situação do último backup (mesmas regras dos alertas)
+function monSituacaoBackup(infra, cfg) {
+  if (!infra || !infra.github) return {
+    nivel: 'neutro',
+    curto: 'Sem dados',
+    longo: 'Sem dados',
+    bk: monUltimoBackup(infra)
+  };
+  const bk = monUltimoBackup(infra);
+  const atraso = !bk.ultimaOk || Date.now() - Date.parse(bk.ultimaOk.terminadoEm) > cfg.backupAtrasoHoras * 3600e3;
+  const falhou = bk.ultimaExec && bk.ultimaExec.resultado !== 'success';
+  const s = falhou ? ['critico', 'Falhou', `Falhou (${bk.ultimaExec.resultado || '—'})`] : atraso ? ['critico', 'Atrasado', 'Atrasado'] : bk.ultimoArquivo && !bk.ultimoArquivo.verificacaoOk ? ['critico', 'Não conferido', 'Sem conferência de integridade'] : ['ok', 'Sucesso', 'Concluído e conferido'];
+  return {
+    nivel: s[0],
+    curto: s[1],
+    longo: s[2],
+    bk
+  };
+}
+// os seis indicadores de saúde (cada um vem de uma fonte real; sem dados = "Sem dados")
+function monSaudeItens(d, app, cfg) {
+  const ult = d.infra[d.infra.length - 1],
+    sd = ult && ult.saude;
+  const f = app.falhas || {};
+  const bkS = monSituacaoBackup(ult, cfg);
+  const nErros = app.erros.length;
+  const comun = f.comunicacao || 0,
+    negado = f.permissao || 0,
+    cota = f.cotaAtingida || 0,
+    sinc = f.sincronizacao || 0;
+  return [{
+    k: 'site',
+    nome: 'Site',
+    icone: 'globo',
+    ...(sd && sd.site ? sd.site.ok ? {
+      s: 'ok',
+      rot: 'No ar',
+      det: `${sd.site.ms} ms`
+    } : {
+      s: 'critico',
+      rot: 'Fora do ar',
+      det: monQuando(ult.coletadoEm)
+    } : {
+      s: 'neutro',
+      rot: 'Sem dados'
+    })
+  }, {
+    k: 'firebase',
+    nome: 'Firebase',
+    icone: 'chama',
+    ...(cota ? {
+      s: 'critico',
+      rot: 'Cota atingida',
+      det: `${cota}× no período`
+    } : comun ? {
+      s: 'atencao',
+      rot: 'Instável',
+      det: `${comun} falha(s) de comunicação`
+    } : negado ? {
+      s: 'atencao',
+      rot: 'Acesso negado',
+      det: `${negado}× pelas regras`
+    } : {
+      s: 'ok',
+      rot: 'Normal',
+      det: 'sem falhas no período'
+    })
+  }, {
+    k: 'banco',
+    nome: 'Banco de dados',
+    icone: 'banco',
+    ...(sd && sd.banco ? sd.banco.ok ? {
+      s: 'ok',
+      rot: 'Operacional',
+      det: `${sd.banco.ms} ms`
+    } : {
+      s: 'critico',
+      rot: 'Sem resposta',
+      det: monQuando(ult.coletadoEm)
+    } : {
+      s: 'neutro',
+      rot: 'Sem dados'
+    })
+  }, {
+    k: 'backups',
+    nome: 'Backups',
+    icone: 'escudo',
+    s: bkS.nivel,
+    rot: bkS.nivel === 'ok' ? 'Em dia' : bkS.curto,
+    det: bkS.bk.ultimaExec ? monQuando(bkS.bk.ultimaExec.iniciadoEm) : ''
+  }, {
+    k: 'erros',
+    nome: 'Erros',
+    icone: 'bug',
+    ...(nErros === 0 ? {
+      s: 'ok',
+      rot: 'Nenhum',
+      det: 'no período'
+    } : {
+      s: nErros >= cfg.errosPorDia ? 'alto' : 'atencao',
+      rot: avPlural(nErros, 'erro', 'erros'),
+      det: 'no período'
+    })
+  }, {
+    k: 'sinc',
+    nome: 'Sincronização',
+    icone: 'sinc',
+    ...(sinc ? {
+      s: 'atencao',
+      rot: avPlural(sinc, 'problema', 'problemas'),
+      det: 'no período'
+    } : {
+      s: 'ok',
+      rot: 'Normal',
+      det: 'sem problemas no período'
+    })
+  }];
+}
+function MonSaudeGrade({
+  itens,
+  grande
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: `mon-saude-grade${grande ? ' grande' : ''}`
+  }, itens.map(i => /*#__PURE__*/React.createElement("div", {
+    key: i.k,
+    className: `mon-saude-item s-${i.s}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-saude-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: i.icone,
+    tam: grande ? 22 : 20
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "mon-saude-nome"
+  }, i.nome), /*#__PURE__*/React.createElement(MonStatus, {
+    s: i.s
+  }, i.rot), i.det ? /*#__PURE__*/React.createElement("span", {
+    className: "mon-saude-det"
+  }, i.det) : null)));
+}
+function MonExecucoes({
+  ex,
+  limite
+}) {
+  const lista = limite ? ex.slice(0, limite) : ex;
+  if (!lista.length) return /*#__PURE__*/React.createElement("div", {
+    className: "mon-grafico-vazio"
+  }, "Nenhuma execu\xE7\xE3o encontrada.");
+  return /*#__PURE__*/React.createElement("ul", {
+    className: "mon-hist"
+  }, lista.map(e => {
+    const ok = e.resultado === 'success',
+      dh = monDataHora(e.iniciadoEm || e.criadoEm);
+    const dur = e.terminadoEm && e.iniciadoEm ? `${Math.max(0, Math.round((Date.parse(e.terminadoEm) - Date.parse(e.iniciadoEm)) / 60000))} min` : '';
+    return /*#__PURE__*/React.createElement("li", {
+      key: e.id,
+      className: ok ? 'ok' : e.resultado ? 'mon-linha-erro' : ''
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "mon-hist-ic"
+    }, /*#__PURE__*/React.createElement(MonIcone, {
+      n: ok ? 'ok' : e.resultado ? 'erro' : 'relogio',
+      tam: 20
+    })), /*#__PURE__*/React.createElement("span", {
+      className: "mon-hist-txt"
+    }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, dh ? `${dh.data} às ${dh.hora}` : '—'), " \u2014 ", ok ? 'Backup realizado com sucesso' : e.resultado === 'failure' ? 'Backup falhou' : `Backup: ${e.resultado || e.situacao}`), /*#__PURE__*/React.createElement("small", null, [e.evento === 'schedule' ? 'automático' : e.evento === 'workflow_dispatch' ? 'manual' : e.evento, dur].filter(Boolean).join(' · '), (e.erros || []).length ? /*#__PURE__*/React.createElement("span", {
+      className: "mon-erros-curto"
+    }, " \xB7 ", (e.erros || []).join(' · ')) : null)));
+  }));
+}
 function CentralMonitoramento({
   usuario,
   funcionarios
@@ -12073,23 +12863,53 @@ function CentralMonitoramento({
   const [tipo, setTipo] = useState('30d');
   const [de, setDe] = useState(''),
     [ate, setAte] = useState('');
+  const navRef = useRef(null);
+  useEffect(() => {
+    // mantém a aba escolhida visível na barra (celular)
+    const nav = navRef.current,
+      el = nav && nav.querySelector('.mon-aba.ativo');
+    if (nav && el && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = el.offsetLeft - (nav.clientWidth - el.clientWidth) / 2;
+  }, [secao, d.carregando]);
   if (!master) return /*#__PURE__*/React.createElement("div", {
     className: "card"
   }, /*#__PURE__*/React.createElement("h3", null, "Acesso restrito"), /*#__PURE__*/React.createElement("p", null, "A Central de Monitoramento \xE9 exclusiva dos administradores."));
+  const cab = lido => /*#__PURE__*/React.createElement("header", {
+    className: "mon-cab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-cab-tit"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-cab-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "pulso",
+    tam: 24
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Central de Monitoramento"), /*#__PURE__*/React.createElement("p", null, "Acompanhe o consumo, armazenamento e funcionamento do Controle de Pe\xE7as."))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-cab-acoes"
+  }, lido && /*#__PURE__*/React.createElement("span", {
+    className: "mon-cab-hora"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "relogio",
+    tam: 18
+  }), /*#__PURE__*/React.createElement("span", null, "\xDAltima atualiza\xE7\xE3o", /*#__PURE__*/React.createElement("b", null, lido.toLocaleDateString('pt-BR'), " \xE0s ", lido.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "mon-btn-atualizar",
+    onClick: recarregar
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "atualizar",
+    tam: 17
+  }), "Atualizar")));
   if (d.carregando) return /*#__PURE__*/React.createElement("div", {
     className: "mon"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio"
+  }, cab(null), /*#__PURE__*/React.createElement("div", {
+    className: "mon-painel mon-carregando"
   }, "Carregando a Central de Monitoramento\u2026"));
   if (d.erro) return /*#__PURE__*/React.createElement("div", {
     className: "mon"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, cab(null), /*#__PURE__*/React.createElement("div", {
     className: "av-erro"
-  }, d.erro), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: recarregar
-  }, "Tentar de novo"));
+  }, d.erro));
   const cfg = {
     ...MON_CONFIG_PADRAO,
     ...(d.config || {})
@@ -12101,6 +12921,16 @@ function CentralMonitoramento({
   const oficialOk = d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.disponivel && d.operacoes.length > 0;
   const motivoOficial = d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.motivo || 'A rotina da Central de Monitoramento ainda não rodou.';
   const alertas = monAlertas(d, cfg, oper, app);
+  const irPara = s => {
+    setSecao(s);
+    try {
+      const n = navRef.current;
+      if (n && n.getBoundingClientRect().top < 0) n.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth'
+      });
+    } catch (e) {}
+  };
   const ctx = {
     d,
     cfg,
@@ -12111,52 +12941,52 @@ function CentralMonitoramento({
     oficialOk,
     motivoOficial,
     funcionarios,
-    alertas
+    alertas,
+    irPara
   };
+  const critico = alertas.some(a => a.nivel === 'critico');
   return /*#__PURE__*/React.createElement("div", {
     className: "mon"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-cab"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "\uD83D\uDCE1 Central de Monitoramento"), /*#__PURE__*/React.createElement("div", {
-    className: "av-sub"
-  }, "Consumo, armazenamento, backups e sa\xFAde do sistema \xB7 s\xF3 administradores veem esta \xE1rea")), /*#__PURE__*/React.createElement("div", {
-    className: "mon-cab-acoes"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "av-dica"
-  }, "Lido em ", d.lidoEm.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario pequeno",
-    onClick: recarregar
-  }, "\u21BB Atualizar"))), alertas.length > 0 && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: `mon-faixa-alerta n-${alertas.some(a => a.nivel === 'critico') ? 'critico' : 'alto'}`,
-    onClick: () => setSecao('alertas')
-  }, "\u26A0 ", avPlural(alertas.length, 'alerta', 'alertas'), " \u2014 ver detalhes"), /*#__PURE__*/React.createElement("div", {
+  }, cab(d.lidoEm), /*#__PURE__*/React.createElement("nav", {
     className: "mon-nav",
-    role: "tablist"
-  }, MON_SECOES.map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    role: "tablist",
+    "aria-label": "Se\xE7\xF5es da Central de Monitoramento",
+    ref: navRef
+  }, MON_SECOES.map(([k, n, ic]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     type: "button",
     role: "tab",
     "aria-selected": secao === k,
-    className: `av-chip ${secao === k ? 'ativo' : ''}`,
+    className: `mon-aba ${secao === k ? 'ativo' : ''}`,
     onClick: () => setSecao(k)
-  }, n, k === 'alertas' && alertas.length ? ` (${alertas.length})` : ''))), ['geral', 'operacoes', 'trafego', 'saude'].includes(secao) && /*#__PURE__*/React.createElement("div", {
-    className: "mon-periodo"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-chips-filtro",
-    role: "group",
-    "aria-label": "Per\xEDodo"
-  }, [['hoje', 'Hoje'], ['7d', '7 dias'], ['30d', '30 dias'], ['mes', 'Mês atual'], ['mesAnt', 'Mês anterior'], ['pers', 'Personalizado']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
-    key: k,
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: ic,
+    tam: 17
+  }), /*#__PURE__*/React.createElement("span", null, n), k === 'alertas' && alertas.length ? /*#__PURE__*/React.createElement("em", {
+    className: `mon-aba-cont ${critico ? 'critico' : ''}`
+  }, alertas.length) : null))), alertas.length > 0 && secao !== 'alertas' && /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: `av-chip ${tipo === k ? 'ativo' : ''}`,
-    onClick: () => setTipo(k)
-  }, n))), tipo === 'pers' && /*#__PURE__*/React.createElement("div", {
-    className: "rg-datas"
+    className: `mon-faixa-alerta n-${critico ? 'critico' : 'alto'}`,
+    onClick: () => setSecao('alertas')
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "alerta",
+    tam: 18
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "mon-faixa-txt"
+  }, /*#__PURE__*/React.createElement("b", null, avPlural(alertas.length, 'alerta', 'alertas')), " ", alertas[0].texto), /*#__PURE__*/React.createElement("span", {
+    className: "mon-faixa-ver"
+  }, "Ver alertas", /*#__PURE__*/React.createElement(MonIcone, {
+    n: "seta",
+    tam: 15
+  }))), MON_COM_PERIODO.includes(secao) && /*#__PURE__*/React.createElement("div", {
+    className: "mon-periodo"
+  }, /*#__PURE__*/React.createElement(MonSegmentos, {
+    opcoes: MON_PERIODOS,
+    valor: tipo,
+    aoMudar: setTipo,
+    rotulo: "Per\xEDodo"
+  }), tipo === 'pers' && /*#__PURE__*/React.createElement("div", {
+    className: "mon-datas"
   }, /*#__PURE__*/React.createElement("label", null, "De ", /*#__PURE__*/React.createElement("input", {
     type: "date",
     value: de,
@@ -12169,28 +12999,42 @@ function CentralMonitoramento({
     "aria-label": "Data final"
   }))), /*#__PURE__*/React.createElement("span", {
     className: "mon-periodo-rot"
-  }, p.rotulo, ": ", formatarDataBr(p.de), " a ", formatarDataBr(p.ate))), secao === 'geral' && /*#__PURE__*/React.createElement(MonGeral, ctx), secao === 'armazenamento' && /*#__PURE__*/React.createElement(MonArmazenamento, ctx), secao === 'operacoes' && /*#__PURE__*/React.createElement(MonOperacoes, ctx), secao === 'trafego' && /*#__PURE__*/React.createElement(MonTrafego, ctx), secao === 'backups' && /*#__PURE__*/React.createElement(MonBackups, ctx), secao === 'saude' && /*#__PURE__*/React.createElement(MonSaude, ctx), secao === 'crescimento' && /*#__PURE__*/React.createElement(MonCrescimento, ctx), secao === 'custos' && /*#__PURE__*/React.createElement(MonCustos, ctx), secao === 'alertas' && /*#__PURE__*/React.createElement(MonAlertasConfig, _extends({}, ctx, {
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "calendario",
+    tam: 15
+  }), p.rotulo, ": ", formatarDataBr(p.de), " a ", formatarDataBr(p.ate))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-conteudo",
+    role: "tabpanel"
+  }, secao === 'geral' && /*#__PURE__*/React.createElement(MonGeral, ctx), secao === 'armazenamento' && /*#__PURE__*/React.createElement(MonArmazenamento, ctx), secao === 'operacoes' && /*#__PURE__*/React.createElement(MonOperacoes, ctx), secao === 'trafego' && /*#__PURE__*/React.createElement(MonTrafego, ctx), secao === 'backups' && /*#__PURE__*/React.createElement(MonBackups, ctx), secao === 'saude' && /*#__PURE__*/React.createElement(MonSaude, ctx), secao === 'crescimento' && /*#__PURE__*/React.createElement(MonCrescimento, ctx), secao === 'custos' && /*#__PURE__*/React.createElement(MonCustos, ctx), secao === 'alertas' && /*#__PURE__*/React.createElement(MonAlertasConfig, _extends({}, ctx, {
     usuario: usuario,
     aoSalvar: recarregar
-  })));
+  }))));
 }
-function MonCartao({
-  titulo,
-  valor,
-  sub,
-  fonte,
-  children,
-  destaque
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    className: `mon-cartao ${destaque || ''}`
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "mon-cartao-titulo"
-  }, titulo), /*#__PURE__*/React.createElement("strong", {
-    className: "mon-cartao-valor"
-  }, valor), sub && /*#__PURE__*/React.createElement("span", {
-    className: "mon-cartao-sub"
-  }, sub), children, fonte);
+// operações (leituras/gravações/exclusões): oficiais quando existem; senão, a contagem do próprio sistema
+function monOperacoesExibidas(d, oper, app, appAnt, oficialOk) {
+  const plano = !!(d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.exigeFaturamento);
+  const valor = k => oficialOk ? oper.total[k] || 0 : app.soma(k);
+  const anterior = k => oficialOk ? oper.anterior ? oper.anterior[k] : null : appAnt.soma(k);
+  const hojeApp = monUsoApp(d.uso, {
+    de: monDiaBr(),
+    ate: monDiaBr()
+  }).porDia[monDiaBr()] || null;
+  const diaCota = Object.keys(oper.diasCota).sort().slice(-1)[0];
+  const hoje = k => oficialOk ? {
+    v: diaCota ? (oper.diasCota[diaCota] || {})[k] || 0 : null,
+    aprox: false
+  } : {
+    v: hojeApp ? hojeApp[k] || 0 : 0,
+    aprox: true
+  };
+  return {
+    plano,
+    valor,
+    anterior,
+    hoje,
+    fonte: oficialOk ? 'oficial' : 'app',
+    disponivel: oficialOk || plano
+  };
 }
 function MonGeral({
   d,
@@ -12201,121 +13045,314 @@ function MonGeral({
   appAnt,
   oficialOk,
   motivoOficial,
-  funcionarios
+  irPara
 }) {
+  const [graf, setGraf] = useState('armazenamento');
   const banco = d.banco[d.banco.length - 1];
   const bancoAnt = d.banco.filter(b => b.data < p.de).slice(-1)[0];
   const infra = d.infra[d.infra.length - 1];
-  const arquivos = banco ? (banco.midias.bytes || 0) + (banco.certificados.bytes || 0) : null;
-  const registros = banco ? Object.entries(banco.colecoes).filter(([c]) => !['midias', 'certificadosPartes', 'monitoramento', 'monitoramentoUso'].includes(c)).reduce((s, [, x]) => s + x.documentos, 0) : null;
-  const usuarios = (funcionarios || []).length;
-  const plano = d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.exigeFaturamento;
-  const op = (k, rot) => oficialOk ? /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: rot,
-    valor: monNum(oper.total[k] || 0),
-    sub: /*#__PURE__*/React.createElement(MonVariacao, {
-      atual: oper.total[k] || 0,
-      anterior: oper.anterior ? oper.anterior[k] : null
-    }),
-    fonte: /*#__PURE__*/React.createElement(MonFonte, {
-      tipo: "oficial",
-      em: monQuando(oper.atualizadoEm)
-    })
-  }) : plano ? /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: rot,
-    valor: monNum(app.soma(k)),
-    sub: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonVariacao, {
-      atual: app.soma(k),
-      anterior: appAnt.soma(k)
-    }), /*#__PURE__*/React.createElement("br", null), "Contados pelo pr\xF3prio sistema nos aparelhos. O n\xFAmero oficial do Google, no plano gratuito, s\xF3 aparece no console do Firebase (Firestore \u2192 Uso)."),
-    fonte: /*#__PURE__*/React.createElement(MonFonte, {
-      tipo: "app"
-    })
-  }) : /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: rot,
-    valor: "M\xE9trica indispon\xEDvel",
-    destaque: "indisp",
-    sub: motivoOficial,
-    fonte: /*#__PURE__*/React.createElement("span", {
-      className: "mon-cartao-sub"
-    }, "Contagem do aplicativo no per\xEDodo: ", /*#__PURE__*/React.createElement("b", null, monNum(app.soma(k))), " ", /*#__PURE__*/React.createElement(MonVariacao, {
-      atual: app.soma(k),
-      anterior: appAnt.soma(k)
-    }))
-  });
+  const arq = b => b ? (b.midias.bytes || 0) + (b.certificados.bytes || 0) : null;
+  const arquivos = arq(banco);
+  const ops = monOperacoesExibidas(d, oper, app, appAnt, oficialOk);
+  const pctBanco = banco ? monPct(banco.bytesDocumentos, MON_COTA.armazenamento) : null;
+  const horasMed = banco ? (Date.now() - Date.parse(banco.coletadoEm)) / 3600e3 : null;
+  const bkS = monSituacaoBackup(infra, cfg);
+  const bkDh = monDataHora(bkS.bk.ultimaExec ? bkS.bk.ultimaExec.terminadoEm || bkS.bk.ultimaExec.iniciadoEm : null);
+  const kpiOp = (k, rot, icone, cor) => {
+    if (!ops.disponivel) return /*#__PURE__*/React.createElement(MonKpi, {
+      icone: icone,
+      cor: cor,
+      titulo: rot,
+      valor: "Indispon\xEDvel",
+      indisp: true,
+      comparacao: /*#__PURE__*/React.createElement("span", {
+        className: "mon-var neutro"
+      }, "Contagem do sistema: ", /*#__PURE__*/React.createElement("b", null, monNum(app.soma(k)))),
+      status: "neutro",
+      rotStatus: "Configure a integra\xE7\xE3o",
+      aoClicar: () => irPara('operacoes')
+    });
+    const h = ops.hoje(k),
+      pc = h.v != null ? monPct(h.v, MON_COTA[k]) : null;
+    return /*#__PURE__*/React.createElement(MonKpi, {
+      icone: icone,
+      cor: cor,
+      titulo: rot,
+      valor: monNum(ops.valor(k)),
+      comparacao: /*#__PURE__*/React.createElement(MonVariacao, {
+        atual: ops.valor(k),
+        anterior: ops.anterior(k),
+        curto: true
+      }),
+      status: monNivel(pc, cfg.niveis) || 'neutro',
+      rotStatus: pc != null ? `Hoje: ${h.aprox ? '≈ ' : ''}${monPctTxt(pc)} da cota` : 'Sem dados de hoje',
+      tag: ops.fonte === 'app' ? 'contagem do sistema' : 'oficial',
+      aoClicar: () => irPara('operacoes')
+    });
+  };
+  // gráfico de evolução (o filtro de período vale aqui)
+  const bp = d.banco.filter(b => b.data >= p.de && b.data <= p.ate);
+  const dias = [];
+  for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
+  const fonteOp = oficialOk ? oper.dias : app.porDia;
+  const grafs = {
+    armazenamento: {
+      tipo: 'linhas',
+      cat: bp.map(b => monRotDia(b.data)),
+      formato: monFormatarBytes,
+      series: [{
+        nome: 'Armazenamento total',
+        cor: MON_CORES.total,
+        valores: bp.map(b => b.bytesDocumentos)
+      }, {
+        nome: 'Fotos e arquivos',
+        cor: MON_CORES.arquivos,
+        valores: bp.map(arq)
+      }],
+      nota: 'Medido 1×/dia pela rotina de backup.'
+    },
+    documentos: {
+      tipo: 'linhas',
+      cat: bp.map(b => monRotDia(b.data)),
+      series: [{
+        nome: 'Documentos',
+        cor: MON_CORES.docs,
+        valores: bp.map(b => b.documentos)
+      }],
+      nota: 'Medido 1×/dia pela rotina de backup.'
+    },
+    operacoes: {
+      tipo: 'barras',
+      cat: dias.map(monRotDia),
+      series: [{
+        nome: 'Leituras',
+        cor: MON_CORES.leituras,
+        valores: dias.map(x => (fonteOp[x] || {}).leituras ?? null)
+      }, {
+        nome: 'Gravações',
+        cor: MON_CORES.gravacoes,
+        valores: dias.map(x => (fonteOp[x] || {}).gravacoes ?? null)
+      }],
+      nota: oficialOk ? 'Números oficiais do Google.' : 'Contagem do próprio sistema nos aparelhos (aproximada).'
+    },
+    transferencia: oper.temTransf ? {
+      tipo: 'barras',
+      cat: dias.map(monRotDia),
+      formato: monFormatarBytes,
+      series: [{
+        nome: 'Saída',
+        cor: MON_CORES.leituras,
+        valores: dias.map(x => (oper.transf[x] || {}).saida ?? null)
+      }, {
+        nome: 'Entrada',
+        cor: MON_CORES.gravacoes,
+        valores: dias.map(x => (oper.transf[x] || {}).entrada ?? null)
+      }],
+      nota: 'Números oficiais do Google.'
+    } : {
+      tipo: 'barras',
+      cat: dias.map(monRotDia),
+      formato: monFormatarBytes,
+      series: [{
+        nome: 'Baixados',
+        cor: MON_CORES.leituras,
+        valores: dias.map(x => (app.porDia[x] || {}).baixados ?? null)
+      }, {
+        nome: 'Enviados',
+        cor: MON_CORES.gravacoes,
+        valores: dias.map(x => (app.porDia[x] || {}).enviados ?? null)
+      }],
+      nota: 'Estimativa do próprio sistema (não é o valor oficial).'
+    }
+  };
+  const g = grafs[graf];
+  const dadosBytes = banco ? Object.entries(banco.colecoes).filter(([c]) => !['midias', 'certificadosPartes'].includes(c)).reduce((s, [, x]) => s + x.bytes, 0) : 0;
+  const livre = banco ? MON_COTA.armazenamento - banco.bytesDocumentos - (banco.bytesIndicesEstimados || 0) : null;
+  const saude = monSaudeItens(d, app, cfg);
+  const piorSaude = saude.some(i => i.s === 'critico') ? ['critico', 'Atenção necessária'] : saude.some(i => i.s === 'alto' || i.s === 'atencao') ? ['atencao', 'Pontos de atenção'] : saude.every(i => i.s === 'neutro') ? ['neutro', 'Sem dados'] : ['ok', 'Tudo funcionando bem'];
+  const ex = infra && infra.github && infra.github.rotinaBackup && infra.github.rotinaBackup.execucoes || [];
   return /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes"
-  }, /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Armazenamento do Firestore",
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-kpis"
+  }, /*#__PURE__*/React.createElement(MonKpi, {
+    icone: "banco",
+    cor: "laranja",
+    titulo: "Armazenamento",
     valor: banco ? monFormatarBytes(banco.bytesDocumentos) : '—',
-    sub: banco ? `documentos (medido) · com índices ≈ ${monFormatarBytes(banco.bytesDocumentos + banco.bytesIndicesEstimados)} (estimativa) de 1 GiB` : 'aguardando a primeira medição da rotina de backup',
-    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
-      tipo: "medido",
-      em: monQuando(banco.coletadoEm)
-    })
-  }, banco && /*#__PURE__*/React.createElement(MonBarra, {
-    valor: banco.bytesDocumentos,
-    estimado: banco.bytesIndicesEstimados,
-    limite: MON_COTA.armazenamento,
-    niveis: cfg.niveis
-  })), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Documentos no Firestore",
+    extra: banco ? /*#__PURE__*/React.createElement("span", {
+      className: "mon-kpi-extra"
+    }, /*#__PURE__*/React.createElement("span", null, "de 1 GiB gratuito"), /*#__PURE__*/React.createElement(MonBarra, {
+      valor: banco.bytesDocumentos,
+      estimado: banco.bytesIndicesEstimados,
+      limite: MON_COTA.armazenamento,
+      niveis: cfg.niveis
+    })) : null,
+    comparacao: banco ? /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: banco.bytesDocumentos,
+      anterior: bancoAnt ? bancoAnt.bytesDocumentos : null,
+      curto: true,
+      formato: monFormatarBytes
+    }) : 'aguardando a primeira medição',
+    status: monNivel(pctBanco, cfg.niveis) || 'neutro',
+    rotStatus: banco ? `Em uso: ${monPctTxt(pctBanco)}` : 'Sem dados',
+    aoClicar: () => irPara('armazenamento')
+  }), /*#__PURE__*/React.createElement(MonKpi, {
+    icone: "arquivo",
+    cor: "azul",
+    titulo: "Documentos",
     valor: banco ? monNum(banco.documentos) : '—',
-    sub: banco ? /*#__PURE__*/React.createElement(MonVariacao, {
+    comparacao: banco ? /*#__PURE__*/React.createElement(MonVariacao, {
       atual: banco.documentos,
-      anterior: bancoAnt ? bancoAnt.documentos : null
-    }) : '',
-    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
-      tipo: "medido",
-      em: monQuando(banco.coletadoEm)
-    })
-  }), op('leituras', 'Leituras de documentos'), op('gravacoes', 'Gravações de documentos'), op('exclusoes', 'Exclusões de documentos'), oper.temTransf ? /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Transfer\xEAncia de dados (Firebase)",
-    valor: monFormatarBytes(oper.transfTotal.saida),
-    sub: `saída do Firestore para os aparelhos no período · entrada: ${monFormatarBytes(oper.transfTotal.entrada)} · cota gratuita de saída: 10 GiB/mês`,
-    fonte: /*#__PURE__*/React.createElement(MonFonte, {
-      tipo: "oficial",
-      em: monQuando(oper.atualizadoEm)
-    })
-  }) : /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Transfer\xEAncia de dados (Firebase)",
-    valor: "M\xE9trica indispon\xEDvel",
-    destaque: "indisp",
-    sub: `${((d.fontes || {}).transferenciaOficial || {}).motivo || 'Depende da chave GCP_MONITORAMENTO_CHAVE'}. Estimativa do aplicativo no período:`,
-    fonte: /*#__PURE__*/React.createElement("span", {
-      className: "mon-cartao-sub"
-    }, "baixados \u2248 ", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(app.soma('bytesBaixados'))), " \xB7 enviados \u2248 ", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(app.soma('bytesEnviados'))))
-  }), /*#__PURE__*/React.createElement(MonCartao, {
+      anterior: bancoAnt ? bancoAnt.documentos : null,
+      curto: true
+    }) : null,
+    status: !banco ? 'neutro' : horasMed > 36 ? 'atencao' : 'ok',
+    rotStatus: !banco ? 'Sem dados' : horasMed > 36 ? 'Medição atrasada' : `Medido em ${monQuando(banco.coletadoEm)}`,
+    aoClicar: () => irPara('armazenamento')
+  }), kpiOp('leituras', 'Leituras', 'olho', 'marinho'), kpiOp('gravacoes', 'Gravações', 'lapis', 'laranja'), /*#__PURE__*/React.createElement(MonKpi, {
+    icone: "imagem",
+    cor: "azul",
     titulo: "Fotos e arquivos",
     valor: arquivos != null ? monFormatarBytes(arquivos) : '—',
-    sub: banco ? `${monNum(banco.midias.quantidade)} fotos/imagens · ${monNum(banco.certificados.quantidade)} certificados — guardados dentro do Firestore (não há Firebase Storage)` : '',
-    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
-      tipo: "medido",
-      em: monQuando(banco.coletadoEm)
+    comparacao: banco ? /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: arquivos,
+      anterior: arq(bancoAnt),
+      curto: true,
+      formato: monFormatarBytes
+    }) : null,
+    status: "info",
+    rotStatus: banco ? `${monPctTxt(monPct(arquivos, banco.bytesDocumentos))} do banco` : 'Sem dados',
+    aoClicar: () => irPara('armazenamento')
+  }), /*#__PURE__*/React.createElement(MonKpi, {
+    icone: "escudo",
+    cor: "verde",
+    titulo: "\xDAltimo backup",
+    valor: bkDh ? bkDh.data : '—',
+    extra: bkDh ? /*#__PURE__*/React.createElement("span", {
+      className: "mon-kpi-extra"
+    }, /*#__PURE__*/React.createElement("span", null, "\xE0s ", bkDh.hora)) : null,
+    status: bkS.nivel,
+    rotStatus: bkS.curto,
+    aoClicar: () => irPara('backups')
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-linha2"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Uso de armazenamento",
+    icone: "banco",
+    acao: /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "mon-link",
+      onClick: () => irPara('armazenamento')
+    }, "Detalhes", /*#__PURE__*/React.createElement(MonIcone, {
+      n: "seta",
+      tam: 14
+    }))
+  }, !banco ? /*#__PURE__*/React.createElement(MonIndisponivel, {
+    titulo: "Aguardando a primeira medi\xE7\xE3o",
+    resumo: "A rotina de backup mede o banco 1\xD7/dia."
+  }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "mon-rosca-linha"
+  }, /*#__PURE__*/React.createElement(MonRosca, {
+    total: MON_COTA.armazenamento,
+    partes: [{
+      nome: 'Registros',
+      valor: dadosBytes,
+      cor: MON_CORES.docs
+    }, {
+      nome: 'Fotos',
+      valor: banco.midias.bytes,
+      cor: MON_CORES.fotos
+    }, {
+      nome: 'Certificados',
+      valor: banco.certificados.bytes,
+      cor: MON_CORES.cert
+    }, {
+      nome: 'Índices',
+      valor: banco.bytesIndicesEstimados || 0,
+      cor: '#8FA9C7',
+      estimado: true
+    }],
+    centro: monPctTxt(pctBanco),
+    sub: "do 1 GiB"
+  }), /*#__PURE__*/React.createElement("ul", {
+    className: "mon-rosca-leg"
+  }, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("i", {
+    style: {
+      background: MON_CORES.docs
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "Registros", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(dadosBytes)))), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("i", {
+    style: {
+      background: MON_CORES.fotos
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "Fotos e imagens", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(banco.midias.bytes)))), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("i", {
+    style: {
+      background: MON_CORES.cert
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "Certificados", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(banco.certificados.bytes)))), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("i", {
+    style: {
+      background: '#8FA9C7',
+      opacity: 0.6
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "\xCDndices (estimativa)", /*#__PURE__*/React.createElement("b", null, "\u2248 ", monFormatarBytes(banco.bytesIndicesEstimados)))), infra && infra.github && infra.github.backups && infra.github.backups.bytesTotal != null && /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("i", {
+    style: {
+      background: MON_CORES.backup
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "Backups (GitHub, \xE0 parte)", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(infra.github.backups.bytesTotal)))))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-totais"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Total utilizado"), /*#__PURE__*/React.createElement("b", null, monFormatarBytes(banco.bytesDocumentos)), /*#__PURE__*/React.createElement("small", null, "medido")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Dispon\xEDvel"), /*#__PURE__*/React.createElement("b", null, "\u2248 ", monFormatarBytes(livre)), /*#__PURE__*/React.createElement("small", null, "estimativa, j\xE1 sem os \xEDndices"))))), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Evolu\xE7\xE3o do sistema",
+    icone: "tendencia",
+    className: "mon-evolucao",
+    acao: /*#__PURE__*/React.createElement(MonSegmentos, {
+      classe: "pequeno",
+      rotulo: "Indicador do gr\xE1fico",
+      valor: graf,
+      aoMudar: setGraf,
+      opcoes: [['armazenamento', 'Armazenamento'], ['documentos', 'Documentos'], ['operacoes', 'Leituras e gravações'], ['transferencia', 'Transferência']]
     })
-  }), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Tr\xE1fego do site",
-    valor: monFormatarBytes(app.site.bytes),
-    sub: `${monNum(app.site.aberturas)} abertura(s) do sistema no período · bytes realmente baixados (o que veio do cache do aparelho não conta)`,
-    fonte: /*#__PURE__*/React.createElement("span", {
-      className: "mon-fonte f-app"
-    }, "Medido nos aparelhos (navegador)")
-  }), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Usu\xE1rios cadastrados",
-    valor: monNum(usuarios),
-    sub: banco ? `${banco.usuarios.ativos} ativos · ${banco.usuarios.pendentes} pendentes · ${banco.usuarios.bloqueados} bloqueados (na última medição)` : '',
-    fonte: /*#__PURE__*/React.createElement("span", {
-      className: "mon-fonte f-app"
-    }, "Equipe (agora)")
-  }), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Registros armazenados",
-    valor: registros != null ? monNum(registros) : '—',
-    sub: "documentos de dados (sem as fotos, as partes dos certificados e o pr\xF3prio monitoramento)",
-    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
-      tipo: "medido",
-      em: monQuando(banco.coletadoEm)
-    })
-  }));
+  }, /*#__PURE__*/React.createElement(MonGrafico, {
+    tipo: g.tipo,
+    categorias: g.cat,
+    series: g.series,
+    formato: g.formato
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, g.nota, " Per\xEDodo: ", p.rotulo.toLowerCase(), "."))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-linha2 inv"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Sa\xFAde do sistema",
+    icone: "pulso",
+    acao: /*#__PURE__*/React.createElement(MonStatus, {
+      s: piorSaude[0]
+    }, piorSaude[1])
+  }, /*#__PURE__*/React.createElement(MonSaudeGrade, {
+    itens: saude
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "mon-link",
+    onClick: () => irPara('saude')
+  }, "Ver sa\xFAde do sistema", /*#__PURE__*/React.createElement(MonIcone, {
+    n: "seta",
+    tam: 14
+  }))), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Hist\xF3rico de backups",
+    icone: "relogio",
+    acao: /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "mon-link",
+      onClick: () => irPara('backups')
+    }, "Ver todos", /*#__PURE__*/React.createElement(MonIcone, {
+      n: "seta",
+      tam: 14
+    }))
+  }, infra && infra.github ? /*#__PURE__*/React.createElement(MonExecucoes, {
+    ex: ex,
+    limite: 4
+  }) : /*#__PURE__*/React.createElement(MonIndisponivel, {
+    titulo: "Sem dados ainda",
+    resumo: "A rotina da Central roda depois de cada backup e todo dia \xE0s 10:41."
+  }))));
 }
 const MON_ORIGEM = {
   lotes: 'Entrada de Peças (fotos)',
@@ -12328,66 +13365,152 @@ const MON_ORIGEM = {
 };
 function MonArmazenamento({
   d,
-  cfg
+  cfg,
+  funcionarios
 }) {
   const banco = d.banco[d.banco.length - 1];
   const infra = d.infra[d.infra.length - 1];
   const gh = infra && infra.github || {};
   if (!banco) return /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: "A medi\xE7\xE3o do banco \xE9 feita pela rotina de backup (1\xD7/dia). Ela come\xE7a a aparecer depois do pr\xF3ximo backup, com as regras novas publicadas."
+    titulo: "Medi\xE7\xE3o ainda n\xE3o dispon\xEDvel",
+    resumo: "A medi\xE7\xE3o do banco \xE9 feita pela rotina de backup (1\xD7/dia) e aparece depois do pr\xF3ximo backup."
   });
   const cols = Object.entries(banco.colecoes).sort((a, b) => b[1].bytes - a[1].bytes);
-  const tipos = [['Documentos de dados', cols.filter(([c]) => !['midias', 'certificadosPartes'].includes(c)).reduce((s, [, x]) => s + x.bytes, 0)], ['Fotos e imagens', banco.midias.bytes], ['Certificados (PDF/JPG/PNG)', banco.certificados.bytes]].sort((a, b) => b[1] - a[1]);
+  const dados = cols.filter(([c]) => !['midias', 'certificadosPartes'].includes(c)).reduce((s, [, x]) => s + x.bytes, 0);
+  const registros = Object.entries(banco.colecoes).filter(([c]) => !['midias', 'certificadosPartes', 'monitoramento', 'monitoramentoUso'].includes(c)).reduce((s, [, x]) => s + x.documentos, 0);
+  const tipos = [['Registros (dados digitados)', dados, MON_CORES.docs], ['Fotos e imagens', banco.midias.bytes, MON_CORES.fotos], ['Certificados (PDF/JPG/PNG)', banco.certificados.bytes, MON_CORES.cert]].sort((a, b) => b[1] - a[1]);
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Uso por servi\xE7o",
+    icone: "disco",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "medido",
+      em: monQuando(banco.coletadoEm)
+    })
   }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Limites por servi\xE7o"), /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Firestore (banco)"), /*#__PURE__*/React.createElement("span", null, monFormatarBytes(banco.bytesDocumentos), " em documentos (medido) + \u2248 ", monFormatarBytes(banco.bytesIndicesEstimados), " em \xEDndices (estimativa) \xB7 limite gratuito 1 GiB")), /*#__PURE__*/React.createElement(MonBarra, {
+    className: "mon-progs"
+  }, /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "banco",
+    cor: "laranja",
+    nome: "Firestore (banco)",
     valor: banco.bytesDocumentos,
     estimado: banco.bytesIndicesEstimados,
     limite: MON_COTA.armazenamento,
-    niveis: cfg.niveis
-  }), /*#__PURE__*/React.createElement("span", {
-    className: "av-dica"
-  }, "Parte cheia: medido \xB7 parte listrada: \xEDndices estimados. O total oficial (documentos + \xEDndices) fica em Firebase \u2192 Uso e faturamento.")), /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Firebase Storage / Cloud Storage"), /*#__PURE__*/React.createElement("span", null, "N\xE3o utilizado neste projeto: fotos e certificados ficam dentro do Firestore (contam no 1 GiB acima)."))), gh.backups && gh.backups.quantidade != null ? /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Backups no GitHub (ramo backups)"), /*#__PURE__*/React.createElement("span", null, monFormatarBytes(gh.backups.bytesTotal), " em ", gh.backups.quantidade, " arquivos \xB7 limite definido pela rotina: ", monFormatarBytes(gh.backups.limiteBytes))), gh.backups.limiteBytes && /*#__PURE__*/React.createElement(MonBarra, {
+    rotLimite: "gratuito",
+    niveis: cfg.niveis,
+    detalhe: `medido · com índices ≈ ${monFormatarBytes(banco.bytesDocumentos + banco.bytesIndicesEstimados)} (estimativa)`
+  }), /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "imagem",
+    cor: "azul",
+    nome: "Fotos e imagens",
+    valor: banco.midias.bytes,
+    limite: MON_COTA.armazenamento,
+    niveis: cfg.niveis,
+    detalhe: `${monNum(banco.midias.quantidade)} imagens · ficam dentro do Firestore e contam no mesmo limite`
+  }), /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "arquivo",
+    cor: "roxo",
+    nome: "Documentos e certificados",
+    valor: dados + banco.certificados.bytes,
+    limite: MON_COTA.armazenamento,
+    niveis: cfg.niveis,
+    detalhe: `${monFormatarBytes(dados)} em registros · ${monFormatarBytes(banco.certificados.bytes)} em ${monNum(banco.certificados.quantidade)} certificados`
+  }), gh.backups && gh.backups.quantidade != null ? /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "escudo",
+    cor: "verde",
+    nome: "Backups (GitHub)",
     valor: gh.backups.bytesTotal,
-    limite: gh.backups.limiteBytes,
-    niveis: cfg.niveis
-  })) : /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Backups no GitHub")), /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: gh.backups && gh.backups.motivo || 'A rotina da Central de Monitoramento ainda não rodou.'
-  })), gh.repositorioKB != null && /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Reposit\xF3rio do sistema (GitHub)"), /*#__PURE__*/React.createElement("span", null, monFormatarBytes(gh.repositorioKB * 1024), " \xB7 o GitHub recomenda manter abaixo de 1 GB (n\xE3o \xE9 um limite r\xEDgido)")), /*#__PURE__*/React.createElement(MonBarra, {
+    limite: gh.backups.limiteBytes || null,
+    niveis: cfg.niveis,
+    detalhe: `${monFormatarBytes(gh.backups.bytesTotal)} em ${gh.backups.quantidade} arquivos${gh.backups.limiteBytes ? ' · limite definido pela rotina' : ''}`
+  }) : /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "escudo",
+    cor: "verde",
+    nome: "Backups (GitHub)",
+    valor: null,
+    tag: /*#__PURE__*/React.createElement(MonStatus, {
+      s: "neutro"
+    }, "Sem dados"),
+    detalhe: gh.backups && gh.backups.motivo || 'A rotina da Central de Monitoramento ainda não rodou.'
+  }), gh.repositorioKB != null && /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "servidor",
+    cor: "cinza",
+    nome: "Reposit\xF3rio do sistema (GitHub)",
     valor: gh.repositorioKB * 1024,
     limite: 1024 ** 3,
-    niveis: cfg.niveis
-  })), /*#__PURE__*/React.createElement(MonDrive, {
+    rotLimite: "(recomendado)",
+    niveis: cfg.niveis,
+    detalhe: "O GitHub recomenda ficar abaixo de 1 GB (n\xE3o \xE9 um limite r\xEDgido)."
+  }), /*#__PURE__*/React.createElement(MonDrive, {
     d: d,
     cfg: cfg
+  }), /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "nuvem",
+    cor: "cinza",
+    nome: "Firebase Storage / Cloud Storage",
+    valor: null,
+    tag: /*#__PURE__*/React.createElement(MonStatus, {
+      s: "neutro"
+    }, "N\xE3o utilizado"),
+    detalhe: "Fotos e certificados ficam dentro do Firestore (contam no 1 GiB acima)."
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Parte cheia da barra: medido \xB7 parte listrada: \xEDndices estimados \xB7 marcas: n\xEDveis de alerta (", cfg.niveis.join('%, '), "%). O total oficial (documentos + \xEDndices) fica no console do Firebase.")), /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes"
+  }, /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "arquivo",
+    titulo: "Documentos no banco",
+    valor: monNum(banco.documentos),
+    sub: "todas as cole\xE7\xF5es"
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "banco",
+    titulo: "Registros armazenados",
+    valor: monNum(registros),
+    sub: "sem fotos, partes de certificados e monitoramento"
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "usuarios",
+    titulo: "Usu\xE1rios cadastrados",
+    valor: monNum((funcionarios || []).length),
+    sub: `${banco.usuarios.ativos} ativos · ${banco.usuarios.pendentes} pendentes · ${banco.usuarios.bloqueados} bloqueados (na última medição)`
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "imagem",
+    titulo: "Fotos e imagens",
+    valor: monNum(banco.midias.quantidade),
+    sub: monFormatarBytes(banco.midias.bytes)
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "arquivo",
+    titulo: "Certificados",
+    valor: monNum(banco.certificados.quantidade),
+    sub: `${monFormatarBytes(banco.certificados.bytes)} em ${monNum(banco.certificados.partes)} partes`
   })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "O que ocupa mais espa\xE7o"), /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "medido",
-    em: monQuando(banco.coletadoEm)
-  }), tipos.map(([n, b]) => /*#__PURE__*/React.createElement("div", {
+    className: "mon-linha2 meio"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "O que ocupa mais espa\xE7o",
+    icone: "painel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-progs compacto"
+  }, tipos.map(([n, b, cor]) => /*#__PURE__*/React.createElement("div", {
     key: n,
     className: "mon-linha-barra"
-  }, /*#__PURE__*/React.createElement("span", null, n), /*#__PURE__*/React.createElement("b", null, monFormatarBytes(b)), /*#__PURE__*/React.createElement(MonBarra, {
-    valor: b,
-    limite: banco.bytesDocumentos,
-    niveis: [101, 102, 103]
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Fotos e imagens (", monNum(banco.midias.quantidade), " \xB7 ", monFormatarBytes(banco.midias.bytes), ")"), /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    style: {
+      background: cor
+    }
+  }), n), /*#__PURE__*/React.createElement("b", null, monFormatarBytes(b)), /*#__PURE__*/React.createElement("div", {
+    className: "mon-barra-simples"
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: `${Math.max(0.8, monPct(b, banco.bytesDocumentos) || 0)}%`,
+      background: cor
+    }
+  }))))), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Propor\xE7\xE3o dentro do banco medido (", monFormatarBytes(banco.bytesDocumentos), ").")), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: `Fotos e imagens (${monNum(banco.midias.quantidade)} · ${monFormatarBytes(banco.midias.bytes)})`,
+    icone: "imagem"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela mon-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Usadas em"), /*#__PURE__*/React.createElement("th", null, "Quantidade"), /*#__PURE__*/React.createElement("th", null, "Tamanho"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(banco.midias.porOrigem).sort((a, b) => b[1].bytes - a[1].bytes).map(([o, x]) => /*#__PURE__*/React.createElement("tr", {
     key: o
   }, /*#__PURE__*/React.createElement("td", {
@@ -12396,18 +13519,16 @@ function MonArmazenamento({
     "data-rotulo": "Quantidade"
   }, monNum(x.quantidade)), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Tamanho"
-  }, monFormatarBytes(x.bytes)))))), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Por formato: ", Object.entries(banco.midias.porTipo).map(([t, x]) => `${t} — ${monNum(x.quantidade)} (${monFormatarBytes(x.bytes)})`).join(' · ') || '—')), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Certificados e PDFs (", monNum(banco.certificados.quantidade), " \xB7 ", monFormatarBytes(banco.certificados.bytes), ")"), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, Object.entries(banco.certificados.porTipo).map(([t, x]) => `${FP_TIPOS[t] || t}: ${monNum(x.quantidade)} arquivo(s), ${monFormatarBytes(x.bytesArquivo)}`).join(' · ') || 'Nenhum certificado anexado.', " \xB7 guardados em ", monNum(banco.certificados.partes), " partes.")), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Por cole\xE7\xE3o do banco"), /*#__PURE__*/React.createElement("div", {
+  }, monFormatarBytes(x.bytes)))))), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Por formato: ", Object.entries(banco.midias.porTipo).map(([t, x]) => `${t} — ${monNum(x.quantidade)} (${monFormatarBytes(x.bytes)})`).join(' · ') || '—'), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, /*#__PURE__*/React.createElement("b", null, "Certificados:"), " ", Object.entries(banco.certificados.porTipo).map(([t, x]) => `${FP_TIPOS[t] || t}: ${monNum(x.quantidade)} arquivo(s), ${monFormatarBytes(x.bytesArquivo)}`).join(' · ') || 'nenhum anexado', " \xB7 guardados em ", monNum(banco.certificados.partes), " partes."))), /*#__PURE__*/React.createElement("details", {
+    className: "mon-det mon-painel"
+  }, /*#__PURE__*/React.createElement("summary", null, "Ver detalhes por cole\xE7\xE3o do banco (", cols.length, ")"), /*#__PURE__*/React.createElement("div", {
     className: "av-tabela-wrap"
   }, /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
+    className: "av-tabela mon-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Cole\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "M\xF3dulo"), /*#__PURE__*/React.createElement("th", null, "Documentos"), /*#__PURE__*/React.createElement("th", null, "Tamanho (medido)"), /*#__PURE__*/React.createElement("th", null, "\xCDndices (estimativa)"))), /*#__PURE__*/React.createElement("tbody", null, cols.map(([c, x]) => /*#__PURE__*/React.createElement("tr", {
     key: c
   }, /*#__PURE__*/React.createElement("td", {
@@ -12429,86 +13550,171 @@ function MonDrive({
   const infra = d.infra[d.infra.length - 1];
   const copia = infra && infra.github && infra.github.copiaExterna;
   const dr = (d.drive || [])[(d.drive || []).length - 1];
-  if (copia && copia.situacao === 'nao_configurada') return /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "C\xF3pia externa dos backups (Google Drive)"), /*#__PURE__*/React.createElement("span", null, "N\xE3o configurada: os backups ficam s\xF3 no GitHub. Para ter a segunda c\xF3pia, cadastre os segredos RCLONE_CONFIG e RCLONE_DESTINO (ver backup/RECUPERACAO.md).")));
-  if (dr && dr.totalBytes) return /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Google Drive (c\xF3pia externa dos backups)"), /*#__PURE__*/React.createElement("span", null, monFormatarBytes(dr.usadoBytes), " usados de ", monFormatarBytes(dr.totalBytes), " na conta \xB7 pasta dos backups: ", monFormatarBytes(dr.pastaBackupsBytes), " em ", monNum(dr.pastaBackupsArquivos), " arquivos \xB7 ", monQuando(dr.coletadoEm), copia && copia.situacao === 'falhou' ? ' · ⚠ a última cópia falhou' : '')), /*#__PURE__*/React.createElement(MonBarra, {
+  const nome = 'Cópia externa dos backups (Google Drive)';
+  if (copia && copia.situacao === 'nao_configurada') return /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "nuvem",
+    cor: "cinza",
+    nome: nome,
+    valor: null,
+    tag: /*#__PURE__*/React.createElement(MonStatus, {
+      s: "atencao"
+    }, "N\xE3o configurada"),
+    detalhe: "Os backups ficam s\xF3 no GitHub. Para ter a segunda c\xF3pia, cadastre os segredos RCLONE_CONFIG e RCLONE_DESTINO (ver backup/RECUPERACAO.md)."
+  });
+  if (dr && dr.totalBytes) return /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "nuvem",
+    cor: "azul",
+    nome: nome,
     valor: dr.usadoBytes,
     limite: dr.totalBytes,
-    niveis: cfg.niveis
-  }));
-  return /*#__PURE__*/React.createElement("div", {
-    className: "mon-servico"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "C\xF3pia externa dos backups (Google Drive)")), /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: "Os n\xFAmeros do Google Drive aparecem depois do pr\xF3ximo backup com a c\xF3pia externa ativa."
-  }));
+    rotLimite: "na conta",
+    niveis: cfg.niveis,
+    detalhe: `pasta dos backups: ${monFormatarBytes(dr.pastaBackupsBytes)} em ${monNum(dr.pastaBackupsArquivos)} arquivos · ${monQuando(dr.coletadoEm)}${copia && copia.situacao === 'falhou' ? ' · ⚠ a última cópia falhou' : ''}`
+  });
+  return /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "nuvem",
+    cor: "cinza",
+    nome: nome,
+    valor: null,
+    tag: /*#__PURE__*/React.createElement(MonStatus, {
+      s: "neutro"
+    }, "Sem dados"),
+    detalhe: "Os n\xFAmeros do Google Drive aparecem depois do pr\xF3ximo backup com a c\xF3pia externa ativa."
+  });
 }
 function MonOperacoes({
   d,
+  cfg,
   p,
   oper,
   app,
+  appAnt,
   oficialOk,
   motivoOficial
 }) {
   const dias = [];
   for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
-  const cat = dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`);
-  const meses = d.operacoes.map(o => ({
+  const cat = dias.map(monRotDia);
+  const ops = monOperacoesExibidas(d, oper, app, appAnt, oficialOk);
+  const fonteDia = oficialOk ? oper.dias : app.porDia;
+  // por mês: oficial (quando existe) ou a soma da contagem do sistema nos meses guardados
+  const meses = oficialOk ? d.operacoes.map(o => ({
     mes: o.mes,
     t: Object.values(o.dias || {}).reduce((t, x) => monSomaMapa(t, x), {})
+  })) : Object.entries(d.uso.reduce((m, u) => {
+    const k = String(u.dia || '').slice(0, 7);
+    if (!k) return m;
+    const t = m[k] = m[k] || {
+      leituras: 0,
+      gravacoes: 0,
+      exclusoes: 0
+    };
+    for (const g of ['leituras', 'gravacoes', 'exclusoes']) t[g] += Object.values(u[g] || {}).reduce((s, n) => s + (Number(n) || 0), 0);
+    return m;
+  }, {})).sort().map(([mes, t]) => ({
+    mes,
+    t
   }));
+  const ROT = [['leituras', 'Leituras', 'olho'], ['gravacoes', 'Gravações', 'lapis'], ['exclusoes', 'Exclusões', 'lixeira']];
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Opera\xE7\xF5es oficiais do Firestore"), oficialOk ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "oficial",
-    em: monQuando(oper.atualizadoEm)
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes mon-mini"
-  }, [['leituras', 'Leituras'], ['gravacoes', 'Gravações'], ['exclusoes', 'Exclusões']].map(([k, n]) => /*#__PURE__*/React.createElement(MonCartao, {
-    key: k,
-    titulo: n,
-    valor: monNum(oper.total[k] || 0),
-    sub: /*#__PURE__*/React.createElement(MonVariacao, {
-      atual: oper.total[k] || 0,
-      anterior: oper.anterior ? oper.anterior[k] : null
+  }, !oficialOk && (ops.plano ? /*#__PURE__*/React.createElement(MonIndisponivel, {
+    titulo: "N\xFAmeros oficiais do Google indispon\xEDveis no plano gratuito",
+    resumo: "Os n\xFAmeros abaixo s\xE3o contados pelo pr\xF3prio sistema. O oficial fica no console do Firebase \u2192 Firestore Database \u2192 aba Uso.",
+    motivo: motivoOficial
+  }) : /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: motivoOficial,
+    resumo: "Configure a integra\xE7\xE3o para visualizar os n\xFAmeros oficiais. Abaixo, a contagem do pr\xF3prio sistema."
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Opera\xE7\xF5es no per\xEDodo",
+    icone: "banco",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: ops.fonte,
+      em: oficialOk ? monQuando(oper.atualizadoEm) : ''
     })
-  })), /*#__PURE__*/React.createElement(MonCartao, {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes"
+  }, ROT.map(([k, n, ic]) => /*#__PURE__*/React.createElement(MonCartao, {
+    key: k,
+    icone: ic,
+    titulo: n,
+    valor: monNum(ops.valor(k)),
+    sub: /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: ops.valor(k),
+      anterior: ops.anterior(k)
+    })
+  })), oficialOk && /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "lapis",
     titulo: "Cria\xE7\xF5es \xB7 atualiza\xE7\xF5es",
     valor: `${monNum(oper.total.criacoes || 0)} · ${monNum(oper.total.atualizacoes || 0)}`,
     sub: "divis\xE3o das grava\xE7\xF5es"
-  })), /*#__PURE__*/React.createElement("h4", null, "Por dia"), /*#__PURE__*/React.createElement(MonGrafico, {
+  }))), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Hoje em rela\xE7\xE3o \xE0 cota di\xE1ria gratuita",
+    icone: "painel",
+    fonte: ops.fonte === 'app' ? /*#__PURE__*/React.createElement("span", {
+      className: "mon-fonte f-app"
+    }, "Contagem do aplicativo \u2014 aproximada") : /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "oficial"
+    })
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-progs compacto"
+  }, ROT.map(([k, n, ic]) => {
+    const h = ops.hoje(k);
+    return /*#__PURE__*/React.createElement("div", {
+      key: k,
+      className: "mon-prog"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "mon-prog-cab"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "mon-prog-nome"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "mon-prog-ic c-marinho"
+    }, /*#__PURE__*/React.createElement(MonIcone, {
+      n: ic,
+      tam: 15
+    })), n), /*#__PURE__*/React.createElement("span", {
+      className: "mon-prog-val"
+    }, /*#__PURE__*/React.createElement("b", null, h.aprox ? '≈ ' : '', monNum(h.v)), " de ", monCurto(MON_COTA[k]))), /*#__PURE__*/React.createElement(MonBarra, {
+      valor: h.v || 0,
+      limite: MON_COTA[k],
+      niveis: cfg.niveis
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "mon-prog-rodape"
+    }, /*#__PURE__*/React.createElement("span", null), /*#__PURE__*/React.createElement("span", {
+      className: "mon-prog-pct"
+    }, monPctTxt(monPct(h.v || 0, MON_COTA[k])))));
+  })), oficialOk && /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "O dia da cota do Google segue o hor\xE1rio do Pac\xEDfico.")), /*#__PURE__*/React.createElement("div", {
+    className: "mon-linha2 meio"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Evolu\xE7\xE3o di\xE1ria",
+    icone: "tendencia",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: ops.fonte
+    })
+  }, /*#__PURE__*/React.createElement(MonGrafico, {
     categorias: cat,
     series: [{
       nome: 'Leituras',
       cor: MON_CORES.leituras,
-      valores: dias.map(x => (oper.dias[x] || {}).leituras ?? null)
+      valores: dias.map(x => (fonteDia[x] || {}).leituras ?? null)
     }, {
       nome: 'Gravações',
       cor: MON_CORES.gravacoes,
-      valores: dias.map(x => (oper.dias[x] || {}).gravacoes ?? null)
+      valores: dias.map(x => (fonteDia[x] || {}).gravacoes ?? null)
     }, {
       nome: 'Exclusões',
       cor: MON_CORES.exclusoes,
-      valores: dias.map(x => (oper.dias[x] || {}).exclusoes ?? null)
+      valores: dias.map(x => (fonteDia[x] || {}).exclusoes ?? null)
     }]
-  }), /*#__PURE__*/React.createElement("h4", null, "Uso da cota di\xE1ria gratuita (dia da cota: hor\xE1rio do Pac\xEDfico)"), /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Dia"), /*#__PURE__*/React.createElement("th", null, "Leituras / 50 mil"), /*#__PURE__*/React.createElement("th", null, "Grava\xE7\xF5es / 20 mil"), /*#__PURE__*/React.createElement("th", null, "Exclus\xF5es / 20 mil"))), /*#__PURE__*/React.createElement("tbody", null, Object.keys(oper.diasCota).filter(x => x >= p.de && x <= p.ate).sort().reverse().slice(0, 31).map(x => {
-    const o = oper.diasCota[x];
-    return /*#__PURE__*/React.createElement("tr", {
-      key: x
-    }, /*#__PURE__*/React.createElement("td", {
-      "data-rotulo": "Dia"
-    }, formatarDataBr(x)), ['leituras', 'gravacoes', 'exclusoes'].map(k => /*#__PURE__*/React.createElement("td", {
-      key: k,
-      "data-rotulo": k
-    }, monNum(o[k]), " (", (monPct(o[k], MON_COTA[k]) || 0).toFixed(1).replace('.', ','), "%)")));
-  }))), /*#__PURE__*/React.createElement("h4", null, "Por m\xEAs"), /*#__PURE__*/React.createElement(MonGrafico, {
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Evolu\xE7\xE3o mensal",
+    icone: "calendario",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: ops.fonte
+    })
+  }, /*#__PURE__*/React.createElement(MonGrafico, {
     categorias: meses.map(m => m.mes.slice(5) + '/' + m.mes.slice(2, 4)),
     series: [{
       nome: 'Leituras',
@@ -12523,22 +13729,38 @@ function MonOperacoes({
       cor: MON_CORES.exclusoes,
       valores: meses.map(m => m.t.exclusoes || 0)
     }]
-  })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: motivoOficial
-  }), d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.exigeFaturamento && /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Para ver os n\xFAmeros oficiais: console do Firebase \u2192 Firestore Database \u2192 aba ", /*#__PURE__*/React.createElement("b", null, "Uso"), ". Abaixo, a contagem feita pelo pr\xF3prio sistema."))), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Por m\xF3dulo (contagem do pr\xF3prio aplicativo)"), /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "app"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Contadas no aparelho de cada pessoa, pela cole\xE7\xE3o do banco que foi lida ou gravada. \xC9 uma aproxima\xE7\xE3o (n\xE3o inclui as rotinas do GitHub nem o que vem do cache do aparelho) e n\xE3o substitui os n\xFAmeros oficiais."), Object.keys(app.porModulo).length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio-pequeno"
+  }), !oficialOk && /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "A contagem do sistema guarda os \xFAltimos 70 dias."))), oficialOk && /*#__PURE__*/React.createElement("details", {
+    className: "mon-det mon-painel"
+  }, /*#__PURE__*/React.createElement("summary", null, "Ver uso da cota di\xE1ria por dia"), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela mon-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Dia"), /*#__PURE__*/React.createElement("th", null, "Leituras / 50 mil"), /*#__PURE__*/React.createElement("th", null, "Grava\xE7\xF5es / 20 mil"), /*#__PURE__*/React.createElement("th", null, "Exclus\xF5es / 20 mil"))), /*#__PURE__*/React.createElement("tbody", null, Object.keys(oper.diasCota).filter(x => x >= p.de && x <= p.ate).sort().reverse().slice(0, 31).map(x => {
+    const o = oper.diasCota[x];
+    return /*#__PURE__*/React.createElement("tr", {
+      key: x
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Dia"
+    }, formatarDataBr(x)), ['leituras', 'gravacoes', 'exclusoes'].map(k => /*#__PURE__*/React.createElement("td", {
+      key: k,
+      "data-rotulo": k
+    }, monNum(o[k]), " (", (monPct(o[k], MON_COTA[k]) || 0).toFixed(1).replace('.', ','), "%)")));
+  }))))), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Por m\xF3dulo",
+    icone: "painel",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "app"
+    })
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Contadas no aparelho de cada pessoa. \xC9 uma aproxima\xE7\xE3o: n\xE3o inclui as rotinas do GitHub nem o que vem do cache do aparelho."), Object.keys(app.porModulo).length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "mon-grafico-vazio"
   }, "Sem contagens no per\xEDodo (os aparelhos enviam os contadores a cada 5 minutos de uso).") : /*#__PURE__*/React.createElement("div", {
     className: "av-tabela-wrap"
   }, /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
+    className: "av-tabela mon-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "M\xF3dulo"), /*#__PURE__*/React.createElement("th", null, "Leituras"), /*#__PURE__*/React.createElement("th", null, "Grava\xE7\xF5es"), /*#__PURE__*/React.createElement("th", null, "Exclus\xF5es"), /*#__PURE__*/React.createElement("th", null, "Cole\xE7\xF5es"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(app.porModulo).sort((a, b) => b[1].leituras - a[1].leituras).map(([m, x]) => /*#__PURE__*/React.createElement("tr", {
     key: m
   }, /*#__PURE__*/React.createElement("td", {
@@ -12551,8 +13773,8 @@ function MonOperacoes({
     "data-rotulo": "Exclus\xF5es"
   }, monNum(x.exclusoes)), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Cole\xE7\xF5es",
-    className: "av-dica"
-  }, [...x.colecoes].join(', '))))))), /*#__PURE__*/React.createElement("h4", null, "Por dia (aplicativo)"), /*#__PURE__*/React.createElement(MonGrafico, {
+    className: "mon-fraco"
+  }, [...x.colecoes].join(', '))))))), oficialOk && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h4", null, "Por dia (aplicativo)"), /*#__PURE__*/React.createElement(MonGrafico, {
     categorias: cat,
     series: [{
       nome: 'Leituras',
@@ -12563,30 +13785,37 @@ function MonOperacoes({
       cor: MON_CORES.gravacoes,
       valores: dias.map(x => (app.porDia[x] || {}).gravacoes ?? null)
     }]
-  })));
+  }))));
 }
 function MonTrafego({
   d,
   p,
   app,
-  oper
+  oper,
+  cfg
 }) {
   const infra = d.infra[d.infra.length - 1];
   const t = infra && infra.github && infra.github.trafegoSite;
   const dias = [];
   for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
+  const cat = dias.map(monRotDia);
   const fotosB = app.bytesBaixados.midias || 0,
     certB = app.bytesBaixados.certificadosPartes || 0;
   const fotosE = (app.bytesEnviados.midias || 0) + Object.entries(app.bytesEnviados).filter(([c]) => ['lotes', 'orcamentos'].includes(c)).reduce((s, [, n]) => s + n, 0);
+  const saidaMes = Object.entries(oper.transf).filter(([x]) => x.startsWith(monDiaBr().slice(0, 7))).reduce((s, [, v]) => s + (v.saida || 0), 0);
+  const motivoT = ((d.fontes || {}).transferenciaOficial || {}).motivo || 'Depende da chave GCP_MONITORAMENTO_CHAVE.';
+  const exigeFat = !!(d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.exigeFaturamento);
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Dados transferidos pelo Firebase (cota de sa\xEDda: 10 GiB/m\xEAs)"), oper.temTransf ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "oficial",
-    em: monQuando(oper.atualizadoEm)
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes mon-mini"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Transfer\xEAncia de dados (Firebase)",
+    icone: "trafego",
+    fonte: oper.temTransf ? /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "oficial",
+      em: monQuando(oper.atualizadoEm)
+    }) : null
+  }, oper.temTransf ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes"
   }, /*#__PURE__*/React.createElement(MonCartao, {
     titulo: "Sa\xEDda (Firestore \u2192 aparelhos)",
     valor: monFormatarBytes(oper.transfTotal.saida)
@@ -12595,13 +13824,14 @@ function MonTrafego({
     valor: monFormatarBytes(oper.transfTotal.entrada)
   }), /*#__PURE__*/React.createElement(MonCartao, {
     titulo: "Sa\xEDda no m\xEAs atual",
-    valor: monFormatarBytes(Object.entries(oper.transf).filter(([x]) => x.startsWith(monDiaBr().slice(0, 7))).reduce((t, [, v]) => t + (v.saida || 0), 0)),
+    valor: monFormatarBytes(saidaMes),
     sub: "de 10 GiB gratuitos"
   }, /*#__PURE__*/React.createElement(MonBarra, {
-    valor: Object.entries(oper.transf).filter(([x]) => x.startsWith(monDiaBr().slice(0, 7))).reduce((t, [, v]) => t + (v.saida || 0), 0),
-    limite: MON_COTA.saidaMes
+    valor: saidaMes,
+    limite: MON_COTA.saidaMes,
+    niveis: cfg.niveis
   }))), /*#__PURE__*/React.createElement(MonGrafico, {
-    categorias: dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`),
+    categorias: cat,
     formato: monFormatarBytes,
     series: [{
       nome: 'Saída',
@@ -12612,18 +13842,19 @@ function MonTrafego({
       cor: MON_CORES.gravacoes,
       valores: dias.map(x => (oper.transf[x] || {}).entrada ?? null)
     }]
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Tamanho das respostas e dos pedidos da API do Firestore, medido pelo Google (sem compress\xE3o e cabe\xE7alhos de rede, que o console do Firebase pode contar de outro jeito).")) : /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: ((d.fontes || {}).transferenciaOficial || {}).motivo || 'Depende da chave GCP_MONITORAMENTO_CHAVE.'
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Transfer\xEAncia estimada pelo aplicativo"), /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "app"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Soma do tamanho dos dados recebidos do banco e enviados a ele em cada aparelho (sem cabe\xE7alhos, compress\xE3o e cache). Serve para comparar per\xEDodos, n\xE3o \xE9 o valor cobrado."), /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes mon-mini"
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Medido pelo Google (sem compress\xE3o e cabe\xE7alhos de rede, que o console do Firebase pode contar de outro jeito).")) : /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: motivoT,
+    resumo: exigeFat ? 'No plano gratuito o Google não libera esse número; abaixo, a estimativa do próprio sistema.' : undefined
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Transfer\xEAncia estimada pelo aplicativo",
+    icone: "nuvem",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "app"
+    })
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes"
   }, /*#__PURE__*/React.createElement(MonCartao, {
     titulo: "Dados baixados",
     valor: monFormatarBytes(app.soma('bytesBaixados'))
@@ -12635,15 +13866,15 @@ function MonTrafego({
     valor: monFormatarBytes(fotosB),
     sub: "cole\xE7\xE3o midias"
   }), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Documentos/certificados baixados",
+    titulo: "Certificados baixados",
     valor: monFormatarBytes(certB),
     sub: "cole\xE7\xE3o certificadosPartes"
   }), /*#__PURE__*/React.createElement(MonCartao, {
     titulo: "Fotos e anexos enviados",
     valor: monFormatarBytes(fotosE),
-    sub: "entradas e or\xE7amentos (com as fotos)"
+    sub: "entradas e or\xE7amentos"
   })), /*#__PURE__*/React.createElement(MonGrafico, {
-    categorias: dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`),
+    categorias: cat,
     formato: monFormatarBytes,
     series: [{
       nome: 'Baixados',
@@ -12654,34 +13885,42 @@ function MonTrafego({
       cor: MON_CORES.gravacoes,
       valores: dias.map(x => (app.porDia[x] || {}).enviados ?? null)
     }]
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Tr\xE1fego do site"), /*#__PURE__*/React.createElement("span", {
-    className: "mon-fonte f-app"
-  }, "Medido nos aparelhos (navegador)"), /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes mon-mini"
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Soma do tamanho dos dados em cada aparelho (sem cabe\xE7alhos, compress\xE3o e cache). Serve para comparar per\xEDodos; n\xE3o \xE9 o valor cobrado.")), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Tr\xE1fego do site",
+    icone: "globo",
+    fonte: /*#__PURE__*/React.createElement("span", {
+      className: "mon-fonte f-app"
+    }, "Medido nos aparelhos (navegador)")
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes"
   }, /*#__PURE__*/React.createElement(MonCartao, {
     titulo: "Aberturas do sistema",
     valor: monNum(app.site.aberturas)
   }), /*#__PURE__*/React.createElement(MonCartao, {
     titulo: "Dados baixados do site",
     valor: monFormatarBytes(app.site.bytes),
-    sub: "p\xE1gina e arquivos do sistema; o que veio do cache n\xE3o conta"
-  })), /*#__PURE__*/React.createElement(MonGrafico, {
-    categorias: dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`),
+    sub: "o que veio do cache n\xE3o conta"
+  }), infra && infra.saude && infra.saude.site && infra.saude.site.bytesPagina ? /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Tamanho da p\xE1gina inicial",
+    valor: monFormatarBytes(infra.saude.site.bytesPagina),
+    sub: "baixada ao abrir uma vers\xE3o nova"
+  }) : null), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: cat,
     formato: monFormatarBytes,
     series: [{
       nome: 'Dados baixados do site',
       cor: MON_CORES.docs,
       valores: dias.map(x => (app.porDia[x] || {}).siteBytes ?? null)
     }]
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Conta as aberturas de quem entra com login (o cliente que abre o link de assinatura n\xE3o entra na conta). Limite de refer\xEAncia do GitHub Pages: 100 GB/m\xEAs."), t && t.disponivel ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonFonte, {
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Conta as aberturas de quem entra com login (o cliente que abre o link de assinatura n\xE3o entra). Limite de refer\xEAncia do GitHub Pages: 100 GB/m\xEAs."), t && t.disponivel ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonFonte, {
     tipo: "github",
     em: monQuando(infra.coletadoEm)
   }), /*#__PURE__*/React.createElement(MonGrafico, {
-    categorias: t.dias.map(x => x.dia.slice(8) + '/' + x.dia.slice(5, 7)),
+    categorias: t.dias.map(x => monRotDia(x.dia)),
     series: [{
       nome: 'Visitas',
       cor: MON_CORES.leituras,
@@ -12691,9 +13930,7 @@ function MonTrafego({
       cor: MON_CORES.gravacoes,
       valores: t.dias.map(x => x.visitantes)
     }]
-  })) : null, infra && infra.saude && infra.saude.site && infra.saude.site.bytesPagina ? /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Tamanho da p\xE1gina inicial do sistema: ", monFormatarBytes(infra.saude.site.bytesPagina), " (baixada por cada aparelho ao abrir uma vers\xE3o nova).") : null));
+  })) : null));
 }
 function MonBackups({
   d,
@@ -12701,46 +13938,55 @@ function MonBackups({
 }) {
   const infra = d.infra[d.infra.length - 1];
   if (!infra || !infra.github) return /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: "A rotina da Central de Monitoramento ainda n\xE3o rodou (ela roda logo depois de cada backup e todo dia \xE0s 10:41)."
+    titulo: "Sem dados ainda",
+    resumo: "A rotina da Central de Monitoramento roda logo depois de cada backup e todo dia \xE0s 10:41."
   });
   const gh = infra.github,
     b = gh.backups || {},
     ex = gh.rotinaBackup && gh.rotinaBackup.execucoes || [];
-  const bk = monUltimoBackup(infra);
-  const atraso = !bk.ultimaOk || Date.now() - Date.parse(bk.ultimaOk.terminadoEm) > cfg.backupAtrasoHoras * 3600e3;
-  const falhou = bk.ultimaExec && bk.ultimaExec.resultado !== 'success';
-  const situacao = falhou ? ['critico', `Falhou (${bk.ultimaExec.resultado || '—'})`] : atraso ? ['critico', 'Atrasado'] : bk.ultimoArquivo && !bk.ultimoArquivo.verificacaoOk ? ['critico', 'Sem conferência de integridade'] : ['ok', 'Concluído e conferido'];
+  const sit = monSituacaoBackup(infra, cfg),
+    bk = sit.bk;
+  const dh = monDataHora(bk.ultimaExec ? bk.ultimaExec.terminadoEm || bk.ultimaExec.iniciadoEm : null);
   const lista = (b.lista || []).slice().reverse();
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("section", {
+    className: `mon-hero s-${sit.nivel}`
   }, /*#__PURE__*/React.createElement("div", {
-    className: `mon-situacao s-${situacao[0]}`
-  }, /*#__PURE__*/React.createElement("strong", null, "\xDAltimo backup: ", situacao[1]), /*#__PURE__*/React.createElement("span", null, bk.ultimaExec ? `execução de ${monQuando(bk.ultimaExec.iniciadoEm)} · resultado: ${bk.ultimaExec.resultado || bk.ultimaExec.situacao}` : 'nenhuma execução encontrada', bk.ultimoArquivo ? ` · arquivo de ${monQuando(bk.ultimoArquivo.criadoEm)}, ${monFormatarBytes(bk.ultimoArquivo.tamanho)}, ${bk.ultimoArquivo.verificacaoOk ? 'aberto com a chave e conferido documento a documento' : 'NÃO conferido'}` : ''), /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "github",
-    em: monQuando(infra.coletadoEm)
+    className: "mon-hero-principal"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: sit.nivel === 'ok' ? 'escudo' : 'alerta',
+    tam: 30
   })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes mon-mini"
-  }, /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Backups guardados",
-    valor: monNum(b.quantidade),
-    sub: `política: ${(b.politica || {}).diarios || '—'} diários + ${(b.politica || {}).mensais || '—'} mensais`
-  }), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Espa\xE7o dos backups",
-    valor: monFormatarBytes(b.bytesTotal),
-    sub: b.limiteBytes ? `de ${monFormatarBytes(b.limiteBytes)} (limite da rotina)` : ''
-  }, b.limiteBytes && /*#__PURE__*/React.createElement(MonBarra, {
+    className: "mon-hero-txt"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-rot"
+  }, "\xDAltimo backup"), /*#__PURE__*/React.createElement("strong", null, dh ? `${dh.data} às ${dh.hora}` : 'Nenhuma execução encontrada'), /*#__PURE__*/React.createElement(MonStatus, {
+    s: sit.nivel
+  }, sit.longo), bk.ultimoArquivo && /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-det"
+  }, "Arquivo de ", monQuando(bk.ultimoArquivo.criadoEm), " \xB7 ", monFormatarBytes(bk.ultimoArquivo.tamanho), " \xB7 ", bk.ultimoArquivo.verificacaoOk ? 'aberto com a chave e conferido documento a documento' : 'NÃO conferido'))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-hero-stats"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Backups guardados"), /*#__PURE__*/React.createElement("b", null, monNum(b.quantidade)), /*#__PURE__*/React.createElement("small", null, (b.politica || {}).diarios || '—', " di\xE1rios + ", (b.politica || {}).mensais || '—', " mensais")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Espa\xE7o ocupado"), /*#__PURE__*/React.createElement("b", null, monFormatarBytes(b.bytesTotal)), b.limiteBytes ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("small", null, "de ", monFormatarBytes(b.limiteBytes), " (limite da rotina)"), /*#__PURE__*/React.createElement(MonBarra, {
     valor: b.bytesTotal,
     limite: b.limiteBytes,
     niveis: cfg.niveis
-  })), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Mais recente",
-    valor: b.maisRecente ? monQuando(b.maisRecente) : '—'
-  }), /*#__PURE__*/React.createElement(MonCartao, {
-    titulo: "Mais antigo",
-    valor: b.maisAntigo ? monQuando(b.maisAntigo) : '—'
+  })) : /*#__PURE__*/React.createElement("small", null, "limite n\xE3o informado")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Mais recente"), /*#__PURE__*/React.createElement("b", null, b.maisRecente ? monQuando(b.maisRecente) : '—')), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Mais antigo"), /*#__PURE__*/React.createElement("b", null, b.maisAntigo ? monQuando(b.maisAntigo) : '—'))), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "github",
+    em: monQuando(infra.coletadoEm)
   })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Tamanho dos backups"), /*#__PURE__*/React.createElement(MonGrafico, {
+    className: "mon-linha2 meio"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Hist\xF3rico de execu\xE7\xF5es",
+    icone: "relogio"
+  }, /*#__PURE__*/React.createElement(MonExecucoes, {
+    ex: ex
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Tamanho dos backups",
+    icone: "tendencia"
+  }, /*#__PURE__*/React.createElement(MonGrafico, {
     categorias: lista.map(x => x.criadoEm.slice(8, 10) + '/' + x.criadoEm.slice(5, 7)),
     formato: monFormatarBytes,
     series: [{
@@ -12748,32 +13994,13 @@ function MonBackups({
       cor: MON_CORES.backup,
       valores: lista.map(x => x.tamanho)
     }]
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Execu\xE7\xF5es da rotina de backup"), /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Arquivos de backup",
+    icone: "arquivo"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "av-tabela-wrap"
   }, /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "In\xEDcio"), /*#__PURE__*/React.createElement("th", null, "Como"), /*#__PURE__*/React.createElement("th", null, "Resultado"), /*#__PURE__*/React.createElement("th", null, "Dura\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "Erros"))), /*#__PURE__*/React.createElement("tbody", null, ex.map(e => /*#__PURE__*/React.createElement("tr", {
-    key: e.id,
-    className: e.resultado && e.resultado !== 'success' ? 'mon-linha-erro' : ''
-  }, /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "In\xEDcio"
-  }, monQuando(e.iniciadoEm)), /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "Como"
-  }, e.evento === 'schedule' ? 'automático' : e.evento === 'workflow_dispatch' ? 'manual' : e.evento), /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "Resultado"
-  }, e.resultado === 'success' ? '✓ sucesso' : e.resultado === 'failure' ? '✗ falhou' : e.resultado || e.situacao), /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "Dura\xE7\xE3o"
-  }, e.terminadoEm && e.iniciadoEm ? `${Math.max(0, Math.round((Date.parse(e.terminadoEm) - Date.parse(e.iniciadoEm)) / 60000))} min` : '—'), /*#__PURE__*/React.createElement("td", {
-    "data-rotulo": "Erros",
-    className: "mon-erros-curto"
-  }, (e.erros || []).join(' · ') || '—'))))))), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Arquivos de backup"), /*#__PURE__*/React.createElement("div", {
-    className: "av-tabela-wrap"
-  }, /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
+    className: "av-tabela mon-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Tamanho"), /*#__PURE__*/React.createElement("th", null, "Documentos"), /*#__PURE__*/React.createElement("th", null, "Imagens"), /*#__PURE__*/React.createElement("th", null, "Integridade"))), /*#__PURE__*/React.createElement("tbody", null, (b.lista || []).map(x => /*#__PURE__*/React.createElement("tr", {
     key: x.arquivo
   }, /*#__PURE__*/React.createElement("td", {
@@ -12788,14 +14015,19 @@ function MonBackups({
     "data-rotulo": "Imagens"
   }, monNum(x.imagens)), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Integridade"
-  }, x.verificacaoOk && x.temSha256 ? '✓ conferido' : '✗ não conferido')))))), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "\u201CConferido\u201D = na pr\xF3pria execu\xE7\xE3o, o arquivo foi aberto com a chave e comparado documento a documento com o banco (n\xE3o basta o arquivo existir). Nenhuma chave, senha ou token aparece aqui.")));
+  }, x.verificacaoOk && x.temSha256 ? /*#__PURE__*/React.createElement(MonStatus, {
+    s: "ok"
+  }, "\u2713 conferido") : /*#__PURE__*/React.createElement(MonStatus, {
+    s: "critico"
+  }, "\u2717 n\xE3o conferido"))))))), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "\u201CConferido\u201D = na pr\xF3pria execu\xE7\xE3o, o arquivo foi aberto com a chave e comparado documento a documento com o banco. Nenhuma chave, senha ou token aparece aqui.")));
 }
 function MonSaude({
   d,
   p,
-  app
+  app,
+  cfg
 }) {
   const dias = [];
   for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
@@ -12813,11 +14045,19 @@ function MonSaude({
     semInternet: 'Aparelho ficou sem internet'
   };
   const disp = s => infras.length ? `${Math.round(infras.filter(i => i.saude && i.saude[s] && i.saude[s].ok).length / infras.length * 100)}% (${infras.length} verificação(ões))` : '—';
+  const pub = ultimo && ultimo.github && ultimo.github.publicacaoSite;
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes mon-mini"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Situa\xE7\xE3o agora",
+    icone: "pulso"
+  }, /*#__PURE__*/React.createElement(MonSaudeGrade, {
+    itens: monSaudeItens(d, app, cfg),
+    grande: true
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes"
   }, /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "globo",
     titulo: "Site no ar",
     valor: ultimo && ultimo.saude ? ultimo.saude.site.ok ? `✓ ${ultimo.saude.site.ms} ms` : '✗ não respondeu' : '—',
     sub: `disponibilidade no período: ${disp('site')}`,
@@ -12826,6 +14066,7 @@ function MonSaude({
       em: monQuando(ultimo.coletadoEm)
     })
   }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "banco",
     titulo: "Banco (Firebase) respondendo",
     valor: ultimo && ultimo.saude ? ultimo.saude.banco.ok ? `✓ ${ultimo.saude.banco.ms} ms` : '✗ não respondeu' : '—',
     sub: `disponibilidade no período: ${disp('banco')}`,
@@ -12834,6 +14075,7 @@ function MonSaude({
       em: monQuando(ultimo.coletadoEm)
     })
   }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "relogio",
     titulo: "Tempo de resposta ao salvar",
     valor: app.lat.operacoes ? `${Math.round(app.lat.somaMs / app.lat.operacoes)} ms` : '—',
     sub: app.lat.operacoes ? `média de ${monNum(app.lat.operacoes)} gravações · pior: ${app.lat.maxMs} ms` : 'sem gravações medidas no período',
@@ -12841,20 +14083,23 @@ function MonSaude({
       tipo: "app"
     })
   }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "servidor",
     titulo: "Publica\xE7\xE3o do site",
-    valor: ultimo && ultimo.github && ultimo.github.publicacaoSite && ultimo.github.publicacaoSite.situacao ? ultimo.github.publicacaoSite.situacao === 'built' ? '✓ publicada' : ultimo.github.publicacaoSite.situacao : '—',
-    sub: ultimo && ultimo.github && ultimo.github.publicacaoSite && ultimo.github.publicacaoSite.em ? `última: ${monQuando(ultimo.github.publicacaoSite.em)}` : ''
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Falhas registradas pelo aplicativo"), /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "app"
-  }), /*#__PURE__*/React.createElement("div", {
+    valor: pub && pub.situacao ? pub.situacao === 'built' ? '✓ publicada' : pub.situacao : '—',
+    sub: pub && pub.em ? `última: ${monQuando(pub.em)}` : ''
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Falhas registradas pelo aplicativo",
+    icone: "alerta",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "app"
+    })
+  }, /*#__PURE__*/React.createElement("div", {
     className: "mon-grade-falhas"
   }, Object.entries(rot).map(([k, n]) => /*#__PURE__*/React.createElement("div", {
     key: k,
     className: f[k] ? 'tem' : ''
   }, /*#__PURE__*/React.createElement("span", null, n), /*#__PURE__*/React.createElement("b", null, monNum(f[k] || 0))))), /*#__PURE__*/React.createElement(MonGrafico, {
-    categorias: dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`),
+    categorias: dias.map(monRotDia),
     series: [{
       nome: 'Erros',
       cor: '#C0392B',
@@ -12864,14 +14109,15 @@ function MonSaude({
       cor: MON_CORES.gravacoes,
       valores: dias.map(x => (app.porDia[x] || {}).falhas ?? null)
     }]
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Erros recentes (", app.erros.length, ")"), app.erros.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "av-vazio-pequeno"
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: `Erros recentes (${app.erros.length})`,
+    icone: "bug"
+  }, app.erros.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "mon-grafico-vazio"
   }, "Nenhum erro registrado no per\xEDodo.") : /*#__PURE__*/React.createElement("div", {
     className: "av-tabela-wrap"
   }, /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
+    className: "av-tabela mon-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Quando"), /*#__PURE__*/React.createElement("th", null, "Quem"), /*#__PURE__*/React.createElement("th", null, "Tela"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Mensagem"))), /*#__PURE__*/React.createElement("tbody", null, app.erros.slice(0, 80).map((e, i) => /*#__PURE__*/React.createElement("tr", {
     key: i
   }, /*#__PURE__*/React.createElement("td", {
@@ -12893,9 +14139,10 @@ function MonCrescimento({
 }) {
   const b = d.banco;
   if (b.length < 2) return /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: `O crescimento aparece a partir de 2 medições diárias (há ${b.length}). A projeção precisa de pelo menos 14.`
+    titulo: "Ainda sem hist\xF3rico suficiente",
+    resumo: `O crescimento aparece a partir de 2 medições diárias (há ${b.length}). A projeção precisa de pelo menos 14.`
   });
-  const cat = b.map(x => x.data.slice(8) + '/' + x.data.slice(5, 7));
+  const cat = b.map(x => monRotDia(x.data));
   const proj = monProjecao(b.map(x => ({
     data: x.data,
     valor: x.bytesDocumentos + (x.bytesIndicesEstimados || 0)
@@ -12907,22 +14154,30 @@ function MonCrescimento({
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-grade-cartoes mon-mini"
+    className: "mon-grade-cartoes"
   }, /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "banco",
     titulo: "Armazenamento (documentos)",
     valor: varTxt(prim.bytesDocumentos, ult.bytesDocumentos, monFormatarBytes),
     sub: `de ${formatarDataBr(prim.data)} a ${formatarDataBr(ult.data)}`
   }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "arquivo",
     titulo: "Documentos",
     valor: varTxt(prim.documentos, ult.documentos, monNum)
   }), /*#__PURE__*/React.createElement(MonCartao, {
+    icone: "imagem",
     titulo: "Fotos e certificados",
     valor: varTxt(prim.midias.bytes + prim.certificados.bytes, ult.midias.bytes + ult.certificados.bytes, monFormatarBytes)
   })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Armazenamento do Firestore"), /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "medido"
-  }), /*#__PURE__*/React.createElement(MonGrafico, {
+    className: "mon-linha2 meio"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Armazenamento do Firestore",
+    icone: "banco",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "medido"
+    })
+  }, /*#__PURE__*/React.createElement(MonGrafico, {
+    tipo: "linhas",
     categorias: cat,
     formato: monFormatarBytes,
     series: [{
@@ -12938,44 +14193,54 @@ function MonCrescimento({
       cor: MON_CORES.cert,
       valores: b.map(x => x.certificados.bytes)
     }]
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Quantidade de documentos"), /*#__PURE__*/React.createElement(MonGrafico, {
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Quantidade de documentos",
+    icone: "arquivo",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "medido"
+    })
+  }, /*#__PURE__*/React.createElement(MonGrafico, {
+    tipo: "linhas",
     categorias: cat,
     series: [{
       nome: 'Documentos',
       cor: MON_CORES.docs,
       valores: b.map(x => x.documentos)
     }]
-  })), backups.length > 1 && /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Espa\xE7o dos backups"), /*#__PURE__*/React.createElement(MonGrafico, {
-    categorias: backups.map(x => x.data.slice(8) + '/' + x.data.slice(5, 7)),
+  }))), backups.length > 1 && /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Espa\xE7o dos backups",
+    icone: "escudo"
+  }, /*#__PURE__*/React.createElement(MonGrafico, {
+    tipo: "linhas",
+    categorias: backups.map(x => monRotDia(x.data)),
     formato: monFormatarBytes,
     series: [{
       nome: 'Backups no GitHub',
       cor: MON_CORES.backup,
       valores: backups.map(x => x.github.backups.bytesTotal)
     }]
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco mon-estimativa"
-  }, /*#__PURE__*/React.createElement("h3", null, "Proje\xE7\xE3o (ESTIMATIVA \u2014 n\xE3o \xE9 dado oficial)"), /*#__PURE__*/React.createElement(MonFonte, {
-    tipo: "estimativa"
-  }), !proj ? /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "A proje\xE7\xE3o aparece com pelo menos 14 medi\xE7\xF5es di\xE1rias (h\xE1 ", b.length, ").") : proj.porDia <= 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Pela tend\xEAncia das \xFAltimas medi\xE7\xF5es, o armazenamento n\xE3o est\xE1 crescendo.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Tend\xEAncia linear das medi\xE7\xF5es (documentos + \xEDndices estimados): \u2248 ", monFormatarBytes(proj.porDia), " por dia, \u2248 ", monFormatarBytes(proj.porDia * 30), " por m\xEAs."), /*#__PURE__*/React.createElement("ul", {
-    className: "av-lista"
+  })), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Proje\xE7\xE3o (ESTIMATIVA \u2014 n\xE3o \xE9 dado oficial)",
+    icone: "tendencia",
+    className: "mon-estimativa",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "estimativa"
+    })
+  }, !proj ? /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "A proje\xE7\xE3o aparece com pelo menos 14 medi\xE7\xF5es di\xE1rias (h\xE1 ", b.length, ").") : proj.porDia <= 0 ? /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Pela tend\xEAncia das \xFAltimas medi\xE7\xF5es, o armazenamento n\xE3o est\xE1 crescendo.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Tend\xEAncia das medi\xE7\xF5es (documentos + \xEDndices estimados): \u2248 ", monFormatarBytes(proj.porDia), " por dia, \u2248 ", monFormatarBytes(proj.porDia * 30), " por m\xEAs."), /*#__PURE__*/React.createElement("div", {
+    className: "mon-marcos"
   }, [...cfg.niveis, 100].map(n => {
     const q = proj.quandoAtinge(MON_COTA.armazenamento * n / 100);
-    return /*#__PURE__*/React.createElement("li", {
+    return /*#__PURE__*/React.createElement("div", {
       key: n
-    }, n, "% do 1 GiB: ", q ? q <= monDiaBr() ? 'já atingido pela estimativa' : `por volta de ${formatarDataBr(q)}` : '—');
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
+    }, /*#__PURE__*/React.createElement("span", null, n, "% do 1 GiB"), /*#__PURE__*/React.createElement("b", null, q ? q <= monDiaBr() ? 'já atingido pela estimativa' : `por volta de ${formatarDataBr(q)}` : '—'));
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
   }, "Mudan\xE7as no uso (mais fotos, novos m\xF3dulos) alteram essa previs\xE3o. Confirme o n\xFAmero oficial no console do Firebase."))));
 }
 function MonCustos({
@@ -12986,18 +14251,60 @@ function MonCustos({
   const copia = infra && infra.github && infra.github.copiaExterna;
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
+  }, fat.disponivel && !fat.faturamentoAtivo ? /*#__PURE__*/React.createElement("section", {
+    className: "mon-hero s-ok"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Custos"), fat.disponivel && !fat.faturamentoAtivo ? /*#__PURE__*/React.createElement("div", {
-    className: "mon-situacao s-ok"
-  }, /*#__PURE__*/React.createElement("strong", null, "Custo real: R$ 0,00"), /*#__PURE__*/React.createElement("span", null, "O Google confirma que o projeto n\xE3o tem faturamento ativo (plano gratuito Spark): n\xE3o h\xE1 cobran\xE7a, e nenhum or\xE7amento \xE9 necess\xE1rio. Verificado em ", monQuando(fat.verificadoEm), "."), /*#__PURE__*/React.createElement(MonFonte, {
+    className: "mon-hero-principal"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "moeda",
+    tam: 30
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-hero-txt"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-rot"
+  }, "Custo real"), /*#__PURE__*/React.createElement("strong", null, "Custo real: R$ 0,00"), /*#__PURE__*/React.createElement(MonStatus, {
+    s: "ok"
+  }, "Plano gratuito (Spark)"), /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-det"
+  }, "O Google confirma que o projeto n\xE3o tem faturamento ativo: n\xE3o h\xE1 cobran\xE7a. Verificado em ", monQuando(fat.verificadoEm), "."))), /*#__PURE__*/React.createElement(MonFonte, {
     tipo: "oficial"
-  })) : fat.disponivel && fat.faturamentoAtivo ? /*#__PURE__*/React.createElement("div", {
-    className: "mon-situacao s-critico"
-  }, /*#__PURE__*/React.createElement("strong", null, "Faturamento ATIVO no projeto"), /*#__PURE__*/React.createElement("span", null, "O projeto est\xE1 ligado a uma conta de faturamento (plano Blaze): pode haver cobran\xE7a. Os valores reais por servi\xE7o exigem a exporta\xE7\xE3o de faturamento do Google Cloud, que ainda n\xE3o est\xE1 configurada.")) : /*#__PURE__*/React.createElement(MonIndisponivel, {
-    motivo: `Não foi possível confirmar com o Google: ${fat.motivo || 'depende da chave GCP_MONITORAMENTO_CHAVE'}. Pela configuração conhecida, o projeto está no plano gratuito (Spark).`
-  }), /*#__PURE__*/React.createElement("table", {
-    className: "av-tabela"
+  })) : fat.disponivel && fat.faturamentoAtivo ? /*#__PURE__*/React.createElement("section", {
+    className: "mon-hero s-critico"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-hero-principal"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "alerta",
+    tam: 30
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-hero-txt"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-rot"
+  }, "Custo real"), /*#__PURE__*/React.createElement("strong", null, "Faturamento ATIVO no projeto"), /*#__PURE__*/React.createElement(MonStatus, {
+    s: "critico"
+  }, "Pode haver cobran\xE7a"), /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-det"
+  }, "O projeto est\xE1 ligado a uma conta de faturamento (plano Blaze). Os valores reais exigem a exporta\xE7\xE3o de faturamento do Google Cloud, que ainda n\xE3o est\xE1 configurada.")))) : /*#__PURE__*/React.createElement(MonIndisponivel, {
+    titulo: "Custo n\xE3o confirmado",
+    resumo: "Pela configura\xE7\xE3o conhecida, o projeto est\xE1 no plano gratuito (Spark).",
+    motivo: `Não foi possível confirmar com o Google: ${fat.motivo || 'depende da chave GCP_MONITORAMENTO_CHAVE'}.`
+  }), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Evolu\xE7\xE3o dos custos",
+    icone: "tendencia"
+  }, fat.disponivel && fat.faturamentoAtivo ? /*#__PURE__*/React.createElement(MonIndisponivel, {
+    resumo: "Os valores por dia exigem a exporta\xE7\xE3o de faturamento do Google Cloud."
+  }) : /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Sem cobran\xE7a: no plano gratuito n\xE3o h\xE1 custos para acompanhar ao longo do tempo. Se um dia o projeto passar para o plano pago, este gr\xE1fico pode ser ligado com uma configura\xE7\xE3o nova e autorizada.")), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Servi\xE7os usados",
+    icone: "servidor"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela mon-tabela"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Servi\xE7o"), /*#__PURE__*/React.createElement("th", null, "Plano"), /*#__PURE__*/React.createElement("th", null, "Custo real"), /*#__PURE__*/React.createElement("th", null, "O que acontece no limite"))), /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Servi\xE7o"
   }, "Firebase (Firestore e login)"), /*#__PURE__*/React.createElement("td", {
@@ -13014,7 +14321,7 @@ function MonCustos({
     "data-rotulo": "Custo real"
   }, "Sem cobran\xE7a"), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "No limite"
-  }, "Rotinas e site sem custo para reposit\xF3rio p\xFAblico; arquivos acima de 100 MB s\xE3o recusados (o backup j\xE1 divide em partes).")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+  }, "Sem custo para reposit\xF3rio p\xFAblico; arquivos acima de 100 MB s\xE3o recusados (o backup j\xE1 divide em partes).")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Servi\xE7o"
   }, "Google Drive (c\xF3pia dos backups)"), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Plano"
@@ -13022,9 +14329,7 @@ function MonCustos({
     "data-rotulo": "Custo real"
   }, copia && copia.situacao === 'nao_configurada' ? '—' : 'Conforme o plano da conta Google'), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "No limite"
-  }, "Se a conta encher, a c\xF3pia externa falha (o backup no GitHub continua).")))), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Se um dia o projeto passar para o plano Blaze (pago), d\xE1 para ligar a leitura dos custos reais pela exporta\xE7\xE3o de faturamento do Google Cloud \u2014 isso exige uma configura\xE7\xE3o nova e autorizada.")));
+  }, "Se a conta encher, a c\xF3pia externa falha (o backup no GitHub continua).")))))));
 }
 function MonAlertasConfig({
   cfg,
@@ -13070,25 +14375,44 @@ function MonAlertasConfig({
       [k]: e.target.value.replace(/[^0-9.]/g, '')
     }))
   }), " ", sufixo));
+  const ROT = {
+    critico: 'Crítico',
+    alto: 'Alto',
+    atencao: 'Atenção'
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-secao"
+  }, /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: `Alertas agora (${alertas.length})`,
+    icone: "sino"
+  }, alertas.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "mon-hero s-ok compacto"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Alertas agora (", alertas.length, ")"), alertas.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "mon-situacao s-ok"
-  }, /*#__PURE__*/React.createElement("strong", null, "Tudo dentro do normal"), /*#__PURE__*/React.createElement("span", null, "Nenhum limite configurado foi ultrapassado.")) : /*#__PURE__*/React.createElement("ul", {
+    className: "mon-hero-principal"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: "ok",
+    tam: 26
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-hero-txt"
+  }, /*#__PURE__*/React.createElement("strong", null, "Tudo dentro do normal"), /*#__PURE__*/React.createElement("span", {
+    className: "mon-hero-det"
+  }, "Nenhum limite configurado foi ultrapassado.")))) : /*#__PURE__*/React.createElement("ul", {
     className: "mon-alertas"
   }, alertas.map((a, i) => /*#__PURE__*/React.createElement("li", {
     key: i,
     className: `n-${a.nivel}`
-  }, /*#__PURE__*/React.createElement("b", null, {
-    critico: 'Crítico',
-    alto: 'Alto',
-    atencao: 'Atenção'
-  }[a.nivel]), " ", a.texto)))), /*#__PURE__*/React.createElement("div", {
-    className: "mon-bloco"
-  }, /*#__PURE__*/React.createElement("h3", null, "Configurar os alertas"), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-alerta-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: a.nivel === 'critico' ? 'erro' : 'alerta',
+    tam: 18
+  })), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, ROT[a.nivel]), " ", a.texto))))), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: "Configurar os alertas",
+    icone: "lapis"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
   }, "Os percentuais s\xF3 valem onde h\xE1 um limite real e conhecido (1 GiB do Firestore, cotas di\xE1rias de leituras/grava\xE7\xF5es/exclus\xF5es, limite de espa\xE7o da rotina de backup)."), /*#__PURE__*/React.createElement("div", {
     className: "mon-campos"
   }, /*#__PURE__*/React.createElement("label", {
@@ -13115,8 +14439,8 @@ function MonAlertasConfig({
   }, "Salvar configura\xE7\xE3o")), msg && /*#__PURE__*/React.createElement("div", {
     className: "av-dica",
     role: "status"
-  }, msg), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
+  }, msg), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
   }, "Os avisos por e-mail que j\xE1 existiam (backup com falha ou atrasado, banco perto do limite) continuam funcionando, pela rotina di\xE1ria do GitHub.")));
 }
 
