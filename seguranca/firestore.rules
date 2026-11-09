@@ -276,18 +276,18 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ---------- Central de Monitoramento (só o Administrador Master) ----------
-    // monitoramento/: resumos gravados pelas rotinas do GitHub (conta do backup); o Master lê e só pode
-    // mudar a configuração dos alertas. Ninguém apaga.
+    // ---------- Central de Monitoramento (Master e administradores) ----------
+    // monitoramento/: resumos gravados pelas rotinas do GitHub (conta do backup); os administradores leem e
+    // só podem mudar a configuração dos alertas. Ninguém apaga.
     match /monitoramento/{id} {
-      allow read: if master() || backup();
-      allow create, update: if backup() || (master() && id == 'config');
+      allow read: if administrador() || backup();
+      allow create, update: if backup() || (administrador() && id == 'config');
       allow delete: if false;
     }
     // monitoramentoUso/<dia>_<uid>: contadores do próprio aplicativo (leituras, gravações, falhas), um por
-    // pessoa por dia, gravados pelo aparelho de quem usa. Cada um só grava o próprio; só o Master lê.
+    // pessoa por dia, gravados pelo aparelho de quem usa. Cada um só grava o próprio; só administradores leem.
     match /monitoramentoUso/{id} {
-      allow read: if master() || backup();
+      allow read: if administrador() || backup();
       allow create, update: if ativo()
         && id.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_' + request.auth.uid + '$')
         && request.resource.data.uid == request.auth.uid

@@ -324,7 +324,7 @@ await caso('resumo: ninguém apaga', NAO, () => como.master.doc('resumosProfissi
 await env.withSecurityRulesDisabled(async ctx => { await ctx.firestore().doc('monitoramento/fontes').set({ atualizadoEm: 'x' }); });
 const dUso = id => `2026-11-09_${uid(id, 1)}`;
 await caso('monitoramento: Master lê', SIM, () => como.master.doc('monitoramento/fontes').get());
-await caso('monitoramento: administrador comum NÃO lê', NAO, () => av.adm.doc('monitoramento/fontes').get());
+await caso('monitoramento: administrador lê', SIM, () => av.adm.doc('monitoramento/fontes').get());
 await caso('monitoramento: funcionário NÃO lê', NAO, () => av.ana.doc('monitoramento/fontes').get());
 await caso('monitoramento: estranho NÃO lê', NAO, () => como.estranho.doc('monitoramento/fontes').get());
 await caso('monitoramento: funcionário NÃO lista a coleção', NAO, () => av.ana.collection('monitoramento').get());
@@ -332,7 +332,9 @@ await caso('monitoramento: rotina (backup) grava os resumos', SIM, () => como.ba
 await caso('monitoramento: conta parecida com a do backup NÃO grava', NAO, () => como.backupFalso.doc('monitoramento/banco_2026-11-09').set({ data: 'x' }));
 await caso('monitoramento: Master grava só a configuração dos alertas', SIM, () => como.master.doc('monitoramento/config').set({ niveis: [70, 85, 95] }));
 await caso('monitoramento: Master NÃO altera os números das rotinas', NAO, () => como.master.doc('monitoramento/banco_2026-11-09').update({ documentos: 1 }));
-await caso('monitoramento: administrador NÃO mexe na configuração', NAO, () => av.adm.doc('monitoramento/config').set({ niveis: [1, 2, 3] }));
+await caso('monitoramento: administrador configura os alertas', SIM, () => av.adm.doc('monitoramento/config').set({ niveis: [70, 85, 95] }));
+await caso('monitoramento: administrador NÃO altera os números das rotinas', NAO, () => av.adm.doc('monitoramento/banco_2026-11-09').update({ documentos: 1 }));
+await caso('uso do app: administrador lê', SIM, () => av.adm.collection('monitoramentoUso').where('dia', '>=', '2026-11-01').get());
 await caso('monitoramento: ninguém apaga', NAO, () => como.master.doc('monitoramento/fontes').delete());
 await caso('uso do app: cada um grava o próprio documento do dia', SIM, () => av.ana.doc(`monitoramentoUso/${dUso('AVF')}`).set({ dia: '2026-11-09', uid: uid('AVF', 1), leituras: { lotes: 3 } }, { merge: true }));
 await caso('uso do app: NÃO grava no documento de outra pessoa', NAO, () => av.ana.doc(`monitoramentoUso/${dUso('AVG')}`).set({ dia: '2026-11-09', uid: uid('AVG', 1) }));

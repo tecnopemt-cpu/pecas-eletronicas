@@ -5630,6 +5630,7 @@ function TelaCriarConta({
 
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -11038,7 +11039,7 @@ function BotaoRelatorioGeral({
     aoFechar: () => setAberto(false)
   }));
 }
-// ======================= CENTRAL DE MONITORAMENTO (só o Administrador Master) =======================
+// ======================= CENTRAL DE MONITORAMENTO (Master e administradores) =======================
 // Fontes (cada número diz de onde vem):
 //  • OFICIAL — Google Cloud Monitoring (leituras/gravações/exclusões do Firestore), coletado 1×/dia pela
 //    rotina "Central de Monitoramento" no GitHub (precisa da chave de leitura; sem ela: "Métrica indisponível").
@@ -11627,7 +11628,7 @@ function useMonDados(ativo) {
         console.warn('central de monitoramento', err);
         if (vivo) setEstado({
           carregando: false,
-          erro: err && err.code === 'permission-denied' ? 'Sem permissão para ler os dados do monitoramento. Confira se as regras novas do banco foram publicadas (só o Administrador Master tem acesso).' : 'Não consegui carregar os dados do monitoramento. Verifique a conexão.'
+          erro: err && err.code === 'permission-denied' ? 'Sem permissão para ler os dados do monitoramento. Confira se as regras novas do banco foram publicadas (só administradores têm acesso).' : 'Não consegui carregar os dados do monitoramento. Verifique a conexão.'
         });
       }
     })();
@@ -12005,7 +12006,7 @@ function CentralMonitoramento({
   usuario,
   funcionarios
 }) {
-  const master = ehMaster(usuario);
+  const master = ehAdministrador(usuario); // Master e administradores (regras do banco iguais)
   const [d, recarregar] = useMonDados(master);
   const [secao, setSecao] = useState('geral');
   const [tipo, setTipo] = useState('30d');
@@ -12013,7 +12014,7 @@ function CentralMonitoramento({
     [ate, setAte] = useState('');
   if (!master) return /*#__PURE__*/React.createElement("div", {
     className: "card"
-  }, /*#__PURE__*/React.createElement("h3", null, "Acesso restrito"), /*#__PURE__*/React.createElement("p", null, "A Central de Monitoramento \xE9 exclusiva do Administrador Master."));
+  }, /*#__PURE__*/React.createElement("h3", null, "Acesso restrito"), /*#__PURE__*/React.createElement("p", null, "A Central de Monitoramento \xE9 exclusiva dos administradores."));
   if (d.carregando) return /*#__PURE__*/React.createElement("div", {
     className: "mon"
   }, /*#__PURE__*/React.createElement("div", {
@@ -12057,7 +12058,7 @@ function CentralMonitoramento({
     className: "mon-cab"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "\uD83D\uDCE1 Central de Monitoramento"), /*#__PURE__*/React.createElement("div", {
     className: "av-sub"
-  }, "Consumo, armazenamento, backups e sa\xFAde do sistema \xB7 s\xF3 o Administrador Master v\xEA esta \xE1rea")), /*#__PURE__*/React.createElement("div", {
+  }, "Consumo, armazenamento, backups e sa\xFAde do sistema \xB7 s\xF3 administradores veem esta \xE1rea")), /*#__PURE__*/React.createElement("div", {
     className: "mon-cab-acoes"
   }, /*#__PURE__*/React.createElement("span", {
     className: "av-dica"
@@ -13366,8 +13367,8 @@ function App() {
     nome: 'Avaliação',
     icone: '📝'
   },
-  // Central de Monitoramento: só o Administrador Master (as regras do banco também só liberam para ele)
-  ...(ehMaster(usuario) ? [{
+  // Central de Monitoramento: só administradores (as regras do banco também só liberam para eles)
+  ...(ehAdministrador(usuario) ? [{
     id: 'monitoramento',
     nome: 'Central de Monitoramento',
     icone: '📡'

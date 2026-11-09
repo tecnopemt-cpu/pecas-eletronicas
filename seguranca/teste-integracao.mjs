@@ -365,7 +365,7 @@ try {
   // funcionário: não vê o item e o banco recusa a leitura
   passo('monitoramento: funcionário não tem o item no menu', await fabio.page.locator('.sidebar-item', { hasText: 'Central de Monitoramento' }).count() === 0);
   const negadoF = await fabio.page.evaluate(async () => { try { await db.collection('monitoramento').doc('fontes').get(); return 'leu'; } catch (e) { return e.code; } });
-  passo('monitoramento: banco recusa a leitura para quem não é Master', negadoF === 'permission-denied', negadoF);
+  passo('monitoramento: banco recusa a leitura para funcionário', negadoF === 'permission-denied', negadoF);
   // 7) Estranho: nada sem login
   const r = await fetch(`${FS}/clientes/C1`);
   passo('sem login, o banco não entrega dados (acesso direto à API)', r.status === 403 || r.status === 401, r.status);
