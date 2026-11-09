@@ -53,7 +53,7 @@ async function serie(token, projeto, metrica, agruparPor) {
       const motivo = info.reason === 'SERVICE_DISABLED' || /has not been used|is disabled/i.test(er.message || '') ? 'a Cloud Monitoring API não está ativada no projeto (ou acabou de ser ativada: aguarde alguns minutos)'
         : r.status === 403 ? `a conta de serviço não tem o papel “Visualizador de monitoramento” neste projeto (ou o papel acabou de ser dado: aguarde alguns minutos) [${info.reason || er.status || 403}]`
           : `o Cloud Monitoring respondeu com erro ${r.status} [${info.reason || er.status || ''}]`;
-      throw Object.assign(new Error(motivo), { status: r.status });
+      throw Object.assign(new Error(`${motivo} — Google: ${String(er.message || '').replace(/\s+/g, ' ').slice(0, 220)}`), { status: r.status });
     }
     for (const ts of j.timeSeries || []) {
       const rotulo = agruparPor ? ((ts.metric || {}).labels || {})[agruparPor.split('.').pop()] || '' : '';
@@ -89,6 +89,7 @@ async function coletarFaturamento(token, projeto) {
 export async function coletarOperacoes(projeto, chave) {
   if (chave.project_id && chave.project_id !== projeto) throw new Error(`a chave foi criada em outro projeto do Google Cloud (“${chave.project_id}”); ela precisa ser do projeto “${projeto}”`);
   const token = await tokenGoogle(chave);
+  console.log(`Conta de serviço usada: ${String(chave.client_email || '').split('@')[0]} (projeto ${chave.project_id || '?'}).`);
   const [leit, grav, excl] = await Promise.all([serie(token, projeto, 'read_ops_count'), serie(token, projeto, 'write_ops_count', 'metric.label.op_type'), serie(token, projeto, 'delete_ops_count')]);
   const dias = {}, diasCota = {};
   const somar = (alvo, dia, campo, v) => { alvo[dia] = alvo[dia] || { leituras: 0, gravacoes: 0, criacoes: 0, atualizacoes: 0, exclusoes: 0 }; alvo[dia][campo] += v; };
