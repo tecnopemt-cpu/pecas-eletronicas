@@ -1,0 +1,48 @@
+name: Central de Monitoramento
+
+# Coleta os números da Central de Monitoramento (só o Master vê, dentro do sistema):
+#  - leituras, gravações e exclusões OFICIAIS do Firestore (Google Cloud Monitoring), se o segredo
+#    GCP_MONITORAMENTO_CHAVE estiver cadastrado; sem ele, o painel mostra "Métrica indisponível";
+#  - backups (índice do ramo backups e resultado real de cada execução), repositório e publicação do site;
+#  - se o site e o banco estão respondendo, e em quanto tempo.
+# O tamanho do banco (documentos, fotos, certificados) é medido pela própria rotina de backup.
+# Só lê e grava os resumos em monitoramento/ — não apaga nada. O registro não mostra dados nem segredos.
+on:
+  workflow_run:
+    workflows: ['Backup do Controle de Peças']
+    types: [completed]
+  schedule:
+    - cron: '41 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: read
+  pages: read
+
+concurrency:
+  group: monitoramento
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            backup
+            index.html
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Coletar e gravar os números
+        env:
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
+          GCP_MONITORAMENTO_CHAVE: ${{ secrets.GCP_MONITORAMENTO_CHAVE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node backup/monitoramento.mjs

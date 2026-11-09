@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
@@ -320,6 +320,52 @@ try {
   passo('formação: funcionário abre o próprio certificado', await fabio.page.locator('.fp-visor-pdf').count() === 1);
   await fabio.page.locator('.fp-visor button', { hasText: 'Fechar' }).click().catch(() => {});
   passo('formação: sem erros de permissão', w.erros.length === 0 && fabio.erros.length === 0, [...w.erros, ...fabio.erros].join(' | '));
+  // 10) Central de Monitoramento: rotinas gravam com a conta do backup (regras valendo); só o Master vê
+  etapa = 'monitoramento';
+  w.erros.length = 0;
+  const envRotina = { ...process.env, FIRESTORE_BASE: 'http://127.0.0.1:8080/v1', AUTH_BASE: AUTH, FIREBASE_PROJECT_ID: PROJ, FIREBASE_API_KEY: 'fake', FIREBASE_EMAIL: bEmail, FIREBASE_SENHA: bSenha, GITHUB_ACTIONS: '' };
+  const medir = spawnSync('node', ['--input-type=module', '-e', `
+    import { configFirebase, clienteFirestore, lerBancoCompleto } from '${RAIZ}/backup/firestore-rest.mjs';
+    import { medirBanco, gravarMonitoramento } from '${RAIZ}/backup/medir-banco.mjs';
+    const cli = clienteFirestore(configFirebase('${RAIZ}'));
+    const b = await lerBancoCompleto(cli, [], []);
+    const m = medirBanco(b.docsPorColecao);
+    await gravarMonitoramento(cli, 'banco_' + m.data, m);
+    console.log(JSON.stringify({ data: m.data, documentos: m.documentos, bytes: m.bytesDocumentos }));`], { env: envRotina, encoding: 'utf8' });
+  let medida = null; try { medida = JSON.parse(medir.stdout.trim().split('\n').pop()); } catch (e) {}
+  passo('monitoramento: medição do banco gravada pela conta da rotina (regras aceitam)', medir.status === 0 && !!medida && (await ler(`monitoramento/banco_${medida.data}`))?.documentos === medida.documentos, (medir.stderr || '').slice(-300));
+  // GitHub e site simulados (a rotina real consulta a API do GitHub e o site publicado)
+  const ghFake = http.createServer((req, res) => {
+    res.setHeader('content-type', 'application/json');
+    if (req.url.startsWith('/repos/x/y/contents/indice.json')) return res.end(JSON.stringify({ atualizadoEm: '2026-11-09T09:24:27Z', politica: { diarios: 30, mensais: 12, limiteBytes: 1610612736 }, backups: [{ arquivo: 'backup-20261109-0923-automatico.tpbak', partes: ['backup-20261109-0923-automatico.tpbak'], criadoEm: '2026-11-09T09:23:36Z', tipo: 'automatico', tamanho: 41010312, sha256Arquivo: 'abc', totalDocumentos: 1633, imagens: 356, verificacaoOk: true }] }));
+    if (req.url.startsWith('/repos/x/y/actions/workflows/backup.yml/runs')) return res.end(JSON.stringify({ workflow_runs: [{ id: 9, created_at: new Date(Date.now() - 3600e3).toISOString(), run_started_at: new Date(Date.now() - 3600e3).toISOString(), updated_at: new Date(Date.now() - 3300e3).toISOString(), status: 'completed', conclusion: 'success', event: 'schedule' }] }));
+    if (req.url.startsWith('/repos/x/y/traffic')) { res.statusCode = 403; return res.end('{}'); }
+    if (req.url === '/site') { res.setHeader('content-type', 'text/html'); return res.end('<html>ok</html>'); }
+    if (req.url.startsWith('/repos/x/y/pages')) return res.end(JSON.stringify({ status: 'built', updated_at: '2026-11-09T10:00:00Z' }));
+    if (req.url.startsWith('/repos/x/y/actions/workflows/')) return res.end(JSON.stringify({ workflow_runs: [] }));
+    if (req.url === '/repos/x/y') return res.end(JSON.stringify({ size: 300000 }));
+    res.statusCode = 404; res.end('{}');
+  }).listen(5053);
+  const rotinaMon = await new Promise(ok => { const p = spawn('node', [path.join(RAIZ, 'backup/monitoramento.mjs')], { env: { ...envRotina, GITHUB_API: 'http://127.0.0.1:5053', GITHUB_REPOSITORY: 'x/y', GITHUB_TOKEN: 't', SITE_URL: 'http://127.0.0.1:5053/site', GCP_MONITORAMENTO_CHAVE: '' } }); let out = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => out += d); p.on('close', code => ok({ code, out })); });
+  ghFake.close();
+  const fontesM = await ler('monitoramento/fontes');
+  passo('monitoramento: rotina diária grava saúde, backups e fontes (sem a chave oficial: indisponível com motivo)', rotinaMon.code === 0 && fontesM?.firestoreOficial?.disponivel === false && /GCP_MONITORAMENTO_CHAVE/.test(fontesM.firestoreOficial.motivo), rotinaMon.out.slice(-300));
+  passo('monitoramento: registro da rotina sem dados nem segredos', !/Fábio|backup-.+@|chave-|senha/i.test(rotinaMon.out.replace('Sem a conta', '')), rotinaMon.out.slice(-200));
+  await w.page.locator('.sidebar-item', { hasText: 'Central de Monitoramento' }).first().click();
+  await w.page.waitForSelector('.mon-cab, .mon .av-erro', { timeout: 20000 }).catch(() => {});
+  const monT = await w.page.locator('.mon').innerText().catch(() => '');
+  passo('monitoramento: Master abre a central com os números gravados (regras valendo)', new RegExp(medida ? medida.documentos.toLocaleString('pt-BR') : 'x').test(monT) && /Métrica indisponível/.test(monT), monT.slice(0, 300) + ' ' + w.erros.join('|'));
+  await w.page.locator('.mon-nav .av-chip', { hasText: 'Backups' }).click(); await esperar(300);
+  passo('monitoramento: backups vindos do GitHub', /Concluído e conferido/.test(await w.page.locator('.mon-secao').innerText().catch(() => '')));
+  // contadores do app gravados pelo próprio aparelho
+  await w.page.evaluate(() => monEnviar()); await esperar(1500);
+  const usoDocs = await listar('monitoramentoUso');
+  passo('monitoramento: contadores do aplicativo gravados (regras aceitam o próprio documento do dia)', usoDocs.length >= 1 && usoDocs.every(u => u.uid && u.dia), JSON.stringify(usoDocs).slice(0, 200));
+  passo('monitoramento: sem erros de permissão', w.erros.length === 0, w.erros.join(' | '));
+  // funcionário: não vê o item e o banco recusa a leitura
+  passo('monitoramento: funcionário não tem o item no menu', await fabio.page.locator('.sidebar-item', { hasText: 'Central de Monitoramento' }).count() === 0);
+  const negadoF = await fabio.page.evaluate(async () => { try { await db.collection('monitoramento').doc('fontes').get(); return 'leu'; } catch (e) { return e.code; } });
+  passo('monitoramento: banco recusa a leitura para quem não é Master', negadoF === 'permission-denied', negadoF);
   // 7) Estranho: nada sem login
   const r = await fetch(`${FS}/clientes/C1`);
   passo('sem login, o banco não entrega dados (acesso direto à API)', r.status === 403 || r.status === 401, r.status);

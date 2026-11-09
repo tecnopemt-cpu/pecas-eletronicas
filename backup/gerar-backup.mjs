@@ -13,6 +13,7 @@ import { execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { configFirebase, clienteFirestore, lerBancoCompleto } from './firestore-rest.mjs';
+import { medirBanco, gravarMonitoramento } from './medir-banco.mjs';
 
 const require = createRequire(import.meta.url);
 const T = require('./nucleo.js');
@@ -111,6 +112,16 @@ async function principal() {
     verificacao.vinculos.filter(v => v.quebrados).forEach(v => aviso('warning', `Vínculo já quebrado no banco: ${v.nome} — ${v.quebrados} de ${v.total} (o backup copia o banco como está).`));
     verificacao.avisos.forEach(a => aviso('warning', a));
     observacoes.forEach(o => aviso('notice', o));
+    // Central de Monitoramento: mede o banco que acabou de ser lido (sem leituras a mais). Falhar aqui não
+    // atrapalha o backup — só fica um aviso.
+    if (modo !== 'teste') {
+      try {
+        const medida = medirBanco(banco.docsPorColecao);
+        medida.backup = { arquivo: meta.arquivo || '', tamanho: meta.tamanho || 0, verificacaoOk: verificacao.ok !== false };
+        await gravarMonitoramento(fsCli, `banco_${medida.data}`, medida);
+        console.log(`Monitoramento: ${medida.documentos} documentos, ${T.formatarBytes(medida.bytesDocumentos)} (fórmula do Firestore, sem índices).`);
+      } catch (e) { aviso('warning', `Central de Monitoramento: não consegui gravar a medição do banco (${e.status || ''} ${String(e.message || e).slice(0, 120)}). O backup não foi afetado.`); }
+    }
   } catch (e) {
     meta.status = 'erro';
     meta.mensagem = meta.mensagem || e.message;

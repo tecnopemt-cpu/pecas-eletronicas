@@ -276,6 +276,25 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---------- Central de Monitoramento (só o Administrador Master) ----------
+    // monitoramento/: resumos gravados pelas rotinas do GitHub (conta do backup); o Master lê e só pode
+    // mudar a configuração dos alertas. Ninguém apaga.
+    match /monitoramento/{id} {
+      allow read: if master() || backup();
+      allow create, update: if backup() || (master() && id == 'config');
+      allow delete: if false;
+    }
+    // monitoramentoUso/<dia>_<uid>: contadores do próprio aplicativo (leituras, gravações, falhas), um por
+    // pessoa por dia, gravados pelo aparelho de quem usa. Cada um só grava o próprio; só o Master lê.
+    match /monitoramentoUso/{id} {
+      allow read: if master() || backup();
+      allow create, update: if ativo()
+        && id.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_' + request.auth.uid + '$')
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.get('erros', []).size() <= 60;
+      allow delete: if false;
+    }
+
     // ---------- desenvolvimento profissional (cursos, formações, certificados e resumo) ----------
     // Cada registro pertence a um funcionário (funcionarioId). Quem pode mexer: o próprio funcionário
     // (nos próprios cursos) e a gestão (Master e administradores; administrador não mexe nos do Master).

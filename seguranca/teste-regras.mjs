@@ -320,6 +320,27 @@ await caso('resumo: backup NÃO grava', NAO, () => como.backup.doc('resumosProfi
 await caso('resumo: backup lê os cursos', SIM, () => como.backup.collection('cursosProfissionais').where('funcionarioId', '==', 'AVF').get());
 await caso('resumo: backup NÃO grava cursos', NAO, () => como.backup.doc('cursosProfissionais/CF').update({ nome: 'x', historico: [{ texto: 'editou' }, { texto: 'x' }] }));
 await caso('resumo: ninguém apaga', NAO, () => como.master.doc('resumosProfissionais/AVF').delete());
+// ---------- Central de Monitoramento ----------
+await env.withSecurityRulesDisabled(async ctx => { await ctx.firestore().doc('monitoramento/fontes').set({ atualizadoEm: 'x' }); });
+const dUso = id => `2026-11-09_${uid(id, 1)}`;
+await caso('monitoramento: Master lê', SIM, () => como.master.doc('monitoramento/fontes').get());
+await caso('monitoramento: administrador comum NÃO lê', NAO, () => av.adm.doc('monitoramento/fontes').get());
+await caso('monitoramento: funcionário NÃO lê', NAO, () => av.ana.doc('monitoramento/fontes').get());
+await caso('monitoramento: estranho NÃO lê', NAO, () => como.estranho.doc('monitoramento/fontes').get());
+await caso('monitoramento: funcionário NÃO lista a coleção', NAO, () => av.ana.collection('monitoramento').get());
+await caso('monitoramento: rotina (backup) grava os resumos', SIM, () => como.backup.doc('monitoramento/banco_2026-11-09').set({ data: '2026-11-09', documentos: 10 }));
+await caso('monitoramento: conta parecida com a do backup NÃO grava', NAO, () => como.backupFalso.doc('monitoramento/banco_2026-11-09').set({ data: 'x' }));
+await caso('monitoramento: Master grava só a configuração dos alertas', SIM, () => como.master.doc('monitoramento/config').set({ niveis: [70, 85, 95] }));
+await caso('monitoramento: Master NÃO altera os números das rotinas', NAO, () => como.master.doc('monitoramento/banco_2026-11-09').update({ documentos: 1 }));
+await caso('monitoramento: administrador NÃO mexe na configuração', NAO, () => av.adm.doc('monitoramento/config').set({ niveis: [1, 2, 3] }));
+await caso('monitoramento: ninguém apaga', NAO, () => como.master.doc('monitoramento/fontes').delete());
+await caso('uso do app: cada um grava o próprio documento do dia', SIM, () => av.ana.doc(`monitoramentoUso/${dUso('AVF')}`).set({ dia: '2026-11-09', uid: uid('AVF', 1), leituras: { lotes: 3 } }, { merge: true }));
+await caso('uso do app: NÃO grava no documento de outra pessoa', NAO, () => av.ana.doc(`monitoramentoUso/${dUso('AVG')}`).set({ dia: '2026-11-09', uid: uid('AVG', 1) }));
+await caso('uso do app: NÃO grava com o uid de outra pessoa dentro', NAO, () => av.ana.doc(`monitoramentoUso/${dUso('AVF')}`).set({ dia: '2026-11-09', uid: uid('AVG', 1) }));
+await caso('uso do app: visitante do link NÃO grava', NAO, () => como.visitante.doc('monitoramentoUso/2026-11-09_uid-anon').set({ uid: 'uid-anon' }));
+await caso('uso do app: funcionário NÃO lê (nem o próprio)', NAO, () => av.ana.doc(`monitoramentoUso/${dUso('AVF')}`).get());
+await caso('uso do app: Master lê', SIM, () => como.master.collection('monitoramentoUso').where('dia', '>=', '2026-11-01').get());
+await caso('uso do app: ninguém apaga', NAO, () => como.master.doc(`monitoramentoUso/${dUso('AVF')}`).delete());
 console.log(`\n${ok}/${ok + falhas} verificações das regras ${falhas ? 'com FALHAS' : 'OK'}`);
 console.log(falhas ? `::error::Regras do banco: ${falhas} verificação(ões) falharam` : `::notice::Regras do banco: ${ok} verificações OK`);
 await env.cleanup();

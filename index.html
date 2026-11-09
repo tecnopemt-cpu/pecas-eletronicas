@@ -396,6 +396,94 @@
     .av-evolucao-barra{grid-column:1 / -1;order:3;}
   }
 
+  /* ---- Central de Monitoramento ---- */
+  .mon{display:flex;flex-direction:column;gap:14px;--mon-azul:#0F2A47;}
+  .mon-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#0F2A47,#1B3D63);color:#fff;}
+  .mon-cab h2{margin:0;font-size:21px;color:#fff;}
+  .mon-cab .av-sub,.mon-cab .av-dica{color:#C9D6E5;}
+  .mon-cab-acoes{display:flex;align-items:center;gap:10px;}
+  .mon-cab .btn.secundario{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3);}
+  .mon-faixa-alerta{display:block;width:100%;text-align:left;font:inherit;font-weight:700;padding:10px 14px;border-radius:10px;border:1px solid #F0B37A;background:#FFF4EA;color:#9A4A00;cursor:pointer;}
+  .mon-faixa-alerta.n-critico{border-color:#E8A0A0;background:#FDECEC;color:#9B1C1C;}
+  .mon-nav{display:flex;gap:6px;flex-wrap:wrap;}
+  .mon-periodo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .mon-periodo-rot{font-size:13px;color:var(--texto-fraco);}
+  .mon-grade-cartoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+  .mon-mini{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));margin:8px 0;}
+  .mon-cartao{display:flex;flex-direction:column;gap:5px;padding:14px;border-radius:12px;border:1px solid var(--borda);background:var(--card);border-top:3px solid #1F4E79;min-width:0;}
+  .mon-cartao.indisp{border-top-color:#9AA5B1;background:#F8F9FA;}
+  .mon-cartao-titulo{font-size:12.5px;color:var(--texto-fraco);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+  .mon-cartao-valor{font-size:21px;color:var(--texto);overflow-wrap:anywhere;}
+  .mon-cartao.indisp .mon-cartao-valor{font-size:16px;color:#5A6B80;}
+  .mon-cartao-sub{font-size:12.5px;color:var(--texto-fraco);}
+  .mon-fonte{display:inline-block;align-self:flex-start;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#EEF3F9;color:#1F3B5C;margin-top:2px;}
+  .mon-fonte.f-oficial{background:#E5F2EA;color:#1F6B3D;}
+  .mon-fonte.f-app{background:#FFF1E3;color:#9A4A00;}
+  .mon-fonte.f-estimativa{background:#F3EAF8;color:#6B3A8A;}
+  .mon-var{font-size:12px;}
+  .mon-var.sobe{color:#B54708;}
+  .mon-var.desce{color:#1F7A3D;}
+  .mon-var.neutro{color:var(--texto-fraco);}
+  .mon-barra{position:relative;display:flex;height:10px;border-radius:999px;background:#E6EAEF;overflow:hidden;margin-top:4px;}
+  .mon-barra-real{background:#1F4E79;}
+  .mon-barra.atencao .mon-barra-real{background:#D4A017;}
+  .mon-barra.alto .mon-barra-real{background:#E97307;}
+  .mon-barra.critico .mon-barra-real{background:#C0392B;}
+  .mon-barra-est{background:repeating-linear-gradient(45deg,#8FA9C7,#8FA9C7 4px,#C7D5E6 4px,#C7D5E6 8px);}
+  .mon-barra i{position:absolute;top:0;bottom:0;width:1px;background:rgba(15,42,71,.35);}
+  .mon-indisp{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:10px;border:1px dashed #B8C2CC;background:#F8F9FA;font-size:13px;}
+  .mon-indisp strong{color:#5A6B80;}
+  .mon-indisp span{color:var(--texto-fraco);}
+  .mon-secao{display:flex;flex-direction:column;gap:14px;}
+  .mon-bloco{padding:16px;border-radius:12px;border:1px solid var(--borda);background:var(--card);display:flex;flex-direction:column;gap:10px;min-width:0;}
+  .mon-bloco h3{margin:0;font-size:16px;}
+  .mon-bloco h4{margin:6px 0 0;font-size:14px;}
+  .mon-servico{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-bottom:1px solid var(--borda);}
+  .mon-servico:last-child{border-bottom:none;}
+  .mon-servico > div:first-child{display:flex;flex-direction:column;gap:2px;}
+  .mon-servico span{font-size:12.5px;color:var(--texto-fraco);}
+  .mon-linha-barra{display:grid;grid-template-columns:200px 90px 1fr;gap:10px;align-items:center;font-size:13px;}
+  .mon-grafico{width:100%;}
+  .mon-grafico svg{width:100%;height:180px;display:block;}
+  .mon-grade{stroke:#E6EAEF;stroke-width:1;}
+  .mon-limite{stroke:#C0392B;stroke-width:1.5;stroke-dasharray:5 4;}
+  .mon-eixo{font-size:10px;fill:#7A8794;}
+  .mon-legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--texto-fraco);margin-top:4px;}
+  .mon-legenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+  .mon-legenda-limite{background:#C0392B;height:2px !important;}
+  .mon-situacao{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:12px;border:1px solid;font-size:13px;}
+  .mon-situacao strong{font-size:16px;}
+  .mon-situacao.s-ok{border-color:#BFE3CB;background:#EEF8F1;color:#1F6B3D;}
+  .mon-situacao.s-critico{border-color:#E8A0A0;background:#FDECEC;color:#9B1C1C;}
+  .mon-linha-erro td{background:#FDF1F1;}
+  .mon-erros-curto{font-size:12px;max-width:360px;overflow-wrap:anywhere;}
+  .mon-grade-falhas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+  .mon-grade-falhas div{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:8px;background:#F4F6F8;font-size:13px;}
+  .mon-grade-falhas div.tem{background:#FFF4EA;color:#9A4A00;}
+  .mon-estimativa{border-style:dashed;background:#FCFAFE;}
+  .mon-alertas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .mon-alertas li{padding:9px 12px;border-radius:8px;font-size:13.5px;border-left:4px solid;}
+  .mon-alertas li.n-critico{border-color:#C0392B;background:#FDECEC;}
+  .mon-alertas li.n-alto{border-color:#E97307;background:#FFF4EA;}
+  .mon-alertas li.n-atencao{border-color:#D4A017;background:#FFF9E6;}
+  .mon-campos{display:flex;flex-direction:column;gap:10px;}
+  .mon-campo{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:0;}
+  .mon-campo span{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .mon-campo input{width:80px;}
+  @media (max-width:640px){
+    .mon-cab{padding:14px;}
+    .mon-cab h2{font-size:18px;}
+    .mon-grade-cartoes,.mon-mini{grid-template-columns:1fr 1fr;gap:8px;}
+    .mon-cartao{padding:11px;}
+    .mon-cartao-valor{font-size:17px;}
+    .mon-linha-barra{grid-template-columns:1fr auto;}
+    .mon-linha-barra .mon-barra{grid-column:1 / -1;}
+    .mon-grafico svg{height:150px;}
+    .mon-nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;}
+    .mon-nav .av-chip{flex:0 0 auto;}
+  }
+  @media (max-width:380px){ .mon-grade-cartoes,.mon-mini{grid-template-columns:1fr;} }
+
   /* ---- Relatório geral do colaborador ---- */
   .rg-modal{max-width:920px;width:100%;display:flex;flex-direction:column;gap:12px;}
   .rg-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
@@ -5540,6 +5628,8 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -10948,6 +11038,1917 @@ function BotaoRelatorioGeral({
     aoFechar: () => setAberto(false)
   }));
 }
+// ======================= CENTRAL DE MONITORAMENTO (só o Administrador Master) =======================
+// Fontes (cada número diz de onde vem):
+//  • OFICIAL — Google Cloud Monitoring (leituras/gravações/exclusões do Firestore), coletado 1×/dia pela
+//    rotina "Central de Monitoramento" no GitHub (precisa da chave de leitura; sem ela: "Métrica indisponível").
+//  • MEDIDO — rotina de backup: lê o banco inteiro e mede cada documento pela fórmula oficial do Firestore.
+//  • GITHUB — índice e execuções dos backups, repositório, publicação do site.
+//  • APLICATIVO — contadores do próprio sistema (este arquivo): leituras/gravações por coleção, falhas,
+//    tempo de resposta. São aproximações feitas no aparelho de cada pessoa, nunca misturadas às oficiais.
+// O painel só lê. Nada aqui apaga ou limpa dados.
+
+// ---------- 1. contadores do aplicativo ----------
+const MON_COTA = {
+  leituras: 50000,
+  gravacoes: 20000,
+  exclusoes: 20000,
+  armazenamento: 1024 ** 3,
+  saidaMes: 10 * 1024 ** 3
+};
+const MON_INTERVALO_MS = 5 * 60 * 1000;
+const MON_MAX_ERROS_SESSAO = 30;
+const MON_MODULOS = {
+  lotes: 'Entrada de Peças',
+  pecas: 'Entrada de Peças',
+  catalogoPecas: 'Cadastro de Peças',
+  orcamentos: 'Orçamentos',
+  clientes: 'Clientes',
+  comissoes: 'Comissão',
+  comissaoFechamentos: 'Comissão',
+  comissaoHistorico: 'Comissão',
+  apuracaoRegistros: 'Comissão',
+  regrasComissao: 'Comissão',
+  periodosApuracao: 'Comissão',
+  funcionarios: 'Equipe',
+  contas: 'Equipe',
+  loginsPublicos: 'Equipe',
+  cpfs: 'Equipe',
+  avaliacaoRegistros: 'Avaliação de Desempenho',
+  avaliacoesTrimestrais: 'Avaliação de Desempenho',
+  avaliacaoMetas: 'Avaliação de Desempenho',
+  avaliacaoConfig: 'Avaliação de Desempenho',
+  cursosProfissionais: 'Avaliação de Desempenho',
+  certificados: 'Avaliação de Desempenho',
+  certificadosPartes: 'Avaliação de Desempenho',
+  resumosProfissionais: 'Avaliação de Desempenho',
+  notificacoes: 'Notificações',
+  avisos: 'Notificações',
+  exclusoes: 'Histórico',
+  midias: 'Fotos e arquivos',
+  codigosAssinatura: 'Assinaturas',
+  config: 'Configurações',
+  seguranca: 'Configurações',
+  backups: 'Backups',
+  backupsCopias: 'Backups',
+  monitoramento: 'Central de Monitoramento'
+};
+const monModulo = c => MON_MODULOS[c] || 'Outros';
+const monDiaBr = (d = new Date()) => d.toLocaleDateString('sv-SE', {
+  timeZone: 'America/Sao_Paulo'
+});
+const MON = {
+  leituras: {},
+  gravacoes: {},
+  exclusoes: {},
+  baixados: {},
+  enviados: {},
+  falhas: {},
+  lat: {
+    soma: 0,
+    n: 0,
+    max: 0
+  },
+  erros: [],
+  errosSessao: 0,
+  sujo: false,
+  dentro: 0,
+  proprio: false
+};
+// tamanho aproximado de um dado (texto em bytes, número 8) — para estimar a transferência
+function monTam(v, prof = 0) {
+  if (v == null) return 1;
+  if (typeof v === 'string') return v.length;
+  if (typeof v !== 'object') return 8;
+  if (prof > 6) return 8;
+  if (Array.isArray(v)) {
+    let s = 0;
+    for (const x of v) s += monTam(x, prof + 1);
+    return s;
+  }
+  if (typeof v.toDate === 'function') return 8;
+  let s = 0;
+  for (const k in v) s += k.length + monTam(v[k], prof + 1);
+  return s;
+}
+function monSomar(grupo, chave, n) {
+  if (!n) return;
+  MON[grupo][chave] = (MON[grupo][chave] || 0) + n;
+  MON.sujo = true;
+}
+function monFalha(tipo, err, colecao) {
+  const cod = err && err.code ? String(err.code) : '';
+  monSomar('falhas', tipo, 1);
+  if (/unavailable|deadline-exceeded|internal|cancelled/.test(cod)) monSomar('falhas', 'comunicacao', 1);
+  if (cod === 'resource-exhausted') monSomar('falhas', 'cotaAtingida', 1);
+  if (cod === 'permission-denied') monSomar('falhas', 'permissao', 1);
+  monErro(tipo, `${cod ? cod + ': ' : ''}${err && err.message ? err.message : err}`, colecao);
+}
+function monErro(tipo, msg, colecao) {
+  if (MON.errosSessao >= MON_MAX_ERROS_SESSAO) return;
+  MON.errosSessao++;
+  // sem dados pessoais: corta o texto e esconde e-mails e números longos
+  const limpo = String(msg || '').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<e-mail>').replace(/\d{6,}/g, '<n>').replace(/\s+/g, ' ').slice(0, 180);
+  MON.erros.push({
+    em: new Date().toISOString(),
+    tipo,
+    msg: limpo,
+    tela: window.MON_TELA || '',
+    colecao: colecao || ''
+  });
+  MON.sujo = true;
+}
+function monColecaoQuery(q, snap) {
+  try {
+    if (snap && snap.docs && snap.docs[0]) return snap.docs[0].ref.parent.id;
+  } catch (e) {}
+  try {
+    if (q.id && !String(q.path || '').includes('/')) return q.id;
+  } catch (e) {}
+  try {
+    const d = q._delegate || q;
+    const p = d._query && d._query.path;
+    if (p && p.segments) return p.segments[p.segments.length - 1];
+    if (d._query && d._query.collectionGroup) return d._query.collectionGroup;
+  } catch (e) {}
+  return 'outros';
+}
+function monLeituraQuery(q, snap, primeira) {
+  if (!snap || MON.proprio || snap.metadata && snap.metadata.fromCache) return;
+  const col = monColecaoQuery(q, snap);
+  if (col === 'monitoramentoUso') return;
+  let mud = [];
+  try {
+    mud = snap.docChanges();
+  } catch (e) {
+    mud = snap.docs || [];
+  }
+  const n = mud.length || (primeira ? 1 : 0); // consulta vazia também conta 1 leitura
+  monSomar('leituras', col, n);
+  let b = 0;
+  for (const c of mud) {
+    try {
+      const d = c.doc ? c.doc : c;
+      if (c.type !== 'removed') b += monTam(d.data());
+    } catch (e) {}
+  }
+  monSomar('baixados', col, b);
+}
+function monLeituraDoc(ref, snap) {
+  if (!snap || MON.proprio || snap.metadata && snap.metadata.fromCache) return;
+  let col = 'outros';
+  try {
+    col = ref.parent.id;
+  } catch (e) {}
+  if (col === 'monitoramentoUso') return;
+  monSomar('leituras', col, 1);
+  try {
+    if (snap.exists) monSomar('baixados', col, monTam(snap.data()));
+  } catch (e) {}
+}
+const MON_RECENTES = new Map(); // documento → quando já foi contado (a sincronização às vezes regrava pelo lote)
+function monGravacao(ref, tipo, dados, viaDoc) {
+  if (MON.dentro > 0 || MON.proprio) return;
+  let col = 'outros';
+  try {
+    col = ref.parent.id;
+  } catch (e) {}
+  let caminho = '';
+  try {
+    caminho = ref.path;
+  } catch (e) {}
+  const agora = Date.now();
+  if (caminho) {
+    if (viaDoc) MON_RECENTES.set(caminho, agora);else if (agora - (MON_RECENTES.get(caminho) || 0) < 3000) {
+      MON_RECENTES.delete(caminho);
+      return;
+    }
+    if (MON_RECENTES.size > 200) MON_RECENTES.clear();
+  }
+  if (col === 'monitoramentoUso') return;
+  monSomar(tipo === 'delete' ? 'exclusoes' : 'gravacoes', col, 1);
+  if (dados) monSomar('enviados', col, monTam(dados));
+}
+function monTempo(promessa, colecoes) {
+  if (!promessa || typeof promessa.then !== 'function' || MON.proprio) return promessa;
+  const t = performance.now(),
+    online = navigator.onLine !== false;
+  return promessa.then(r => {
+    if (online) {
+      const ms = Math.round(performance.now() - t);
+      MON.lat.soma += ms;
+      MON.lat.n++;
+      MON.lat.max = Math.max(MON.lat.max, ms);
+      MON.sujo = true;
+    }
+    return r;
+  }, err => {
+    const cols = colecoes || [];
+    monFalha(cols.some(c => c === 'midias' || c === 'certificadosPartes') ? 'upload' : 'salvar', err, cols.join(','));
+    throw err;
+  });
+}
+// observador do onSnapshot em qualquer formato (função, objeto, com ou sem opções)
+function monEmbrulharObservador(args, aoDados, aoErro) {
+  const a = [...args];
+  let i = 0;
+  if (a[0] && typeof a[0] === 'object' && typeof a[0].next !== 'function' && typeof a[0].error !== 'function' && typeof a[0] !== 'function') i = 1; // opções
+  if (typeof a[i] === 'function') {
+    const prox = a[i],
+      err = a[i + 1];
+    a[i] = function (snap) {
+      try {
+        aoDados(snap);
+      } catch (e) {}
+      return prox.apply(this, arguments);
+    };
+    a[i + 1] = function (e) {
+      try {
+        aoErro(e);
+      } catch (x) {}
+      if (typeof err === 'function') return err.apply(this, arguments);
+    };
+  } else if (a[i] && typeof a[i] === 'object') {
+    const o = a[i];
+    a[i] = {
+      next: s => {
+        try {
+          aoDados(s);
+        } catch (e) {}
+        if (o.next) o.next(s);
+      },
+      error: e => {
+        try {
+          aoErro(e);
+        } catch (x) {}
+        if (o.error) o.error(e);
+      },
+      complete: o.complete && (() => o.complete())
+    };
+  }
+  return a;
+}
+(function instalarMonitoramento() {
+  const F = firebase.firestore;
+  if (!F || !F.Query || !F.DocumentReference || !F.WriteBatch) return;
+  try {
+    const Q = F.Query.prototype,
+      DR = F.DocumentReference.prototype,
+      WB = F.WriteBatch.prototype;
+    const qSnap = Q.onSnapshot,
+      qGet = Q.get,
+      dSnap = DR.onSnapshot,
+      dGet = DR.get;
+    Q.onSnapshot = function (...args) {
+      const q = this;
+      let primeira = true;
+      return qSnap.apply(this, monEmbrulharObservador(args, s => {
+        monLeituraQuery(q, s, primeira);
+        if (!(s.metadata && s.metadata.fromCache)) primeira = false;
+      }, e => monFalha(SINC_COLECOES.has(monColecaoQuery(q)) ? 'sincronizacao' : 'carregar', e, monColecaoQuery(q))));
+    };
+    Q.get = function () {
+      const q = this;
+      return qGet.apply(this, arguments).then(s => {
+        try {
+          monLeituraQuery(q, s, true);
+        } catch (e) {}
+        return s;
+      }, e => {
+        monFalha('carregar', e, monColecaoQuery(q));
+        throw e;
+      });
+    };
+    DR.onSnapshot = function (...args) {
+      const r = this;
+      return dSnap.apply(this, monEmbrulharObservador(args, s => monLeituraDoc(r, s), e => {
+        let c = '';
+        try {
+          c = r.parent.id;
+        } catch (x) {}
+        monFalha('carregar', e, c);
+      }));
+    };
+    DR.get = function () {
+      const r = this;
+      return dGet.apply(this, arguments).then(s => {
+        try {
+          monLeituraDoc(r, s);
+        } catch (e) {}
+        return s;
+      }, e => {
+        let c = '';
+        try {
+          c = r.parent.id;
+        } catch (x) {}
+        monFalha('carregar', e, c);
+        throw e;
+      });
+    };
+    // gravações: contadas quando entram no lote / na transação; o envio mede o tempo e as falhas
+    const lembrarCol = (lote, ref) => {
+      try {
+        let c = ref.parent.id;
+        (lote.__monCols = lote.__monCols || new Set()).add(c);
+      } catch (e) {}
+    };
+    const wbSet = WB.set,
+      wbUpd = WB.update,
+      wbDel = WB.delete,
+      wbCommit = WB.commit;
+    WB.set = function (ref, dados) {
+      monGravacao(ref, 'set', dados);
+      lembrarCol(this, ref);
+      MON.dentro++;
+      try {
+        return wbSet.apply(this, arguments);
+      } finally {
+        MON.dentro--;
+      }
+    };
+    WB.update = function (ref, ...resto) {
+      monGravacao(ref, 'update', resto.length === 1 ? resto[0] : resto);
+      lembrarCol(this, ref);
+      MON.dentro++;
+      try {
+        return wbUpd.apply(this, arguments);
+      } finally {
+        MON.dentro--;
+      }
+    };
+    WB.delete = function (ref) {
+      monGravacao(ref, 'delete');
+      lembrarCol(this, ref);
+      MON.dentro++;
+      try {
+        return wbDel.apply(this, arguments);
+      } finally {
+        MON.dentro--;
+      }
+    };
+    WB.commit = function () {
+      const cols = [...(this.__monCols || [])];
+      return monTempo(wbCommit.apply(this, arguments), cols);
+    };
+    for (const [nome, tipo] of [['set', 'set'], ['update', 'update'], ['delete', 'delete']]) {
+      const orig = DR[nome];
+      DR[nome] = function (...args) {
+        if (MON.dentro > 0) return orig.apply(this, args);
+        monGravacao(this, tipo, tipo === 'delete' ? null : args.length === 1 || tipo === 'set' ? args[0] : args, true);
+        let c = '';
+        try {
+          c = this.parent.id;
+        } catch (e) {}
+        MON.dentro++;
+        let p;
+        try {
+          p = orig.apply(this, args);
+        } finally {
+          MON.dentro--;
+        }
+        return c === 'monitoramentoUso' ? p : monTempo(p, [c]);
+      };
+    }
+    if (F.Transaction) {
+      const TX = F.Transaction.prototype;
+      for (const [nome, tipo] of [['set', 'set'], ['update', 'update'], ['delete', 'delete']]) {
+        const orig = TX[nome];
+        TX[nome] = function (ref, ...resto) {
+          monGravacao(ref, tipo, tipo === 'delete' ? null : resto[0]);
+          MON.dentro++;
+          try {
+            return orig.apply(this, arguments);
+          } finally {
+            MON.dentro--;
+          }
+        };
+      }
+      const txGet = TX.get;
+      TX.get = function (ref) {
+        return txGet.apply(this, arguments).then(s => {
+          try {
+            monLeituraDoc(ref, s);
+          } catch (e) {}
+          return s;
+        });
+      };
+    }
+    window.addEventListener('error', e => monErro('execucao', e && e.message));
+    window.addEventListener('unhandledrejection', e => {
+      const r = e && e.reason;
+      monErro('execucao', r && r.code ? `${r.code}: ${r.message}` : r && r.message || String(r));
+    });
+    window.addEventListener('offline', () => monSomar('falhas', 'semInternet', 1));
+    const ceOrig = console.error.bind(console);
+    console.error = function (...args) {
+      try {
+        const e = args.find(a => a && (a.code || a.message));
+        monErro('falha', [typeof args[0] === 'string' ? args[0] : '', e ? `${e.code || ''} ${e.message || ''}` : ''].join(' ').trim());
+      } catch (x) {}
+      return ceOrig(...args);
+    };
+    setInterval(() => monEnviar(), MON_INTERVALO_MS);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') monEnviar();
+    });
+    window.addEventListener('pagehide', () => monEnviar());
+  } catch (e) {
+    console.warn('monitoramento não instalado', e);
+  }
+})();
+// envia os contadores acumulados (1 gravação por pessoa a cada 5 minutos de uso, no máximo)
+async function monEnviar() {
+  const u = window.MON_USUARIO,
+    conta = authApp && authApp.currentUser;
+  if (!MON.sujo || !u || !conta || conta.isAnonymous) return;
+  const FV = firebase.firestore.FieldValue,
+    inc = n => FV.increment(n);
+  const mapa = o => Object.fromEntries(Object.entries(o).filter(([, n]) => n).map(([k, n]) => [k, inc(n)]));
+  const dia = monDiaBr();
+  const dados = {
+    dia,
+    uid: conta.uid,
+    funcionarioId: u.id || '',
+    nome: u.nome || '',
+    atualizadoEm: FV.serverTimestamp(),
+    leituras: mapa(MON.leituras),
+    gravacoes: mapa(MON.gravacoes),
+    exclusoes: mapa(MON.exclusoes),
+    bytesBaixados: mapa(MON.baixados),
+    bytesEnviados: mapa(MON.enviados),
+    falhas: mapa(MON.falhas)
+  };
+  if (MON.lat.n) dados.latencia = {
+    somaMs: inc(MON.lat.soma),
+    operacoes: inc(MON.lat.n),
+    maxMs: MON.lat.max
+  };
+  if (MON.erros.length) dados.erros = FV.arrayUnion(...MON.erros.slice(0, 20));
+  const guardado = {
+    leituras: MON.leituras,
+    gravacoes: MON.gravacoes,
+    exclusoes: MON.exclusoes,
+    baixados: MON.baixados,
+    enviados: MON.enviados,
+    falhas: MON.falhas,
+    lat: MON.lat,
+    erros: MON.erros
+  };
+  Object.assign(MON, {
+    leituras: {},
+    gravacoes: {},
+    exclusoes: {},
+    baixados: {},
+    enviados: {},
+    falhas: {},
+    lat: {
+      soma: 0,
+      n: 0,
+      max: 0
+    },
+    erros: [],
+    sujo: false
+  });
+  MON.proprio = true;
+  try {
+    await db.collection('monitoramentoUso').doc(`${dia}_${conta.uid}`).set(dados, {
+      merge: true
+    });
+  } catch (e) {
+    // sem conexão: devolve para o próximo envio (nada se perde)
+    for (const g of ['leituras', 'gravacoes', 'exclusoes', 'baixados', 'enviados', 'falhas']) for (const [k, n] of Object.entries(guardado[g])) MON[g][k] = (MON[g][k] || 0) + n;
+    MON.erros = guardado.erros.concat(MON.erros).slice(0, 40);
+    MON.lat.soma += guardado.lat.soma;
+    MON.lat.n += guardado.lat.n;
+    MON.sujo = true;
+  } finally {
+    MON.proprio = false;
+  }
+}
+
+// ---------- 2. leitura dos dados do painel ----------
+const monSomaMapa = (alvo, m) => {
+  for (const [k, v] of Object.entries(m || {})) alvo[k] = (alvo[k] || 0) + (Number(v) || 0);
+  return alvo;
+};
+const monAddDias = (d, n) => {
+  const x = new Date(d + 'T12:00:00');
+  x.setDate(x.getDate() + n);
+  return x.toLocaleDateString('sv-SE');
+};
+const monDiasEntre = (a, b) => Math.round((Date.parse(b + 'T12:00:00') - Date.parse(a + 'T12:00:00')) / 864e5);
+function monFormatarBytes(n) {
+  if (n == null || isNaN(n)) return '—';
+  const u = ['B', 'KB', 'MB', 'GB'];
+  let i = 0;
+  let v = Number(n);
+  while (v >= 1024 && i < 3) {
+    v /= 1024;
+    i++;
+  }
+  return `${v.toFixed(i ? v < 10 ? 2 : 1 : 0).replace('.', ',')} ${u[i]}`;
+}
+const monNum = n => n == null ? '—' : Math.round(n).toLocaleString('pt-BR');
+const monPct = (a, b) => b ? a / b * 100 : null;
+function monPeriodo(tipo, de, ate) {
+  const hoje = monDiaBr();
+  if (tipo === 'hoje') return {
+    de: hoje,
+    ate: hoje,
+    rotulo: 'Hoje'
+  };
+  if (tipo === '7d') return {
+    de: monAddDias(hoje, -6),
+    ate: hoje,
+    rotulo: 'Últimos 7 dias'
+  };
+  if (tipo === '30d') return {
+    de: monAddDias(hoje, -29),
+    ate: hoje,
+    rotulo: 'Últimos 30 dias'
+  };
+  if (tipo === 'mes') return {
+    de: hoje.slice(0, 8) + '01',
+    ate: hoje,
+    rotulo: 'Mês atual'
+  };
+  if (tipo === 'mesAnt') {
+    const d = new Date(hoje.slice(0, 8) + '01T12:00:00');
+    d.setDate(0);
+    const fim = d.toLocaleDateString('sv-SE');
+    return {
+      de: fim.slice(0, 8) + '01',
+      ate: fim,
+      rotulo: 'Mês anterior'
+    };
+  }
+  return {
+    de: de || hoje,
+    ate: ate || hoje,
+    rotulo: `${formatarDataBr(de || hoje)} a ${formatarDataBr(ate || hoje)}`
+  };
+}
+const monAnterior = p => {
+  const n = monDiasEntre(p.de, p.ate) + 1;
+  return {
+    de: monAddDias(p.de, -n),
+    ate: monAddDias(p.de, -1)
+  };
+};
+function useMonDados(ativo) {
+  const [estado, setEstado] = useState({
+    carregando: true
+  });
+  const [versao, setVersao] = useState(0);
+  useEffect(() => {
+    if (!ativo) return;
+    let vivo = true;
+    (async () => {
+      try {
+        const desde = monAddDias(monDiaBr(), -420);
+        const desdeUso = monAddDias(monDiaBr(), -70);
+        const [snaps, fontes, config, uso] = await Promise.all([db.collection('monitoramento').where('data', '>=', desde).get(), db.collection('monitoramento').doc('fontes').get(), db.collection('monitoramento').doc('config').get(), db.collection('monitoramentoUso').where('dia', '>=', desdeUso).get()]);
+        const docs = snaps.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        }));
+        const porTipo = p => docs.filter(d => d.id.startsWith(p)).sort((a, b) => a.data.localeCompare(b.data));
+        if (vivo) setEstado({
+          carregando: false,
+          banco: porTipo('banco_'),
+          infra: porTipo('infra_'),
+          operacoes: porTipo('operacoes_'),
+          fontes: fontes.exists ? fontes.data() : null,
+          config: config.exists ? config.data() : {},
+          uso: uso.docs.map(d => d.data()),
+          lidoEm: new Date()
+        });
+      } catch (err) {
+        console.warn('central de monitoramento', err);
+        if (vivo) setEstado({
+          carregando: false,
+          erro: err && err.code === 'permission-denied' ? 'Sem permissão para ler os dados do monitoramento. Confira se as regras novas do banco foram publicadas (só o Administrador Master tem acesso).' : 'Não consegui carregar os dados do monitoramento. Verifique a conexão.'
+        });
+      }
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, [ativo, versao]);
+  return [estado, () => setVersao(v => v + 1)];
+}
+const MON_CONFIG_PADRAO = {
+  niveis: [70, 85, 95],
+  fatorPadrao: 2,
+  backupAtrasoHoras: 30,
+  errosPorDia: 20,
+  crescimentoPct: 50
+};
+
+// ---------- 3. componentes visuais ----------
+function MonBarra({
+  valor,
+  limite,
+  estimado,
+  niveis
+}) {
+  const p = Math.min(100, monPct(valor, limite) || 0),
+    pe = estimado ? Math.min(100 - p, monPct(estimado, limite) || 0) : 0;
+  const total = p + pe,
+    nv = niveis || MON_CONFIG_PADRAO.niveis;
+  const cls = total >= nv[2] ? 'critico' : total >= nv[1] ? 'alto' : total >= nv[0] ? 'atencao' : 'ok';
+  return /*#__PURE__*/React.createElement("div", {
+    className: `mon-barra ${cls}`,
+    role: "img",
+    "aria-label": `${total.toFixed(1)}% do limite`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-barra-real",
+    style: {
+      width: `${p}%`
+    }
+  }), pe > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "mon-barra-est",
+    style: {
+      width: `${pe}%`
+    }
+  }), nv.map(n => /*#__PURE__*/React.createElement("i", {
+    key: n,
+    style: {
+      left: `${n}%`
+    }
+  })));
+}
+function MonIndisponivel({
+  motivo
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-indisp"
+  }, /*#__PURE__*/React.createElement("strong", null, "M\xE9trica indispon\xEDvel"), /*#__PURE__*/React.createElement("span", null, motivo));
+}
+function MonFonte({
+  tipo,
+  em
+}) {
+  const t = {
+    oficial: 'Oficial · Google Cloud Monitoring',
+    medido: 'Medido · rotina de backup',
+    github: 'GitHub',
+    app: 'Contagem do aplicativo (aproximada)',
+    estimativa: 'Estimativa'
+  }[tipo] || tipo;
+  return /*#__PURE__*/React.createElement("span", {
+    className: `mon-fonte f-${tipo}`
+  }, t, em ? ` · atualizado ${em}` : '');
+}
+const monQuando = iso => {
+  if (!iso) return '';
+  const d = new Date(iso.toDate ? iso.toDate() : iso);
+  return isNaN(d) ? '' : d.toLocaleString('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  });
+};
+function MonVariacao({
+  atual,
+  anterior
+}) {
+  if (atual == null || anterior == null || !anterior) return /*#__PURE__*/React.createElement("span", {
+    className: "mon-var neutro"
+  }, "sem per\xEDodo anterior para comparar");
+  const p = (atual - anterior) / anterior * 100;
+  return /*#__PURE__*/React.createElement("span", {
+    className: `mon-var ${p > 0 ? 'sobe' : p < 0 ? 'desce' : 'neutro'}`
+  }, p > 0 ? '▲' : p < 0 ? '▼' : '=', " ", Math.abs(p).toFixed(0), "% vs. per\xEDodo anterior (", monNum(anterior), ")");
+}
+// gráfico de barras simples (SVG); series: [{nome, cor, valores}], categorias: rótulos do eixo X
+function MonGrafico({
+  categorias,
+  series,
+  formato,
+  altura = 170,
+  linhaLimite
+}) {
+  const n = categorias.length;
+  if (!n) return /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Sem dados no per\xEDodo.");
+  const max = Math.max(1, linhaLimite || 0, ...series.flatMap(s => s.valores.map(v => v || 0)));
+  const L = 640,
+    A = altura,
+    pe = 34,
+    pb = 22,
+    larg = (L - pe) / n,
+    gb = Math.max(1, larg * 0.8 / series.length);
+  const y = v => A - pb - (v || 0) / max * (A - pb - 8);
+  const passo = Math.ceil(n / 8);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-grafico"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: `0 0 ${L} ${A}`,
+    preserveAspectRatio: "none",
+    role: "img",
+    "aria-label": series.map(s => s.nome).join(', ')
+  }, [0, 0.5, 1].map(f => /*#__PURE__*/React.createElement("g", {
+    key: f
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: pe,
+    x2: L,
+    y1: y(max * f),
+    y2: y(max * f),
+    className: "mon-grade"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: pe - 4,
+    y: y(max * f) + 3,
+    className: "mon-eixo",
+    textAnchor: "end"
+  }, formato ? formato(max * f) : monNum(max * f)))), linhaLimite ? /*#__PURE__*/React.createElement("line", {
+    x1: pe,
+    x2: L,
+    y1: y(linhaLimite),
+    y2: y(linhaLimite),
+    className: "mon-limite"
+  }) : null, categorias.map((c, i) => series.map((s, j) => s.valores[i] != null && /*#__PURE__*/React.createElement("rect", {
+    key: `${i}-${j}`,
+    x: pe + i * larg + larg * 0.1 + j * gb,
+    y: y(s.valores[i]),
+    width: Math.max(1, gb - 1),
+    height: Math.max(0, A - pb - y(s.valores[i])),
+    fill: s.cor
+  }, /*#__PURE__*/React.createElement("title", null, `${c} — ${s.nome}: ${formato ? formato(s.valores[i]) : monNum(s.valores[i])}`)))), categorias.map((c, i) => i % passo === 0 && /*#__PURE__*/React.createElement("text", {
+    key: c,
+    x: pe + i * larg + larg / 2,
+    y: A - 6,
+    className: "mon-eixo",
+    textAnchor: "middle"
+  }, c))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-legenda"
+  }, series.map(s => /*#__PURE__*/React.createElement("span", {
+    key: s.nome
+  }, /*#__PURE__*/React.createElement("i", {
+    style: {
+      background: s.cor
+    }
+  }), s.nome)), linhaLimite ? /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "mon-legenda-limite"
+  }), "limite") : null));
+}
+const MON_CORES = {
+  leituras: '#1F4E79',
+  gravacoes: '#E97307',
+  exclusoes: '#9AA5B1',
+  fotos: '#E97307',
+  docs: '#1F4E79',
+  cert: '#3C8D5A',
+  backup: '#6B5B95'
+};
+
+// ---------- 4. cálculos ----------
+function monOperacoesOficiais(operacoes, p) {
+  const dias = {};
+  operacoes.forEach(d => Object.assign(dias, d.dias || {}));
+  const diasCota = {};
+  operacoes.forEach(d => Object.assign(diasCota, d.diasCota || {}));
+  const lista = Object.keys(dias).filter(d => d >= p.de && d <= p.ate).sort();
+  const soma = ds => ds.reduce((t, d) => monSomaMapa(t, dias[d]), {});
+  const ant = monAnterior(p);
+  return {
+    dias,
+    diasCota,
+    lista,
+    total: soma(lista),
+    anterior: Object.keys(dias).some(d => d >= ant.de && d <= ant.ate) ? soma(Object.keys(dias).filter(d => d >= ant.de && d <= ant.ate)) : null,
+    atualizadoEm: operacoes.length ? operacoes[operacoes.length - 1].atualizadoEm : ''
+  };
+}
+function monUsoApp(uso, p) {
+  const no = uso.filter(u => u.dia >= p.de && u.dia <= p.ate);
+  const t = {
+    leituras: {},
+    gravacoes: {},
+    exclusoes: {},
+    bytesBaixados: {},
+    bytesEnviados: {},
+    falhas: {},
+    porDia: {},
+    erros: [],
+    lat: {
+      somaMs: 0,
+      operacoes: 0,
+      maxMs: 0
+    },
+    pessoas: new Set()
+  };
+  for (const u of no) {
+    for (const g of ['leituras', 'gravacoes', 'exclusoes', 'bytesBaixados', 'bytesEnviados', 'falhas']) monSomaMapa(t[g], u[g]);
+    const d = t.porDia[u.dia] = t.porDia[u.dia] || {
+      leituras: 0,
+      gravacoes: 0,
+      exclusoes: 0,
+      erros: 0,
+      falhas: 0,
+      baixados: 0,
+      enviados: 0
+    };
+    d.leituras += Object.values(u.leituras || {}).reduce((s, n) => s + n, 0);
+    d.gravacoes += Object.values(u.gravacoes || {}).reduce((s, n) => s + n, 0);
+    d.exclusoes += Object.values(u.exclusoes || {}).reduce((s, n) => s + n, 0);
+    d.baixados += Object.values(u.bytesBaixados || {}).reduce((s, n) => s + n, 0);
+    d.enviados += Object.values(u.bytesEnviados || {}).reduce((s, n) => s + n, 0);
+    d.erros += (u.erros || []).length;
+    d.falhas += Object.entries(u.falhas || {}).filter(([k]) => !['semInternet'].includes(k)).reduce((s, [, n]) => s + n, 0);
+    (u.erros || []).forEach(e => t.erros.push({
+      ...e,
+      nome: u.nome || ''
+    }));
+    if (u.latencia) {
+      t.lat.somaMs += u.latencia.somaMs || 0;
+      t.lat.operacoes += u.latencia.operacoes || 0;
+      t.lat.maxMs = Math.max(t.lat.maxMs, u.latencia.maxMs || 0);
+    }
+    t.pessoas.add(u.uid);
+  }
+  t.erros.sort((a, b) => (b.em || '').localeCompare(a.em || ''));
+  const porModulo = {};
+  for (const g of ['leituras', 'gravacoes', 'exclusoes']) for (const [c, n] of Object.entries(t[g])) {
+    const m = monModulo(c);
+    (porModulo[m] = porModulo[m] || {
+      leituras: 0,
+      gravacoes: 0,
+      exclusoes: 0,
+      colecoes: new Set()
+    })[g] += n;
+    porModulo[m].colecoes.add(c);
+  }
+  t.porModulo = porModulo;
+  t.soma = g => Object.values(t[g]).reduce((s, n) => s + n, 0);
+  return t;
+}
+// projeção linear simples (mínimos quadrados) — ESTIMATIVA
+function monProjecao(pontos) {
+  if (pontos.length < 14) return null;
+  const xs = pontos.map(p => Date.parse(p.data + 'T12:00:00') / 864e5),
+    ys = pontos.map(p => p.valor);
+  const n = xs.length,
+    mx = xs.reduce((a, b) => a + b) / n,
+    my = ys.reduce((a, b) => a + b) / n;
+  const b = xs.reduce((s, x, i) => s + (x - mx) * (ys[i] - my), 0) / (xs.reduce((s, x) => s + (x - mx) ** 2, 0) || 1);
+  return {
+    porDia: b,
+    quandoAtinge: alvo => {
+      if (b <= 0) return null;
+      const x = mx + (alvo - my) / b;
+      const d = new Date(x * 864e5);
+      return d.toLocaleDateString('sv-SE');
+    }
+  };
+}
+function monUltimoBackup(infra) {
+  const ex = (infra && infra.github && infra.github.rotinaBackup && infra.github.rotinaBackup.execucoes || []).filter(e => e.situacao === 'completed');
+  const ultimaExec = ex[0] || null;
+  const lista = infra && infra.github && infra.github.backups && infra.github.backups.lista || [];
+  return {
+    ultimaExec,
+    ultimoArquivo: lista[0] || null,
+    ultimaOk: ex.find(e => e.resultado === 'success') || null
+  };
+}
+function monAlertas(d, cfg, oper, app) {
+  const out = [];
+  const nv = cfg.niveis;
+  const nivel = pct => pct >= nv[2] ? 'critico' : pct >= nv[1] ? 'alto' : pct >= nv[0] ? 'atencao' : null;
+  const banco = d.banco[d.banco.length - 1];
+  if (banco) {
+    const p = monPct(banco.bytesDocumentos, MON_COTA.armazenamento),
+      pe = monPct(banco.bytesDocumentos + (banco.bytesIndicesEstimados || 0), MON_COTA.armazenamento);
+    if (nivel(p)) out.push({
+      nivel: nivel(p),
+      texto: `Documentos do Firestore em ${p.toFixed(0)}% do 1 GiB gratuito (medido).`
+    });else if (nivel(pe)) out.push({
+      nivel: nivel(pe),
+      texto: `Com os índices (estimativa), o Firestore estaria em ${pe.toFixed(0)}% do 1 GiB gratuito.`
+    });
+  }
+  if (oper.lista.length) {
+    const ultimos = Object.keys(oper.diasCota).sort().slice(-8);
+    const hoje = ultimos[ultimos.length - 1],
+      base = ultimos.slice(0, -1);
+    for (const [k, rot] of [['leituras', 'Leituras'], ['gravacoes', 'Gravações'], ['exclusoes', 'Exclusões']]) {
+      const v = (oper.diasCota[hoje] || {})[k] || 0,
+        pc = monPct(v, MON_COTA[k]);
+      if (nivel(pc)) out.push({
+        nivel: nivel(pc),
+        texto: `${rot} em ${pc.toFixed(0)}% da cota diária gratuita (${monNum(v)} de ${monNum(MON_COTA[k])}) no dia ${formatarDataBr(hoje)} (oficial).`
+      });
+      const media = base.length ? base.reduce((s, d) => s + ((oper.diasCota[d] || {})[k] || 0), 0) / base.length : 0;
+      if (media > 50 && v > media * cfg.fatorPadrao) out.push({
+        nivel: 'atencao',
+        texto: `${rot} acima do padrão: ${monNum(v)} em ${formatarDataBr(hoje)}, contra média de ${monNum(media)} nos dias anteriores (oficial).`
+      });
+    }
+    if (oper.anterior) {
+      const a = oper.total.leituras + oper.total.gravacoes,
+        b = (oper.anterior.leituras || 0) + (oper.anterior.gravacoes || 0);
+      if (b > 100 && a > b * (1 + cfg.crescimentoPct / 100)) out.push({
+        nivel: 'atencao',
+        texto: `Aumento inesperado: leituras + gravações subiram ${((a - b) / b * 100).toFixed(0)}% em relação ao período anterior (oficial).`
+      });
+    }
+  }
+  const infra = d.infra[d.infra.length - 1];
+  const bk = monUltimoBackup(infra);
+  if (!infra) out.push({
+    nivel: 'atencao',
+    texto: 'A rotina da Central de Monitoramento ainda não rodou: backups e saúde sem dados.'
+  });else {
+    if (bk.ultimaExec && bk.ultimaExec.resultado !== 'success') out.push({
+      nivel: 'critico',
+      texto: `A última execução do backup (${monQuando(bk.ultimaExec.criadoEm)}) terminou com "${bk.ultimaExec.resultado || 'sem resultado'}".`
+    });
+    const ref = bk.ultimaOk ? Date.parse(bk.ultimaOk.terminadoEm) : 0;
+    if (!ref || Date.now() - ref > cfg.backupAtrasoHoras * 3600e3) out.push({
+      nivel: 'critico',
+      texto: `Backup atrasado: nenhum backup concluído com sucesso nas últimas ${cfg.backupAtrasoHoras} horas.`
+    });
+    if (bk.ultimoArquivo && !bk.ultimoArquivo.verificacaoOk) out.push({
+      nivel: 'critico',
+      texto: `O backup mais recente (${monQuando(bk.ultimoArquivo.criadoEm)}) não passou na conferência de integridade.`
+    });
+    if (infra.saude && infra.saude.site && !infra.saude.site.ok) out.push({
+      nivel: 'critico',
+      texto: `O site não respondeu na última verificação (${monQuando(infra.coletadoEm)}).`
+    });
+    if (infra.saude && infra.saude.banco && !infra.saude.banco.ok) out.push({
+      nivel: 'critico',
+      texto: `O banco não respondeu na última verificação (${monQuando(infra.coletadoEm)}).`
+    });
+    const horas = (Date.now() - Date.parse(infra.coletadoEm)) / 3600e3;
+    if (horas > 36) out.push({
+      nivel: 'atencao',
+      texto: `Os dados de backups e saúde são de ${monQuando(infra.coletadoEm)} (há ${Math.round(horas)} horas): a rotina da Central de Monitoramento pode estar parada.`
+    });
+  }
+  const hojeApp = (app.porDia || {})[monDiaBr()];
+  if (hojeApp && hojeApp.erros + hojeApp.falhas >= cfg.errosPorDia) out.push({
+    nivel: 'alto',
+    texto: `Erros frequentes no aplicativo hoje: ${hojeApp.erros + hojeApp.falhas} registrados (limite configurado: ${cfg.errosPorDia}).`
+  });
+  if ((app.falhas || {}).cotaAtingida) out.push({
+    nivel: 'critico',
+    texto: `O Firebase recusou operações por cota atingida ${app.falhas.cotaAtingida} vez(es) no período (contagem do aplicativo).`
+  });
+  return out;
+}
+
+// ---------- 5. painel ----------
+const MON_SECOES = [['geral', 'Visão geral'], ['armazenamento', 'Armazenamento'], ['operacoes', 'Leituras e gravações'], ['trafego', 'Tráfego'], ['backups', 'Backups'], ['saude', 'Saúde'], ['crescimento', 'Crescimento'], ['custos', 'Custos'], ['alertas', 'Alertas']];
+function CentralMonitoramento({
+  usuario,
+  funcionarios
+}) {
+  const master = ehMaster(usuario);
+  const [d, recarregar] = useMonDados(master);
+  const [secao, setSecao] = useState('geral');
+  const [tipo, setTipo] = useState('30d');
+  const [de, setDe] = useState(''),
+    [ate, setAte] = useState('');
+  if (!master) return /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("h3", null, "Acesso restrito"), /*#__PURE__*/React.createElement("p", null, "A Central de Monitoramento \xE9 exclusiva do Administrador Master."));
+  if (d.carregando) return /*#__PURE__*/React.createElement("div", {
+    className: "mon"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Carregando a Central de Monitoramento\u2026"));
+  if (d.erro) return /*#__PURE__*/React.createElement("div", {
+    className: "mon"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, d.erro), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: recarregar
+  }, "Tentar de novo"));
+  const cfg = {
+    ...MON_CONFIG_PADRAO,
+    ...(d.config || {})
+  };
+  const p = monPeriodo(tipo, de, ate);
+  const oper = monOperacoesOficiais(d.operacoes, p);
+  const app = monUsoApp(d.uso, p),
+    appAnt = monUsoApp(d.uso, monAnterior(p));
+  const oficialOk = d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.disponivel && d.operacoes.length > 0;
+  const motivoOficial = d.fontes && d.fontes.firestoreOficial && d.fontes.firestoreOficial.motivo || 'A rotina da Central de Monitoramento ainda não rodou.';
+  const alertas = monAlertas(d, cfg, oper, app);
+  const ctx = {
+    d,
+    cfg,
+    p,
+    oper,
+    app,
+    appAnt,
+    oficialOk,
+    motivoOficial,
+    funcionarios,
+    alertas
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "\uD83D\uDCE1 Central de Monitoramento"), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, "Consumo, armazenamento, backups e sa\xFAde do sistema \xB7 s\xF3 o Administrador Master v\xEA esta \xE1rea")), /*#__PURE__*/React.createElement("div", {
+    className: "mon-cab-acoes"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "Lido em ", d.lidoEm.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: recarregar
+  }, "\u21BB Atualizar"))), alertas.length > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `mon-faixa-alerta n-${alertas.some(a => a.nivel === 'critico') ? 'critico' : 'alto'}`,
+    onClick: () => setSecao('alertas')
+  }, "\u26A0 ", avPlural(alertas.length, 'alerta', 'alertas'), " \u2014 ver detalhes"), /*#__PURE__*/React.createElement("div", {
+    className: "mon-nav",
+    role: "tablist"
+  }, MON_SECOES.map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    role: "tab",
+    "aria-selected": secao === k,
+    className: `av-chip ${secao === k ? 'ativo' : ''}`,
+    onClick: () => setSecao(k)
+  }, n, k === 'alertas' && alertas.length ? ` (${alertas.length})` : ''))), ['geral', 'operacoes', 'trafego', 'saude'].includes(secao) && /*#__PURE__*/React.createElement("div", {
+    className: "mon-periodo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro",
+    role: "group",
+    "aria-label": "Per\xEDodo"
+  }, [['hoje', 'Hoje'], ['7d', '7 dias'], ['30d', '30 dias'], ['mes', 'Mês atual'], ['mesAnt', 'Mês anterior'], ['pers', 'Personalizado']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `av-chip ${tipo === k ? 'ativo' : ''}`,
+    onClick: () => setTipo(k)
+  }, n))), tipo === 'pers' && /*#__PURE__*/React.createElement("div", {
+    className: "rg-datas"
+  }, /*#__PURE__*/React.createElement("label", null, "De ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: de,
+    onChange: e => setDe(e.target.value),
+    "aria-label": "Data inicial"
+  })), /*#__PURE__*/React.createElement("label", null, "at\xE9 ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: ate,
+    onChange: e => setAte(e.target.value),
+    "aria-label": "Data final"
+  }))), /*#__PURE__*/React.createElement("span", {
+    className: "mon-periodo-rot"
+  }, p.rotulo, ": ", formatarDataBr(p.de), " a ", formatarDataBr(p.ate))), secao === 'geral' && /*#__PURE__*/React.createElement(MonGeral, ctx), secao === 'armazenamento' && /*#__PURE__*/React.createElement(MonArmazenamento, ctx), secao === 'operacoes' && /*#__PURE__*/React.createElement(MonOperacoes, ctx), secao === 'trafego' && /*#__PURE__*/React.createElement(MonTrafego, ctx), secao === 'backups' && /*#__PURE__*/React.createElement(MonBackups, ctx), secao === 'saude' && /*#__PURE__*/React.createElement(MonSaude, ctx), secao === 'crescimento' && /*#__PURE__*/React.createElement(MonCrescimento, ctx), secao === 'custos' && /*#__PURE__*/React.createElement(MonCustos, ctx), secao === 'alertas' && /*#__PURE__*/React.createElement(MonAlertasConfig, _extends({}, ctx, {
+    usuario: usuario,
+    aoSalvar: recarregar
+  })));
+}
+function MonCartao({
+  titulo,
+  valor,
+  sub,
+  fonte,
+  children,
+  destaque
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: `mon-cartao ${destaque || ''}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-cartao-titulo"
+  }, titulo), /*#__PURE__*/React.createElement("strong", {
+    className: "mon-cartao-valor"
+  }, valor), sub && /*#__PURE__*/React.createElement("span", {
+    className: "mon-cartao-sub"
+  }, sub), children, fonte);
+}
+function MonGeral({
+  d,
+  cfg,
+  p,
+  oper,
+  app,
+  appAnt,
+  oficialOk,
+  motivoOficial,
+  funcionarios
+}) {
+  const banco = d.banco[d.banco.length - 1];
+  const bancoAnt = d.banco.filter(b => b.data < p.de).slice(-1)[0];
+  const infra = d.infra[d.infra.length - 1];
+  const arquivos = banco ? (banco.midias.bytes || 0) + (banco.certificados.bytes || 0) : null;
+  const registros = banco ? Object.entries(banco.colecoes).filter(([c]) => !['midias', 'certificadosPartes', 'monitoramento', 'monitoramentoUso'].includes(c)).reduce((s, [, x]) => s + x.documentos, 0) : null;
+  const usuarios = (funcionarios || []).length;
+  const op = (k, rot) => oficialOk ? /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: rot,
+    valor: monNum(oper.total[k] || 0),
+    sub: /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: oper.total[k] || 0,
+      anterior: oper.anterior ? oper.anterior[k] : null
+    }),
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "oficial",
+      em: monQuando(oper.atualizadoEm)
+    })
+  }) : /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: rot,
+    valor: "M\xE9trica indispon\xEDvel",
+    destaque: "indisp",
+    sub: motivoOficial,
+    fonte: /*#__PURE__*/React.createElement("span", {
+      className: "mon-cartao-sub"
+    }, "Contagem do aplicativo no per\xEDodo: ", /*#__PURE__*/React.createElement("b", null, monNum(app.soma(k))), " ", /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: app.soma(k),
+      anterior: appAnt.soma(k)
+    }))
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes"
+  }, /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Armazenamento do Firestore",
+    valor: banco ? monFormatarBytes(banco.bytesDocumentos) : '—',
+    sub: banco ? `documentos (medido) · com índices ≈ ${monFormatarBytes(banco.bytesDocumentos + banco.bytesIndicesEstimados)} (estimativa) de 1 GiB` : 'aguardando a primeira medição da rotina de backup',
+    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "medido",
+      em: monQuando(banco.coletadoEm)
+    })
+  }, banco && /*#__PURE__*/React.createElement(MonBarra, {
+    valor: banco.bytesDocumentos,
+    estimado: banco.bytesIndicesEstimados,
+    limite: MON_COTA.armazenamento,
+    niveis: cfg.niveis
+  })), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Documentos no Firestore",
+    valor: banco ? monNum(banco.documentos) : '—',
+    sub: banco ? /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: banco.documentos,
+      anterior: bancoAnt ? bancoAnt.documentos : null
+    }) : '',
+    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "medido",
+      em: monQuando(banco.coletadoEm)
+    })
+  }), op('leituras', 'Leituras de documentos'), op('gravacoes', 'Gravações de documentos'), op('exclusoes', 'Exclusões de documentos'), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Transfer\xEAncia de dados (Firebase)",
+    valor: "M\xE9trica indispon\xEDvel",
+    destaque: "indisp",
+    sub: "O Firebase mostra a sa\xEDda de dados (cota de 10 GiB/m\xEAs) s\xF3 no console. Estimativa do aplicativo no per\xEDodo:",
+    fonte: /*#__PURE__*/React.createElement("span", {
+      className: "mon-cartao-sub"
+    }, "baixados \u2248 ", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(app.soma('bytesBaixados'))), " \xB7 enviados \u2248 ", /*#__PURE__*/React.createElement("b", null, monFormatarBytes(app.soma('bytesEnviados'))))
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Fotos e arquivos",
+    valor: arquivos != null ? monFormatarBytes(arquivos) : '—',
+    sub: banco ? `${monNum(banco.midias.quantidade)} fotos/imagens · ${monNum(banco.certificados.quantidade)} certificados — guardados dentro do Firestore (não há Firebase Storage)` : '',
+    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "medido",
+      em: monQuando(banco.coletadoEm)
+    })
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Tr\xE1fego do site",
+    valor: infra && infra.github && infra.github.trafegoSite && infra.github.trafegoSite.disponivel ? monNum(infra.github.trafegoSite.visitas) : 'Métrica indisponível',
+    destaque: infra && infra.github && infra.github.trafegoSite && infra.github.trafegoSite.disponivel ? '' : 'indisp',
+    sub: infra && infra.github && infra.github.trafegoSite && !infra.github.trafegoSite.disponivel ? `GitHub Pages não informa visitas nem banda: ${infra.github.trafegoSite.motivo}.` : 'visitas nos últimos 14 dias (GitHub)'
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Usu\xE1rios cadastrados",
+    valor: monNum(usuarios),
+    sub: banco ? `${banco.usuarios.ativos} ativos · ${banco.usuarios.pendentes} pendentes · ${banco.usuarios.bloqueados} bloqueados (na última medição)` : '',
+    fonte: /*#__PURE__*/React.createElement("span", {
+      className: "mon-fonte f-app"
+    }, "Equipe (agora)")
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Registros armazenados",
+    valor: registros != null ? monNum(registros) : '—',
+    sub: "documentos de dados (sem as fotos, as partes dos certificados e o pr\xF3prio monitoramento)",
+    fonte: banco && /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "medido",
+      em: monQuando(banco.coletadoEm)
+    })
+  }));
+}
+const MON_ORIGEM = {
+  lotes: 'Entrada de Peças (fotos)',
+  orcamentos: 'Orçamentos (fotos e anexos)',
+  pecas: 'Peças',
+  funcionarios: 'Equipe (fotos de perfil)',
+  avisos: 'Avisos',
+  clientes: 'Clientes',
+  'sem uso registrado': 'Sem uso registrado'
+};
+function MonArmazenamento({
+  d,
+  cfg
+}) {
+  const banco = d.banco[d.banco.length - 1];
+  const infra = d.infra[d.infra.length - 1];
+  const gh = infra && infra.github || {};
+  if (!banco) return /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: "A medi\xE7\xE3o do banco \xE9 feita pela rotina de backup (1\xD7/dia). Ela come\xE7a a aparecer depois do pr\xF3ximo backup, com as regras novas publicadas."
+  });
+  const cols = Object.entries(banco.colecoes).sort((a, b) => b[1].bytes - a[1].bytes);
+  const tipos = [['Documentos de dados', cols.filter(([c]) => !['midias', 'certificadosPartes'].includes(c)).reduce((s, [, x]) => s + x.bytes, 0)], ['Fotos e imagens', banco.midias.bytes], ['Certificados (PDF/JPG/PNG)', banco.certificados.bytes]].sort((a, b) => b[1] - a[1]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Limites por servi\xE7o"), /*#__PURE__*/React.createElement("div", {
+    className: "mon-servico"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Firestore (banco)"), /*#__PURE__*/React.createElement("span", null, monFormatarBytes(banco.bytesDocumentos), " em documentos (medido) + \u2248 ", monFormatarBytes(banco.bytesIndicesEstimados), " em \xEDndices (estimativa) \xB7 limite gratuito 1 GiB")), /*#__PURE__*/React.createElement(MonBarra, {
+    valor: banco.bytesDocumentos,
+    estimado: banco.bytesIndicesEstimados,
+    limite: MON_COTA.armazenamento,
+    niveis: cfg.niveis
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "Parte cheia: medido \xB7 parte listrada: \xEDndices estimados. O total oficial (documentos + \xEDndices) fica em Firebase \u2192 Uso e faturamento.")), /*#__PURE__*/React.createElement("div", {
+    className: "mon-servico"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Firebase Storage / Cloud Storage"), /*#__PURE__*/React.createElement("span", null, "N\xE3o utilizado neste projeto: fotos e certificados ficam dentro do Firestore (contam no 1 GiB acima)."))), gh.backups && gh.backups.quantidade != null ? /*#__PURE__*/React.createElement("div", {
+    className: "mon-servico"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Backups no GitHub (ramo backups)"), /*#__PURE__*/React.createElement("span", null, monFormatarBytes(gh.backups.bytesTotal), " em ", gh.backups.quantidade, " arquivos \xB7 limite definido pela rotina: ", monFormatarBytes(gh.backups.limiteBytes))), gh.backups.limiteBytes && /*#__PURE__*/React.createElement(MonBarra, {
+    valor: gh.backups.bytesTotal,
+    limite: gh.backups.limiteBytes,
+    niveis: cfg.niveis
+  })) : /*#__PURE__*/React.createElement("div", {
+    className: "mon-servico"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Backups no GitHub")), /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: gh.backups && gh.backups.motivo || 'A rotina da Central de Monitoramento ainda não rodou.'
+  })), gh.repositorioKB != null && /*#__PURE__*/React.createElement("div", {
+    className: "mon-servico"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Reposit\xF3rio do sistema (GitHub)"), /*#__PURE__*/React.createElement("span", null, monFormatarBytes(gh.repositorioKB * 1024), " \xB7 o GitHub recomenda manter abaixo de 1 GB (n\xE3o \xE9 um limite r\xEDgido)")), /*#__PURE__*/React.createElement(MonBarra, {
+    valor: gh.repositorioKB * 1024,
+    limite: 1024 ** 3,
+    niveis: cfg.niveis
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-servico"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "C\xF3pia externa dos backups (Google Drive)")), /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: "A c\xF3pia \xE9 feita pela rotina de backup, mas o espa\xE7o livre da conta do Google Drive n\xE3o \xE9 consultado."
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "O que ocupa mais espa\xE7o"), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "medido",
+    em: monQuando(banco.coletadoEm)
+  }), tipos.map(([n, b]) => /*#__PURE__*/React.createElement("div", {
+    key: n,
+    className: "mon-linha-barra"
+  }, /*#__PURE__*/React.createElement("span", null, n), /*#__PURE__*/React.createElement("b", null, monFormatarBytes(b)), /*#__PURE__*/React.createElement(MonBarra, {
+    valor: b,
+    limite: banco.bytesDocumentos,
+    niveis: [101, 102, 103]
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Fotos e imagens (", monNum(banco.midias.quantidade), " \xB7 ", monFormatarBytes(banco.midias.bytes), ")"), /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Usadas em"), /*#__PURE__*/React.createElement("th", null, "Quantidade"), /*#__PURE__*/React.createElement("th", null, "Tamanho"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(banco.midias.porOrigem).sort((a, b) => b[1].bytes - a[1].bytes).map(([o, x]) => /*#__PURE__*/React.createElement("tr", {
+    key: o
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Usadas em"
+  }, MON_ORIGEM[o] || o), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Quantidade"
+  }, monNum(x.quantidade)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tamanho"
+  }, monFormatarBytes(x.bytes)))))), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Por formato: ", Object.entries(banco.midias.porTipo).map(([t, x]) => `${t} — ${monNum(x.quantidade)} (${monFormatarBytes(x.bytes)})`).join(' · ') || '—')), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Certificados e PDFs (", monNum(banco.certificados.quantidade), " \xB7 ", monFormatarBytes(banco.certificados.bytes), ")"), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, Object.entries(banco.certificados.porTipo).map(([t, x]) => `${FP_TIPOS[t] || t}: ${monNum(x.quantidade)} arquivo(s), ${monFormatarBytes(x.bytesArquivo)}`).join(' · ') || 'Nenhum certificado anexado.', " \xB7 guardados em ", monNum(banco.certificados.partes), " partes.")), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Por cole\xE7\xE3o do banco"), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Cole\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "M\xF3dulo"), /*#__PURE__*/React.createElement("th", null, "Documentos"), /*#__PURE__*/React.createElement("th", null, "Tamanho (medido)"), /*#__PURE__*/React.createElement("th", null, "\xCDndices (estimativa)"))), /*#__PURE__*/React.createElement("tbody", null, cols.map(([c, x]) => /*#__PURE__*/React.createElement("tr", {
+    key: c
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Cole\xE7\xE3o"
+  }, c), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "M\xF3dulo"
+  }, monModulo(c)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Documentos"
+  }, monNum(x.documentos)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tamanho"
+  }, monFormatarBytes(x.bytes)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "\xCDndices"
+  }, monFormatarBytes(x.indicesEstimados)))))))));
+}
+function MonOperacoes({
+  d,
+  p,
+  oper,
+  app,
+  oficialOk,
+  motivoOficial
+}) {
+  const dias = [];
+  for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
+  const cat = dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`);
+  const meses = d.operacoes.map(o => ({
+    mes: o.mes,
+    t: Object.values(o.dias || {}).reduce((t, x) => monSomaMapa(t, x), {})
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Opera\xE7\xF5es oficiais do Firestore"), oficialOk ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "oficial",
+    em: monQuando(oper.atualizadoEm)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes mon-mini"
+  }, [['leituras', 'Leituras'], ['gravacoes', 'Gravações'], ['exclusoes', 'Exclusões']].map(([k, n]) => /*#__PURE__*/React.createElement(MonCartao, {
+    key: k,
+    titulo: n,
+    valor: monNum(oper.total[k] || 0),
+    sub: /*#__PURE__*/React.createElement(MonVariacao, {
+      atual: oper.total[k] || 0,
+      anterior: oper.anterior ? oper.anterior[k] : null
+    })
+  })), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Cria\xE7\xF5es \xB7 atualiza\xE7\xF5es",
+    valor: `${monNum(oper.total.criacoes || 0)} · ${monNum(oper.total.atualizacoes || 0)}`,
+    sub: "divis\xE3o das grava\xE7\xF5es"
+  })), /*#__PURE__*/React.createElement("h4", null, "Por dia"), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: cat,
+    series: [{
+      nome: 'Leituras',
+      cor: MON_CORES.leituras,
+      valores: dias.map(x => (oper.dias[x] || {}).leituras ?? null)
+    }, {
+      nome: 'Gravações',
+      cor: MON_CORES.gravacoes,
+      valores: dias.map(x => (oper.dias[x] || {}).gravacoes ?? null)
+    }, {
+      nome: 'Exclusões',
+      cor: MON_CORES.exclusoes,
+      valores: dias.map(x => (oper.dias[x] || {}).exclusoes ?? null)
+    }]
+  }), /*#__PURE__*/React.createElement("h4", null, "Uso da cota di\xE1ria gratuita (dia da cota: hor\xE1rio do Pac\xEDfico)"), /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Dia"), /*#__PURE__*/React.createElement("th", null, "Leituras / 50 mil"), /*#__PURE__*/React.createElement("th", null, "Grava\xE7\xF5es / 20 mil"), /*#__PURE__*/React.createElement("th", null, "Exclus\xF5es / 20 mil"))), /*#__PURE__*/React.createElement("tbody", null, Object.keys(oper.diasCota).filter(x => x >= p.de && x <= p.ate).sort().reverse().slice(0, 31).map(x => {
+    const o = oper.diasCota[x];
+    return /*#__PURE__*/React.createElement("tr", {
+      key: x
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Dia"
+    }, formatarDataBr(x)), ['leituras', 'gravacoes', 'exclusoes'].map(k => /*#__PURE__*/React.createElement("td", {
+      key: k,
+      "data-rotulo": k
+    }, monNum(o[k]), " (", (monPct(o[k], MON_COTA[k]) || 0).toFixed(1).replace('.', ','), "%)")));
+  }))), /*#__PURE__*/React.createElement("h4", null, "Por m\xEAs"), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: meses.map(m => m.mes.slice(5) + '/' + m.mes.slice(2, 4)),
+    series: [{
+      nome: 'Leituras',
+      cor: MON_CORES.leituras,
+      valores: meses.map(m => m.t.leituras || 0)
+    }, {
+      nome: 'Gravações',
+      cor: MON_CORES.gravacoes,
+      valores: meses.map(m => m.t.gravacoes || 0)
+    }, {
+      nome: 'Exclusões',
+      cor: MON_CORES.exclusoes,
+      valores: meses.map(m => m.t.exclusoes || 0)
+    }]
+  })) : /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: motivoOficial
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Por m\xF3dulo (contagem do pr\xF3prio aplicativo)"), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "app"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Contadas no aparelho de cada pessoa, pela cole\xE7\xE3o do banco que foi lida ou gravada. \xC9 uma aproxima\xE7\xE3o (n\xE3o inclui as rotinas do GitHub nem o que vem do cache do aparelho) e n\xE3o substitui os n\xFAmeros oficiais."), Object.keys(app.porModulo).length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Sem contagens no per\xEDodo (os aparelhos enviam os contadores a cada 5 minutos de uso).") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "M\xF3dulo"), /*#__PURE__*/React.createElement("th", null, "Leituras"), /*#__PURE__*/React.createElement("th", null, "Grava\xE7\xF5es"), /*#__PURE__*/React.createElement("th", null, "Exclus\xF5es"), /*#__PURE__*/React.createElement("th", null, "Cole\xE7\xF5es"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(app.porModulo).sort((a, b) => b[1].leituras - a[1].leituras).map(([m, x]) => /*#__PURE__*/React.createElement("tr", {
+    key: m
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "M\xF3dulo"
+  }, m), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Leituras"
+  }, monNum(x.leituras)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Grava\xE7\xF5es"
+  }, monNum(x.gravacoes)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Exclus\xF5es"
+  }, monNum(x.exclusoes)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Cole\xE7\xF5es",
+    className: "av-dica"
+  }, [...x.colecoes].join(', '))))))), /*#__PURE__*/React.createElement("h4", null, "Por dia (aplicativo)"), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: cat,
+    series: [{
+      nome: 'Leituras',
+      cor: MON_CORES.leituras,
+      valores: dias.map(x => (app.porDia[x] || {}).leituras ?? null)
+    }, {
+      nome: 'Gravações',
+      cor: MON_CORES.gravacoes,
+      valores: dias.map(x => (app.porDia[x] || {}).gravacoes ?? null)
+    }]
+  })));
+}
+function MonTrafego({
+  d,
+  p,
+  app
+}) {
+  const infra = d.infra[d.infra.length - 1];
+  const t = infra && infra.github && infra.github.trafegoSite;
+  const dias = [];
+  for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
+  const fotosB = app.bytesBaixados.midias || 0,
+    certB = app.bytesBaixados.certificadosPartes || 0;
+  const fotosE = (app.bytesEnviados.midias || 0) + Object.entries(app.bytesEnviados).filter(([c]) => ['lotes', 'orcamentos'].includes(c)).reduce((s, [, n]) => s + n, 0);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Sa\xEDda de dados do Firebase (cota de 10 GiB/m\xEAs)"), /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: "O Firestore n\xE3o oferece essa medida nas m\xE9tricas consult\xE1veis pela rotina; o n\xFAmero oficial aparece s\xF3 no console do Firebase (Uso e faturamento)."
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Transfer\xEAncia estimada pelo aplicativo"), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "app"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Soma do tamanho dos dados recebidos do banco e enviados a ele em cada aparelho (sem cabe\xE7alhos, compress\xE3o e cache). Serve para comparar per\xEDodos, n\xE3o \xE9 o valor cobrado."), /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes mon-mini"
+  }, /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Dados baixados",
+    valor: monFormatarBytes(app.soma('bytesBaixados'))
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Dados enviados",
+    valor: monFormatarBytes(app.soma('bytesEnviados'))
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Fotos baixadas",
+    valor: monFormatarBytes(fotosB),
+    sub: "cole\xE7\xE3o midias"
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Documentos/certificados baixados",
+    valor: monFormatarBytes(certB),
+    sub: "cole\xE7\xE3o certificadosPartes"
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Fotos e anexos enviados",
+    valor: monFormatarBytes(fotosE),
+    sub: "entradas e or\xE7amentos (com as fotos)"
+  })), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`),
+    formato: monFormatarBytes,
+    series: [{
+      nome: 'Baixados',
+      cor: MON_CORES.leituras,
+      valores: dias.map(x => (app.porDia[x] || {}).baixados ?? null)
+    }, {
+      nome: 'Enviados',
+      cor: MON_CORES.gravacoes,
+      valores: dias.map(x => (app.porDia[x] || {}).enviados ?? null)
+    }]
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Tr\xE1fego do site (GitHub Pages)"), t && t.disponivel ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "github",
+    em: monQuando(infra.coletadoEm)
+  }), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: t.dias.map(x => x.dia.slice(8) + '/' + x.dia.slice(5, 7)),
+    series: [{
+      nome: 'Visitas',
+      cor: MON_CORES.leituras,
+      valores: t.dias.map(x => x.visitas)
+    }, {
+      nome: 'Visitantes',
+      cor: MON_CORES.gravacoes,
+      valores: t.dias.map(x => x.visitantes)
+    }]
+  })) : /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: `${t ? t.motivo + '. ' : ''}O GitHub Pages também não informa a banda usada (limite de referência: 100 GB/mês).`
+  }), infra && infra.saude && infra.saude.site && infra.saude.site.bytesPagina ? /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Tamanho da p\xE1gina inicial do sistema: ", monFormatarBytes(infra.saude.site.bytesPagina), " (baixada por cada aparelho ao abrir uma vers\xE3o nova).") : null));
+}
+function MonBackups({
+  d,
+  cfg
+}) {
+  const infra = d.infra[d.infra.length - 1];
+  if (!infra || !infra.github) return /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: "A rotina da Central de Monitoramento ainda n\xE3o rodou (ela roda logo depois de cada backup e todo dia \xE0s 10:41)."
+  });
+  const gh = infra.github,
+    b = gh.backups || {},
+    ex = gh.rotinaBackup && gh.rotinaBackup.execucoes || [];
+  const bk = monUltimoBackup(infra);
+  const atraso = !bk.ultimaOk || Date.now() - Date.parse(bk.ultimaOk.terminadoEm) > cfg.backupAtrasoHoras * 3600e3;
+  const falhou = bk.ultimaExec && bk.ultimaExec.resultado !== 'success';
+  const situacao = falhou ? ['critico', `Falhou (${bk.ultimaExec.resultado || '—'})`] : atraso ? ['critico', 'Atrasado'] : bk.ultimoArquivo && !bk.ultimoArquivo.verificacaoOk ? ['critico', 'Sem conferência de integridade'] : ['ok', 'Concluído e conferido'];
+  const lista = (b.lista || []).slice().reverse();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `mon-situacao s-${situacao[0]}`
+  }, /*#__PURE__*/React.createElement("strong", null, "\xDAltimo backup: ", situacao[1]), /*#__PURE__*/React.createElement("span", null, bk.ultimaExec ? `execução de ${monQuando(bk.ultimaExec.iniciadoEm)} · resultado: ${bk.ultimaExec.resultado || bk.ultimaExec.situacao}` : 'nenhuma execução encontrada', bk.ultimoArquivo ? ` · arquivo de ${monQuando(bk.ultimoArquivo.criadoEm)}, ${monFormatarBytes(bk.ultimoArquivo.tamanho)}, ${bk.ultimoArquivo.verificacaoOk ? 'aberto com a chave e conferido documento a documento' : 'NÃO conferido'}` : ''), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "github",
+    em: monQuando(infra.coletadoEm)
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes mon-mini"
+  }, /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Backups guardados",
+    valor: monNum(b.quantidade),
+    sub: `política: ${(b.politica || {}).diarios || '—'} diários + ${(b.politica || {}).mensais || '—'} mensais`
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Espa\xE7o dos backups",
+    valor: monFormatarBytes(b.bytesTotal),
+    sub: b.limiteBytes ? `de ${monFormatarBytes(b.limiteBytes)} (limite da rotina)` : ''
+  }, b.limiteBytes && /*#__PURE__*/React.createElement(MonBarra, {
+    valor: b.bytesTotal,
+    limite: b.limiteBytes,
+    niveis: cfg.niveis
+  })), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Mais recente",
+    valor: b.maisRecente ? monQuando(b.maisRecente) : '—'
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Mais antigo",
+    valor: b.maisAntigo ? monQuando(b.maisAntigo) : '—'
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Tamanho dos backups"), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: lista.map(x => x.criadoEm.slice(8, 10) + '/' + x.criadoEm.slice(5, 7)),
+    formato: monFormatarBytes,
+    series: [{
+      nome: 'Tamanho do arquivo',
+      cor: MON_CORES.backup,
+      valores: lista.map(x => x.tamanho)
+    }]
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Execu\xE7\xF5es da rotina de backup"), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "In\xEDcio"), /*#__PURE__*/React.createElement("th", null, "Como"), /*#__PURE__*/React.createElement("th", null, "Resultado"), /*#__PURE__*/React.createElement("th", null, "Dura\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null, "Erros"))), /*#__PURE__*/React.createElement("tbody", null, ex.map(e => /*#__PURE__*/React.createElement("tr", {
+    key: e.id,
+    className: e.resultado && e.resultado !== 'success' ? 'mon-linha-erro' : ''
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "In\xEDcio"
+  }, monQuando(e.iniciadoEm)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Como"
+  }, e.evento === 'schedule' ? 'automático' : e.evento === 'workflow_dispatch' ? 'manual' : e.evento), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Resultado"
+  }, e.resultado === 'success' ? '✓ sucesso' : e.resultado === 'failure' ? '✗ falhou' : e.resultado || e.situacao), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Dura\xE7\xE3o"
+  }, e.terminadoEm && e.iniciadoEm ? `${Math.max(0, Math.round((Date.parse(e.terminadoEm) - Date.parse(e.iniciadoEm)) / 60000))} min` : '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Erros",
+    className: "mon-erros-curto"
+  }, (e.erros || []).join(' · ') || '—'))))))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Arquivos de backup"), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Tamanho"), /*#__PURE__*/React.createElement("th", null, "Documentos"), /*#__PURE__*/React.createElement("th", null, "Imagens"), /*#__PURE__*/React.createElement("th", null, "Integridade"))), /*#__PURE__*/React.createElement("tbody", null, (b.lista || []).map(x => /*#__PURE__*/React.createElement("tr", {
+    key: x.arquivo
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Data"
+  }, monQuando(x.criadoEm)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tipo"
+  }, x.tipo), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tamanho"
+  }, monFormatarBytes(x.tamanho), x.partes > 1 ? ` (${x.partes} partes)` : ''), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Documentos"
+  }, monNum(x.documentos)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Imagens"
+  }, monNum(x.imagens)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Integridade"
+  }, x.verificacaoOk && x.temSha256 ? '✓ conferido' : '✗ não conferido')))))), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "\u201CConferido\u201D = na pr\xF3pria execu\xE7\xE3o, o arquivo foi aberto com a chave e comparado documento a documento com o banco (n\xE3o basta o arquivo existir). Nenhuma chave, senha ou token aparece aqui.")));
+}
+function MonSaude({
+  d,
+  p,
+  app
+}) {
+  const dias = [];
+  for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
+  const infras = d.infra.filter(i => i.data >= p.de && i.data <= p.ate);
+  const ultimo = d.infra[d.infra.length - 1];
+  const f = app.falhas;
+  const rot = {
+    salvar: 'Falhas ao salvar',
+    carregar: 'Falhas ao carregar',
+    upload: 'Falhas de envio de arquivos',
+    sincronizacao: 'Problemas de sincronização',
+    comunicacao: 'Falhas de comunicação com o Firebase',
+    permissao: 'Acesso negado pelas regras',
+    cotaAtingida: 'Cota do Firebase atingida',
+    semInternet: 'Aparelho ficou sem internet'
+  };
+  const disp = s => infras.length ? `${Math.round(infras.filter(i => i.saude && i.saude[s] && i.saude[s].ok).length / infras.length * 100)}% (${infras.length} verificação(ões))` : '—';
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes mon-mini"
+  }, /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Site no ar",
+    valor: ultimo && ultimo.saude ? ultimo.saude.site.ok ? `✓ ${ultimo.saude.site.ms} ms` : '✗ não respondeu' : '—',
+    sub: `disponibilidade no período: ${disp('site')}`,
+    fonte: ultimo && /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "github",
+      em: monQuando(ultimo.coletadoEm)
+    })
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Banco (Firebase) respondendo",
+    valor: ultimo && ultimo.saude ? ultimo.saude.banco.ok ? `✓ ${ultimo.saude.banco.ms} ms` : '✗ não respondeu' : '—',
+    sub: `disponibilidade no período: ${disp('banco')}`,
+    fonte: ultimo && /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "github",
+      em: monQuando(ultimo.coletadoEm)
+    })
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Tempo de resposta ao salvar",
+    valor: app.lat.operacoes ? `${Math.round(app.lat.somaMs / app.lat.operacoes)} ms` : '—',
+    sub: app.lat.operacoes ? `média de ${monNum(app.lat.operacoes)} gravações · pior: ${app.lat.maxMs} ms` : 'sem gravações medidas no período',
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "app"
+    })
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Publica\xE7\xE3o do site",
+    valor: ultimo && ultimo.github && ultimo.github.publicacaoSite && ultimo.github.publicacaoSite.situacao ? ultimo.github.publicacaoSite.situacao === 'built' ? '✓ publicada' : ultimo.github.publicacaoSite.situacao : '—',
+    sub: ultimo && ultimo.github && ultimo.github.publicacaoSite && ultimo.github.publicacaoSite.em ? `última: ${monQuando(ultimo.github.publicacaoSite.em)}` : ''
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Falhas registradas pelo aplicativo"), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "app"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-falhas"
+  }, Object.entries(rot).map(([k, n]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    className: f[k] ? 'tem' : ''
+  }, /*#__PURE__*/React.createElement("span", null, n), /*#__PURE__*/React.createElement("b", null, monNum(f[k] || 0))))), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: dias.map(x => `${x.slice(8)}/${x.slice(5, 7)}`),
+    series: [{
+      nome: 'Erros',
+      cor: '#C0392B',
+      valores: dias.map(x => (app.porDia[x] || {}).erros ?? null)
+    }, {
+      nome: 'Falhas',
+      cor: MON_CORES.gravacoes,
+      valores: dias.map(x => (app.porDia[x] || {}).falhas ?? null)
+    }]
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Erros recentes (", app.erros.length, ")"), app.erros.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhum erro registrado no per\xEDodo.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Quando"), /*#__PURE__*/React.createElement("th", null, "Quem"), /*#__PURE__*/React.createElement("th", null, "Tela"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Mensagem"))), /*#__PURE__*/React.createElement("tbody", null, app.erros.slice(0, 80).map((e, i) => /*#__PURE__*/React.createElement("tr", {
+    key: i
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Quando"
+  }, monQuando(e.em)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Quem"
+  }, e.nome), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tela"
+  }, e.tela || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tipo"
+  }, e.tipo), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Mensagem",
+    className: "mon-erros-curto"
+  }, e.msg))))))));
+}
+function MonCrescimento({
+  d,
+  cfg
+}) {
+  const b = d.banco;
+  if (b.length < 2) return /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: `O crescimento aparece a partir de 2 medições diárias (há ${b.length}). A projeção precisa de pelo menos 14.`
+  });
+  const cat = b.map(x => x.data.slice(8) + '/' + x.data.slice(5, 7));
+  const proj = monProjecao(b.map(x => ({
+    data: x.data,
+    valor: x.bytesDocumentos + (x.bytesIndicesEstimados || 0)
+  })));
+  const backups = d.infra.filter(i => i.github && i.github.backups && i.github.backups.bytesTotal != null);
+  const prim = b[0],
+    ult = b[b.length - 1];
+  const varTxt = (a, z, f) => `${f(a)} → ${f(z)} (${z >= a ? '+' : ''}${a ? ((z - a) / a * 100).toFixed(0) : '—'}%)`;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-grade-cartoes mon-mini"
+  }, /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Armazenamento (documentos)",
+    valor: varTxt(prim.bytesDocumentos, ult.bytesDocumentos, monFormatarBytes),
+    sub: `de ${formatarDataBr(prim.data)} a ${formatarDataBr(ult.data)}`
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Documentos",
+    valor: varTxt(prim.documentos, ult.documentos, monNum)
+  }), /*#__PURE__*/React.createElement(MonCartao, {
+    titulo: "Fotos e certificados",
+    valor: varTxt(prim.midias.bytes + prim.certificados.bytes, ult.midias.bytes + ult.certificados.bytes, monFormatarBytes)
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Armazenamento do Firestore"), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "medido"
+  }), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: cat,
+    formato: monFormatarBytes,
+    series: [{
+      nome: 'Documentos de dados',
+      cor: MON_CORES.docs,
+      valores: b.map(x => x.bytesDocumentos - x.midias.bytes - x.certificados.bytes)
+    }, {
+      nome: 'Fotos',
+      cor: MON_CORES.fotos,
+      valores: b.map(x => x.midias.bytes)
+    }, {
+      nome: 'Certificados',
+      cor: MON_CORES.cert,
+      valores: b.map(x => x.certificados.bytes)
+    }]
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Quantidade de documentos"), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: cat,
+    series: [{
+      nome: 'Documentos',
+      cor: MON_CORES.docs,
+      valores: b.map(x => x.documentos)
+    }]
+  })), backups.length > 1 && /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Espa\xE7o dos backups"), /*#__PURE__*/React.createElement(MonGrafico, {
+    categorias: backups.map(x => x.data.slice(8) + '/' + x.data.slice(5, 7)),
+    formato: monFormatarBytes,
+    series: [{
+      nome: 'Backups no GitHub',
+      cor: MON_CORES.backup,
+      valores: backups.map(x => x.github.backups.bytesTotal)
+    }]
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco mon-estimativa"
+  }, /*#__PURE__*/React.createElement("h3", null, "Proje\xE7\xE3o (ESTIMATIVA \u2014 n\xE3o \xE9 dado oficial)"), /*#__PURE__*/React.createElement(MonFonte, {
+    tipo: "estimativa"
+  }), !proj ? /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "A proje\xE7\xE3o aparece com pelo menos 14 medi\xE7\xF5es di\xE1rias (h\xE1 ", b.length, ").") : proj.porDia <= 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Pela tend\xEAncia das \xFAltimas medi\xE7\xF5es, o armazenamento n\xE3o est\xE1 crescendo.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Tend\xEAncia linear das medi\xE7\xF5es (documentos + \xEDndices estimados): \u2248 ", monFormatarBytes(proj.porDia), " por dia, \u2248 ", monFormatarBytes(proj.porDia * 30), " por m\xEAs."), /*#__PURE__*/React.createElement("ul", {
+    className: "av-lista"
+  }, [...cfg.niveis, 100].map(n => {
+    const q = proj.quandoAtinge(MON_COTA.armazenamento * n / 100);
+    return /*#__PURE__*/React.createElement("li", {
+      key: n
+    }, n, "% do 1 GiB: ", q ? q <= monDiaBr() ? 'já atingido pela estimativa' : `por volta de ${formatarDataBr(q)}` : '—');
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Mudan\xE7as no uso (mais fotos, novos m\xF3dulos) alteram essa previs\xE3o. Confirme o n\xFAmero oficial no console do Firebase."))));
+}
+function MonCustos() {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Custos"), /*#__PURE__*/React.createElement(MonIndisponivel, {
+    motivo: "O sistema n\xE3o tem integra\xE7\xE3o com faturamento: o projeto do Firebase est\xE1 no plano gratuito (Spark), sem conta de faturamento \u2014 por isso n\xE3o existe custo real nem or\xE7amento para mostrar."
+  }), /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Servi\xE7o"), /*#__PURE__*/React.createElement("th", null, "Plano"), /*#__PURE__*/React.createElement("th", null, "Custo real"), /*#__PURE__*/React.createElement("th", null, "O que acontece no limite"))), /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Servi\xE7o"
+  }, "Firebase (Firestore e login)"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Plano"
+  }, "Spark (gratuito)"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Custo real"
+  }, "Sem cobran\xE7a"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "No limite"
+  }, "Ao atingir uma cota di\xE1ria, o Firebase recusa opera\xE7\xF5es at\xE9 a cota renovar (meia-noite do Pac\xEDfico); n\xE3o cobra.")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Servi\xE7o"
+  }, "GitHub (site, rotinas e backups)"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Plano"
+  }, "Reposit\xF3rio p\xFAblico (gratuito)"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Custo real"
+  }, "Sem cobran\xE7a"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "No limite"
+  }, "Rotinas e site sem custo para reposit\xF3rio p\xFAblico; arquivos acima de 100 MB s\xE3o recusados (o backup j\xE1 divide em partes).")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Servi\xE7o"
+  }, "Google Drive (c\xF3pia dos backups)"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Plano"
+  }, "Conta configurada pela empresa"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Custo real"
+  }, "N\xE3o consultado"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "No limite"
+  }, "Se a conta encher, a c\xF3pia externa falha (o backup no GitHub continua).")))), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Se um dia o projeto passar para o plano Blaze (pago), d\xE1 para ligar a leitura dos custos reais pela exporta\xE7\xE3o de faturamento do Google Cloud \u2014 isso exige uma configura\xE7\xE3o nova e autorizada.")));
+}
+function MonAlertasConfig({
+  cfg,
+  alertas,
+  aoSalvar
+}) {
+  const [f, setF] = useState({
+    ...cfg,
+    niveis: [...cfg.niveis]
+  });
+  const [msg, setMsg] = useState('');
+  async function salvar() {
+    const n = f.niveis.map(Number);
+    if (!(n[0] > 0 && n[0] < n[1] && n[1] < n[2] && n[2] <= 100)) {
+      setMsg('Os níveis precisam ser crescentes, entre 1 e 100.');
+      return;
+    }
+    try {
+      await db.collection('monitoramento').doc('config').set({
+        niveis: n,
+        fatorPadrao: Number(f.fatorPadrao) || 2,
+        backupAtrasoHoras: Number(f.backupAtrasoHoras) || 30,
+        errosPorDia: Number(f.errosPorDia) || 20,
+        crescimentoPct: Number(f.crescimentoPct) || 50,
+        atualizadoEm: new Date().toISOString()
+      }, {
+        merge: true
+      });
+      setMsg('✓ Configuração salva.');
+      aoSalvar();
+    } catch (e) {
+      console.warn(e);
+      setMsg('Não consegui salvar (verifique a conexão e se as regras novas foram publicadas).');
+    }
+  }
+  const campo = (k, rot, sufixo) => /*#__PURE__*/React.createElement("label", {
+    className: "mon-campo"
+  }, rot, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    value: f[k],
+    onChange: e => setF(x => ({
+      ...x,
+      [k]: e.target.value.replace(/[^0-9.]/g, '')
+    }))
+  }), " ", sufixo));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mon-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Alertas agora (", alertas.length, ")"), alertas.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "mon-situacao s-ok"
+  }, /*#__PURE__*/React.createElement("strong", null, "Tudo dentro do normal"), /*#__PURE__*/React.createElement("span", null, "Nenhum limite configurado foi ultrapassado.")) : /*#__PURE__*/React.createElement("ul", {
+    className: "mon-alertas"
+  }, alertas.map((a, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: `n-${a.nivel}`
+  }, /*#__PURE__*/React.createElement("b", null, {
+    critico: 'Crítico',
+    alto: 'Alto',
+    atencao: 'Atenção'
+  }[a.nivel]), " ", a.texto)))), /*#__PURE__*/React.createElement("div", {
+    className: "mon-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Configurar os alertas"), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Os percentuais s\xF3 valem onde h\xE1 um limite real e conhecido (1 GiB do Firestore, cotas di\xE1rias de leituras/grava\xE7\xF5es/exclus\xF5es, limite de espa\xE7o da rotina de backup)."), /*#__PURE__*/React.createElement("div", {
+    className: "mon-campos"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "mon-campo"
+  }, "N\xEDveis de capacidade", /*#__PURE__*/React.createElement("span", null, [0, 1, 2].map(i => /*#__PURE__*/React.createElement("input", {
+    key: i,
+    inputMode: "numeric",
+    value: f.niveis[i],
+    "aria-label": `Nível ${i + 1}`,
+    onChange: e => setF(x => {
+      const nv = [...x.niveis];
+      nv[i] = e.target.value.replace(/\D/g, '');
+      return {
+        ...x,
+        niveis: nv
+      };
+    })
+  })), " %")), campo('fatorPadrao', 'Leituras/gravações acima do padrão: quando passar de', '× a média dos 7 dias anteriores'), campo('crescimentoPct', 'Aumento inesperado: período com mais de', '% acima do período anterior'), campo('backupAtrasoHoras', 'Backup atrasado: sem backup concluído há mais de', 'horas'), campo('errosPorDia', 'Erros frequentes: a partir de', 'erros/falhas no dia')), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: salvar
+  }, "Salvar configura\xE7\xE3o")), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica",
+    role: "status"
+  }, msg), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Os avisos por e-mail que j\xE1 existiam (backup com falha ou atrasado, banco perto do limite) continuam funcionando, pela rotina di\xE1ria do GitHub.")));
+}
 
 // ======================= LAYOUT =======================
 // Mesma tela de abertura do index (logo + barra), enquanto a lista de usuários chega
@@ -11364,7 +13365,19 @@ function App() {
     id: 'avaliacoes',
     nome: 'Avaliação',
     icone: '📝'
-  }];
+  },
+  // Central de Monitoramento: só o Administrador Master (as regras do banco também só liberam para ele)
+  ...(ehMaster(usuario) ? [{
+    id: 'monitoramento',
+    nome: 'Central de Monitoramento',
+    icone: '📡'
+  }] : [])];
+  // contadores da Central de Monitoramento: quem está usando e em qual tela (só para os registros de uso)
+  window.MON_USUARIO = {
+    id: usuario.id,
+    nome: usuario.nome || ''
+  };
+  window.MON_TELA = aba;
   const {
     hoje: aniversariantesHoje,
     proximos: todosProximosAniversarios
@@ -11559,7 +13572,7 @@ function App() {
     className: "cargo"
   }, usuario.cargo)))), /*#__PURE__*/React.createElement("div", {
     className: "conteudo-principal"
-  }, aba !== 'avisos' && aba !== 'avaliacoes' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
+  }, aba !== 'avisos' && aba !== 'avaliacoes' && aba !== 'monitoramento' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -11589,6 +13602,9 @@ function App() {
     usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'avaliacoes' && /*#__PURE__*/React.createElement(AbaAvaliacoes, {
+    usuario: usuario,
+    funcionarios: funcionarios
+  }), aba === 'monitoramento' && /*#__PURE__*/React.createElement(CentralMonitoramento, {
     usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, {
