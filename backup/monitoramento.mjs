@@ -155,5 +155,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const cfg = configFirebase();
   coletar({ fsCli: clienteFirestore(cfg), projeto: cfg.projeto, chaveGcp: process.env.GCP_MONITORAMENTO_CHAVE || '' })
     .then(() => process.exit(0))
-    .catch(e => { log(`::error::Central de Monitoramento: ${e.status === 403 ? 'sem permissão para gravar — publique as regras novas do banco' : String(e.message || e).slice(0, 160)}`); process.exit(1); });
+    .catch(e => {
+      // 403 = regras novas ainda não publicadas no Firebase: aviso, sem marcar a rotina como falha
+      if (e.status === 403) { log('::warning::Central de Monitoramento: sem permissão para gravar — publique as regras novas do banco (seguranca/firestore.rules).'); process.exit(0); }
+      log(`::error::Central de Monitoramento: ${String(e.message || e).slice(0, 160)}`); process.exit(1);
+    });
 }
