@@ -91,6 +91,17 @@ jobs:
           rclone delete "$DESTINO/mensal" --min-age 400d --include "backup-*.tpbak*"
           echo "Na pasta principal:"; rclone lsl "$DESTINO" --max-depth 1 --include "*.tpbak*" | sort -k2 | tail -3
           echo "::notice::Cópia no armazenamento externo: $ARQUIVO (+ cópia do mês $MES)."
+          # números para a Central de Monitoramento (espaço da conta e da pasta dos backups)
+          rclone about "${DESTINO%%:*}:" --json > saida/drive-about.json 2>/dev/null || true
+          rclone size "$DESTINO" --json > saida/drive-size.json 2>/dev/null || true
+
+      - name: Registrar o espaço do Google Drive na Central de Monitoramento
+        if: steps.gerar.outputs.publicar == 'true' && env.TEM_COPIA_EXTRA == 'true'
+        continue-on-error: true
+        env:
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
+        run: node backup/gravar-drive.mjs saida/drive-about.json saida/drive-size.json
 
       - name: Manter a rotina ativa (o GitHub pausa agendamentos após 60 dias sem atividade)
         if: github.event_name == 'schedule'

@@ -31,7 +31,7 @@ async function gh(caminho, opcoes = {}) {
 async function tokenGoogle(chave) {
   const agora = Math.floor(Date.now() / 1000);
   const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
-  const corpo = `${b64({ alg: 'RS256', typ: 'JWT' })}.${b64({ iss: chave.client_email, scope: 'https://www.googleapis.com/auth/monitoring.read', aud: chave.token_uri || 'https://oauth2.googleapis.com/token', iat: agora, exp: agora + 3600 })}`;
+  const corpo = `${b64({ alg: 'RS256', typ: 'JWT' })}.${b64({ iss: chave.client_email, scope: 'https://www.googleapis.com/auth/monitoring.read https://www.googleapis.com/auth/cloud-billing.readonly', aud: chave.token_uri || 'https://oauth2.googleapis.com/token', iat: agora, exp: agora + 3600 })}`;
   const assinatura = crypto.createSign('RSA-SHA256').update(corpo).sign(chave.private_key, 'base64url');
   const r = await fetch(chave.token_uri || 'https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: `grant_type=${encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer')}&assertion=${corpo}.${assinatura}` });
   const j = await r.json().catch(() => ({}));
@@ -56,6 +56,29 @@ async function serie(token, projeto, metrica, agruparPor) {
   } while (pagina);
   return pontos;
 }
+// bytes trafegados pela API do Firestore (métrica oficial de "APIs consumidas" do projeto): respostas = dados
+// que saíram do Firestore para os aparelhos; pedidos = dados enviados a ele. Distribuição → soma = contagem × média.
+async function serieBytes(token, projeto, metrica) {
+  const fim = new Date(), ini = new Date(Date.now() - DIAS_OPERACOES * 864e5);
+  const p = new URLSearchParams({ filter: `metric.type="serviceruntime.googleapis.com/api/${metrica}" AND resource.type="consumed_api" AND resource.labels.service="firestore.googleapis.com"`, 'interval.startTime': ini.toISOString(), 'interval.endTime': fim.toISOString(), 'aggregation.alignmentPeriod': '3600s', 'aggregation.perSeriesAligner': 'ALIGN_DELTA', 'aggregation.crossSeriesReducer': 'REDUCE_SUM' });
+  const pontos = [];
+  let pagina = '';
+  do {
+    const r = await fetch(`https://monitoring.googleapis.com/v3/projects/${projeto}/timeSeries?${p}${pagina ? `&pageToken=${pagina}` : ''}`, { headers: { authorization: `Bearer ${token}` } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error(`o Cloud Monitoring respondeu com erro ${r.status} para ${metrica}`), { status: r.status });
+    for (const ts of j.timeSeries || []) for (const pt of ts.points || []) { const d = pt.value.distributionValue || {}; pontos.push({ inicio: pt.interval.startTime || new Date(Date.parse(pt.interval.endTime) - 3600e3).toISOString(), valor: Number(d.count || 0) * Number(d.mean || 0) }); }
+    pagina = j.nextPageToken || '';
+  } while (pagina);
+  return pontos;
+}
+// faturamento do projeto (o Google diz se há conta de faturamento ligada; sem ela, o custo é zero)
+async function coletarFaturamento(token, projeto) {
+  const r = await fetch(`https://cloudbilling.googleapis.com/v1/projects/${projeto}/billingInfo`, { headers: { authorization: `Bearer ${token}` } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) return { disponivel: false, motivo: r.status === 403 ? 'a conta de serviço não tem o papel “Navegador” ou a Cloud Billing API não está ativada no projeto' : `o Google respondeu com erro ${r.status}` };
+  return { disponivel: true, faturamentoAtivo: !!j.billingEnabled, conta: j.billingAccountName ? 'ligada' : 'nenhuma', verificadoEm: new Date().toISOString() };
+}
 export async function coletarOperacoes(projeto, chave) {
   const token = await tokenGoogle(chave);
   const [leit, grav, excl] = await Promise.all([serie(token, projeto, 'read_ops_count'), serie(token, projeto, 'write_ops_count', 'metric.label.op_type'), serie(token, projeto, 'delete_ops_count')]);
@@ -69,7 +92,16 @@ export async function coletarOperacoes(projeto, chave) {
       if (campo === 'gravacoes' && p.rotulo === 'UPDATE') somar(alvo, dia, 'atualizacoes', p.valor);
     }
   }
-  return { dias, diasCota };
+  // transferência (oficial, se o projeto expuser a métrica) e faturamento — falhas aqui não derrubam o resto
+  let transferencia = { disponivel: false, motivo: '' };
+  try {
+    const [saida, entrada] = await Promise.all([serieBytes(token, projeto, 'response_sizes'), serieBytes(token, projeto, 'request_sizes')]);
+    const porDia = {};
+    for (const [campo, pts] of [['saida', saida], ['entrada', entrada]]) for (const pt of pts) { const d = diaBr(pt.inicio); porDia[d] = porDia[d] || { saida: 0, entrada: 0 }; porDia[d][campo] += pt.valor; }
+    transferencia = Object.keys(porDia).length ? { disponivel: true, dias: porDia } : { disponivel: false, motivo: 'o Cloud Monitoring não devolveu dados de tamanho das respostas da API do Firestore para este projeto' };
+  } catch (e) { transferencia = { disponivel: false, motivo: e.message }; }
+  const faturamento = await coletarFaturamento(token, projeto).catch(e => ({ disponivel: false, motivo: e.message }));
+  return { dias, diasCota, transferencia, faturamento };
 }
 
 // ---- 2. GitHub
@@ -106,6 +138,13 @@ async function coletarGithub() {
     return { disponivel: true, execucoes: runs };
   };
   out.rotinaBackup = await execucoes('backup.yml', 30);
+  // a cópia no Google Drive rodou na última execução completa? (passo pulado = não configurada)
+  const ultimaCompleta = (out.rotinaBackup.execucoes || []).find(e => e.situacao === 'completed' && e.evento !== 'push');
+  if (ultimaCompleta) {
+    const jobs = await gh(`/repos/${REPO}/actions/runs/${ultimaCompleta.id}/jobs`);
+    const passo = (((jobs.json || {}).jobs || [])[0] || { steps: [] }).steps.find(s => /Segunda cópia/.test(s.name));
+    out.copiaExterna = !passo ? { situacao: 'desconhecida' } : passo.conclusion === 'skipped' ? { situacao: 'nao_configurada' } : { situacao: passo.conclusion === 'success' ? 'ok' : 'falhou', em: passo.completed_at || '' };
+  }
   out.rotinaVerificacao = await execucoes('verificar-backup.yml', 10);
   const pages = await gh(`/repos/${REPO}/pages/builds/latest`);
   out.publicacaoSite = pages.ok ? { situacao: pages.json.status, em: pages.json.updated_at || pages.json.created_at, duracaoMs: pages.json.duration || null } : { disponivel: false, motivo: `GitHub respondeu ${pages.status}` };
@@ -128,9 +167,15 @@ export async function coletar({ fsCli, projeto, chaveGcp }) {
   };
   // operações oficiais
   let operacoes = null;
+  if (!chaveGcp) { fontes.transferenciaOficial = { disponivel: false, motivo: 'depende da mesma chave GCP_MONITORAMENTO_CHAVE' }; fontes.faturamento = { disponivel: false, motivo: 'depende da mesma chave GCP_MONITORAMENTO_CHAVE' }; }
   if (!chaveGcp) fontes.firestoreOficial = { disponivel: false, motivo: 'Falta o segredo GCP_MONITORAMENTO_CHAVE no GitHub (conta de serviço com o papel “Leitor do Monitoring”). Sem ele, as leituras, gravações e exclusões oficiais do Firebase não podem ser consultadas automaticamente.' };
   else {
-    try { operacoes = await coletarOperacoes(projeto, JSON.parse(chaveGcp)); fontes.firestoreOficial = { disponivel: true, dias: Object.keys(operacoes.dias).length }; }
+    try {
+      operacoes = await coletarOperacoes(projeto, JSON.parse(chaveGcp));
+      fontes.firestoreOficial = { disponivel: true, dias: Object.keys(operacoes.dias).length };
+      fontes.transferenciaOficial = operacoes.transferencia.disponivel ? { disponivel: true } : { disponivel: false, motivo: operacoes.transferencia.motivo };
+      fontes.faturamento = operacoes.faturamento;
+    }
     catch (e) { fontes.firestoreOficial = { disponivel: false, motivo: `Não consegui consultar o Cloud Monitoring: ${e.message}.` }; log(`Cloud Monitoring: falhou (${e.status || ''}).`); }
   }
   const github = await coletarGithub().catch(e => ({ disponivel: false, motivo: String(e.message || e).slice(0, 160) }));
@@ -142,7 +187,8 @@ export async function coletar({ fsCli, projeto, chaveGcp }) {
     for (const mes of meses) {
       const antigo = campos(await fsCli.obterDocumento('monitoramento', `operacoes_${mes}`) || {});
       const doMes = o => Object.fromEntries(Object.entries(o).filter(([d]) => d.startsWith(mes)));
-      await gravarMonitoramento(fsCli, `operacoes_${mes}`, { data: `${mes}-01`, mes, atualizadoEm: agora.toISOString(), fonte: 'Google Cloud Monitoring (oficial)', dias: { ...(antigo.dias || {}), ...doMes(operacoes.dias) }, diasCota: { ...(antigo.diasCota || {}), ...doMes(operacoes.diasCota) } });
+      const transf = operacoes.transferencia.disponivel ? { ...(antigo.transferencia || {}), ...doMes(operacoes.transferencia.dias) } : (antigo.transferencia || {});
+      await gravarMonitoramento(fsCli, `operacoes_${mes}`, { data: `${mes}-01`, mes, atualizadoEm: agora.toISOString(), fonte: 'Google Cloud Monitoring (oficial)', dias: { ...(antigo.dias || {}), ...doMes(operacoes.dias) }, diasCota: { ...(antigo.diasCota || {}), ...doMes(operacoes.diasCota) }, transferencia: transf });
     }
   }
   await gravarMonitoramento(fsCli, 'fontes', fontes);
