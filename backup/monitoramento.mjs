@@ -47,7 +47,14 @@ async function serie(token, projeto, metrica, agruparPor) {
   do {
     const r = await fetch(`https://monitoring.googleapis.com/v3/projects/${projeto}/timeSeries?${p}${pagina ? `&pageToken=${pagina}` : ''}`, { headers: { authorization: `Bearer ${token}` } });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw Object.assign(new Error(r.status === 403 ? 'a conta de serviço não tem permissão de leitura do Monitoring (papel "Leitor do Monitoring")' : `o Cloud Monitoring respondeu com erro ${r.status}`), { status: r.status });
+    if (!r.ok) {
+      // motivo dado pelo Google (sem dados nem segredos): API desativada, papel ausente etc.
+      const er = j.error || {}, info = (er.details || []).find(x => x.reason) || {};
+      const motivo = info.reason === 'SERVICE_DISABLED' || /has not been used|is disabled/i.test(er.message || '') ? 'a Cloud Monitoring API não está ativada no projeto (ou acabou de ser ativada: aguarde alguns minutos)'
+        : r.status === 403 ? `a conta de serviço não tem o papel “Visualizador de monitoramento” neste projeto (ou o papel acabou de ser dado: aguarde alguns minutos) [${info.reason || er.status || 403}]`
+          : `o Cloud Monitoring respondeu com erro ${r.status} [${info.reason || er.status || ''}]`;
+      throw Object.assign(new Error(motivo), { status: r.status });
+    }
     for (const ts of j.timeSeries || []) {
       const rotulo = agruparPor ? ((ts.metric || {}).labels || {})[agruparPor.split('.').pop()] || '' : '';
       for (const pt of ts.points || []) pontos.push({ inicio: pt.interval.startTime || new Date(Date.parse(pt.interval.endTime) - 3600e3).toISOString(), valor: Number(pt.value.int64Value || pt.value.doubleValue || 0), rotulo });
