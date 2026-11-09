@@ -352,10 +352,10 @@ try {
   passo('monitoramento: rotina diária grava saúde, backups e fontes (sem a chave oficial: indisponível com motivo)', rotinaMon.code === 0 && fontesM?.firestoreOficial?.disponivel === false && /GCP_MONITORAMENTO_CHAVE/.test(fontesM.firestoreOficial.motivo), rotinaMon.out.slice(-300));
   passo('monitoramento: registro da rotina sem dados nem segredos', !/Fábio|backup-.+@|chave-|senha/i.test(rotinaMon.out.replace('Sem a conta', '')), rotinaMon.out.slice(-200));
   await w.page.locator('.sidebar-item', { hasText: 'Central de Monitoramento' }).first().click();
-  await w.page.waitForSelector('.mon-cab, .mon .av-erro', { timeout: 20000 }).catch(() => {});
+  await w.page.waitForSelector('.mon-kpis, .mon .av-erro', { timeout: 20000 }).catch(() => {});
   const monT = await w.page.locator('.mon').innerText().catch(() => '');
-  passo('monitoramento: Master abre a central com os números gravados (regras valendo)', new RegExp(medida ? medida.documentos.toLocaleString('pt-BR') : 'x').test(monT) && /Métrica indisponível/.test(monT), monT.slice(0, 300) + ' ' + w.erros.join('|'));
-  await w.page.locator('.mon-nav .av-chip', { hasText: 'Backups' }).click(); await esperar(300);
+  passo('monitoramento: Master abre a central com os números gravados (regras valendo)', new RegExp(medida ? medida.documentos.toLocaleString('pt-BR') : 'x').test(monT) && /Indisponível/.test(monT), monT.slice(0, 300) + ' ' + w.erros.join('|'));
+  await w.page.locator('.mon-nav .mon-aba', { hasText: 'Backups' }).click(); await esperar(300);
   passo('monitoramento: backups vindos do GitHub', /Concluído e conferido/.test(await w.page.locator('.mon-secao').innerText().catch(() => '')));
   // contadores do app gravados pelo próprio aparelho
   await w.page.evaluate(() => monEnviar()); await esperar(1500);
