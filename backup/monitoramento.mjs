@@ -192,6 +192,7 @@ export async function coletar({ fsCli, projeto, chaveGcp }) {
     }
   }
   await gravarMonitoramento(fsCli, 'fontes', fontes);
+  log(`::notice::Fontes: operações oficiais ${fontes.firestoreOficial.disponivel ? 'OK' : 'indisponíveis (' + fontes.firestoreOficial.motivo + ')'} · transferência ${fontes.transferenciaOficial && fontes.transferenciaOficial.disponivel ? 'OK' : 'indisponível (' + ((fontes.transferenciaOficial || {}).motivo || '') + ')'} · faturamento ${fontes.faturamento && fontes.faturamento.disponivel ? (fontes.faturamento.faturamentoAtivo ? 'ATIVO' : 'desativado') : 'indisponível (' + ((fontes.faturamento || {}).motivo || '') + ')'}.`);
   log(`Monitoramento: site ${saude.site.ok ? 'OK' : 'FALHOU'} (${saude.site.ms} ms), banco ${saude.banco.ok ? 'OK' : 'FALHOU'} (${saude.banco.ms} ms), operações oficiais: ${fontes.firestoreOficial.disponivel ? 'OK' : 'indisponíveis'}, backups: ${github.backups && github.backups.quantidade != null ? github.backups.quantidade : '?'}.`);
   return { dia, saude, github, fontes, operacoes };
 }
