@@ -196,7 +196,7 @@ await caso('arquivamento: rotina NÃO exclui entrada nem orçamento', NAO, () =>
 await caso('arquivamento: rotina NÃO cria documentos', NAO, () => como.backup.doc('orcamentos/NOVO').set({ ...camposArq }));
 await caso('arquivamento: rotina NÃO mexe em clientes', NAO, () => como.backup.doc('clientes/C1').update({ arquivado: true }));
 await caso('arquivamento: outra conta com o mesmo e-mail NÃO arquiva', NAO, () => como.backupFalso.doc('lotes/L4').update({ arquivado: true }));
-await caso('arquivamento: visitante do link NÃO arquiva', NAO, () => como.visitante.doc('orcamentos/O3').update({ arquivado: true }));
+await caso('arquivamento: visitante do link NÃO mexe no arquivamento', NAO, () => como.visitante.doc('orcamentos/O3').update({ arquivado: false, motivoArquivamento: 'x' }));
 // ---------- avaliação de desempenho ----------
 await env.withSecurityRulesDisabled(async ctx => {
   const db = ctx.firestore();
