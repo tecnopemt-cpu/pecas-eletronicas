@@ -184,6 +184,19 @@ await caso('backup lista fotos', SIM, () => como.backup.collection('midias').get
 await caso('backup lê funcionários', SIM, () => como.backup.collection('funcionarios').get());
 await caso('backup NÃO grava', NAO, () => como.backup.doc('clientes/C1').update({ razaoSocial: 'x' }));
 await caso('outra conta com o mesmo e-mail do backup NÃO lê (vale o uid)', NAO, () => como.backupFalso.collection('clientes').get());
+// rotina de arquivamento automático (mesma conta): só os campos de arquivamento
+const camposArq = { arquivado: true, statusAnterior: 'Concluído', dataArquivamento: '2026-11-21T03:17:00Z', arquivadoPor: 'Arquivamento automático', motivoArquivamento: 'm', arquivamentoAutomatico: true, arquivamentoConjuntoId: 'L1', arquivamentoPeriodo: { inicio: '2026-10-21', fim: '2026-11-20' } };
+await caso('arquivamento: rotina arquiva a entrada (só campos de arquivamento + histórico)', SIM, () => como.backup.doc('lotes/L4').update({ ...camposArq, historicoArquivamento: FV.arrayUnion({ acao: 'arquivada' }) }));
+await caso('arquivamento: rotina arquiva o orçamento e acrescenta 1 linha ao histórico', SIM, () => como.backup.doc('orcamentos/O3').update({ ...camposArq, historico: FV.arrayUnion({ texto: 'arquivado automaticamente' }) }));
+await caso('arquivamento: rotina reativa a entrada', SIM, () => como.backup.doc('lotes/L4').update({ arquivado: false, dataArquivamento: null, arquivadoPor: null, arquivamentoAutomatico: false, reativadoEm: 'x', reativadoMotivo: 'y' }));
+await caso('arquivamento: rotina NÃO muda o status', NAO, () => como.backup.doc('orcamentos/O3').update({ ...camposArq, status: 'Rota' }));
+await caso('arquivamento: rotina NÃO mexe na data de faturamento', NAO, () => como.backup.doc('orcamentos/O3').update({ arquivado: true, dataFaturamento: new Date() }));
+await caso('arquivamento: rotina NÃO apaga o histórico', NAO, () => como.backup.doc('orcamentos/O3').update({ arquivado: true, historico: [] }));
+await caso('arquivamento: rotina NÃO exclui entrada nem orçamento', NAO, () => como.backup.doc('orcamentos/O3').delete());
+await caso('arquivamento: rotina NÃO cria documentos', NAO, () => como.backup.doc('orcamentos/NOVO').set({ ...camposArq }));
+await caso('arquivamento: rotina NÃO mexe em clientes', NAO, () => como.backup.doc('clientes/C1').update({ arquivado: true }));
+await caso('arquivamento: outra conta com o mesmo e-mail NÃO arquiva', NAO, () => como.backupFalso.doc('lotes/L4').update({ arquivado: true }));
+await caso('arquivamento: visitante do link NÃO arquiva', NAO, () => como.visitante.doc('orcamentos/O3').update({ arquivado: true }));
 // ---------- avaliação de desempenho ----------
 await env.withSecurityRulesDisabled(async ctx => {
   const db = ctx.firestore();

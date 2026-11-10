@@ -366,6 +366,39 @@ try {
   passo('monitoramento: funcionário não tem o item no menu', await fabio.page.locator('.sidebar-item', { hasText: 'Central de Monitoramento' }).count() === 0);
   const negadoF = await fabio.page.evaluate(async () => { try { await db.collection('monitoramento').doc('fontes').get(); return 'leu'; } catch (e) { return e.code; } });
   passo('monitoramento: banco recusa a leitura para funcionário', negadoF === 'permission-denied', negadoF);
+  // 11) Arquivamento automático: a rotina (conta do backup, regras valendo) arquiva só conjuntos inteiros
+  etapa = 'arquivamento';
+  const diaSP = (d) => new Date(d).toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+  const diasAtras = n => new Date(Date.now() - n * 86400e3);
+  await gravar('periodosApuracao/PA-ATUAL', { dataInicial: diaSP(diasAtras(10)), dataFinal: diaSP(diasAtras(-20)), nome: 'Atual' });
+  const itensOk = [{ quantidade: 1, qtdConsertada: 1, qtdConsertadaOrcada: 1 }];
+  const hist0 = [{ texto: 'criado', data: '2026-01-01T00:00:00Z' }];
+  await gravar('lotes/ARQ-A', { numero: 9001, clienteId: 'C1', status: 'Concluído', itens: itensOk, arquivado: false });
+  await gravar('orcamentos/ARQ-A1', { numero: 'RP-9001', clienteId: 'C1', loteId: 'ARQ-A', status: 'Concluído', dataFaturamento: diasAtras(40), arquivado: false, historico: hist0, valorTotal: 123.45 });
+  await gravar('orcamentos/ARQ-A2', { numero: 'RP-9002', clienteId: 'C1', loteId: 'ARQ-A', status: 'Concluído', dataFaturamento: diasAtras(35), arquivado: false, historico: hist0 });
+  await gravar('lotes/ARQ-B', { numero: 9002, clienteId: 'C1', status: 'Concluído', itens: itensOk, arquivado: false });
+  await gravar('orcamentos/ARQ-B1', { numero: 'RP-9003', clienteId: 'C1', loteId: 'ARQ-B', status: 'Concluído', dataFaturamento: diasAtras(40), arquivado: false, historico: hist0 });
+  await gravar('orcamentos/ARQ-B2', { numero: 'RP-9004', clienteId: 'C1', loteId: 'ARQ-B', status: 'Rota', arquivado: false, historico: hist0 });
+  await gravar('lotes/ARQ-C', { numero: 9003, clienteId: 'C1', status: 'Concluído', itens: itensOk, arquivado: false });
+  await gravar('orcamentos/ARQ-C1', { numero: 'RP-9005', clienteId: 'C1', loteId: 'ARQ-C', status: 'Concluído', dataFaturamento: diasAtras(40), arquivado: false, historico: hist0 });
+  await gravar('orcamentos/ARQ-C2', { numero: 'RP-9006', clienteId: 'C1', loteId: 'ARQ-C', status: 'Concluído', dataFaturamento: diasAtras(2), arquivado: false, historico: hist0 });
+  const rodarArq = () => new Promise(ok => { const p = spawn('node', [path.join(RAIZ, 'backup/arquivamento.mjs')], { env: { ...envRotina, TZ: 'America/Sao_Paulo' } }); let out = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => out += d); p.on('close', code => ok({ code, out })); });
+  const arq1 = await rodarArq();
+  const [lA, a1, a2, lB, b1, b2, lC, c1, c2] = await Promise.all(['lotes/ARQ-A', 'orcamentos/ARQ-A1', 'orcamentos/ARQ-A2', 'lotes/ARQ-B', 'orcamentos/ARQ-B1', 'orcamentos/ARQ-B2', 'lotes/ARQ-C', 'orcamentos/ARQ-C1', 'orcamentos/ARQ-C2'].map(ler));
+  passo('arquivamento: rotina arquiva a entrada e os 2 orçamentos concluídos fora do período (regras valendo)', arq1.code === 0 && lA.arquivado === true && a1.arquivado === true && a2.arquivado === true && lA.arquivamentoAutomatico === true && /período de apuração/.test(a1.motivoArquivamento || ''), arq1.out.slice(-400));
+  passo('arquivamento: nada é apagado nem alterado (status, faturamento, valor e histórico preservados)', a1.status === 'Concluído' && a1.valorTotal === 123.45 && !!a1.dataFaturamento && a1.historico.length === 2 && a1.historico[0].texto === 'criado' && lA.status === 'Concluído' && lA.historicoArquivamento.length === 1 && a1.arquivamentoConjuntoId === 'ARQ-A');
+  passo('arquivamento: entrada com orçamento pendente → nenhum dos três arquivado', lB.arquivado === false && b1.arquivado === false && b2.arquivado === false);
+  passo('arquivamento: orçamento dentro do período atual → conjunto inteiro continua ativo', lC.arquivado === false && c1.arquivado === false && c2.arquivado === false);
+  passo('arquivamento: registro da rotina sem clientes, números ou contas', !/RP-9|9001|Fábio|backup-.+@|senha/i.test(arq1.out) && /Gravado: [1-9]\d* conjunto/.test(arq1.out), arq1.out.slice(-300));
+  const arq2 = await rodarArq();
+  passo('arquivamento: rodar de novo não duplica nada', arq2.code === 0 && (await ler('orcamentos/ARQ-A1')).historico.length === 2 && /Gravado: 0 conjunto/.test(arq2.out), arq2.out.slice(-300));
+  // reabertura de um orçamento (como a tela faz ao desarquivar) → a entrada volta para a área ativa
+  await gravar('orcamentos/ARQ-A2', { ...a2, dataFaturamento: new Date(a2.dataFaturamento), arquivado: false, arquivamentoReabertoEm: diaSP(new Date()) });
+  const arq3 = await rodarArq();
+  const [lA3, a13, a23] = await Promise.all(['lotes/ARQ-A', 'orcamentos/ARQ-A1', 'orcamentos/ARQ-A2'].map(ler));
+  passo('arquivamento: orçamento reaberto → a entrada é reativada e o orçamento não é rearquivado', arq3.code === 0 && lA3.arquivado === false && lA3.historicoArquivamento.length === 2 && /RP-9002/.test(lA3.reativadoMotivo || '') && a23.arquivado === false && a13.arquivado === true, arq3.out.slice(-300));
+  const resumoArq = await ler('monitoramento/arquivamento');
+  passo('arquivamento: resumo da última execução gravado (só contagens)', !!resumoArq && typeof resumoArq.avaliados === 'number' && resumoArq.reativadas === 1);
   // 7) Estranho: nada sem login
   const r = await fetch(`${FS}/clientes/C1`);
   passo('sem login, o banco não entrega dados (acesso direto à API)', r.status === 403 || r.status === 401, r.status);

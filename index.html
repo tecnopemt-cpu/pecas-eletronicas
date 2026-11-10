@@ -396,6 +396,12 @@
     .av-evolucao-barra{grid-column:1 / -1;order:3;}
   }
 
+  /* ---- Arquivamento ---- */
+  .arq-motivo{margin-top:4px;font-size:12px;color:var(--texto-fraco);line-height:1.4;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .arq-selo-auto{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:#E3EEFA;color:#1F5590;}
+  .arq-aviso{display:flex;flex-direction:column;gap:4px;margin:0 0 14px;padding:10px 12px;border-radius:10px;background:var(--fundo);border:1px solid var(--borda);font-size:12.5px;line-height:1.45;color:var(--texto-fraco);}
+  .arq-aviso strong{color:var(--texto);font-size:13px;}
+  .arq-ultima{font-size:12px;}
   /* ---- Central de Monitoramento ---- */
   .mon{--mon-marinho:#0F2A47;--mon-marinho2:#1B3D63;--mon-azul:#2F6FB5;--mon-laranja:#E97307;--mon-laranja-esc:#C86206;--mon-verde:#1F8A4C;--mon-amarelo:#B7860B;--mon-vermelho:#C0392B;--mon-fundo:#F5F7FA;--mon-borda:#E4E9F0;--mon-texto:#14253A;--mon-fraco:#5D6D80;
     display:flex;flex-direction:column;gap:16px;color:var(--mon-texto);container-type:inline-size;container-name:mon;min-width:0;}
@@ -17871,7 +17877,15 @@ function ModalLoteDetalhe({
       arquivado: true,
       statusAnterior: lote.status,
       dataArquivamento: new Date().toISOString(),
-      arquivadoPor: usuario.nome
+      arquivadoPor: usuario.nome,
+      motivoArquivamento: 'Arquivamento manual',
+      arquivamentoAutomatico: false,
+      historicoArquivamento: firebase.firestore.FieldValue.arrayUnion({
+        data: new Date().toISOString(),
+        acao: 'arquivada',
+        por: usuario.nome,
+        motivo: 'Arquivamento manual'
+      })
     });
     setProcessando(false);
     aoFechar();
@@ -17882,7 +17896,15 @@ function ModalLoteDetalhe({
       arquivado: false,
       status: lote.statusAnterior || lote.status,
       dataArquivamento: null,
-      arquivadoPor: null
+      arquivadoPor: null,
+      arquivamentoAutomatico: false,
+      arquivamentoReabertoEm: formatarDataInput(new Date()),
+      historicoArquivamento: firebase.firestore.FieldValue.arrayUnion({
+        data: new Date().toISOString(),
+        acao: 'reaberta',
+        por: usuario.nome,
+        motivo: 'Desarquivada manualmente'
+      })
     });
     setProcessando(false);
   }
@@ -17904,7 +17926,9 @@ function ModalLoteDetalhe({
       marginBottom: 12,
       fontSize: 12.5
     }
-  }, /*#__PURE__*/React.createElement("strong", null, "📁 ARQUIVADO"), " — Entrada #", lote.numero, " · arquivada em ", formatData(lote.dataArquivamento), lote.arquivadoPor ? ` por ${lote.arquivadoPor}` : ''), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "📁 ARQUIVADO"), " — Entrada #", lote.numero, " · arquivada em ", quandoBrasilia(lote.dataArquivamento), lote.arquivadoPor ? ` por ${lote.arquivadoPor}` : '', lote.motivoArquivamento && /*#__PURE__*/React.createElement("div", {
+    className: "arq-motivo"
+  }, "Motivo: ", lote.motivoArquivamento)), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -20083,6 +20107,8 @@ function AbaOrcamentos({
         statusAnterior: o.status,
         dataArquivamento: new Date().toISOString(),
         arquivadoPor: usuario.nome,
+        motivoArquivamento: 'Arquivamento manual',
+        arquivamentoAutomatico: false,
         historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `arquivou o orçamento (estava em ${o.status}).`, 'arquivo'))
       });
     },
@@ -20350,7 +20376,9 @@ function ModalOrcamento({
       marginBottom: 12,
       fontSize: 12.5
     }
-  }, /*#__PURE__*/React.createElement("strong", null, "📁 ARQUIVADO"), " — status anterior: ", orcamento.statusAnterior || '-', " · arquivado em ", formatData(orcamento.dataArquivamento), orcamento.arquivadoPor ? ` por ${orcamento.arquivadoPor}` : ''), /*#__PURE__*/React.createElement("h3", {
+  }, /*#__PURE__*/React.createElement("strong", null, "📁 ARQUIVADO"), " — status anterior: ", orcamento.statusAnterior || '-', " · arquivado em ", quandoBrasilia(orcamento.dataArquivamento), orcamento.arquivadoPor ? ` por ${orcamento.arquivadoPor}` : '', orcamento.motivoArquivamento && /*#__PURE__*/React.createElement("div", {
+    className: "arq-motivo"
+  }, "Motivo: ", orcamento.motivoArquivamento)), /*#__PURE__*/React.createElement("h3", {
     style: {
       marginTop: 0
     }
@@ -20553,14 +20581,52 @@ function ModalOrcamento({
     className: "btn secundario",
     onClick: async () => {
       const statusVolta = (orcamento.statusAnterior === 'Entregue/Faturado' ? 'Rota' : orcamento.statusAnterior) || (orcamento.status === 'Entregue/Faturado' ? 'Rota' : orcamento.status);
-      await db.collection('orcamentos').doc(orcamento.id).update({
+      const opBatch = db.batch();
+      const hoje = formatarDataInput(new Date());
+      opBatch.update(db.collection('orcamentos').doc(orcamento.id), {
         arquivado: false,
         status: statusVolta,
         ordemKanban: Date.now(),
         dataArquivamento: null,
         arquivadoPor: null,
+        arquivamentoAutomatico: false,
+        arquivamentoReabertoEm: hoje,
         historico: firebase.firestore.FieldValue.arrayUnion(registroHistoricoOrc(usuario, `desarquivou o orçamento (voltou para ${statusVolta}).`, 'arquivo'))
       });
+      let loteVoltou = null;
+      if (orcamento.loteId) {
+        try {
+          const ls = await db.collection('lotes').doc(orcamento.loteId).get();
+          if (ls.exists && ls.data().arquivado === true) {
+            loteVoltou = ls.data().numero;
+            opBatch.update(ls.ref, {
+              arquivado: false,
+              dataArquivamento: null,
+              arquivadoPor: null,
+              arquivamentoAutomatico: false,
+              arquivamentoReabertoEm: hoje,
+              reativadoEm: new Date().toISOString(),
+              reativadoMotivo: `Orçamento #${orcamento.numero} desarquivado por ${usuario.nome}`,
+              historicoArquivamento: firebase.firestore.FieldValue.arrayUnion({
+                data: new Date().toISOString(),
+                acao: 'reativada',
+                por: usuario.nome,
+                motivo: `Orçamento #${orcamento.numero} desarquivado — a entrada volta para a área ativa`
+              })
+            });
+          }
+        } catch (e) {
+          console.error('entrada vinculada', e);
+        }
+      }
+      try {
+        await opBatch.commit();
+      } catch (e) {
+        console.error(e);
+        alert('Não consegui desarquivar agora (verifique a conexão). Nada foi alterado.');
+        return;
+      }
+      if (loteVoltou != null) alert(`Orçamento desarquivado. A entrada #${loteVoltou}, vinculada a ele, também voltou para a área ativa.`);
       aoFechar();
     }
   }, "↩️ Desarquivar") : /*#__PURE__*/React.createElement("span", null), /*#__PURE__*/React.createElement("div", {
@@ -20586,6 +20652,27 @@ function ModalOrcamento({
     cliente: clienteParaVer,
     aoFechar: () => setClienteParaVer(null)
   }));
+}
+// Explica o arquivamento automático e mostra a última verificação da rotina (só administradores leem o resumo).
+function AvisoArquivamentoAutomatico({
+  usuario
+}) {
+  const [ultima, setUltima] = useState(null);
+  useEffect(() => {
+    if (!ehAdministrador(usuario)) return;
+    let vivo = true;
+    db.collection('monitoramento').doc('arquivamento').get().then(d => {
+      if (vivo && d.exists) setUltima(d.data());
+    }).catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, []);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "arq-aviso"
+  }, /*#__PURE__*/React.createElement("strong", null, "Arquivamento automático"), /*#__PURE__*/React.createElement("span", null, "A entrada e todos os orçamentos dela são arquivados juntos quando tudo está concluído e faturado antes do período de apuração de comissão atual. Nada é apagado: abra o cartão para ver tudo, inclusive os orçamentos vinculados."), ultima && /*#__PURE__*/React.createElement("span", {
+    className: "arq-ultima"
+  }, "Última verificação: ", quandoBrasilia(ultima.executadoEm), " · período atual ", arqDiaBr(ultima.periodo?.inicio), " a ", arqDiaBr(ultima.periodo?.fim), " · ", ultima.entradas || 0, " entrada(s) e ", ultima.orcamentos || 0, " orçamento(s) arquivados nessa execução"));
 }
 function ModalArquivados({
   usuario,
@@ -20644,7 +20731,9 @@ function ModalArquivados({
     style: {
       marginTop: 0
     }
-  }, "📁 Arquivados"), /*#__PURE__*/React.createElement("div", {
+  }, "📁 Arquivados"), /*#__PURE__*/React.createElement(AvisoArquivamentoAutomatico, {
+    usuario: usuario
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -20739,7 +20828,11 @@ function ModalArquivados({
       fontSize: 11.5,
       color: 'var(--texto-fraco)'
     }
-  }, item._tipo === 'orcamentos' && `Status anterior: ${item.statusAnterior || '-'} · `, "Arquivado em ", formatData(item.dataArquivamento))), /*#__PURE__*/React.createElement("button", {
+  }, item._tipo === 'orcamentos' && `Status anterior: ${item.statusAnterior || '-'} · `, "Arquivado em ", quandoBrasilia(item.dataArquivamento), item.arquivadoPor ? ` por ${item.arquivadoPor}` : ''), (item.motivoArquivamento || item.arquivamentoAutomatico) && /*#__PURE__*/React.createElement("div", {
+    className: "arq-motivo"
+  }, item.arquivamentoAutomatico && /*#__PURE__*/React.createElement("span", {
+    className: "arq-selo-auto"
+  }, "Automático"), item.motivoArquivamento ? `Motivo: ${item.motivoArquivamento}` : '')), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
     onClick: e => {
@@ -21107,6 +21200,58 @@ function periodoDaDataNoCalendario(cal, dataStr) {
 }
 function periodoAtualNoCalendario(cal, hoje) {
   return periodoDaDataNoCalendario(cal, hoje || formatarDataInput(new Date()));
+}
+// ======================= ARQUIVAMENTO AUTOMÁTICO (regra única) =======================
+// Usada pelas telas E pela rotina automática do GitHub (backup/arquivamento.mjs lê estas funções daqui,
+// então a regra é uma só). Um CONJUNTO é a entrada + TODOS os orçamentos com o mesmo loteId (cópias e
+// divisões de peças em teste incluídas); orçamento sem entrada forma um conjunto sozinho.
+// Ou o conjunto inteiro é arquivado, ou nada. O período é o da Comissão (mesmo calendário, mesmas datas).
+const ARQ_AUTO_POR = 'Arquivamento automático';
+const ARQ_AUTO_MOTIVO = 'Entrada e todos os orçamentos vinculados concluídos, com a data de faturamento anterior ao período de apuração de comissão atual.';
+// Só a data de faturamento OFICIAL (campo próprio do orçamento) — nunca criação, conclusão ou observação.
+function arqDiaFaturamento(o) {
+  const d = dataDe(o && o.dataFaturamento);
+  return d && !isNaN(d.getTime()) ? chaveDia(d) : null;
+}
+function arqDiaBr(dia) {
+  return dia ? dia.split('-').reverse().join('/') : '-';
+}
+function avaliarArquivamentoConjunto(lote, orcamentos, cal, hojeStr) {
+  const per = periodoAtualNoCalendario(cal, hojeStr);
+  const pend = [];
+  const orcs = orcamentos || [];
+  if (lote) {
+    const n = `Entrada #${lote.numero || lote.id}`;
+    if (lote.status !== 'Concluído' || !loteTotalmenteOrcado(lote.itens)) pend.push(`${n}: ainda não concluída (há peças sem classificação ou sem orçamento)`);
+    if (!orcs.length) pend.push(`${n}: nenhum orçamento vinculado`);
+    if (!lote.arquivado && lote.arquivamentoReabertoEm && lote.arquivamentoReabertoEm >= per.inicioStr) pend.push(`${n}: reaberta no período atual`);
+  }
+  orcs.forEach(o => {
+    const n = `Orçamento #${o.numero || o.id}`;
+    // arquivado à mão fora de Concluído (ex.: cancelado): já saiu da operação e não tem faturamento
+    if (o.arquivado && o.status !== 'Concluído') return;
+    if (o.status !== 'Concluído') {
+      pend.push(`${n}: em andamento (${o.status || 'sem status'})`);
+      return;
+    }
+    const dia = arqDiaFaturamento(o);
+    if (!dia) {
+      pend.push(`${n}: sem data de faturamento`);
+      return;
+    }
+    if (dia >= per.inicioStr) pend.push(`${n}: faturado em ${arqDiaBr(dia)}, dentro do período de apuração atual (${arqDiaBr(per.inicioStr)} a ${arqDiaBr(per.fimStr)})`);
+    if (!o.arquivado && o.arquivamentoReabertoEm && o.arquivamentoReabertoEm >= per.inicioStr) pend.push(`${n}: reaberto no período atual`);
+  });
+  const ativos = [...(lote && !lote.arquivado ? [lote] : []), ...orcs.filter(o => !o.arquivado)];
+  return {
+    arquivar: pend.length === 0 && ativos.length > 0,
+    pendencias: pend,
+    periodo: {
+      inicio: per.inicioStr,
+      fim: per.fimStr,
+      nome: per.nome
+    }
+  };
 }
 // Período vizinho (delta = −1 anterior, +1 próximo) de um intervalo qualquer.
 function periodoVizinhoNoCalendario(cal, inicioStr, fimStr, delta) {

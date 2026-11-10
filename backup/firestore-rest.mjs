@@ -125,6 +125,21 @@ export function clienteFirestore({ projeto, apiKey, base, credenciais }) {
       const r = await req(`${docs}:runQuery`, { method: 'POST', body: JSON.stringify(corpo) });
       return (r || []).filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), fields: x.document.fields || {}, updateTime: x.document.updateTime }));
     },
+    // Consulta campo == valor SEM limite (todas as páginas), com a versão de cada documento.
+    async consultarTudo(col, campo, valor) {
+      const v = typeof valor === 'string' ? { stringValue: valor } : typeof valor === 'boolean' ? { booleanValue: valor } : { integerValue: String(valor) };
+      const out = [];
+      let depois = null;
+      for (;;) {
+        const sq = { from: [{ collectionId: col }], where: { fieldFilter: { field: { fieldPath: campo }, op: 'EQUAL', value: v } }, orderBy: [{ field: { fieldPath: '__name__' } }], limit: 300 };
+        if (depois) sq.startAt = { values: [{ referenceValue: depois }], before: false };
+        const r = await req(`${docs}:runQuery`, { method: 'POST', body: JSON.stringify({ structuredQuery: sq }) });
+        const pag = (r || []).filter(x => x.document);
+        pag.forEach(x => out.push({ id: x.document.name.split('/').pop(), fields: x.document.fields || {}, updateTime: x.document.updateTime }));
+        if (pag.length < 300) return out;
+        depois = pag[pag.length - 1].document.name;
+      }
+    },
     // Um commit (atômico) — devolve os resultados (updateTime de cada escrita).
     async commit(writes) { return req(`${docs}:commit`, { method: 'POST', body: JSON.stringify({ writes }) }, 1); },
     async obterDocumento(col, id) {

@@ -1,0 +1,45 @@
+name: Arquivamento automático
+
+# Arquiva juntos a Entrada de Peças e TODOS os orçamentos dela quando tudo está concluído e faturado antes
+# do período de apuração de comissão atual (calendário da Comissão). Roda a cada 3 horas — inclusive
+# logo depois da meia-noite (virada de período) — sem depender de ninguém estar com o sistema aberto.
+# Usa a conta própria das rotinas (a mesma do backup): as regras do banco só deixam essa conta mexer nos
+# campos de arquivamento. Não apaga nada. O registro é público: só contagens, nada de clientes ou números.
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      simular:
+        description: 'Só simular (mostra quantos seriam arquivados, sem gravar nada)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arquivamento
+  cancel-in-progress: false
+
+jobs:
+  arquivar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            backup
+            index.html
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Avaliar e arquivar os conjuntos concluídos
+        env:
+          TZ: America/Sao_Paulo
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
+          SIMULAR: ${{ inputs.simular && '1' || '' }}
+        run: node backup/arquivamento.mjs

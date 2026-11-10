@@ -5,7 +5,7 @@ name: Testar regras do banco
 on:
   push:
     branches: [main, 'seguranca-*']
-    paths: ['seguranca/**', 'index.html', 'backup/**', '.github/workflows/testar-regras.yml']
+    paths: ['seguranca/**', 'index.html', 'backup/**', '.github/workflows/testar-regras.yml', '.github/workflows/arquivamento.yml']
   workflow_dispatch:
 
 permissions:
@@ -27,6 +27,11 @@ jobs:
       - name: Instalar o emulador e as ferramentas de teste
         working-directory: seguranca
         run: npm install --no-audit --no-fund
+      - name: Testar a regra de arquivamento automático (8 cenários + limites do período)
+        working-directory: seguranca
+        env:
+          TZ: America/Sao_Paulo
+        run: node teste-arquivamento.mjs
       - name: Testar as regras
         working-directory: seguranca
         run: npx firebase emulators:exec --only firestore --project demo-controle-pecas "node teste-regras.mjs"
