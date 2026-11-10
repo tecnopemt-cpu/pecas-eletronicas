@@ -125,6 +125,12 @@ export function clienteFirestore({ projeto, apiKey, base, credenciais }) {
       const r = await req(`${docs}:runQuery`, { method: 'POST', body: JSON.stringify(corpo) });
       return (r || []).filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), fields: x.document.fields || {}, updateTime: x.document.updateTime }));
     },
+    // Consulta campo >= valor (texto), todas as páginas, com a versão de cada documento.
+    async consultarDesde(col, campo, valorTexto) {
+      const sq = { from: [{ collectionId: col }], where: { fieldFilter: { field: { fieldPath: campo }, op: 'GREATER_THAN_OR_EQUAL', value: { stringValue: valorTexto } } } };
+      const r = await req(`${docs}:runQuery`, { method: 'POST', body: JSON.stringify({ structuredQuery: sq }) });
+      return (r || []).filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), fields: x.document.fields || {}, updateTime: x.document.updateTime }));
+    },
     // Consulta campo == valor SEM limite (todas as páginas), com a versão de cada documento.
     async consultarTudo(col, campo, valor) {
       const v = typeof valor === 'string' ? { stringValue: valor } : typeof valor === 'boolean' ? { booleanValue: valor } : { integerValue: String(valor) };

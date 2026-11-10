@@ -387,10 +387,15 @@ try {
   const [lA, a1, a2, lB, b1, b2, lC, c1, c2] = await Promise.all(['lotes/ARQ-A', 'orcamentos/ARQ-A1', 'orcamentos/ARQ-A2', 'lotes/ARQ-B', 'orcamentos/ARQ-B1', 'orcamentos/ARQ-B2', 'lotes/ARQ-C', 'orcamentos/ARQ-C1', 'orcamentos/ARQ-C2'].map(ler));
   passo('arquivamento: rotina arquiva a entrada e os 2 orçamentos concluídos fora do período (regras valendo)', arq1.code === 0 && lA.arquivado === true && a1.arquivado === true && a2.arquivado === true && lA.arquivamentoAutomatico === true && /período de apuração/.test(a1.motivoArquivamento || ''), arq1.out.slice(-400));
   passo('arquivamento: nada é apagado nem alterado (status, faturamento, valor e histórico preservados)', a1.status === 'Concluído' && a1.valorTotal === 123.45 && !!a1.dataFaturamento && a1.historico.length === 2 && a1.historico[0].texto === 'criado' && lA.status === 'Concluído' && lA.historicoArquivamento.length === 1 && a1.arquivamentoConjuntoId === 'ARQ-A');
+  passo('arquivamento: carimbo de alteração gravado (os aparelhos tiram o cartão da tela)', !!lA.atualizadoEm && !!a1.atualizadoEm && !!a2.atualizadoEm && lA.atualizadoEm >= lA.dataArquivamento);
   passo('arquivamento: entrada com orçamento pendente → nenhum dos três arquivado', lB.arquivado === false && b1.arquivado === false && b2.arquivado === false);
   passo('arquivamento: orçamento dentro do período atual → conjunto inteiro continua ativo', lC.arquivado === false && c1.arquivado === false && c2.arquivado === false);
   passo('arquivamento: registro da rotina sem clientes, números ou contas', !/RP-9|9001|Fábio|backup-.+@|senha/i.test(arq1.out) && /Gravado: [1-9]\d* conjunto/.test(arq1.out), arq1.out.slice(-300));
+  // arquivado antes da correção, sem o carimbo de alteração → a rotina carimba (só o carimbo)
+  await gravar('orcamentos/ARQ-R', { numero: 'RP-9007', clienteId: 'C1', status: 'Concluído', arquivado: true, arquivadoPor: 'Arquivamento automático', arquivamentoAutomatico: true, dataArquivamento: new Date().toISOString(), historico: hist0 });
   const arq2 = await rodarArq();
+  const r2 = await ler('orcamentos/ARQ-R');
+  passo('arquivamento: arquivados recentes sem carimbo recebem o carimbo (e nada mais muda)', !!r2.atualizadoEm && r2.arquivado === true && r2.historico.length === 1 && /1 arquivamento\(s\) recente\(s\) avisado/.test(arq2.out), arq2.out.slice(-200));
   passo('arquivamento: rodar de novo não duplica nada', arq2.code === 0 && (await ler('orcamentos/ARQ-A1')).historico.length === 2 && /Gravado: 0 conjunto/.test(arq2.out), arq2.out.slice(-300));
   // reabertura de um orçamento (como a tela faz ao desarquivar) → a entrada volta para a área ativa
   await gravar('orcamentos/ARQ-A2', { ...a2, dataFaturamento: new Date(a2.dataFaturamento), arquivado: false, arquivamentoReabertoEm: diaSP(new Date()) });

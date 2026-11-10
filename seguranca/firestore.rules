@@ -171,7 +171,7 @@ service cloud.firestore {
       return backup()
         && mudou().hasOnly(['arquivado', 'statusAnterior', 'dataArquivamento', 'arquivadoPor', 'motivoArquivamento',
           'arquivamentoAutomatico', 'arquivamentoConjuntoId', 'arquivamentoPeriodo', 'reativadoEm', 'reativadoMotivo',
-          'historico', 'historicoArquivamento'])
+          'historico', 'historicoArquivamento', 'atualizadoEm'])
         && request.resource.data.get('historico', []).hasAll(resource.data.get('historico', []))
         && request.resource.data.get('historicoArquivamento', []).hasAll(resource.data.get('historicoArquivamento', []));
     }

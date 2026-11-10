@@ -79,7 +79,7 @@ export function escritasArquivar(item, nomeDoc, regras, agora = new Date()) {
     w.push({
       update: { name: nomeDoc('orcamentos', o.id), fields: Object.fromEntries(Object.entries(campos).map(([k, v]) => [k, tipado(v)])) },
       updateMask: { fieldPaths: Object.keys(campos) },
-      updateTransforms: [{ fieldPath: 'historico', appendMissingElements: { values: [tipado({ data: quando, usuario: regras.ARQ_AUTO_POR, usuarioId: '', tipo: 'arquivo', texto: `arquivado automaticamente junto com ${item.lote || o.loteId ? 'a entrada e os demais orçamentos vinculados' : 'o próprio conjunto'} — ${regras.ARQ_AUTO_MOTIVO}`, id: `auto-${o.id}-${agora.getTime().toString(36)}` })] } }],
+      updateTransforms: [{ fieldPath: 'atualizadoEm', setToServerValue: 'REQUEST_TIME' }, { fieldPath: 'historico', appendMissingElements: { values: [tipado({ data: quando, usuario: regras.ARQ_AUTO_POR, usuarioId: '', tipo: 'arquivo', texto: `arquivado automaticamente junto com ${item.lote || o.loteId ? 'a entrada e os demais orçamentos vinculados' : 'o próprio conjunto'} — ${regras.ARQ_AUTO_MOTIVO}`, id: `auto-${o.id}-${agora.getTime().toString(36)}` })] } }],
       currentDocument: { updateTime: o.updateTime }
     });
   }
@@ -88,7 +88,7 @@ export function escritasArquivar(item, nomeDoc, regras, agora = new Date()) {
     w.push({
       update: { name: nomeDoc('lotes', item.lote.id), fields: Object.fromEntries(Object.entries(campos).map(([k, v]) => [k, tipado(v)])) },
       updateMask: { fieldPaths: Object.keys(campos) },
-      updateTransforms: [{ fieldPath: 'historicoArquivamento', appendMissingElements: { values: [tipado({ data: quando, acao: 'arquivada', por: regras.ARQ_AUTO_POR, motivo: `${regras.ARQ_AUTO_MOTIVO} (${nOrc} orçamento(s) arquivado(s) junto)` })] } }],
+      updateTransforms: [{ fieldPath: 'atualizadoEm', setToServerValue: 'REQUEST_TIME' }, { fieldPath: 'historicoArquivamento', appendMissingElements: { values: [tipado({ data: quando, acao: 'arquivada', por: regras.ARQ_AUTO_POR, motivo: `${regras.ARQ_AUTO_MOTIVO} (${nOrc} orçamento(s) arquivado(s) junto)` })] } }],
       currentDocument: { updateTime: item.lote.updateTime }
     });
   }
@@ -102,7 +102,7 @@ export function escritasReativar(item, nomeDoc, regras, agora = new Date()) {
   return [{
     update: { name: nomeDoc('lotes', item.lote.id), fields: Object.fromEntries(Object.entries(campos).map(([k, v]) => [k, tipado(v)])) },
     updateMask: { fieldPaths: Object.keys(campos) },
-    updateTransforms: [{ fieldPath: 'historicoArquivamento', appendMissingElements: { values: [tipado({ data: quando, acao: 'reativada', por: regras.ARQ_AUTO_POR, motivo })] } }],
+    updateTransforms: [{ fieldPath: 'atualizadoEm', setToServerValue: 'REQUEST_TIME' }, { fieldPath: 'historicoArquivamento', appendMissingElements: { values: [tipado({ data: quando, acao: 'reativada', por: regras.ARQ_AUTO_POR, motivo })] } }],
     currentDocument: { updateTime: item.lote.updateTime }
   }];
 }
@@ -128,6 +128,23 @@ export async function lerConjuntos(cli) {
   }
   const lista = o => Object.entries(o).map(([id, f]) => ({ id, ...desCampos(f) }));
   return { grupos: [...grupos.values()], periodos: lista(periodos).filter(p => !p.excluido), fechamentos: lista(fechamentos) };
+}
+
+// Os aparelhos guardam uma cópia e só buscam o que tem "atualizadoEm" novo. Arquivamentos dos últimos
+// 3 dias que ficaram sem esse carimbo (ou com carimbo anterior ao arquivamento) recebem o carimbo agora,
+// para sumirem das telas ativas em todos os aparelhos. Só o carimbo é gravado.
+export async function carimbarRecentes(cli, regras, agora = new Date()) {
+  const desde = new Date(agora.getTime() - 3 * 86400e3).toISOString();
+  let n = 0;
+  for (const col of ['lotes', 'orcamentos']) {
+    const docs = (await cli.consultarDesde(col, 'dataArquivamento', desde)).map(d => ({ id: d.id, updateTime: d.updateTime, ...desCampos(d.fields) }));
+    const alvos = docs.filter(d => d.arquivado === true && d.arquivadoPor === regras.ARQ_AUTO_POR && (!(d.atualizadoEm instanceof Date) || d.atualizadoEm.toISOString() < d.dataArquivamento));
+    for (const d of alvos) {
+      try { await cli.commit([{ update: { name: cli.nomeDoc(col, d.id), fields: {} }, updateMask: { fieldPaths: [] }, updateTransforms: [{ fieldPath: 'atualizadoEm', setToServerValue: 'REQUEST_TIME' }], currentDocument: { updateTime: d.updateTime } }]); n++; }
+      catch (e) { if (e.status === 403) throw e; }
+    }
+  }
+  return n;
 }
 
 async function principal() {
@@ -158,11 +175,12 @@ async function principal() {
   try {
     for (const item of plano.arquivar) await commit(escritasArquivar(item, cli.nomeDoc, regras, agora), () => { res.conjuntos++; res.entradas += item.lote ? 1 : 0; res.orcamentos += item.orcamentos.length; });
     for (const item of plano.reativar) await commit(escritasReativar(item, cli.nomeDoc, regras, agora), () => { res.reativadas++; });
+    res.carimbados = await carimbarRecentes(cli, regras, agora);
   } catch (e) {
     if (e.status === 403) { log('::warning::Arquivamento automático: o banco recusou a gravação — publique as regras novas do banco (seguranca/firestore.rules) no console do Firebase.'); process.exit(0); }
     throw e;
   }
-  log(`Gravado: ${res.conjuntos} conjunto(s) arquivado(s) — ${res.entradas} entrada(s) e ${res.orcamentos} orçamento(s); ${res.reativadas} entrada(s) reativada(s); ${res.conflitos} adiado(s) por alteração simultânea.`);
+  log(`Gravado: ${res.conjuntos} conjunto(s) arquivado(s) — ${res.entradas} entrada(s) e ${res.orcamentos} orçamento(s); ${res.reativadas} entrada(s) reativada(s); ${res.conflitos} adiado(s) por alteração simultânea; ${res.carimbados || 0} arquivamento(s) recente(s) avisado(s) aos aparelhos.`);
   try {
     await gravarMonitoramento(cli, 'arquivamento', { executadoEm: agora.toISOString(), periodo: { inicio: per.inicioStr, fim: per.fimStr }, avaliados: grupos.length, continuamAtivos: plano.pendentes, ...res });
   } catch (e) { log('::warning::Arquivamento automático: resumo não gravado na Central (' + (e.status || e.message) + ').'); }

@@ -188,6 +188,7 @@ await caso('outra conta com o mesmo e-mail do backup NÃO lê (vale o uid)', NAO
 const camposArq = { arquivado: true, statusAnterior: 'Concluído', dataArquivamento: '2026-11-21T03:17:00Z', arquivadoPor: 'Arquivamento automático', motivoArquivamento: 'm', arquivamentoAutomatico: true, arquivamentoConjuntoId: 'L1', arquivamentoPeriodo: { inicio: '2026-10-21', fim: '2026-11-20' } };
 await caso('arquivamento: rotina arquiva a entrada (só campos de arquivamento + histórico)', SIM, () => como.backup.doc('lotes/L4').update({ ...camposArq, historicoArquivamento: FV.arrayUnion({ acao: 'arquivada' }) }));
 await caso('arquivamento: rotina arquiva o orçamento e acrescenta 1 linha ao histórico', SIM, () => como.backup.doc('orcamentos/O3').update({ ...camposArq, historico: FV.arrayUnion({ texto: 'arquivado automaticamente' }) }));
+await caso('arquivamento: rotina grava o carimbo de alteração (atualizadoEm) junto', SIM, () => como.backup.doc('orcamentos/O3').update({ arquivado: true, atualizadoEm: FV.serverTimestamp() }));
 await caso('arquivamento: rotina reativa a entrada', SIM, () => como.backup.doc('lotes/L4').update({ arquivado: false, dataArquivamento: null, arquivadoPor: null, arquivamentoAutomatico: false, reativadoEm: 'x', reativadoMotivo: 'y' }));
 await caso('arquivamento: rotina NÃO muda o status', NAO, () => como.backup.doc('orcamentos/O3').update({ ...camposArq, status: 'Rota' }));
 await caso('arquivamento: rotina NÃO mexe na data de faturamento', NAO, () => como.backup.doc('orcamentos/O3').update({ arquivado: true, dataFaturamento: new Date() }));

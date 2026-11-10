@@ -64,13 +64,17 @@ p = plano([{ chave: 'L15', lote: lote('L15', arqAuto), orcamentos: [orc('O22', '
 passo('conjunto todo já arquivado → nada a fazer', p.arquivar.length === 0 && p.reativar.length === 0 && p.pendentes === 0);
 // escritas: só campos de arquivamento, status intacto, pré-condição em todos, histórico preservado (append)
 const nomeDoc = (c, id) => `x/${c}/${id}`;
+let wrOk = () => true;
 const w = escritasArquivar(plano(g6(), new Date('2026-11-21T00:20:00-03:00')).arquivar[0], nomeDoc, R, HOJE);
 const masks = w.flatMap(x => x.updateMask.fieldPaths);
 passo('gravação atômica: 1 commit com a entrada e todos os orçamentos, cada um com pré-condição de versão', w.length === 3 && w.every(x => x.currentDocument && x.currentDocument.updateTime));
 passo('gravação: não toca em status, faturamento, fotos ou assinaturas (só campos de arquivamento)', !masks.some(m => /^(status|dataFaturamento|dataConclusao|valor|itens|fotos?|assinatura.*|observac.*)$/.test(m)) && masks.includes('motivoArquivamento') && masks.includes('dataArquivamento'));
-passo('gravação: histórico só recebe uma linha nova (não apaga o anterior)', w.filter(x => x.update.name.includes('/orcamentos/')).every(x => x.updateTransforms[0].fieldPath === 'historico' && x.updateTransforms[0].appendMissingElements.values.length === 1));
+passo('gravação: histórico só recebe uma linha nova (não apaga o anterior)', w.filter(x => x.update.name.includes('/orcamentos/')).every(x => x.updateTransforms.find(t => t.fieldPath === 'historico').appendMissingElements.values.length === 1));
+passo('gravação: carimbo de alteração (atualizadoEm) em todos, para os aparelhos tirarem o cartão da tela', w.every(x => x.updateTransforms.some(t => t.fieldPath === 'atualizadoEm' && t.setToServerValue === 'REQUEST_TIME')) && wrOk());
 passo('gravação: vínculo mantido (mesmo conjunto em todos)', w.every(x => x.update.fields.arquivamentoConjuntoId.stringValue === 'L6'));
 const wr = escritasReativar(plano([{ chave: 'L7', lote: lote('L7', arqAuto), orcamentos: [orc('O11', 'L7', arqAuto), orc('O12', 'L7', { arquivamentoReabertoEm: '2026-11-10' })] }]).reativar[0], nomeDoc, R, HOJE);
+wrOk = () => wr[0].updateTransforms.some(t => t.fieldPath === 'atualizadoEm');
+passo('reativação: carimbo de alteração', wrOk());
 passo('reativação: só a entrada, sem mudar o status, com o motivo no histórico', wr.length === 1 && !wr[0].updateMask.fieldPaths.includes('status') && wr[0].update.fields.arquivado.booleanValue === false && /RP-O12/.test(wr[0].update.fields.reativadoMotivo.stringValue));
 
 console.log(`\n${ok}/${ok + falhas} verificações do arquivamento automático ${falhas ? 'com FALHAS' : 'OK'}`);
