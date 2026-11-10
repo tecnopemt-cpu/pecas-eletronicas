@@ -164,6 +164,35 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---------- comissão do parceiro (indicação de clientes) ----------
+    // Configuração: administradores leem e editam (a base de cálculo é escolhida pelo Master na tela).
+    // Fechamento: um documento por parceiro e mês — só o Master cria (uma única vez) e registra pagamentos e
+    // ajustes; os valores fechados não mudam e nada é apagado. A rotina do GitHub só lê.
+    match /parceiros/{id} {
+      allow read: if administrador() || backup();
+      allow create, update: if administrador();
+      allow delete: if false;
+    }
+    match /parceiroFechamentos/{id} {
+      allow read: if administrador() || backup();
+      allow create: if master()
+        && id == request.resource.data.parceiroId + '_' + request.resource.data.mes
+        && request.resource.data.mes.matches('^[0-9]{4}-[0-9]{2}$')
+        && request.resource.data.get('pagamentos', []).size() == 0
+        && request.resource.data.get('ajustes', []).size() == 0;
+      allow update: if master()
+        && mudou().hasOnly(['pagamentos', 'ajustes', 'historico', 'atualizadoEm'])
+        && request.resource.data.get('pagamentos', []).hasAll(resource.data.get('pagamentos', []))
+        && request.resource.data.get('ajustes', []).hasAll(resource.data.get('ajustes', []))
+        && request.resource.data.get('historico', []).hasAll(resource.data.get('historico', []));
+      allow delete: if false;
+    }
+    // aviso do último dia útil do mês, criado pela rotina do GitHub (um por pessoa e mês; não sobrescreve)
+    match /notificacoes/{id} {
+      allow create: if backup() && id.matches('^parceiro_[A-Za-z0-9_-]+$') && request.resource.data.tipo == 'parceiro'
+        && request.resource.data.lida == false;
+    }
+
     // ---------- arquivamento automático (rotina do GitHub, conta própria das rotinas) ----------
     // Só os campos de arquivamento: status, faturamento, fotos, assinaturas e dados ficam intocados;
     // o histórico só pode ganhar linhas (nada é apagado). Nunca exclui documentos.

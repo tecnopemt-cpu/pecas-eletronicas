@@ -413,6 +413,71 @@
     .mon-link{padding:8px 0;}
     .btn-menu-pontos{min-width:36px;min-height:36px;}
   }
+  /* ---- Comissão do Parceiro (Orçamentos) ---- */
+  .pc-cab-tit{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;}
+  .pc-abas{display:inline-flex;gap:3px;padding:3px;border-radius:10px;background:var(--card);border:1px solid var(--borda);}
+  .pc-abas button{border:none;background:transparent;border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--texto-fraco);cursor:pointer;white-space:nowrap;}
+  .pc-abas button.ativo{background:#0F2A47;color:#fff;}
+  .pc-tela{display:flex;flex-direction:column;gap:14px;}
+  .pc-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .pc-cab h2{margin:0;}
+  .pc-filtros{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+  .pc-filtros label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--texto-fraco);margin:0;}
+  .pc-filtros input,.pc-filtros select{width:auto;min-width:150px;}
+  .pc-vazio{text-align:center;padding:28px 18px;}
+  .pc-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}
+  .pc-resumo-mini{margin:10px 0;}
+  .pc-ind{display:flex;flex-direction:column;gap:3px;padding:13px 14px;border-radius:12px;background:var(--card);border:1px solid var(--borda);min-width:0;}
+  .pc-ind span{font-size:12.5px;color:var(--texto-fraco);font-weight:600;}
+  .pc-ind b{font-size:19px;color:#0F2A47;overflow-wrap:anywhere;}
+  .pc-ind small{font-size:12px;color:var(--texto-fraco);line-height:1.35;}
+  .pc-destaque{border-left:4px solid #0F2A47;}
+  .pc-prevista{border-left:4px solid #D4A017;background:#FFFBEF;}
+  .pc-apurada{border-left:4px solid #1F8A4C;background:#F2FAF5;}
+  .pc-ponto{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:1px;}
+  .pc-ponto.verde{background:#1F8A4C;} .pc-ponto.amarelo{background:#D4A017;}
+  .pc-faixa{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;border:1px solid;font-size:13.5px;}
+  .pc-faixa ul{margin:6px 0 0;padding-left:18px;}
+  .pc-faixa small{display:block;margin-top:4px;}
+  .pc-verde{background:#E9F6EE;border-color:#B5DEC4;color:#145C33;}
+  .pc-amarelo{background:#FFF8E5;border-color:#F1D58E;color:#6B4E00;}
+  .pc-vermelho{background:#FDEEEC;border-color:#EDB1AA;color:#8E1F15;}
+  .pc-cinza{background:#F2F4F7;border-color:#DCE1E8;color:#4A5A6C;}
+  .pc-bloco h3{margin:0 0 10px;font-size:15.5px;}
+  .pc-bloco h4,.pc-modal h4{margin:14px 0 6px;font-size:14px;}
+  .pc-nota{font-size:12.5px;color:var(--texto-fraco);margin:8px 0 0;}
+  small.pc-nota{margin:0;}
+  .pc-st{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;}
+  .pc-st.verde{background:#E3F4EA;color:#1A7A42;} .pc-st.amarelo{background:#FDF4D9;color:#8A6400;} .pc-st.vermelho{background:#FCE5E2;color:#A3241A;} .pc-st.cinza{background:#EEF1F5;color:#5D6D80;}
+  .pc-link{border:none;background:none;padding:0;font:inherit;font-weight:700;color:var(--laranja-escuro);cursor:pointer;}
+  .pc-link:hover{text-decoration:underline;}
+  .pc-selo{display:inline-block;margin-top:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#E8EDF4;color:#0F2A47;}
+  .pc-modal{max-width:640px;}
+  .pc-modal-largo{max-width:900px;}
+  .pc-modal h3{margin-top:0;}
+  .pc-check{display:flex;align-items:center;gap:8px;margin-top:12px;}
+  .pc-check input{width:auto;}
+  .pc-indicados{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .pc-indicados li{display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--borda);border-radius:10px;}
+  .pc-indicados li.inativo{opacity:.65;background:#F6F7F9;}
+  .pc-indicados li div{display:flex;flex-direction:column;min-width:0;}
+  .pc-indicados small{font-size:11.5px;color:var(--texto-fraco);}
+  .pc-add{display:flex;gap:8px;margin-top:10px;}
+  .pc-add select{flex:1;min-width:0;}
+  .pc-hist{margin-top:12px;font-size:12.5px;}
+  .pc-hist ul{margin:6px 0 0;padding-left:18px;color:var(--texto-fraco);}
+  .pc-lista-reg{margin:0;padding-left:18px;font-size:13px;}
+  .pc-lista-reg li{margin-bottom:4px;}
+  .pc-form{margin-top:12px;padding:12px;border-radius:12px;background:var(--fundo);}
+  .pc-acoes-esq{justify-content:flex-start !important;}
+  .pc-cliente{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-right:auto;font-size:13px;color:var(--texto-fraco);}
+  @media (max-width:640px){
+    .pc-indicados li{grid-template-columns:1fr;}
+    .pc-filtros{width:100%;}
+    .pc-filtros label{flex:1;}
+    .pc-filtros input,.pc-filtros select{min-width:0;width:100%;}
+    .pc-faixa .btn{width:100%;justify-content:center;}
+  }
   /* ---- Aviso de nova versão ---- */
   .aviso-versao{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;padding:9px 16px;background:#FFF3E6;border-bottom:1px solid #F0C28F;color:#7A3B00;font-size:13px;}
   .aviso-versao-acoes{display:flex;gap:8px;}
@@ -5937,6 +6002,8 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -14909,6 +14976,1216 @@ function MonAlertasConfig({
     className: "mon-nota"
   }, "Os avisos por e-mail que j\xE1 existiam (backup com falha ou atrasado, banco perto do limite) continuam funcionando, pela rotina di\xE1ria do GitHub.")));
 }
+// ======================= COMISSÃO DO PARCEIRO (indicação de clientes) =======================
+// Um cliente parceiro indica outros clientes e recebe um % sobre os orçamentos deles. Tudo é configurado
+// pelo aplicativo (coleção "parceiros", um documento por parceiro = id do cliente parceiro). Os orçamentos
+// NÃO recebem campo novo: o vínculo é calculado na hora pelos identificadores (clienteId do orçamento →
+// cliente indicado → parceiro), então editar/mover o cartão nunca duplica nada.
+// Mês de referência = data do orçamento (criadoEm). Fechamento: um documento por parceiro e mês
+// (parceiroFechamentos/<parceiro>_<AAAA-MM>), com a foto dos valores no momento — depois de fechado, nada muda
+// sozinho: correções viram "ajustes" identificados. Só administradores leem; só o Master fecha e paga
+// (as regras do banco garantem isso). Separado da comissão dos funcionários.
+const PARC_BASES = {
+  total: 'Valor total do orçamento',
+  aprovado: 'Valor aprovado',
+  faturado: 'Valor efetivamente faturado'
+};
+const PARC_BASE_EXPLICA = {
+  total: 'o total do orçamento, em qualquer etapa',
+  aprovado: 'o total, a partir de Aprovado',
+  faturado: 'o total, só depois de Concluído (faturado)'
+};
+const PARC_STATUS_APROVADO = ['Aprovado', 'Aprovado/Aguardando pedido', 'Rota', 'Concluído'];
+const PARC_FORMAS = ['Pix', 'Transferência', 'Boleto', 'Dinheiro', 'Outro'];
+function parcCent(v) {
+  return Math.round((Number(v) || 0) * 100) / 100;
+}
+function parcPct(v) {
+  return `${String(Math.round(Number(v) * 100) / 100).replace('.', ',')}%`;
+}
+function parcDiaDe(v) {
+  const d = dataDe(v);
+  return d && !isNaN(d.getTime()) ? chaveDia(d) : null;
+}
+const PARC_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+function parcMesNome(m) {
+  const [a, x] = m.split('-').map(Number);
+  return `${PARC_MESES[x - 1]}/${a}`;
+}
+// último dia útil (segunda a sexta) do mês — feriados não entram
+function parcUltimoDiaUtil(mes) {
+  const [a, m] = mes.split('-').map(Number);
+  const d = new Date(a, m, 0, 12);
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
+  return formatarDataInput(d);
+}
+// o vínculo cliente indicado → parceiro vale no dia?
+function parcVigente(parceiro, ind, dia) {
+  if (!parceiro || !ind || !dia) return false;
+  if (parceiro.inicio && dia < parceiro.inicio) return false;
+  if (parceiro.ativo === false && parceiro.inativoDesde && dia >= parceiro.inativoDesde) return false;
+  if (parceiro.ativo === false && !parceiro.inativoDesde) return false;
+  return (ind.periodos || []).some(p => p.de && dia >= p.de && (!p.ate || dia <= p.ate));
+}
+function parcPercentual(parceiro, ind) {
+  return ind && ind.percentual != null && ind.percentual !== '' ? Number(ind.percentual) : Number(parceiro.percentualPadrao) || 0;
+}
+// parceiro (e %) de um orçamento, ou null
+function parcDoOrcamento(parceiros, o) {
+  const dia = parcDiaDe(o && o.criadoEm);
+  for (const p of parceiros || []) {
+    const ind = (p.indicados || {})[o.clienteId];
+    if (ind && parcVigente(p, ind, dia)) return {
+      parceiro: p,
+      ind,
+      percentual: parcPercentual(p, ind)
+    };
+  }
+  return null;
+}
+// apuração de um parceiro num mês (AAAA-MM) — pura, usada pela tela, pela conferência e pela rotina do GitHub
+function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
+  const modo = parceiro.baseCalculo || 'total';
+  const fechOutros = (fechamentos || []).filter(f => f.parceiroId === parceiro.id && f.mes !== mes);
+  const jaFechadoEm = id => {
+    const f = fechOutros.find(x => (x.itens || []).some(i => i.orcamentoId === id));
+    return f ? f.mes : null;
+  };
+  const itens = [];
+  for (const o of orcamentos || []) {
+    const ind = (parceiro.indicados || {})[o.clienteId];
+    if (!ind) continue;
+    const dia = parcDiaDe(o.criadoEm);
+    if (!dia || dia.slice(0, 7) !== mes || !parcVigente(parceiro, ind, dia)) continue;
+    const pct = parcPercentual(parceiro, ind);
+    const total = parcCent(o.total);
+    let situacao = o.status === 'Concluído' ? 'concluido' : 'pendente',
+      motivo = '';
+    if (testeReprovado(o)) {
+      situacao = 'naoAplicavel';
+      motivo = 'Teste reprovado (sem faturamento)';
+    } else if (o.arquivado && o.status !== 'Concluído') {
+      situacao = 'naoAplicavel';
+      motivo = 'Arquivado sem conclusão';
+    }
+    const outro = jaFechadoEm(o.id);
+    if (outro) {
+      situacao = 'naoAplicavel';
+      motivo = `Já contabilizado no fechamento de ${parcMesNome(outro)}`;
+    }
+    const base = situacao === 'naoAplicavel' ? 0 : modo === 'total' ? total : modo === 'aprovado' ? PARC_STATUS_APROVADO.includes(o.status) ? total : 0 : o.status === 'Concluído' ? total : 0;
+    itens.push({
+      orcamentoId: o.id,
+      numero: o.numero || '',
+      clienteId: o.clienteId,
+      data: dia,
+      status: o.status || '',
+      dataFaturamento: parcDiaDe(o.dataFaturamento),
+      total,
+      base,
+      percentual: pct,
+      comissao: parcCent(base * pct / 100),
+      previsto: situacao === 'naoAplicavel' ? 0 : parcCent(total * pct / 100),
+      situacao,
+      motivo
+    });
+  }
+  itens.sort((a, b) => a.data.localeCompare(b.data) || String(a.numero).localeCompare(String(b.numero)));
+  const elegiveis = itens.filter(i => i.situacao !== 'naoAplicavel');
+  const pendentes = elegiveis.filter(i => i.situacao === 'pendente');
+  const concluidos = elegiveis.filter(i => i.situacao === 'concluido');
+  const soma = (l, k) => parcCent(l.reduce((s, i) => s + i[k], 0));
+  const porCliente = {};
+  for (const i of itens) {
+    const c = porCliente[i.clienteId] = porCliente[i.clienteId] || {
+      clienteId: i.clienteId,
+      n: 0,
+      concluidos: 0,
+      pendentes: 0,
+      naoAplicaveis: 0,
+      valor: 0,
+      comissao: 0,
+      previsto: 0
+    };
+    c.n++;
+    c[i.situacao === 'concluido' ? 'concluidos' : i.situacao === 'pendente' ? 'pendentes' : 'naoAplicaveis']++;
+    c.valor = parcCent(c.valor + (i.situacao === 'naoAplicavel' ? 0 : i.total));
+    c.comissao = parcCent(c.comissao + (i.situacao === 'concluido' ? i.comissao : 0));
+    c.previsto = parcCent(c.previsto + i.previsto);
+  }
+  const ultimoUtil = parcUltimoDiaUtil(mes);
+  const hoje = hojeStr || formatarDataInput(new Date());
+  const mesPronto = hoje >= ultimoUtil;
+  const fechamento = (fechamentos || []).find(f => f.parceiroId === parceiro.id && f.mes === mes) || null;
+  let bloqueio = null;
+  if (fechamento) bloqueio = 'fechado';else if (!elegiveis.length) bloqueio = 'vazio';else if (pendentes.length) bloqueio = 'pendentes';else if (!mesPronto) bloqueio = 'mesAberto';
+  return {
+    mes,
+    modo,
+    itens,
+    elegiveis,
+    pendentes,
+    concluidos,
+    porCliente: Object.values(porCliente),
+    totalBase: soma(concluidos, 'base'),
+    totalBasePrevista: soma(elegiveis, 'total'),
+    comissaoPrevista: soma(elegiveis, 'previsto'),
+    comissaoApurada: soma(concluidos, 'comissao'),
+    ultimoUtil,
+    mesPronto,
+    fechamento,
+    liberado: !bloqueio,
+    bloqueio
+  };
+}
+function parcSaldo(f) {
+  const ajustes = (f.ajustes || []).reduce((s, a) => s + (Number(a.valor) || 0), 0);
+  const pago = (f.pagamentos || []).reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const devido = parcCent((Number(f.totalComissao) || 0) + ajustes);
+  return {
+    ajustes: parcCent(ajustes),
+    pago: parcCent(pago),
+    devido,
+    saldo: parcCent(devido - pago)
+  };
+}
+
+// ---- dados compartilhados (uma escuta só para a aba e para o selo dos cartões) ----
+const PARC = {
+  lista: [],
+  fechamentos: [],
+  carregado: false,
+  iniciado: false,
+  erro: null,
+  ouvintes: new Set(),
+  parar: []
+};
+function parcAvisar() {
+  PARC.ouvintes.forEach(f => f());
+}
+function parcIniciar() {
+  if (PARC.iniciado || typeof db === 'undefined') return;
+  PARC.iniciado = true;
+  PARC.erro = null;
+  const falhou = e => {
+    console.warn('comissão do parceiro', e && e.code);
+    PARC.erro = e && e.code || 'erro';
+    PARC.iniciado = false;
+    PARC.parar.forEach(f => f());
+    PARC.parar = [];
+    parcAvisar();
+  };
+  let ok = 0;
+  PARC.parar.push(db.collection('parceiros').onSnapshot(s => {
+    PARC.lista = s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+    if (++ok >= 2) PARC.carregado = true;
+    parcAvisar();
+  }, falhou));
+  PARC.parar.push(db.collection('parceiroFechamentos').onSnapshot(s => {
+    PARC.fechamentos = s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+    if (++ok >= 2) PARC.carregado = true;
+    parcAvisar();
+  }, falhou));
+}
+function useParceiros(ativo) {
+  const [, setV] = useState(0);
+  useEffect(() => {
+    if (!ativo) return;
+    parcIniciar();
+    const f = () => setV(v => v + 1);
+    PARC.ouvintes.add(f);
+    return () => {
+      PARC.ouvintes.delete(f);
+    };
+  }, [ativo]);
+  return ativo ? PARC : null;
+}
+// selo discreto no cartão e na janela do orçamento (só administradores; nunca no PDF)
+function SeloIndicacao({
+  parc,
+  orcamento
+}) {
+  if (!parc || !parc.carregado || !orcamento) return null;
+  const v = parcDoOrcamento(parc.lista, orcamento);
+  if (!v) return null;
+  return /*#__PURE__*/React.createElement("span", {
+    className: "pc-selo",
+    title: `Indicado por ${v.parceiro.nome || 'parceiro'}`
+  }, "Comiss\xE3o por indica\xE7\xE3o \u2014 ", parcPct(v.percentual));
+}
+function AbasOrcamento({
+  vista,
+  aoMudar
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "pc-abas",
+    role: "tablist"
+  }, [['quadro', 'Quadro de orçamentos'], ['parceiro', 'Comissão do Parceiro']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    role: "tab",
+    "aria-selected": vista === k,
+    className: vista === k ? 'ativo' : '',
+    onClick: () => aoMudar(k)
+  }, n)));
+}
+
+// ---- aba "Comissão do Parceiro" ----
+function AbaComissaoParceiro({
+  usuario,
+  vista,
+  aoMudarVista
+}) {
+  const parc = useParceiros(true);
+  const [orcamentos] = useColecao('orcamentos');
+  const [clientes] = useColecao('clientes');
+  const hoje = formatarDataInput(new Date());
+  const [mes, setMes] = useState(hoje.slice(0, 7));
+  const [parcId, setParcId] = useState('');
+  const [config, setConfig] = useState(null); // { clienteId } ou 'novo'
+  const [clienteAberto, setClienteAberto] = useState(null);
+  const [orcAberto, setOrcAberto] = useState(null);
+  const [conferir, setConferir] = useState(false);
+  const [fechAberto, setFechAberto] = useState(null);
+  const master = ehMaster(usuario);
+  const nomeCliente = id => (clientes.find(c => c.id === id) || {}).razaoSocial || '—';
+  const lista = parc && parc.lista || [];
+  const p = lista.find(x => x.id === parcId) || lista.find(x => x.ativo !== false) || lista[0] || null;
+  const ap = p ? parcApurar(p, orcamentos, mes, parc.fechamentos, hoje) : null;
+  const fechsDoParceiro = p ? parc.fechamentos.filter(f => f.parceiroId === p.id).sort((a, b) => b.mes.localeCompare(a.mes)) : [];
+  const vinculados = p ? Object.entries(p.indicados || {}).filter(([, ind]) => parcVigente(p, ind, hoje)).length : 0;
+  const cab = /*#__PURE__*/React.createElement("div", {
+    className: "pc-cab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pc-cab-tit"
+  }, /*#__PURE__*/React.createElement("h2", null, "Or\xE7amentos"), /*#__PURE__*/React.createElement(AbasOrcamento, {
+    vista: vista,
+    aoMudar: aoMudarVista
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "pc-filtros"
+  }, lista.length > 1 && /*#__PURE__*/React.createElement("label", null, "Parceiro", /*#__PURE__*/React.createElement("select", {
+    value: p ? p.id : '',
+    onChange: e => setParcId(e.target.value)
+  }, lista.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, x.nome || nomeCliente(x.id), x.ativo === false ? ' (inativo)' : '')))), /*#__PURE__*/React.createElement("label", null, "M\xEAs", /*#__PURE__*/React.createElement("input", {
+    type: "month",
+    value: mes,
+    max: hoje.slice(0, 7),
+    onChange: e => e.target.value && setMes(e.target.value)
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setConfig(p ? {
+      clienteId: p.id
+    } : 'novo')
+  }, p ? 'Configurar parceria' : 'Cadastrar parceiro'), p && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setConfig('novo')
+  }, "+ Parceiro")));
+  let corpo;
+  if (!parc || !parc.carregado) corpo = /*#__PURE__*/React.createElement("div", {
+    className: "card pc-vazio"
+  }, parc && parc.erro ? 'Não consegui carregar a comissão do parceiro (sem permissão ou sem conexão).' : 'Carregando…');else if (!p) corpo = /*#__PURE__*/React.createElement("div", {
+    className: "card pc-vazio"
+  }, /*#__PURE__*/React.createElement("h3", null, "Nenhum parceiro cadastrado"), /*#__PURE__*/React.createElement("p", null, "Escolha o cliente que indica outros clientes, informe o percentual (15% por padr\xE3o) e os clientes indicados. O sistema identifica sozinho os or\xE7amentos desses clientes."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => setConfig('novo')
+  }, "Cadastrar parceiro"));else {
+    const bloq = {
+      pendentes: ['vermelho', `Fechamento indisponível. ${ap.pendentes.length === 1 ? 'Existe 1 orçamento pendente.' : `Existem ${ap.pendentes.length} orçamentos pendentes.`}`],
+      mesAberto: ['amarelo', `Todos os orçamentos lançados até agora estão concluídos. O fechamento libera no último dia útil do mês (${formatarDataBr(ap.ultimoUtil)}).`],
+      vazio: ['cinza', 'Nenhum orçamento de clientes indicados neste mês.'],
+      fechado: ['verde', ap.fechamento ? `Mês fechado em ${formatData(ap.fechamento.fechadoEm)} por ${ap.fechamento.fechadoPor || '—'}.` : 'Mês fechado.']
+    }[ap.bloqueio] || ['verde', 'Todos os orçamentos do período foram concluídos. Fechamento disponível.'];
+    corpo = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: "pc-resumo"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "pc-ind pc-destaque"
+    }, /*#__PURE__*/React.createElement("span", null, "Parceiro"), /*#__PURE__*/React.createElement("b", null, p.nome || nomeCliente(p.id)), /*#__PURE__*/React.createElement("small", null, p.ativo === false ? 'Parceria inativa' : `${parcPct(p.percentualPadrao)} padrão · ${avPlural(vinculados, 'cliente vinculado', 'clientes vinculados')}`)), /*#__PURE__*/React.createElement("div", {
+      className: "pc-ind"
+    }, /*#__PURE__*/React.createElement("span", null, "Or\xE7amentos do m\xEAs"), /*#__PURE__*/React.createElement("b", null, ap.elegiveis.length), /*#__PURE__*/React.createElement("small", null, /*#__PURE__*/React.createElement("i", {
+      className: "pc-ponto verde"
+    }), ap.concluidos.length, " conclu\xEDdo(s) \xB7 ", /*#__PURE__*/React.createElement("i", {
+      className: "pc-ponto amarelo"
+    }), ap.pendentes.length, " pendente(s)")), /*#__PURE__*/React.createElement("div", {
+      className: "pc-ind"
+    }, /*#__PURE__*/React.createElement("span", null, "Base de c\xE1lculo"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.totalBase)), /*#__PURE__*/React.createElement("small", null, PARC_BASES[ap.modo], " \xB7 conclu\xEDdos")), /*#__PURE__*/React.createElement("div", {
+      className: "pc-ind pc-prevista"
+    }, /*#__PURE__*/React.createElement("span", null, "Comiss\xE3o prevista"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.comissaoPrevista)), /*#__PURE__*/React.createElement("small", null, "estimativa com todos do m\xEAs (", formatMoeda(ap.totalBasePrevista), ")")), /*#__PURE__*/React.createElement("div", {
+      className: "pc-ind pc-apurada"
+    }, /*#__PURE__*/React.createElement("span", null, "Pronta para fechamento"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.comissaoApurada)), /*#__PURE__*/React.createElement("small", null, "apurada nos conclu\xEDdos"))), /*#__PURE__*/React.createElement("div", {
+      className: `pc-faixa pc-${bloq[0]}`
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, bloq[1]), ap.bloqueio === 'pendentes' && /*#__PURE__*/React.createElement("ul", null, ap.pendentes.map(i => /*#__PURE__*/React.createElement("li", {
+      key: i.orcamentoId
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "pc-link",
+      onClick: () => setOrcAberto(i.orcamentoId)
+    }, "#", i.numero), " \u2014 ", nomeCliente(i.clienteId), " \xB7 ", i.status)))), !ap.fechamento && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn",
+      disabled: !ap.liberado || !master,
+      title: !master ? 'Só o Administrador Master fecha a comissão' : '',
+      onClick: () => setConferir(true)
+    }, "Fechar comiss\xE3o do m\xEAs"), ap.fechamento && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario",
+      onClick: () => setFechAberto(ap.fechamento.id)
+    }, "Ver fechamento")), !master && !ap.fechamento && /*#__PURE__*/React.createElement("p", {
+      className: "pc-nota"
+    }, "S\xF3 o Administrador Master fecha a comiss\xE3o e registra pagamentos."), /*#__PURE__*/React.createElement("section", {
+      className: "card pc-bloco"
+    }, /*#__PURE__*/React.createElement("h3", null, "Por cliente indicado"), ap.porCliente.length === 0 ? /*#__PURE__*/React.createElement("p", {
+      className: "pc-nota"
+    }, "Nenhum or\xE7amento dos clientes indicados em ", parcMesNome(mes), ".") : /*#__PURE__*/React.createElement("div", {
+      className: "av-tabela-wrap"
+    }, /*#__PURE__*/React.createElement("table", {
+      className: "av-tabela"
+    }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Or\xE7amentos"), /*#__PURE__*/React.createElement("th", null, "Conclu\xEDdos"), /*#__PURE__*/React.createElement("th", null, "Pendentes"), /*#__PURE__*/React.createElement("th", null, "Valor"), /*#__PURE__*/React.createElement("th", null, "Comiss\xE3o"), /*#__PURE__*/React.createElement("th", null, "Situa\xE7\xE3o"))), /*#__PURE__*/React.createElement("tbody", null, ap.porCliente.map(c => /*#__PURE__*/React.createElement("tr", {
+      key: c.clienteId,
+      className: "clicavel",
+      onClick: () => setClienteAberto(clienteAberto === c.clienteId ? null : c.clienteId)
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Cliente"
+    }, /*#__PURE__*/React.createElement("b", null, nomeCliente(c.clienteId))), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Or\xE7amentos"
+    }, c.n), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Conclu\xEDdos"
+    }, c.concluidos), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Pendentes"
+    }, c.pendentes), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Valor"
+    }, formatMoeda(c.valor)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Comiss\xE3o"
+    }, formatMoeda(c.comissao), c.pendentes ? /*#__PURE__*/React.createElement("small", {
+      className: "pc-nota"
+    }, " (prevista ", formatMoeda(c.previsto), ")") : null), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Situa\xE7\xE3o"
+    }, c.pendentes ? /*#__PURE__*/React.createElement("span", {
+      className: "pc-st amarelo"
+    }, "Aguardando conclus\xE3o") : c.concluidos ? /*#__PURE__*/React.createElement("span", {
+      className: "pc-st verde"
+    }, "Conclu\xEDdo") : /*#__PURE__*/React.createElement("span", {
+      className: "pc-st cinza"
+    }, "N\xE3o aplic\xE1vel")))))))), /*#__PURE__*/React.createElement("section", {
+      className: "card pc-bloco"
+    }, /*#__PURE__*/React.createElement("h3", null, "Or\xE7amentos ", clienteAberto ? `de ${nomeCliente(clienteAberto)}` : 'do mês', clienteAberto && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "pc-link",
+      onClick: () => setClienteAberto(null)
+    }, " \xB7 ver todos")), /*#__PURE__*/React.createElement(ListaItensParceiro, {
+      itens: ap.itens.filter(i => !clienteAberto || i.clienteId === clienteAberto),
+      nomeCliente: nomeCliente,
+      aoAbrir: setOrcAberto
+    }), /*#__PURE__*/React.createElement("p", {
+      className: "pc-nota"
+    }, "Base: ", PARC_BASES[ap.modo], " (", PARC_BASE_EXPLICA[ap.modo], "). M\xEAs de refer\xEAncia: data do or\xE7amento. Teste reprovado e or\xE7amento arquivado sem conclus\xE3o n\xE3o entram.")), /*#__PURE__*/React.createElement("section", {
+      className: "card pc-bloco"
+    }, /*#__PURE__*/React.createElement("h3", null, "Fechamentos e pagamentos"), fechsDoParceiro.length === 0 ? /*#__PURE__*/React.createElement("p", {
+      className: "pc-nota"
+    }, "Nenhum fechamento ainda.") : /*#__PURE__*/React.createElement("div", {
+      className: "av-tabela-wrap"
+    }, /*#__PURE__*/React.createElement("table", {
+      className: "av-tabela"
+    }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "M\xEAs"), /*#__PURE__*/React.createElement("th", null, "Comiss\xE3o fechada"), /*#__PURE__*/React.createElement("th", null, "Paga"), /*#__PURE__*/React.createElement("th", null, "Saldo a pagar"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, fechsDoParceiro.map(f => {
+      const sd = parcSaldo(f);
+      return /*#__PURE__*/React.createElement("tr", {
+        key: f.id
+      }, /*#__PURE__*/React.createElement("td", {
+        "data-rotulo": "M\xEAs"
+      }, parcMesNome(f.mes)), /*#__PURE__*/React.createElement("td", {
+        "data-rotulo": "Fechada"
+      }, formatMoeda(sd.devido)), /*#__PURE__*/React.createElement("td", {
+        "data-rotulo": "Paga"
+      }, formatMoeda(sd.pago)), /*#__PURE__*/React.createElement("td", {
+        "data-rotulo": "Saldo"
+      }, sd.saldo > 0.004 ? /*#__PURE__*/React.createElement("span", {
+        className: "pc-st amarelo"
+      }, formatMoeda(sd.saldo)) : /*#__PURE__*/React.createElement("span", {
+        className: "pc-st verde"
+      }, "Quitado")), /*#__PURE__*/React.createElement("td", {
+        "data-rotulo": ""
+      }, /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn secundario pequeno",
+        onClick: () => setFechAberto(f.id)
+      }, "Abrir")));
+    }))))));
+  }
+  const orc = orcAberto && orcamentos.find(o => o.id === orcAberto);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "pc-tela"
+  }, cab, corpo, config && /*#__PURE__*/React.createElement(ModalConfigParceiro, {
+    usuario: usuario,
+    parceiro: config === 'novo' ? null : lista.find(x => x.id === config.clienteId),
+    parceiros: lista,
+    clientes: clientes,
+    aoSalvar: id => {
+      setParcId(id);
+      setConfig(null);
+    },
+    aoFechar: () => setConfig(null)
+  }), conferir && p && ap && /*#__PURE__*/React.createElement(ModalConferenciaParceiro, {
+    usuario: usuario,
+    parceiro: p,
+    ap: ap,
+    nomeCliente: nomeCliente,
+    aoFechar: () => setConferir(false)
+  }), fechAberto && /*#__PURE__*/React.createElement(ModalFechamentoParceiro, {
+    usuario: usuario,
+    fech: parc.fechamentos.find(f => f.id === fechAberto),
+    parceiro: p,
+    orcamentos: orcamentos,
+    fechamentos: parc.fechamentos,
+    nomeCliente: nomeCliente,
+    aoAbrirOrcamento: setOrcAberto,
+    aoFechar: () => setFechAberto(null)
+  }), orc && /*#__PURE__*/React.createElement(ModalOrcamento, {
+    orcamento: orc,
+    clientes: clientes,
+    totalAtual: 0,
+    usuario: usuario,
+    aoFechar: () => setOrcAberto(null)
+  }));
+}
+function ListaItensParceiro({
+  itens,
+  nomeCliente,
+  aoAbrir,
+  fechados
+}) {
+  if (!itens.length) return /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "Nenhum or\xE7amento.");
+  const st = i => i.situacao === 'concluido' ? /*#__PURE__*/React.createElement("span", {
+    className: "pc-st verde"
+  }, i.status) : i.situacao === 'pendente' ? /*#__PURE__*/React.createElement("span", {
+    className: "pc-st amarelo"
+  }, i.status) : /*#__PURE__*/React.createElement("span", {
+    className: "pc-st cinza",
+    title: i.motivo
+  }, i.motivo || 'Não aplicável');
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela pc-itens"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Or\xE7amento"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Valor considerado"), /*#__PURE__*/React.createElement("th", null, "%"), /*#__PURE__*/React.createElement("th", null, "Comiss\xE3o"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null, "Faturamento"))), /*#__PURE__*/React.createElement("tbody", null, itens.map(i => /*#__PURE__*/React.createElement("tr", {
+    key: i.orcamentoId
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Or\xE7amento"
+  }, aoAbrir ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "pc-link",
+    onClick: () => aoAbrir(i.orcamentoId)
+  }, "#", i.numero) : `#${i.numero}`), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Cliente"
+  }, nomeCliente(i.clienteId)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Data"
+  }, formatarDataBr(i.data)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Valor considerado"
+  }, formatMoeda(i.base), !fechados && i.situacao === 'pendente' && i.base !== i.total ? /*#__PURE__*/React.createElement("small", {
+    className: "pc-nota"
+  }, " (total ", formatMoeda(i.total), ")") : null), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "%"
+  }, parcPct(i.percentual)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Comiss\xE3o"
+  }, formatMoeda(i.comissao), !fechados && i.situacao === 'pendente' ? /*#__PURE__*/React.createElement("small", {
+    className: "pc-nota"
+  }, " (prevista ", formatMoeda(i.previsto), ")") : null), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Status"
+  }, fechados ? /*#__PURE__*/React.createElement("span", {
+    className: "pc-st verde"
+  }, i.status) : st(i)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Faturamento"
+  }, i.dataFaturamento ? formatarDataBr(i.dataFaturamento) : '—'))))));
+}
+// ---- configuração do parceiro (administradores; a base de cálculo só o Master muda) ----
+function ModalConfigParceiro({
+  usuario,
+  parceiro,
+  parceiros,
+  clientes,
+  aoSalvar,
+  aoFechar,
+  clienteInicial
+}) {
+  const hoje = formatarDataInput(new Date());
+  const [f, setF] = useState(() => parceiro ? JSON.parse(JSON.stringify({
+    ...parceiro,
+    historico: undefined
+  })) : {
+    id: clienteInicial || '',
+    nome: '',
+    ativo: true,
+    percentualPadrao: 15,
+    baseCalculo: 'total',
+    inicio: hoje,
+    indicados: {}
+  });
+  const [novoInd, setNovoInd] = useState('');
+  const [msg, setMsg] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const master = ehMaster(usuario);
+  const nomeCliente = id => (clientes.find(c => c.id === id) || {}).razaoSocial || '—';
+  const ordenados = clientes.slice().sort((a, b) => (a.razaoSocial || '').localeCompare(b.razaoSocial || ''));
+  const set = (k, v) => setF(x => ({
+    ...x,
+    [k]: v
+  }));
+  const setInd = (id, fn) => setF(x => ({
+    ...x,
+    indicados: {
+      ...x.indicados,
+      [id]: fn({
+        ...x.indicados[id]
+      })
+    }
+  }));
+  // cliente já vinculado (hoje) a outro parceiro?
+  const donoAtual = id => (parceiros || []).find(p => p.id !== f.id && p.indicados && p.indicados[id] && parcVigente({
+    ...p,
+    inicio: ''
+  }, p.indicados[id], hoje));
+  function adicionar() {
+    const id = novoInd;
+    if (!id) return;
+    if (id === f.id) {
+      setMsg('O próprio parceiro não pode ser indicado por ele mesmo.');
+      return;
+    }
+    const outro = donoAtual(id);
+    if (outro) {
+      setMsg(`Esse cliente já está vinculado ao parceiro ${outro.nome || nomeCliente(outro.id)}. Encerre o vínculo lá antes.`);
+      return;
+    }
+    setF(x => {
+      const ind = x.indicados[id] || {
+        periodos: [],
+        percentual: null
+      };
+      const per = ind.periodos || [];
+      const aberto = per.some(p => !p.ate);
+      return {
+        ...x,
+        indicados: {
+          ...x.indicados,
+          [id]: {
+            ...ind,
+            periodos: aberto ? per : [...per, {
+              de: hoje,
+              ate: null
+            }]
+          }
+        }
+      };
+    });
+    setNovoInd('');
+    setMsg('');
+  }
+  async function salvar() {
+    if (!f.id) {
+      setMsg('Escolha o cliente parceiro.');
+      return;
+    }
+    const pct = Number(String(f.percentualPadrao).replace(',', '.'));
+    if (!(pct >= 0 && pct <= 100)) {
+      setMsg('Percentual padrão inválido.');
+      return;
+    }
+    for (const [id, ind] of Object.entries(f.indicados || {})) {
+      if (ind.percentual != null && ind.percentual !== '') {
+        const v = Number(String(ind.percentual).replace(',', '.'));
+        if (!(v >= 0 && v <= 100)) {
+          setMsg(`Percentual inválido para ${nomeCliente(id)}.`);
+          return;
+        }
+      }
+    }
+    setSalvando(true);
+    const mudancas = [];
+    const ant = parceiro || {};
+    if (!parceiro) mudancas.push('cadastrou a parceria');
+    if (ant.percentualPadrao != null && Number(ant.percentualPadrao) !== pct) mudancas.push(`percentual padrão de ${parcPct(ant.percentualPadrao)} para ${parcPct(pct)}`);
+    if (ant.baseCalculo && ant.baseCalculo !== f.baseCalculo) mudancas.push(`base de cálculo de "${PARC_BASES[ant.baseCalculo]}" para "${PARC_BASES[f.baseCalculo]}"`);
+    if (parceiro && ant.ativo !== false !== (f.ativo !== false)) mudancas.push(f.ativo !== false ? 'reativou a parceria' : 'inativou a parceria');
+    for (const [id, ind] of Object.entries(f.indicados || {})) {
+      const a = (ant.indicados || {})[id];
+      if (!a) mudancas.push(`vinculou ${nomeCliente(id)}`);else if (JSON.stringify(a.periodos) !== JSON.stringify(ind.periodos)) mudancas.push(`${(ind.periodos || []).some(p => !p.ate) ? 'reativou' : 'encerrou'} o vínculo de ${nomeCliente(id)}`);
+      if (a && String(a.percentual ?? '') !== String(ind.percentual ?? '')) mudancas.push(`percentual de ${nomeCliente(id)}: ${ind.percentual != null && ind.percentual !== '' ? parcPct(ind.percentual) : 'padrão'}`);
+    }
+    const dados = {
+      nome: nomeCliente(f.id),
+      ativo: f.ativo !== false,
+      inativoDesde: f.ativo === false ? ant.ativo === false && ant.inativoDesde ? ant.inativoDesde : hoje : null,
+      percentualPadrao: pct,
+      baseCalculo: master ? f.baseCalculo : ant.baseCalculo || 'total',
+      inicio: f.inicio || hoje,
+      indicados: Object.fromEntries(Object.entries(f.indicados || {}).map(([id, ind]) => [id, {
+        periodos: ind.periodos || [],
+        percentual: ind.percentual === '' || ind.percentual == null ? null : Number(String(ind.percentual).replace(',', '.'))
+      }])),
+      atualizadoEm: new Date().toISOString(),
+      atualizadoPor: usuario.nome || ''
+    };
+    if (mudancas.length) dados.historico = firebase.firestore.FieldValue.arrayUnion({
+      em: new Date().toISOString(),
+      por: usuario.nome || '',
+      texto: mudancas.join('; ')
+    });
+    try {
+      await db.collection('parceiros').doc(f.id).set(dados, {
+        merge: true
+      });
+      aoSalvar(f.id);
+    } catch (e) {
+      console.error(e);
+      setMsg('Não consegui salvar (sem permissão ou sem conexão).');
+    }
+    setSalvando(false);
+  }
+  const inds = Object.entries(f.indicados || {});
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal pc-modal"
+  }, /*#__PURE__*/React.createElement("h3", null, parceiro ? `Parceria — ${parceiro.nome || nomeCliente(parceiro.id)}` : 'Cadastrar parceiro'), !parceiro && !clienteInicial && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Cliente parceiro (recebe comiss\xE3o por indica\xE7\xE3o)"), /*#__PURE__*/React.createElement("select", {
+    value: f.id,
+    onChange: e => set('id', e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Escolha o cliente\u2026"), ordenados.filter(c => !(parceiros || []).some(p => p.id === c.id)).map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.razaoSocial)))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Percentual padr\xE3o (%)"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    value: f.percentualPadrao,
+    onChange: e => set('percentualPadrao', e.target.value.replace(/[^0-9.,]/g, ''))
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "In\xEDcio da parceria"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.inicio || '',
+    onChange: e => set('inicio', e.target.value)
+  }))), /*#__PURE__*/React.createElement("label", null, "Base de c\xE1lculo", !master && ' (só o Administrador Master altera)'), /*#__PURE__*/React.createElement("select", {
+    value: f.baseCalculo,
+    disabled: !master,
+    onChange: e => set('baseCalculo', e.target.value)
+  }, Object.entries(PARC_BASES).map(([k, n]) => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k
+  }, n))), /*#__PURE__*/React.createElement("label", {
+    className: "pc-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: f.ativo !== false,
+    onChange: e => set('ativo', e.target.checked)
+  }), " Parceria ativa"), /*#__PURE__*/React.createElement("h4", null, "Clientes indicados"), inds.length === 0 && /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "Nenhum cliente indicado ainda."), /*#__PURE__*/React.createElement("ul", {
+    className: "pc-indicados"
+  }, inds.map(([id, ind]) => {
+    const ativoV = (ind.periodos || []).some(p => !p.ate);
+    return /*#__PURE__*/React.createElement("li", {
+      key: id,
+      className: ativoV ? '' : 'inativo'
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, nomeCliente(id)), /*#__PURE__*/React.createElement("small", null, (ind.periodos || []).map(p => `${formatarDataBr(p.de)} a ${p.ate ? formatarDataBr(p.ate) : 'hoje'}`).join(' · '))), /*#__PURE__*/React.createElement("input", {
+      inputMode: "decimal",
+      placeholder: `${parcPct(f.percentualPadrao || 0)} (padrão)`,
+      value: ind.percentual ?? '',
+      "aria-label": `Percentual de ${nomeCliente(id)}`,
+      onChange: e => setInd(id, x => ({
+        ...x,
+        percentual: e.target.value.replace(/[^0-9.,]/g, '')
+      }))
+    }), ativoV ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => setInd(id, x => ({
+        ...x,
+        periodos: x.periodos.map(p => p.ate ? p : {
+          ...p,
+          ate: hoje
+        })
+      }))
+    }, "Encerrar v\xEDnculo") : /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => {
+        const outro = donoAtual(id);
+        if (outro) {
+          setMsg(`Esse cliente está vinculado ao parceiro ${outro.nome}.`);
+          return;
+        }
+        setInd(id, x => ({
+          ...x,
+          periodos: [...(x.periodos || []), {
+            de: hoje,
+            ate: null
+          }]
+        }));
+      }
+    }, "Reativar"));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "pc-add"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: novoInd,
+    onChange: e => setNovoInd(e.target.value),
+    "aria-label": "Cliente indicado"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Adicionar cliente indicado\u2026"), ordenados.filter(c => c.id !== f.id && !(f.indicados || {})[c.id]).map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.razaoSocial))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: adicionar,
+    disabled: !novoInd
+  }, "Adicionar")), /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "Encerrar o v\xEDnculo n\xE3o apaga nada: os or\xE7amentos do per\xEDodo em que o cliente estava vinculado continuam contando. Percentual em branco = padr\xE3o."), parceiro && (parceiro.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "pc-hist"
+  }, /*#__PURE__*/React.createElement("summary", null, "Hist\xF3rico de altera\xE7\xF5es (", parceiro.historico.length, ")"), /*#__PURE__*/React.createElement("ul", null, parceiro.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(h.em), " \u2014 ", h.por, ": ", h.texto)))), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, msg), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: salvar
+  }, salvando ? 'Salvando…' : 'Salvar'))));
+}
+// ---- conferência antes de fechar (Master) ----
+function ModalConferenciaParceiro({
+  usuario,
+  parceiro,
+  ap,
+  nomeCliente,
+  aoFechar
+}) {
+  const [salvando, setSalvando] = useState(false);
+  const [msg, setMsg] = useState('');
+  const clientesEnv = [...new Set(ap.concluidos.map(i => i.clienteId))];
+  async function confirmar() {
+    setSalvando(true);
+    const ref = db.collection('parceiroFechamentos').doc(`${parceiro.id}_${ap.mes}`);
+    try {
+      await db.runTransaction(async tx => {
+        const atual = await tx.get(ref);
+        if (atual.exists) throw Object.assign(new Error('já fechado'), {
+          jaFechado: true
+        });
+        tx.set(ref, {
+          parceiroId: parceiro.id,
+          parceiroNome: parceiro.nome || nomeCliente(parceiro.id),
+          mes: ap.mes,
+          regra: {
+            baseCalculo: ap.modo,
+            baseNome: PARC_BASES[ap.modo],
+            percentualPadrao: Number(parceiro.percentualPadrao) || 0,
+            referencia: 'data do orçamento'
+          },
+          itens: ap.concluidos.map(i => ({
+            orcamentoId: i.orcamentoId,
+            numero: i.numero,
+            clienteId: i.clienteId,
+            clienteNome: nomeCliente(i.clienteId),
+            data: i.data,
+            dataFaturamento: i.dataFaturamento || null,
+            status: i.status,
+            total: i.total,
+            base: i.base,
+            percentual: i.percentual,
+            comissao: i.comissao
+          })),
+          naoConsiderados: ap.itens.filter(i => i.situacao === 'naoAplicavel').map(i => ({
+            orcamentoId: i.orcamentoId,
+            numero: i.numero,
+            motivo: i.motivo
+          })),
+          totalBase: ap.totalBase,
+          totalComissao: ap.comissaoApurada,
+          fechadoEm: new Date().toISOString(),
+          fechadoPor: usuario.nome || '',
+          fechadoPorId: usuario.id || '',
+          pagamentos: [],
+          ajustes: [],
+          historico: [{
+            em: new Date().toISOString(),
+            por: usuario.nome || '',
+            texto: `fechou a comissão de ${parcMesNome(ap.mes)}: ${formatMoeda(ap.comissaoApurada)} sobre ${formatMoeda(ap.totalBase)} (${ap.concluidos.length} orçamento(s)).`
+          }]
+        });
+      });
+      aoFechar();
+    } catch (e) {
+      console.error(e);
+      setMsg(e.jaFechado ? 'Esse mês já foi fechado (por outra pessoa ou em outro aparelho).' : 'Não consegui fechar (só o Administrador Master fecha; verifique a conexão).');
+    }
+    setSalvando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && !salvando && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal pc-modal pc-modal-largo"
+  }, /*#__PURE__*/React.createElement("h3", null, "Confer\xEAncia \u2014 ", parcMesNome(ap.mes)), /*#__PURE__*/React.createElement("div", {
+    className: "pc-resumo pc-resumo-mini"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pc-ind"
+  }, /*#__PURE__*/React.createElement("span", null, "Parceiro"), /*#__PURE__*/React.createElement("b", null, parceiro.nome || nomeCliente(parceiro.id))), /*#__PURE__*/React.createElement("div", {
+    className: "pc-ind"
+  }, /*#__PURE__*/React.createElement("span", null, "Clientes envolvidos"), /*#__PURE__*/React.createElement("b", null, clientesEnv.length), /*#__PURE__*/React.createElement("small", null, clientesEnv.map(nomeCliente).join(', '))), /*#__PURE__*/React.createElement("div", {
+    className: "pc-ind"
+  }, /*#__PURE__*/React.createElement("span", null, "Total da base"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.totalBase)), /*#__PURE__*/React.createElement("small", null, PARC_BASES[ap.modo])), /*#__PURE__*/React.createElement("div", {
+    className: "pc-ind pc-apurada"
+  }, /*#__PURE__*/React.createElement("span", null, "Total da comiss\xE3o"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.comissaoApurada)))), /*#__PURE__*/React.createElement(ListaItensParceiro, {
+    itens: ap.concluidos,
+    nomeCliente: nomeCliente,
+    fechados: true
+  }), ap.itens.some(i => i.situacao === 'naoAplicavel') && /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "N\xE3o considerados: ", ap.itens.filter(i => i.situacao === 'naoAplicavel').map(i => `#${i.numero} (${i.motivo})`).join(' · ')), /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "Ao confirmar, os valores ficam registrados como est\xE3o agora e n\xE3o mudam sozinhos. Corre\xE7\xF5es depois disso s\xE3o feitas como ajuste, com motivo. Nenhum pagamento \xE9 feito: ele \xE9 registrado \xE0 parte."), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, msg), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: salvando,
+    onClick: aoFechar
+  }, "Voltar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: confirmar
+  }, salvando ? 'Fechando…' : 'Confirmar fechamento'))));
+}
+// ---- fechamento: detalhes, diferenças, ajustes e pagamentos (Master registra) ----
+function ModalFechamentoParceiro({
+  usuario,
+  fech,
+  parceiro,
+  orcamentos,
+  fechamentos,
+  nomeCliente,
+  aoAbrirOrcamento,
+  aoFechar
+}) {
+  const master = ehMaster(usuario);
+  const [form, setForm] = useState(null); // 'pagamento' | 'ajuste'
+  const [v, setV] = useState({
+    valor: '',
+    data: formatarDataInput(new Date()),
+    forma: 'Pix',
+    obs: '',
+    motivo: '',
+    comprovante: null
+  });
+  const [msg, setMsg] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  if (!fech) return null;
+  const sd = parcSaldo(fech);
+  // o que mudou nos orçamentos depois do fechamento (só mostra; correção = ajuste)
+  const atual = parceiro && parceiro.id === fech.parceiroId ? parcApurar({
+    ...parceiro,
+    baseCalculo: fech.regra && fech.regra.baseCalculo || parceiro.baseCalculo
+  }, orcamentos, fech.mes, (fechamentos || []).filter(f => f.id !== fech.id)) : null;
+  const difs = atual ? (fech.itens || []).map(i => {
+    const a = atual.itens.find(x => x.orcamentoId === i.orcamentoId);
+    return !a ? {
+      ...i,
+      nova: 0,
+      txt: 'não entra mais no mês'
+    } : a.comissao !== i.comissao ? {
+      ...i,
+      nova: a.comissao,
+      txt: `comissão hoje ${formatMoeda(a.comissao)}`
+    } : null;
+  }).filter(Boolean).concat(atual.itens.filter(a => a.situacao === 'concluido' && !(fech.itens || []).some(i => i.orcamentoId === a.orcamentoId)).map(a => ({
+    ...a,
+    nova: a.comissao,
+    comissao: 0,
+    txt: 'concluído depois do fechamento'
+  }))) : [];
+  async function salvar() {
+    const valor = Number(String(v.valor).replace(/\./g, '').replace(',', '.'));
+    if (form === 'pagamento' && !(valor > 0)) {
+      setMsg('Informe o valor pago.');
+      return;
+    }
+    if (form === 'pagamento' && valor > sd.saldo + 0.004) {
+      setMsg(`O valor é maior que o saldo a pagar (${formatMoeda(sd.saldo)}).`);
+      return;
+    }
+    if (form === 'ajuste' && (!valor || !v.motivo.trim())) {
+      setMsg('Informe o valor do ajuste (negativo para descontar) e o motivo.');
+      return;
+    }
+    setSalvando(true);
+    const quando = new Date().toISOString();
+    const reg = form === 'pagamento' ? {
+      valor: parcCent(valor),
+      data: v.data,
+      forma: v.forma,
+      obs: v.obs.trim(),
+      comprovante: v.comprovante || null,
+      registradoPor: usuario.nome || '',
+      em: quando
+    } : {
+      valor: parcCent(valor),
+      motivo: v.motivo.trim(),
+      registradoPor: usuario.nome || '',
+      em: quando
+    };
+    const txt = form === 'pagamento' ? `registrou pagamento de ${formatMoeda(reg.valor)} (${reg.forma}, ${formatarDataBr(reg.data)}).` : `lançou ajuste de ${formatMoeda(reg.valor)}: ${reg.motivo}`;
+    try {
+      await db.collection('parceiroFechamentos').doc(fech.id).update({
+        [form === 'pagamento' ? 'pagamentos' : 'ajustes']: firebase.firestore.FieldValue.arrayUnion(reg),
+        historico: firebase.firestore.FieldValue.arrayUnion({
+          em: quando,
+          por: usuario.nome || '',
+          texto: txt
+        }),
+        atualizadoEm: quando
+      });
+      setForm(null);
+      setV(x => ({
+        ...x,
+        valor: '',
+        obs: '',
+        motivo: '',
+        comprovante: null
+      }));
+      setMsg('');
+    } catch (e) {
+      console.error(e);
+      setMsg('Não consegui registrar (só o Administrador Master registra; verifique a conexão).');
+    }
+    setSalvando(false);
+  }
+  async function anexar(e) {
+    const arq = e.target.files && e.target.files[0];
+    if (!arq) return;
+    if (!/^image\//.test(arq.type)) {
+      setMsg('Envie o comprovante como foto ou imagem (JPG/PNG).');
+      return;
+    }
+    try {
+      setV(x => ({
+        ...x,
+        comprovante: null
+      }));
+      const img = await resizeImagem(arq, 1400, 0.72);
+      setV(x => ({
+        ...x,
+        comprovante: img
+      }));
+    } catch (er) {
+      setMsg('Não consegui ler a imagem.');
+    }
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && !salvando && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal pc-modal pc-modal-largo"
+  }, /*#__PURE__*/React.createElement("h3", null, "Fechamento \u2014 ", parcMesNome(fech.mes), " \xB7 ", fech.parceiroNome), /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "Fechado em ", quandoBrasilia(fech.fechadoEm), " por ", fech.fechadoPor, ". Regra registrada: ", fech.regra && fech.regra.baseNome || '—', ", m\xEAs pela ", fech.regra && fech.regra.referencia || 'data do orçamento', "."), /*#__PURE__*/React.createElement("div", {
+    className: "pc-resumo pc-resumo-mini"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pc-ind"
+  }, /*#__PURE__*/React.createElement("span", null, "Comiss\xE3o fechada"), /*#__PURE__*/React.createElement("b", null, formatMoeda(fech.totalComissao)), /*#__PURE__*/React.createElement("small", null, "base ", formatMoeda(fech.totalBase))), /*#__PURE__*/React.createElement("div", {
+    className: "pc-ind"
+  }, /*#__PURE__*/React.createElement("span", null, "Ajustes"), /*#__PURE__*/React.createElement("b", null, formatMoeda(sd.ajustes))), /*#__PURE__*/React.createElement("div", {
+    className: "pc-ind pc-apurada"
+  }, /*#__PURE__*/React.createElement("span", null, "Comiss\xE3o paga"), /*#__PURE__*/React.createElement("b", null, formatMoeda(sd.pago))), /*#__PURE__*/React.createElement("div", {
+    className: `pc-ind ${sd.saldo > 0.004 ? 'pc-prevista' : ''}`
+  }, /*#__PURE__*/React.createElement("span", null, "Saldo a pagar"), /*#__PURE__*/React.createElement("b", null, formatMoeda(sd.saldo)))), /*#__PURE__*/React.createElement(ListaItensParceiro, {
+    itens: (fech.itens || []).map(i => ({
+      ...i,
+      situacao: 'concluido'
+    })),
+    nomeCliente: id => (fech.itens.find(i => i.clienteId === id) || {}).clienteNome || nomeCliente(id),
+    aoAbrir: aoAbrirOrcamento,
+    fechados: true
+  }), difs.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "pc-faixa pc-amarelo"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Mudan\xE7as depois do fechamento"), /*#__PURE__*/React.createElement("ul", null, difs.map(d => /*#__PURE__*/React.createElement("li", {
+    key: d.orcamentoId
+  }, "#", d.numero, ": fechado com ", formatMoeda(d.comissao), " \u2014 ", d.txt))), /*#__PURE__*/React.createElement("small", null, "Os valores fechados n\xE3o mudam sozinhos. Se precisar corrigir, lance um ajuste com o motivo."))), (fech.pagamentos || []).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h4", null, "Pagamentos"), /*#__PURE__*/React.createElement("ul", {
+    className: "pc-lista-reg"
+  }, fech.pagamentos.map((p, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("b", null, formatMoeda(p.valor)), " \xB7 ", formatarDataBr(p.data), " \xB7 ", p.forma, p.obs ? ` · ${p.obs}` : '', " ", /*#__PURE__*/React.createElement("small", null, "(registrado por ", p.registradoPor, ")"), p.comprovante && /*#__PURE__*/React.createElement("a", {
+    href: "#",
+    onClick: async ev => {
+      ev.preventDefault();
+      const u = ehTokenMidia(p.comprovante) ? await obterMidia(p.comprovante) : p.comprovante;
+      const w = window.open();
+      if (w) w.document.write(`<img src="${u}" style="max-width:100%">`);
+    }
+  }, " \xB7 ver comprovante"))))), (fech.ajustes || []).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h4", null, "Ajustes"), /*#__PURE__*/React.createElement("ul", {
+    className: "pc-lista-reg"
+  }, fech.ajustes.map((a, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("b", null, formatMoeda(a.valor)), " \u2014 ", a.motivo, " ", /*#__PURE__*/React.createElement("small", null, "(", a.registradoPor, ", ", quandoBrasilia(a.em), ")"))))), master && !form && /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes pc-acoes-esq"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: sd.saldo <= 0.004,
+    onClick: () => {
+      setForm('pagamento');
+      setV(x => ({
+        ...x,
+        valor: String(sd.saldo.toFixed(2)).replace('.', ',')
+      }));
+    }
+  }, "Registrar pagamento"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setForm('ajuste')
+  }, "Lan\xE7ar ajuste")), form === 'pagamento' && /*#__PURE__*/React.createElement("div", {
+    className: "pc-form"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Valor apurado (saldo)"), /*#__PURE__*/React.createElement("input", {
+    value: formatMoeda(sd.saldo),
+    disabled: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Valor pago"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    value: v.valor,
+    onChange: e => setV(x => ({
+      ...x,
+      valor: e.target.value.replace(/[^0-9.,]/g, '')
+    }))
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid2"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data do pagamento"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: v.data,
+    onChange: e => setV(x => ({
+      ...x,
+      data: e.target.value
+    }))
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Forma de pagamento"), /*#__PURE__*/React.createElement("select", {
+    value: v.forma,
+    onChange: e => setV(x => ({
+      ...x,
+      forma: e.target.value
+    }))
+  }, PARC_FORMAS.map(f => /*#__PURE__*/React.createElement("option", {
+    key: f
+  }, f))))), /*#__PURE__*/React.createElement("label", null, "Comprovante (opcional, foto)"), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    onChange: anexar
+  }), v.comprovante && /*#__PURE__*/React.createElement("small", {
+    className: "pc-nota"
+  }, " imagem anexada"), /*#__PURE__*/React.createElement("label", null, "Observa\xE7\xF5es"), /*#__PURE__*/React.createElement("textarea", {
+    rows: "2",
+    value: v.obs,
+    onChange: e => setV(x => ({
+      ...x,
+      obs: e.target.value
+    }))
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "Pagamento parcial \xE9 permitido: o restante fica como saldo a pagar.")), form === 'ajuste' && /*#__PURE__*/React.createElement("div", {
+    className: "pc-form"
+  }, /*#__PURE__*/React.createElement("label", null, "Valor do ajuste (use negativo para descontar)"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    value: v.valor,
+    onChange: e => setV(x => ({
+      ...x,
+      valor: e.target.value.replace(/[^0-9.,-]/g, '')
+    }))
+  }), /*#__PURE__*/React.createElement("label", null, "Motivo (obrigat\xF3rio)"), /*#__PURE__*/React.createElement("textarea", {
+    rows: "2",
+    value: v.motivo,
+    onChange: e => setV(x => ({
+      ...x,
+      motivo: e.target.value
+    }))
+  })), (fech.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "pc-hist"
+  }, /*#__PURE__*/React.createElement("summary", null, "Hist\xF3rico (", fech.historico.length, ")"), /*#__PURE__*/React.createElement("ul", null, fech.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(h.em), " \u2014 ", h.por, ": ", h.texto)))), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, msg), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, form ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: salvando,
+    onClick: () => {
+      setForm(null);
+      setMsg('');
+    }
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: salvar
+  }, salvando ? 'Salvando…' : form === 'pagamento' ? 'Confirmar pagamento' : 'Lançar ajuste')) : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+// ---- no cadastro do cliente: "Este cliente recebe comissão por indicação?" (administradores) ----
+function SecaoParceiroCliente({
+  cliente,
+  usuario
+}) {
+  const parc = useParceiros(true);
+  const [clientes] = useColecao('clientes');
+  const [aberto, setAberto] = useState(false);
+  const p = parc && parc.lista.find(x => x.id === cliente.id);
+  const hoje = formatarDataInput(new Date());
+  const n = p ? Object.values(p.indicados || {}).filter(ind => parcVigente(p, ind, hoje)).length : 0;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "pc-cliente"
+  }, /*#__PURE__*/React.createElement("span", null, "Recebe comiss\xE3o por indica\xE7\xE3o? ", /*#__PURE__*/React.createElement("b", null, p ? p.ativo === false ? 'Sim (inativa)' : `Sim — ${parcPct(p.percentualPadrao)}, ${avPlural(n, 'cliente', 'clientes')}` : 'Não')), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setAberto(true)
+  }, p ? 'Configurar' : 'Ativar'), aberto && ReactDOM.createPortal(/*#__PURE__*/React.createElement(ModalConfigParceiro, {
+    usuario: usuario,
+    clienteInicial: cliente.id,
+    parceiro: p || null,
+    parceiros: parc && parc.lista || [],
+    clientes: clientes,
+    aoSalvar: () => setAberto(false),
+    aoFechar: () => setAberto(false)
+  }), document.body));
+}
 
 // ======================= LAYOUT =======================
 // Mesma tela de abertura do index (logo + barra), enquanto a lista de usuários chega
@@ -16130,7 +17407,10 @@ function ModalCliente({
       justifyContent: 'flex-end',
       marginTop: 20
     }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, cliente && ehAdministrador(usuario) && /*#__PURE__*/React.createElement(SecaoParceiroCliente, {
+    cliente: cliente,
+    usuario: usuario
+  }), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
@@ -19964,6 +21244,9 @@ function AbaOrcamentos({
   // Kanban em lotes: cada coluna desenha os primeiros cartões e o resto conforme a rolagem chega perto
   // (muitos cartões de uma vez deixavam a tela lenta no celular). A contagem e a busca usam todos.
   const [limitesKanban, setLimitesKanban] = useState({});
+  // aba "Comissão do Parceiro" (só administradores) e o selo de indicação nos cartões
+  const [vistaOrc, setVistaOrc] = useState('quadro');
+  const parcKanban = useParceiros(ehAdministrador(usuario));
   const [clientes] = useColecao('clientes');
   const [catalogo] = useColecao('catalogoPecas');
   const [modalAberto, setModalAberto] = useState(false);
@@ -20139,6 +21422,11 @@ function AbaOrcamentos({
       }, funcionarios);
     }
   }
+  if (vistaOrc === 'parceiro' && ehAdministrador(usuario)) return /*#__PURE__*/React.createElement(AbaComissaoParceiro, {
+    usuario: usuario,
+    vista: vistaOrc,
+    aoMudarVista: setVistaOrc
+  });
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -20155,11 +21443,16 @@ function AbaOrcamentos({
       flexWrap: 'wrap',
       gap: 10
     }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pc-cab-tit"
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
       margin: 0
     }
-  }, "Orçamentos"), /*#__PURE__*/React.createElement("div", {
+  }, "Orçamentos"), ehAdministrador(usuario) && /*#__PURE__*/React.createElement(AbasOrcamento, {
+    vista: vistaOrc,
+    aoMudar: setVistaOrc
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8
@@ -20447,7 +21740,10 @@ function AbaOrcamentos({
           fontSize: 11.5,
           color: 'var(--texto-fraco)'
         }
-      }, "💰 ", formatMoeda(comissaoElegivel(o) ? o.comissaoTotal : 0))), /*#__PURE__*/React.createElement("div", {
+      }, "💰 ", formatMoeda(comissaoElegivel(o) ? o.comissaoTotal : 0))), /*#__PURE__*/React.createElement(SeloIndicacao, {
+        parc: parcKanban,
+        orcamento: o
+      }), /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 11,
           color: 'var(--texto-fraco)',
@@ -20684,6 +21980,7 @@ function ModalOrcamento({
   aoFechar
 }) {
   const [funcionarios] = useColecao('funcionarios');
+  const parcModal = useParceiros(ehAdministrador(usuario));
   // versão ao vivo do orçamento (o histórico aparece atualizado sem fechar a janela)
   const orcamentoVivo = useDocumento('orcamentos', orcamento?.id);
   const salvandoRef = useRef(false);
@@ -20904,7 +22201,10 @@ function ModalOrcamento({
     style: {
       marginTop: 0
     }
-  }, orcamento ? `Editar orçamento #${orcamento.numero}` : 'Novo orçamento'), loteOrigem && /*#__PURE__*/React.createElement("div", {
+  }, orcamento ? `Editar orçamento #${orcamento.numero}` : 'Novo orçamento'), orcamento && /*#__PURE__*/React.createElement(SeloIndicacao, {
+    parc: parcModal,
+    orcamento: orcamento
+  }), loteOrigem && /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       background: 'var(--fundo)',

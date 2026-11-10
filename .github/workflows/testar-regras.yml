@@ -5,7 +5,7 @@ name: Testar regras do banco
 on:
   push:
     branches: [main, 'seguranca-*']
-    paths: ['seguranca/**', 'index.html', 'backup/**', '.github/workflows/testar-regras.yml', '.github/workflows/arquivamento.yml']
+    paths: ['seguranca/**', 'index.html', 'backup/**', '.github/workflows/testar-regras.yml', '.github/workflows/arquivamento.yml', '.github/workflows/comissao-parceiro.yml']
   workflow_dispatch:
 
 permissions:
@@ -32,6 +32,11 @@ jobs:
         env:
           TZ: America/Sao_Paulo
         run: node teste-arquivamento.mjs
+      - name: Testar a regra da comissão do parceiro
+        working-directory: seguranca
+        env:
+          TZ: America/Sao_Paulo
+        run: node teste-parceiro.mjs
       - name: Testar as regras
         working-directory: seguranca
         run: npx firebase emulators:exec --only firestore --project demo-controle-pecas "node teste-regras.mjs"

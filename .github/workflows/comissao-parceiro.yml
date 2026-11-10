@@ -1,0 +1,43 @@
+name: 'Comissão do parceiro: aviso'
+
+# No último dia útil de cada mês, avisa o Master e os administradores (no 🔔 do sistema) sobre o fechamento
+# da comissão do parceiro: orçamentos do mês, concluídos, pendentes e se o fechamento está liberado.
+# Só lê os dados e cria o aviso — não fecha nem paga nada. O registro é público: só contagens.
+on:
+  schedule:
+    - cron: '23 12 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      forcar:
+        description: 'Criar o aviso hoje mesmo que não seja o último dia útil (teste)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comissao-parceiro
+  cancel-in-progress: false
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            backup
+            index.html
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Avisar sobre o fechamento do mês
+        env:
+          TZ: America/Sao_Paulo
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
+          FORCAR: ${{ inputs.forcar && '1' || '' }}
+        run: node backup/parceiro-aviso.mjs

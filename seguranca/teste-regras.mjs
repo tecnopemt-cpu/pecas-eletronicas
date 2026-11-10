@@ -198,6 +198,29 @@ await caso('arquivamento: rotina NÃO cria documentos', NAO, () => como.backup.d
 await caso('arquivamento: rotina NÃO mexe em clientes', NAO, () => como.backup.doc('clientes/C1').update({ arquivado: true }));
 await caso('arquivamento: outra conta com o mesmo e-mail NÃO arquiva', NAO, () => como.backupFalso.doc('lotes/L4').update({ arquivado: true }));
 await caso('arquivamento: visitante do link NÃO mexe no arquivamento', NAO, () => como.visitante.doc('orcamentos/O3').update({ arquivado: false, motivoArquivamento: 'x' }));
+// comissão do parceiro
+await env.withSecurityRulesDisabled(async ctx => { const d = ctx.firestore(); await d.doc('parceiros/PA').set({ nome: 'Parceiro', percentualPadrao: 15, indicados: {} }); await d.doc('parceiroFechamentos/PA_2026-09').set({ parceiroId: 'PA', mes: '2026-09', totalComissao: 300, itens: [{ orcamentoId: 'O1', comissao: 300 }], pagamentos: [], ajustes: [], historico: [] }); });
+const fechNovo = { parceiroId: 'PA', mes: '2026-10', totalComissao: 150, itens: [], pagamentos: [], ajustes: [], historico: [] };
+await caso('parceiro: administrador lê a configuração', SIM, () => como.admin.doc('parceiros/PA').get());
+await caso('parceiro: administrador edita percentuais e vínculos', SIM, () => como.admin.doc('parceiros/PA').update({ percentualPadrao: 12 }));
+await caso('parceiro: funcionário NÃO lê valores do parceiro', NAO, () => como.func.doc('parceiros/PA').get());
+await caso('parceiro: funcionário NÃO edita', NAO, () => como.func.doc('parceiros/PA').update({ percentualPadrao: 50 }));
+await caso('parceiro: ninguém apaga a parceria', NAO, () => como.master.doc('parceiros/PA').delete());
+await caso('parceiro: funcionário NÃO lê fechamentos', NAO, () => como.func.doc('parceiroFechamentos/PA_2026-09').get());
+await caso('parceiro: administrador NÃO fecha o mês (só o Master)', NAO, () => como.admin.doc('parceiroFechamentos/PA_2026-10').set(fechNovo));
+await caso('parceiro: Master fecha o mês', SIM, () => como.master.doc('parceiroFechamentos/PA_2026-10').set(fechNovo));
+await caso('parceiro: o mesmo mês NÃO é fechado duas vezes', NAO, () => como.master.doc('parceiroFechamentos/PA_2026-10').set({ ...fechNovo, totalComissao: 999 }));
+await caso('parceiro: fechamento com id diferente de parceiro_mês é recusado', NAO, () => como.master.doc('parceiroFechamentos/OUTRO').set(fechNovo));
+await caso('parceiro: Master registra pagamento parcial', SIM, () => como.master.doc('parceiroFechamentos/PA_2026-09').update({ pagamentos: FV.arrayUnion({ valor: 100, forma: 'Pix' }), historico: FV.arrayUnion({ texto: 'pagou' }) }));
+await caso('parceiro: administrador NÃO registra pagamento', NAO, () => como.admin.doc('parceiroFechamentos/PA_2026-09').update({ pagamentos: FV.arrayUnion({ valor: 50 }) }));
+await caso('parceiro: valores fechados NÃO mudam (só ajuste)', NAO, () => como.master.doc('parceiroFechamentos/PA_2026-09').update({ totalComissao: 1 }));
+await caso('parceiro: pagamento registrado NÃO é apagado', NAO, () => como.master.doc('parceiroFechamentos/PA_2026-09').update({ pagamentos: [] }));
+await caso('parceiro: Master lança ajuste com motivo', SIM, () => como.master.doc('parceiroFechamentos/PA_2026-09').update({ ajustes: FV.arrayUnion({ valor: -10, motivo: 'correção' }) }));
+await caso('parceiro: ninguém apaga fechamento', NAO, () => como.master.doc('parceiroFechamentos/PA_2026-09').delete());
+await caso('parceiro: rotina lê para preparar o aviso', SIM, () => como.backup.collection('parceiros').get());
+await caso('parceiro: rotina cria o aviso do último dia útil', SIM, () => como.backup.doc('notificacoes/parceiro_PA_2026-10_WAL').set({ funcionarioId: 'WAL', tipo: 'parceiro', texto: 'x', lida: false }));
+await caso('parceiro: rotina NÃO cria outro tipo de notificação', NAO, () => como.backup.doc('notificacoes/parceiro_X').set({ funcionarioId: 'WAL', tipo: 'geral', texto: 'x', lida: false }));
+await caso('parceiro: rotina NÃO sobrescreve aviso existente', NAO, () => como.backup.doc('notificacoes/parceiro_PA_2026-10_WAL').set({ funcionarioId: 'WAL', tipo: 'parceiro', texto: 'y', lida: false }));
 // ---------- avaliação de desempenho ----------
 await env.withSecurityRulesDisabled(async ctx => {
   const db = ctx.firestore();
