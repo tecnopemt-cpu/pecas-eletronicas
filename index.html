@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
 <title>Controle de Peças - Tecnopemt</title>
-<link rel="manifest" href="manifest.json?v=20261105" />
+<link rel="manifest" href="manifest.json?v=20261110" />
 <!-- ícone do aplicativo (o "?v=" força os aparelhos a buscarem a imagem nova) -->
 <link rel="icon" type="image/x-icon" href="icons/app/favicon.ico?v=20261105" sizes="16x16 32x32 48x48" />
 <link rel="icon" type="image/png" sizes="32x32" href="icons/app/favicon-32.png?v=20261105" />
@@ -24,6 +24,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Peças Tecnopemt" />
 <meta name="mobile-web-app-capable" content="yes" />
+<script>
+// iPhone/iPad no Safari (fora do app instalado): a barra do navegador flutua SOBRE o rodapé da página
+// (iOS 26). O CSS usa estas classes para reservar esse espaço no fim de cada área com rolagem.
+(function(){try{var ua=navigator.userAgent,c=document.documentElement.classList;var ios=/iP(hone|od|ad)/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);var inst=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);if(ios)c.add('ios');if(ios&&!inst)c.add('ios-navegador');if(inst)c.add('app-instalado');}catch(e){}})();
+</script>
 <style>
   :root{
     --dark:#0F2A47;
@@ -168,7 +173,9 @@
   .topo-novo-usuario .nome{font-weight:700;font-size:13.5px;line-height:1.25;}
   .topo-novo-usuario .cargo{font-size:11px;color:#9FB0C2;}
 
-  .conteudo-principal{flex:1;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;padding:20px 24px calc(env(safe-area-inset-bottom) + 20px);}
+  :root{--folga-barra:0px;}
+  html.ios-navegador{--folga-barra:84px;}
+  .conteudo-principal{flex:1;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;padding:20px 24px calc(env(safe-area-inset-bottom) + 20px + var(--folga-barra));}
 
   /* ---- Telas em modo painel (Orçamento, Cadastro de Peças, Entrada de Peças, Clientes): cabeçalho da tela e da tabela fixos, só as linhas rolam ---- */
   .painel-tela{display:flex;flex-direction:column;height:100%;}
@@ -178,13 +185,13 @@
   .painel-tabela thead th{position:sticky;top:0;background:var(--card);z-index:5;box-shadow:0 1px 0 var(--borda);}
 
   @media (max-width:900px){
-    .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:70;width:260px;transform:translateX(-100%);transition:transform .25s ease;box-shadow:2px 0 20px rgba(0,0,0,.3);}
-    .sidebar.mobile-aberta{transform:translateX(0);}
+    .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:70;width:260px;transform:translateX(-100%);transition:transform .25s ease,box-shadow .25s ease;box-shadow:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(--folga-barra));box-sizing:border-box;}
+    .sidebar.mobile-aberta{transform:translateX(0);box-shadow:2px 0 20px rgba(0,0,0,.3);}
     .sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(10,15,20,.5);z-index:65;opacity:0;pointer-events:none;transition:opacity .2s ease;}
     .sidebar-backdrop.visivel{opacity:1;pointer-events:auto;}
     .topo-novo{padding:10px 14px;padding-top:max(10px, env(safe-area-inset-top));}
     .topo-novo-usuario .cargo{display:none;}
-    .conteudo-principal{padding:14px 14px calc(env(safe-area-inset-bottom) + 14px);}
+    .conteudo-principal{padding:14px 14px calc(env(safe-area-inset-bottom) + 14px + var(--folga-barra));}
   }
 
   @media (max-width:640px){
@@ -192,7 +199,7 @@
     h2{font-size:19px;}
     /* modais viram uma folha que sobe do rodapé, mais fácil de usar com o polegar */
     .modal-fundo{align-items:flex-end;padding:0;}
-    .modal{max-width:100%;border-radius:16px 16px 0 0;max-height:92vh;overflow-y:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));}
+    .modal{max-width:100%;border-radius:16px 16px 0 0;max-height:92vh;max-height:92dvh;overflow-y:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom) + var(--folga-barra));}
   }
 
   /* ---- Telas de acesso (Login / Criar conta / Primeiro acesso) ---- */
@@ -299,8 +306,8 @@
   /* ---- Refinamento visual (nov/2026): fundo uniforme, sem névoa no topo, áreas seguras do celular ---- */
   /* Enquanto a abertura ou o login estão na tela, a página inteira é azul-marinho: assim nada claro aparece
      atrás da barra de status (iPhone com barra translúcida), no "puxar" da página ou nas bordas arredondadas. */
-  html:has(#root > .acesso),html:has(#root > .abertura-sistema),
-  html:has(#root > .acesso) body,html:has(#root > .abertura-sistema) body{background:#0F2A47;}
+  html:has(#root > .acesso),html:has(#root > .abertura-sistema),html:has(#root > .app-shell),
+  html:has(#root > .acesso) body,html:has(#root > .abertura-sistema) body,html:has(#root > .app-shell) body{background:#0F2A47;}
   .acesso-logo img{box-shadow:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35));image-rendering:-webkit-optimize-contrast;}
   .acesso-btn-sec-txt{display:flex;flex-direction:column;align-items:center;line-height:1.25;}
   .acesso-btn-sec-txt .acesso-btn-sec-fraco{font-size:12px;font-weight:500;color:#66768A;}
@@ -396,6 +403,23 @@
     .av-evolucao-barra{grid-column:1 / -1;order:3;}
   }
 
+  .kanban-mais{align-self:center;margin:4px 0 8px;flex-shrink:0;}
+  /* Telas de toque: área mínima de toque nos controles pequenos (o visual no computador não muda) */
+  @media (pointer:coarse){
+    .btn.pequeno{min-height:36px;}
+    .kanban-cartao button:not(.btn){min-width:36px;min-height:36px;}
+    .kanban-cartao select{min-height:34px;}
+    .mon-seg button{min-height:34px;}
+    .mon-link{padding:8px 0;}
+    .btn-menu-pontos{min-width:36px;min-height:36px;}
+  }
+  /* ---- Aviso de nova versão ---- */
+  .aviso-versao{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;padding:9px 16px;background:#FFF3E6;border-bottom:1px solid #F0C28F;color:#7A3B00;font-size:13px;}
+  .aviso-versao-acoes{display:flex;gap:8px;}
+  .aviso-versao .btn.pequeno{min-height:36px;}
+  .mon-alertas li.n-ok{background:#E3F4EA;color:#145C33;}
+  .mon-alertas li.n-ok .mon-alerta-ic{color:#1F8A4C;}
+  .mon-situacao-geral{margin-top:4px;}
   /* ---- Arquivamento ---- */
   .arq-motivo{margin-top:4px;font-size:12px;color:var(--texto-fraco);line-height:1.4;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
   .arq-selo-auto{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:#E3EEFA;color:#1F5590;}
@@ -876,6 +900,7 @@
   }
 
   /* ---- Galeria de fotos (todo o sistema) ---- */
+  .tela-cheia-toque{padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(--folga-barra));box-sizing:border-box;}
   .galeria{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;background:#0A1524;color:#fff;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none;animation:galeriaAbre .16s ease-out;}
   @keyframes galeriaAbre{from{opacity:0}}
   .galeria-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));flex-shrink:0;}
@@ -899,7 +924,7 @@
   .galeria-seta:hover{background:var(--laranja);border-color:var(--laranja);}
   .galeria-seta.esq{left:16px;}
   .galeria-seta.dir{right:16px;}
-  .galeria-rodape{flex-shrink:0;padding:8px 14px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .galeria-rodape{flex-shrink:0;padding:8px 14px 12px;padding-bottom:calc(max(12px,env(safe-area-inset-bottom)) + var(--folga-barra));display:flex;flex-direction:column;align-items:center;gap:8px;}
   .galeria-legenda{font-size:13.5px;color:#E6ECF3;text-align:center;max-width:720px;}
   .galeria-miniaturas{display:flex;gap:8px;max-width:100%;overflow-x:auto;padding:3px;scrollbar-width:thin;touch-action:pan-x;}
   .galeria-mini{flex-shrink:0;width:58px;height:58px;padding:0;border-radius:9px;overflow:hidden;border:2px solid transparent;background:#1B2C42;cursor:pointer;opacity:.6;transition:opacity .15s ease,border-color .15s ease;}
@@ -5113,6 +5138,80 @@ async function migrarCarimboSincronizacao() {
     console.error('carimbo da sincronização', err);
   }
 }
+// ======================= NOVA VERSÃO DO SISTEMA =======================
+// O site não usa cache próprio (não há service worker): cada abertura já busca a página atual. Mas quem deixa
+// o sistema aberto por muito tempo (app instalado no celular) continuaria na versão antiga. Então, a cada
+// 10 minutos e ao voltar para o app, o sistema pergunta ao servidor só a data da página (sem baixar nada)
+// e, se houver versão nova, mostra um aviso. Nunca atualiza sozinho: a pessoa escolhe a hora, e antes de
+// recarregar o sistema espera terminar de enviar o que estiver sendo salvo.
+const VERSAO_CARREGADA = Date.parse(document.lastModified) || 0;
+let versaoUltimaConsulta = 0;
+async function haVersaoNova() {
+  if (!VERSAO_CARREGADA || !/^https?:$/.test(location.protocol) || Date.now() - versaoUltimaConsulta < 60000) return false;
+  versaoUltimaConsulta = Date.now();
+  try {
+    const r = await fetch(location.pathname + '?versao=' + Date.now(), {
+      method: 'HEAD',
+      cache: 'no-store'
+    });
+    const lm = Date.parse(r.headers.get('last-modified') || '');
+    return !!lm && lm > VERSAO_CARREGADA + 1000;
+  } catch (e) {
+    return false;
+  }
+}
+function AvisoNovaVersao() {
+  const [nova, setNova] = useState(false);
+  const [adiada, setAdiada] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
+  useEffect(() => {
+    let vivo = true;
+    const checar = async () => {
+      if (await haVersaoNova() && vivo) setNova(true);
+    };
+    const t = setInterval(checar, 10 * 60 * 1000);
+    const t0 = setTimeout(checar, 30000);
+    const vis = () => {
+      if (document.visibilityState === 'visible') checar();
+    };
+    document.addEventListener('visibilitychange', vis);
+    return () => {
+      vivo = false;
+      clearInterval(t);
+      clearTimeout(t0);
+      document.removeEventListener('visibilitychange', vis);
+    };
+  }, []);
+  useEffect(() => {
+    if (!adiada) return;
+    const t = setTimeout(() => setAdiada(false), 60 * 60 * 1000);
+    return () => clearTimeout(t);
+  }, [adiada]);
+  if (!nova || adiada) return null;
+  async function atualizar() {
+    if (document.querySelector('.modal-fundo') && !confirm('Há uma janela aberta. Se estiver preenchendo algo, salve antes de atualizar.\n\nAtualizar mesmo assim?')) return;
+    setAtualizando(true);
+    try {
+      await Promise.race([db.waitForPendingWrites(), new Promise(ok => setTimeout(ok, 8000))]);
+    } catch (e) {/* segue */}
+    atualizarApp();
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "aviso-versao",
+    role: "status"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Nova vers\u00e3o do sistema dispon\u00edvel."), " Atualize quando terminar o que est\u00e1 fazendo."), /*#__PURE__*/React.createElement("span", {
+    className: "aviso-versao-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    disabled: atualizando,
+    onClick: atualizar
+  }, atualizando ? 'Atualizando…' : 'Atualizar agora'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setAdiada(true)
+  }, "Depois")));
+}
 async function atualizarApp() {
   try {
     if (window.caches) {
@@ -5838,6 +5937,7 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -11329,6 +11429,11 @@ const MON = {
     n: 0,
     max: 0
   },
+  telas: {},
+  pdf: {
+    gerados: 0,
+    falhas: 0
+  },
   erros: [],
   errosSessao: 0,
   sujo: false,
@@ -11654,6 +11759,35 @@ function monEmbrulharObservador(args, aoDados, aoErro) {
       };
     }
     window.addEventListener('error', e => monErro('execucao', e && e.message));
+    // arquivo que não carregou (script/estilo/imagem do site ou das bibliotecas): fase de captura
+    window.addEventListener('error', e => {
+      const alvo = e && e.target;
+      if (!alvo || alvo === window || !alvo.tagName) return;
+      const src = String(alvo.src || alvo.href || '');
+      if (!src || src.startsWith('data:') || src.startsWith('blob:')) return;
+      try {
+        const u = new URL(src, location.href);
+        monSomar('falhas', 'carregamento', 1);
+        monErro('carregamento', `Não carregou: ${u.host}${u.pathname}`.slice(0, 160));
+      } catch (x) {}
+    }, true);
+    // documentos (PDF): conta os gerados e as falhas de cada gerador gerarPdf*
+    Object.keys(window).filter(k => /^gerarPdf/.test(k) && typeof window[k] === 'function').forEach(k => {
+      const f = window[k];
+      window[k] = async function (...a) {
+        try {
+          const r = await f.apply(this, a);
+          MON.pdf.gerados++;
+          MON.sujo = true;
+          return r;
+        } catch (e) {
+          MON.pdf.falhas++;
+          monSomar('falhas', 'pdf', 1);
+          monErro('pdf', `${k}: ${e && e.message || e}`);
+          throw e;
+        }
+      };
+    });
     window.addEventListener('unhandledrejection', e => {
       const r = e && e.reason;
       monErro('execucao', r && r.code ? `${r.code}: ${r.message}` : r && r.message || String(r));
@@ -11690,6 +11824,53 @@ function monEmbrulharObservador(args, aoDados, aoErro) {
     console.warn('monitoramento não instalado', e);
   }
 })();
+// tempo de abertura de cada módulo: da troca no menu até a tela parar de mostrar "Carregando".
+// Mais de MON_TELA_LIMITE_MS sem terminar conta como falha ao carregar o módulo.
+const MON_LENTA_MS = 4000,
+  MON_TELA_LIMITE_MS = 20000;
+let monTelaMedindo = 0;
+function monMedirTela(nome) {
+  const id = ++monTelaMedindo,
+    t0 = performance.now();
+  const passo = () => {
+    if (id !== monTelaMedindo) return; // trocou de tela antes de terminar: não conta
+    const ms = Math.round(performance.now() - t0);
+    const c = document.querySelector('.conteudo-principal');
+    const txt = c ? c.textContent || '' : '';
+    const pronto = !!c && txt.trim().length > 20 && !/Carregando/i.test(txt.slice(0, 6000));
+    if (!pronto && ms <= MON_TELA_LIMITE_MS) {
+      setTimeout(passo, 120);
+      return;
+    }
+    const t = MON.telas[nome] = MON.telas[nome] || {
+      n: 0,
+      somaMs: 0,
+      maxMs: 0,
+      lentas: 0,
+      falhas: 0
+    };
+    if (pronto) {
+      t.n++;
+      t.somaMs += ms;
+      t.maxMs = Math.max(t.maxMs, ms);
+      if (ms > MON_LENTA_MS) t.lentas++;
+    } else {
+      t.falhas++;
+      monSomar('falhas', 'modulo', 1);
+      monErro('modulo', `A tela "${nome}" não terminou de carregar em ${MON_TELA_LIMITE_MS / 1000} s`);
+    }
+    MON.sujo = true;
+  };
+  setTimeout(passo, 0);
+}
+function MonMedidorTela({
+  tela
+}) {
+  useEffect(() => {
+    monMedirTela(tela);
+  }, [tela]);
+  return null;
+}
 // envia os contadores acumulados (1 gravação por pessoa a cada 5 minutos de uso, no máximo)
 async function monEnviar() {
   const u = window.MON_USUARIO,
@@ -11722,6 +11903,18 @@ async function monEnviar() {
     bytes: inc(MON.site.bytes)
   };
   if (MON.erros.length) dados.erros = FV.arrayUnion(...MON.erros.slice(0, 20));
+  const telasEnv = Object.entries(MON.telas).filter(([, t]) => t.n || t.falhas);
+  if (telasEnv.length) dados.telas = Object.fromEntries(telasEnv.map(([k, t]) => [k, {
+    n: inc(t.n),
+    somaMs: inc(t.somaMs),
+    lentas: inc(t.lentas),
+    falhas: inc(t.falhas),
+    maxMs: t.maxMs
+  }]));
+  if (MON.pdf.gerados || MON.pdf.falhas) dados.pdf = {
+    gerados: inc(MON.pdf.gerados),
+    falhas: inc(MON.pdf.falhas)
+  };
   const guardado = {
     leituras: MON.leituras,
     gravacoes: MON.gravacoes,
@@ -11731,7 +11924,9 @@ async function monEnviar() {
     falhas: MON.falhas,
     site: MON.site,
     lat: MON.lat,
-    erros: MON.erros
+    erros: MON.erros,
+    telas: MON.telas,
+    pdf: MON.pdf
   };
   Object.assign(MON, {
     leituras: {},
@@ -11749,6 +11944,11 @@ async function monEnviar() {
       n: 0,
       max: 0
     },
+    telas: {},
+    pdf: {
+      gerados: 0,
+      falhas: 0
+    },
     erros: [],
     sujo: false
   });
@@ -11760,6 +11960,22 @@ async function monEnviar() {
   } catch (e) {
     // sem conexão: devolve para o próximo envio (nada se perde)
     for (const g of ['leituras', 'gravacoes', 'exclusoes', 'baixados', 'enviados', 'falhas']) for (const [k, n] of Object.entries(guardado[g])) MON[g][k] = (MON[g][k] || 0) + n;
+    for (const [k, t] of Object.entries(guardado.telas)) {
+      const a = MON.telas[k] = MON.telas[k] || {
+        n: 0,
+        somaMs: 0,
+        maxMs: 0,
+        lentas: 0,
+        falhas: 0
+      };
+      a.n += t.n;
+      a.somaMs += t.somaMs;
+      a.lentas += t.lentas;
+      a.falhas += t.falhas;
+      a.maxMs = Math.max(a.maxMs, t.maxMs);
+    }
+    MON.pdf.gerados += guardado.pdf.gerados;
+    MON.pdf.falhas += guardado.pdf.falhas;
     MON.erros = guardado.erros.concat(MON.erros).slice(0, 40);
     MON.lat.soma += guardado.lat.soma;
     MON.lat.n += guardado.lat.n;
@@ -11888,7 +12104,8 @@ const MON_CONFIG_PADRAO = {
   fatorPadrao: 2,
   backupAtrasoHoras: 30,
   errosPorDia: 20,
-  crescimentoPct: 50
+  crescimentoPct: 50,
+  lentidaoMs: 4000
 };
 
 // ---------- 3. componentes visuais ----------
@@ -12508,6 +12725,11 @@ function monUsoApp(uso, p) {
       aberturas: 0,
       bytes: 0
     },
+    telas: {},
+    pdf: {
+      gerados: 0,
+      falhas: 0
+    },
     pessoas: new Set()
   };
   for (const u of no) {
@@ -12540,6 +12762,24 @@ function monUsoApp(uso, p) {
       ...e,
       nome: u.nome || ''
     }));
+    for (const [k, x] of Object.entries(u.telas || {})) {
+      const a = t.telas[k] = t.telas[k] || {
+        n: 0,
+        somaMs: 0,
+        maxMs: 0,
+        lentas: 0,
+        falhas: 0
+      };
+      a.n += x.n || 0;
+      a.somaMs += x.somaMs || 0;
+      a.lentas += x.lentas || 0;
+      a.falhas += x.falhas || 0;
+      a.maxMs = Math.max(a.maxMs, x.maxMs || 0);
+    }
+    if (u.pdf) {
+      t.pdf.gerados += u.pdf.gerados || 0;
+      t.pdf.falhas += u.pdf.falhas || 0;
+    }
     if (u.latencia) {
       t.lat.somaMs += u.latencia.somaMs || 0;
       t.lat.operacoes += u.latencia.operacoes || 0;
@@ -12591,6 +12831,88 @@ function monUltimoBackup(infra) {
     ultimoArquivo: lista[0] || null,
     ultimaOk: ex.find(e => e.resultado === 'success') || null
   };
+}
+// ---- erros agrupados: mesmo tipo + tela + mensagem (números trocados por #) = um problema
+const MON_NOMES_TELA = {
+  avisos: 'Avisos',
+  dashboard: 'Painel',
+  lotes: 'Entrada de Peças',
+  catalogo: 'Cadastro de Peças',
+  clientes: 'Clientes',
+  orcamentos: 'Orçamento',
+  comissoes: 'Comissão',
+  funcionarios: 'Equipe',
+  avaliacoes: 'Avaliação',
+  monitoramento: 'Central de Monitoramento'
+};
+const monNomeTela = t => MON_NOMES_TELA[t] || t || '—';
+const MON_TIPO_ERRO = {
+  execucao: 'Erro de JavaScript',
+  falha: 'Falha ao salvar ou consultar',
+  modulo: 'Módulo não carregou',
+  carregamento: 'Falha de carregamento',
+  pdf: 'Erro ao gerar documento'
+};
+function monGravidadeErro(e) {
+  const m = String(e.msg || '');
+  if (/resource-exhausted|permission-denied/i.test(m) || e.tipo === 'execucao' || e.tipo === 'modulo') return 'critico';
+  if (/unavailable|deadline-exceeded|offline|network|internet/i.test(m)) return 'atencao';
+  return 'alto';
+}
+const MON_ROT_GRAVIDADE = {
+  critico: 'Crítica',
+  alto: 'Alta',
+  atencao: 'Média'
+};
+function monAssinatura(e) {
+  const base = `${e.tipo}|${e.tela}|${String(e.msg || '').replace(/[0-9a-f]{12,}/gi, '#').replace(/\d+/g, '#').slice(0, 120)}`;
+  let h = 5381;
+  for (let i = 0; i < base.length; i++) h = (h << 5) + h + base.charCodeAt(i) >>> 0;
+  return 'e' + h.toString(36);
+}
+function monAgruparErros(erros, resolvidos, agora = Date.now()) {
+  const g = new Map();
+  for (const e of erros) {
+    const k = monAssinatura(e);
+    const x = g.get(k) || {
+      sig: k,
+      tipo: e.tipo,
+      tela: e.tela,
+      msg: e.msg,
+      n: 0,
+      primeira: e.em,
+      ultima: e.em,
+      pessoas: new Set(),
+      gravidade: monGravidadeErro(e)
+    };
+    x.n++;
+    if (e.em < x.primeira) x.primeira = e.em;
+    if (e.em > x.ultima) x.ultima = e.em;
+    if (e.nome) x.pessoas.add(e.nome);
+    g.set(k, x);
+  }
+  return [...g.values()].map(x => {
+    const res = (resolvidos || {})[x.sig];
+    const horas = (agora - Date.parse(x.ultima)) / 3600e3;
+    x.situacao = res ? x.ultima > res ? ['critico', 'Voltou a acontecer'] : ['ok', 'Resolvido'] : horas <= 48 ? ['alto', 'Continua acontecendo'] : ['neutro', `Sem novas ocorrências há ${Math.floor(horas / 24)} dia(s)`];
+    return x;
+  }).sort((a, b) => (a.situacao[1] === 'Resolvido') - (b.situacao[1] === 'Resolvido') || ['critico', 'alto', 'atencao'].indexOf(a.gravidade) - ['critico', 'alto', 'atencao'].indexOf(b.gravidade) || b.ultima.localeCompare(a.ultima));
+}
+// situação geral do aplicativo (frases curtas, cada uma ligada a um dado medido)
+function monSituacaoGeral(app, cfg) {
+  const f = app.falhas || {},
+    out = [];
+  const lentas = Object.entries(app.telas).filter(([, t]) => t.n && t.somaMs / t.n > cfg.lentidaoMs);
+  if (lentas.length) out.push(['alto', 'Lentidão identificada', `Abertura média acima de ${(cfg.lentidaoMs / 1000).toLocaleString('pt-BR')} s: ${lentas.map(([k, t]) => `${monNomeTela(k)} (${(t.somaMs / t.n / 1000).toFixed(1).replace('.', ',')} s)`).join(', ')}.`]);
+  if ((f.comunicacao || 0) + (f.cotaAtingida || 0)) out.push([f.cotaAtingida ? 'critico' : 'atencao', 'Falha de comunicação com o banco', `${(f.comunicacao || 0) + (f.cotaAtingida || 0)} ocorrência(s) no período${f.cotaAtingida ? ' (inclui cota do Firebase atingida)' : ''}.`]);
+  if (app.pdf.falhas) out.push(['alto', 'Erro na geração de documento', `${app.pdf.falhas} falha(s) ao gerar PDF (${app.pdf.gerados} gerado(s) com sucesso).`]);
+  const naoCarregou = Object.entries(app.telas).filter(([, t]) => t.falhas);
+  if (naoCarregou.length) out.push(['critico', 'Falha ao carregar módulo', naoCarregou.map(([k, t]) => `${monNomeTela(k)} (${t.falhas}×)`).join(', ') + '.']);
+  const js = app.erros.filter(e => e.tipo === 'execucao').length;
+  if (js) out.push(['critico', 'Erros de JavaScript', `${js} erro(s) que podem interromper uma tela.`]);
+  if (f.salvar) out.push(['alto', 'Falha ao salvar', `${f.salvar} tentativa(s) de salvar não concluída(s).`]);
+  if (!out.length) out.push(['ok', 'Sistema funcionando normalmente', 'Nenhuma lentidão, falha ou erro registrado no período.']);
+  return out;
 }
 function monAlertas(d, cfg, oper, app) {
   const out = [];
@@ -12678,6 +13000,20 @@ function monAlertas(d, cfg, oper, app) {
   if (hojeApp && hojeApp.erros + hojeApp.falhas >= cfg.errosPorDia) out.push({
     nivel: 'alto',
     texto: `Erros frequentes no aplicativo hoje: ${hojeApp.erros + hojeApp.falhas} registrados (limite configurado: ${cfg.errosPorDia}).`
+  });
+  for (const [k, t] of Object.entries(app.telas || {})) {
+    if (t.n && t.somaMs / t.n > cfg.lentidaoMs) out.push({
+      nivel: 'alto',
+      texto: `Lentidão: o módulo ${monNomeTela(k)} levou em média ${(t.somaMs / t.n / 1000).toFixed(1).replace('.', ',')} s para abrir (limite configurado: ${(cfg.lentidaoMs / 1000).toLocaleString('pt-BR')} s; ${t.n} abertura(s), pior ${(t.maxMs / 1000).toFixed(1).replace('.', ',')} s).`
+    });
+    if (t.falhas) out.push({
+      nivel: 'critico',
+      texto: `O módulo ${monNomeTela(k)} não terminou de carregar ${t.falhas} vez(es) no período.`
+    });
+  }
+  if (app.pdf && app.pdf.falhas) out.push({
+    nivel: 'alto',
+    texto: `Falha na geração de documentos: ${app.pdf.falhas} PDF(s) não gerado(s) no período.`
   });
   if ((app.falhas || {}).cotaAtingida) out.push({
     nivel: 'critico',
@@ -13011,7 +13347,9 @@ function CentralMonitoramento({
   }), p.rotulo, ": ", formatarDataBr(p.de), " a ", formatarDataBr(p.ate))), /*#__PURE__*/React.createElement("div", {
     className: "mon-conteudo",
     role: "tabpanel"
-  }, secao === 'geral' && /*#__PURE__*/React.createElement(MonGeral, ctx), secao === 'armazenamento' && /*#__PURE__*/React.createElement(MonArmazenamento, ctx), secao === 'operacoes' && /*#__PURE__*/React.createElement(MonOperacoes, ctx), secao === 'trafego' && /*#__PURE__*/React.createElement(MonTrafego, ctx), secao === 'backups' && /*#__PURE__*/React.createElement(MonBackups, ctx), secao === 'saude' && /*#__PURE__*/React.createElement(MonSaude, ctx), secao === 'crescimento' && /*#__PURE__*/React.createElement(MonCrescimento, ctx), secao === 'custos' && /*#__PURE__*/React.createElement(MonCustos, ctx), secao === 'alertas' && /*#__PURE__*/React.createElement(MonAlertasConfig, _extends({}, ctx, {
+  }, secao === 'geral' && /*#__PURE__*/React.createElement(MonGeral, ctx), secao === 'armazenamento' && /*#__PURE__*/React.createElement(MonArmazenamento, ctx), secao === 'operacoes' && /*#__PURE__*/React.createElement(MonOperacoes, ctx), secao === 'trafego' && /*#__PURE__*/React.createElement(MonTrafego, ctx), secao === 'backups' && /*#__PURE__*/React.createElement(MonBackups, ctx), secao === 'saude' && /*#__PURE__*/React.createElement(MonSaude, _extends({}, ctx, {
+    aoMudar: recarregar
+  })), secao === 'crescimento' && /*#__PURE__*/React.createElement(MonCrescimento, ctx), secao === 'custos' && /*#__PURE__*/React.createElement(MonCustos, ctx), secao === 'alertas' && /*#__PURE__*/React.createElement(MonAlertasConfig, _extends({}, ctx, {
     usuario: usuario,
     aoSalvar: recarregar
   }))));
@@ -14029,11 +14367,81 @@ function MonBackups({
     className: "mon-nota"
   }, "\u201CConferido\u201D = na pr\xF3pria execu\xE7\xE3o, o arquivo foi aberto com a chave e comparado documento a documento com o banco. Nenhuma chave, senha ou token aparece aqui.")));
 }
+function MonErrosAgrupados({
+  app,
+  d,
+  aoMudar
+}) {
+  const [salvando, setSalvando] = useState('');
+  const resolvidos = d.config && d.config.errosResolvidos || {};
+  const grupos = monAgruparErros(app.erros, resolvidos);
+  async function resolver(sig) {
+    setSalvando(sig);
+    try {
+      await db.collection('monitoramento').doc('config').set({
+        errosResolvidos: {
+          [sig]: new Date().toISOString()
+        }
+      }, {
+        merge: true
+      });
+      aoMudar && aoMudar();
+    } catch (e) {
+      console.warn(e);
+      alert('Não consegui marcar como resolvido (verifique a conexão).');
+    }
+    setSalvando('');
+  }
+  return /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: `Erros encontrados (${grupos.length})`,
+    icone: "bug",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "app"
+    })
+  }, grupos.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "mon-grafico-vazio"
+  }, "Nenhum erro registrado no per\xEDodo.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela mon-tabela mon-erros-grupo"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Erro"), /*#__PURE__*/React.createElement("th", null, "M\xF3dulo"), /*#__PURE__*/React.createElement("th", null, "Tipo"), /*#__PURE__*/React.createElement("th", null, "Gravidade"), /*#__PURE__*/React.createElement("th", null, "Ocorr\xEAncias"), /*#__PURE__*/React.createElement("th", null, "Primeira \xB7 \xFAltima"), /*#__PURE__*/React.createElement("th", null, "Situa\xE7\xE3o"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, grupos.map(x => /*#__PURE__*/React.createElement("tr", {
+    key: x.sig
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Erro",
+    className: "mon-erros-curto"
+  }, x.msg || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "M\xF3dulo"
+  }, monNomeTela(x.tela)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Tipo"
+  }, MON_TIPO_ERRO[x.tipo] || x.tipo), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Gravidade"
+  }, /*#__PURE__*/React.createElement(MonStatus, {
+    s: x.gravidade
+  }, MON_ROT_GRAVIDADE[x.gravidade])), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Ocorr\xEAncias"
+  }, monNum(x.n), x.pessoas.size ? ` (${x.pessoas.size} pessoa${x.pessoas.size > 1 ? 's' : ''})` : ''), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Primeira \xB7 \xFAltima"
+  }, monQuando(x.primeira), " \xB7 ", monQuando(x.ultima)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Situa\xE7\xE3o"
+  }, /*#__PURE__*/React.createElement(MonStatus, {
+    s: x.situacao[0]
+  }, x.situacao[1])), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": ""
+  }, x.situacao[1] !== 'Resolvido' && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "mon-link",
+    disabled: salvando === x.sig,
+    onClick: () => resolver(x.sig)
+  }, salvando === x.sig ? 'Salvando…' : 'Marcar como resolvido'))))))), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Mensagens resumidas, sem dados de clientes nem senhas. \u201CContinua acontecendo\u201D: houve ocorr\xEAncia nas \xFAltimas 48 h. Ao marcar como resolvido, se o mesmo erro aparecer de novo ele volta como \u201CVoltou a acontecer\u201D."));
+}
 function MonSaude({
   d,
   p,
   app,
-  cfg
+  cfg,
+  aoMudar
 }) {
   const dias = [];
   for (let x = p.de; x <= p.ate; x = monAddDias(x, 1)) dias.push(x);
@@ -14060,7 +14468,17 @@ function MonSaude({
   }, /*#__PURE__*/React.createElement(MonSaudeGrade, {
     itens: monSaudeItens(d, app, cfg),
     grande: true
-  })), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("ul", {
+    className: "mon-alertas mon-situacao-geral"
+  }, monSituacaoGeral(app, cfg).map(([n, t, det]) => /*#__PURE__*/React.createElement("li", {
+    key: t,
+    className: `n-${n === 'ok' ? 'ok' : n}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mon-alerta-ic"
+  }, /*#__PURE__*/React.createElement(MonIcone, {
+    n: n === 'ok' ? 'ok' : 'alerta',
+    tam: 18
+  })), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, t), " ", det))))), /*#__PURE__*/React.createElement("div", {
     className: "mon-grade-cartoes"
   }, /*#__PURE__*/React.createElement(MonCartao, {
     icone: "globo",
@@ -14116,7 +14534,47 @@ function MonSaude({
       valores: dias.map(x => (app.porDia[x] || {}).falhas ?? null)
     }]
   })), /*#__PURE__*/React.createElement(MonPainel, {
-    titulo: `Erros recentes (${app.erros.length})`,
+    titulo: "Tempo de abertura dos m\xF3dulos",
+    icone: "relogio",
+    fonte: /*#__PURE__*/React.createElement(MonFonte, {
+      tipo: "app"
+    })
+  }, Object.keys(app.telas).length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "mon-grafico-vazio"
+  }, "Sem medi\xE7\xF5es no per\xEDodo (cada aparelho mede ao trocar de m\xF3dulo).") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela mon-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "M\xF3dulo"), /*#__PURE__*/React.createElement("th", null, "Aberturas"), /*#__PURE__*/React.createElement("th", null, "M\xE9dia"), /*#__PURE__*/React.createElement("th", null, "Pior"), /*#__PURE__*/React.createElement("th", null, "Lentas (> 4 s)"), /*#__PURE__*/React.createElement("th", null, "N\xE3o carregou"), /*#__PURE__*/React.createElement("th", null, "Situa\xE7\xE3o"))), /*#__PURE__*/React.createElement("tbody", null, Object.entries(app.telas).sort((a, b) => b[1].somaMs / (b[1].n || 1) - a[1].somaMs / (a[1].n || 1)).map(([k, t]) => {
+    const media = t.n ? t.somaMs / t.n : null;
+    const s = t.falhas ? ['critico', 'Falhou'] : media != null && media > cfg.lentidaoMs ? ['alto', 'Lento'] : ['ok', 'Normal'];
+    return /*#__PURE__*/React.createElement("tr", {
+      key: k
+    }, /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "M\xF3dulo"
+    }, monNomeTela(k)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Aberturas"
+    }, monNum(t.n)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "M\xE9dia"
+    }, media != null ? `${(media / 1000).toFixed(1).replace('.', ',')} s` : '—'), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Pior"
+    }, `${(t.maxMs / 1000).toFixed(1).replace('.', ',')} s`), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Lentas"
+    }, monNum(t.lentas)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "N\xE3o carregou"
+    }, monNum(t.falhas)), /*#__PURE__*/React.createElement("td", {
+      "data-rotulo": "Situa\xE7\xE3o"
+    }, /*#__PURE__*/React.createElement(MonStatus, {
+      s: s[0]
+    }, s[1])));
+  })))), /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Tempo da troca no menu at\xE9 a tela terminar de carregar, medido no aparelho de cada pessoa. Limite de lentid\xE3o: ", (cfg.lentidaoMs / 1000).toLocaleString('pt-BR'), " s (ajust\xE1vel em Alertas). Documentos: ", monNum(app.pdf.gerados), " PDF(s) gerado(s), ", monNum(app.pdf.falhas), " falha(s).")), /*#__PURE__*/React.createElement(MonErrosAgrupados, {
+    app: app,
+    d: d,
+    aoMudar: aoMudar
+  }), /*#__PURE__*/React.createElement(MonPainel, {
+    titulo: `Ocorrências individuais (${app.erros.length})`,
     icone: "bug"
   }, app.erros.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "mon-grafico-vazio"
@@ -14344,7 +14802,8 @@ function MonAlertasConfig({
 }) {
   const [f, setF] = useState({
     ...cfg,
-    niveis: [...cfg.niveis]
+    niveis: [...cfg.niveis],
+    lentidaoS: String((cfg.lentidaoMs || 4000) / 1000)
   });
   const [msg, setMsg] = useState('');
   async function salvar() {
@@ -14360,6 +14819,7 @@ function MonAlertasConfig({
         backupAtrasoHoras: Number(f.backupAtrasoHoras) || 30,
         errosPorDia: Number(f.errosPorDia) || 20,
         crescimentoPct: Number(f.crescimentoPct) || 50,
+        lentidaoMs: Math.round((Number(f.lentidaoS) || 4) * 1000),
         atualizadoEm: new Date().toISOString()
       }, {
         merge: true
@@ -14436,7 +14896,7 @@ function MonAlertasConfig({
         niveis: nv
       };
     })
-  })), " %")), campo('fatorPadrao', 'Leituras/gravações acima do padrão: quando passar de', '× a média dos 7 dias anteriores'), campo('crescimentoPct', 'Aumento inesperado: período com mais de', '% acima do período anterior'), campo('backupAtrasoHoras', 'Backup atrasado: sem backup concluído há mais de', 'horas'), campo('errosPorDia', 'Erros frequentes: a partir de', 'erros/falhas no dia')), /*#__PURE__*/React.createElement("div", {
+  })), " %")), campo('fatorPadrao', 'Leituras/gravações acima do padrão: quando passar de', '× a média dos 7 dias anteriores'), campo('crescimentoPct', 'Aumento inesperado: período com mais de', '% acima do período anterior'), campo('backupAtrasoHoras', 'Backup atrasado: sem backup concluído há mais de', 'horas'), campo('errosPorDia', 'Erros frequentes: a partir de', 'erros/falhas no dia'), campo('lentidaoS', 'Lentidão: módulo que leva em média mais de', 'segundos para abrir')), /*#__PURE__*/React.createElement("div", {
     className: "fp-acoes"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -14475,9 +14935,7 @@ function TelaAbertura() {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (!raiz || !meta || typeof MutationObserver === 'undefined') return;
   const ajustar = () => {
-    const primeira = raiz.firstElementChild;
-    const telaAzul = !!primeira && (primeira.classList.contains('acesso') || primeira.classList.contains('abertura-sistema'));
-    const cor = telaAzul ? '#0F2A47' : '#453B3C';
+    const cor = '#0F2A47'; // abertura, login e cabeçalho do sistema: todos azul-marinho
     if (meta.getAttribute('content') !== cor) meta.setAttribute('content', cor);
   };
   new MutationObserver(ajustar).observe(raiz, {
@@ -14954,7 +15412,10 @@ function App() {
   }, avisosNaoVistosCount)))), /*#__PURE__*/React.createElement("div", {
     className: "sidebar-rodape"
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setModalMinhaSenhaAberto(true),
+    onClick: () => {
+      setSidebarMobileAberta(false);
+      setModalMinhaSenhaAberto(true);
+    },
     className: "sidebar-item",
     title: "Minha senha"
   }, /*#__PURE__*/React.createElement("span", {
@@ -15070,9 +15531,11 @@ function App() {
     className: "nome"
   }, usuario.nome), usuario.cargo && /*#__PURE__*/React.createElement("div", {
     className: "cargo"
-  }, usuario.cargo)))), /*#__PURE__*/React.createElement("div", {
+  }, usuario.cargo)))), /*#__PURE__*/React.createElement(AvisoNovaVersao, null), /*#__PURE__*/React.createElement("div", {
     className: "conteudo-principal"
-  }, aba !== 'avisos' && aba !== 'avaliacoes' && aba !== 'monitoramento' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(MonMedidorTela, {
+    tela: aba
+  }), aba !== 'avisos' && aba !== 'avaliacoes' && aba !== 'monitoramento' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -16269,6 +16732,7 @@ function SeletorCatalogo({
       color: atual ? 'var(--texto)' : 'var(--texto-fraco)'
     }
   }, atual ? rotulo(atual) : 'Toque para selecionar a peça...'), overlayAberto && /*#__PURE__*/React.createElement("div", {
+    className: "tela-cheia-toque",
     style: {
       position: 'fixed',
       inset: 0,
@@ -16952,6 +17416,7 @@ function AbaLotes({
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
   const [loteSelecionadoId, setLoteSelecionadoId] = useState(null);
   const [filtroStatus, setFiltroStatus] = useState('');
+  const [limiteLotes, setLimiteLotes] = useState(LISTA_LOTE);
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
   const [loteAssinaturaId, setLoteAssinaturaId] = useState(null);
   const [menuLote, setMenuLote] = useState(null);
@@ -17105,7 +17570,7 @@ function AbaLotes({
     className: "card painel-tabela"
   }, /*#__PURE__*/React.createElement("table", {
     className: "tabela-lista com-lateral lista-entradas"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(l => /*#__PURE__*/React.createElement("tr", {
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.slice(0, limiteLotes).map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id,
     className: "linha-clicavel",
     onClick: () => setLoteSelecionadoId(l.id)
@@ -17147,7 +17612,18 @@ function AbaLotes({
     className: "btn-menu-pontos",
     onClick: () => setMenuLote(l),
     title: "Mais ações"
-  }, "⋮")))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+  }, "⋮")))), filtrados.length > limiteLotes && /*#__PURE__*/React.createElement("tr", {
+    className: "linha-carregar-mais"
+  }, /*#__PURE__*/React.createElement("td", {
+    colSpan: "7",
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(KanbanCarregarMais, {
+    mostrando: limiteLotes,
+    total: filtrados.length,
+    aoMais: () => setLimiteLotes(n => n + LISTA_LOTE)
+  }))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
     colSpan: "7",
     style: {
       color: 'var(--texto-fraco)',
@@ -18878,6 +19354,42 @@ async function salvarPosicaoKanban(o, lista, indice, colunaCompleta) {
 }
 // Lista para desenhar a coluna durante o arraste: marcador na posição de destino e o
 // cartão arrastado (flutuando, fora do fluxo) no fim.
+const KANBAN_LOTE = 40;
+const LISTA_LOTE = 60;
+const CLIENTES_MAPA = new WeakMap();
+function clientePorIdKanban(clientes, id) {
+  let m = CLIENTES_MAPA.get(clientes);
+  if (!m) CLIENTES_MAPA.set(clientes, m = new Map(clientes.map(c => [c.id, c])));
+  return m.get(id);
+}
+// Fim de uma coluna com mais cartões: carrega o próximo lote sozinho quando aparece na rolagem (ou no toque).
+function KanbanCarregarMais({
+  mostrando,
+  total,
+  aoMais
+}) {
+  const ref = useRef(null);
+  const mais = useRef(aoMais);
+  mais.current = aoMais;
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const ob = new IntersectionObserver(es => {
+      if (es.some(e => e.isIntersecting)) mais.current();
+    }, {
+      root: el.closest('.kanban-lista, .painel-tabela, .conteudo-principal'),
+      rootMargin: '600px 0px'
+    });
+    ob.observe(el);
+    return () => ob.disconnect();
+  }, [mostrando]);
+  return /*#__PURE__*/React.createElement("button", {
+    ref: ref,
+    type: "button",
+    className: "btn secundario pequeno kanban-mais",
+    onClick: () => mais.current()
+  }, "Mostrar mais (", Math.min(mostrando, total), " de ", total, ")");
+}
 function listaComMarcadorKanban(lista, drag, status) {
   if (!drag || drag.status !== status) return lista;
   const arrastado = lista.find(o => o.id === drag.id);
@@ -19449,6 +19961,9 @@ function AbaOrcamentos({
   usuario
 }) {
   const [orcamentos, carregando] = useColecao('orcamentos', 'criadoEm', true);
+  // Kanban em lotes: cada coluna desenha os primeiros cartões e o resto conforme a rolagem chega perto
+  // (muitos cartões de uma vez deixavam a tela lenta no celular). A contagem e a busca usam todos.
+  const [limitesKanban, setLimitesKanban] = useState({});
   const [clientes] = useColecao('clientes');
   const [catalogo] = useColecao('catalogoPecas');
   const [modalAberto, setModalAberto] = useState(false);
@@ -19826,14 +20341,14 @@ function AbaOrcamentos({
         minHeight: 0,
         paddingRight: 3
       }
-    }, listaComMarcadorKanban(itensDoStatus, arrastar.drag, status).map(o => {
+    }, listaComMarcadorKanban(arrastar.drag ? itensDoStatus : itensDoStatus.slice(0, limitesKanban[status] || KANBAN_LOTE), arrastar.drag, status).map(o => {
       if (o.__marcador) return /*#__PURE__*/React.createElement(MarcadorKanban, {
         key: "__marcador",
         altura: arrastar.drag.height,
         posicao: arrastar.drag.indice + 1
       });
       const arrastandoEste = !!arrastar.drag && arrastar.drag.id === o.id;
-      const clienteDoOrcamento = clientes.find(c => c.id === o.clienteId);
+      const clienteDoOrcamento = clientePorIdKanban(clientes, o.clienteId);
       const linhaCliente = clienteLinhaResumo(clienteDoOrcamento);
       return /*#__PURE__*/React.createElement("div", {
         key: o.id,
@@ -20033,7 +20548,7 @@ function AbaOrcamentos({
       }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
         tipo: "teste",
         documento: o,
-        cliente: clientes.find(c => c.id === o.clienteId),
+        cliente: clientePorIdKanban(clientes, o.clienteId),
         colecao: "orcamentos",
         usuario: usuario
       }))), (status === 'Rota' || status === 'Concluído') && /*#__PURE__*/React.createElement("div", {
@@ -20044,10 +20559,17 @@ function AbaOrcamentos({
       }, /*#__PURE__*/React.createElement(BlocoAssinatura, {
         tipo: "entrega",
         documento: o,
-        cliente: clientes.find(c => c.id === o.clienteId),
+        cliente: clientePorIdKanban(clientes, o.clienteId),
         colecao: "orcamentos",
         usuario: usuario
       })));
+    }), !arrastar.drag && itensDoStatus.length > (limitesKanban[status] || KANBAN_LOTE) && /*#__PURE__*/React.createElement(KanbanCarregarMais, {
+      mostrando: limitesKanban[status] || KANBAN_LOTE,
+      total: itensDoStatus.length,
+      aoMais: () => setLimitesKanban(l => ({
+        ...l,
+        [status]: (l[status] || KANBAN_LOTE) + KANBAN_LOTE
+      }))
     }), itensDoStatus.length === 0 && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 12,
