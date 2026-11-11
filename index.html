@@ -31064,11 +31064,18 @@ function AbaPermissoesFuncionario({
 }) {
   const [permissoes, setPermissoes] = useState(() => {
     const base = {};
+    // conta antiga (sem os módulos originais configurados) mostra o acesso que ela realmente tem hoje
+    // (visualizar e editar nos módulos antigos), para que salvar não tire nada sem querer
     MODULOS_PERMISSAO.forEach(m => {
-      base[m] = funcionario.permissoes?.[m] || 'sem_acesso';
+      base[m] = funcionario.perfil === 'master' ? 'editar' : nivelAcesso({
+        ...funcionario,
+        perfil: funcionario.perfil === 'master' ? 'funcionario' : funcionario.perfil
+      }, m);
     });
     return base;
   });
+  const contaAntigaPerm = !funcionario.permissoes || !MODULOS_LEGADO.some(m => funcionario.permissoes[m]);
+  const [msgPerm, setMsgPerm] = useState(null);
   // permissão antiga com "Entregue/Faturado" aparece como Rota + Concluído
   const [colunas, setColunas] = useState(funcionario.colunasOrcamento ? [...new Set(funcionario.colunasOrcamento.flatMap(c => c === 'Entregue/Faturado' ? ['Rota', 'Concluído'] : [c]))] : STATUS_ORCAMENTO.slice());
   const [escopoComissao, setEscopoComissao] = useState(funcionario.comissaoEscopo || 'propria');
@@ -31079,18 +31086,30 @@ function AbaPermissoesFuncionario({
   }
   async function salvar() {
     setSalvando(true);
+    setMsgPerm(null);
     const antesPermissoes = funcionario.permissoes || {};
-    await db.collection('funcionarios').doc(funcionario.id).update({
-      permissoes,
-      colunasOrcamento: colunas,
-      comissaoEscopo: escopoComissao,
-      beneficiosFechar: permissoes.beneficios === 'editar' && fecharBeneficios
-    });
-    const mudancas = MODULOS_PERMISSAO.filter(m => (antesPermissoes[m] || 'sem_acesso') !== permissoes[m]).map(m => `${NOME_MODULO[m]}: ${antesPermissoes[m] || 'sem_acesso'} → ${permissoes[m]}`);
-    const fecharAgora = permissoes.beneficios === 'editar' && fecharBeneficios;
-    if ((funcionario.beneficiosFechar === true) !== fecharAgora) mudancas.push(`Benefícios: ${fecharAgora ? 'pode' : 'não pode'} fechar o mês`);
-    if (mudancas.length > 0) {
-      await registrarHistorico(funcionario.id, `${usuarioLogado.nome} alterou as permissões (${mudancas.join(', ')}) em ${new Date().toLocaleString('pt-BR')}.`);
+    const antesNivel = m => contaAntigaPerm ? nivelAcesso({ ...funcionario, perfil: 'funcionario' }, m) : antesPermissoes[m] || 'sem_acesso';
+    try {
+      await db.collection('funcionarios').doc(funcionario.id).update({
+        permissoes,
+        colunasOrcamento: colunas,
+        comissaoEscopo: escopoComissao,
+        beneficiosFechar: permissoes.beneficios === 'editar' && fecharBeneficios
+      });
+      const mudancas = MODULOS_PERMISSAO.filter(m => antesNivel(m) !== permissoes[m]).map(m => `${NOME_MODULO[m]}: ${antesNivel(m)} → ${permissoes[m]}`);
+      const fecharAgora = permissoes.beneficios === 'editar' && fecharBeneficios;
+      if ((funcionario.beneficiosFechar === true) !== fecharAgora) mudancas.push(`Benefícios: ${fecharAgora ? 'pode' : 'não pode'} fechar o mês`);
+      if (mudancas.length > 0) {
+        try {
+          await registrarHistorico(funcionario.id, `${usuarioLogado.nome} alterou as permissões (${mudancas.join(', ')}) em ${new Date().toLocaleString('pt-BR')}.`);
+        } catch (e) {
+          console.warn('histórico das permissões', e);
+        }
+      }
+      setMsgPerm({ ok: true, texto: 'Permissões salvas.' });
+    } catch (e) {
+      console.error('salvar permissões', e);
+      setMsgPerm({ ok: false, texto: e && e.code === 'permission-denied' ? 'O banco recusou a gravação (sem permissão). Entre com o usuário Master e tente de novo.' : 'Não consegui salvar (verifique a conexão). Nada foi gravado — tente de novo.' });
     }
     setSalvando(false);
   }
@@ -31206,7 +31225,25 @@ function AbaPermissoesFuncionario({
     style: {
       width: 'auto'
     }
-  }), "Pode fechar o mês (gravar o fechamento de VR e VT)"))), /*#__PURE__*/React.createElement(PermissoesFixasInfo, null), podeEditarPermissoes ? /*#__PURE__*/React.createElement("button", {
+  }), "Pode fechar o mês (gravar o fechamento de VR e VT)"))), /*#__PURE__*/React.createElement(PermissoesFixasInfo, null), contaAntigaPerm && podeEditarPermissoes && /*#__PURE__*/React.createElement("p", {
+    className: "perm-conta-antiga",
+    style: {
+      fontSize: 12.5,
+      color: 'var(--texto-fraco)',
+      margin: '0 0 10px'
+    }
+  }, "Conta anterior às permissões por módulo: hoje ela tem acesso total aos módulos antigos (marcados acima como \"Visualizar e editar\"). Ao salvar, os níveis desta tela passam a valer."), msgPerm && /*#__PURE__*/React.createElement("div", {
+    className: msgPerm.ok ? 'perm-msg-ok' : 'av-erro',
+    role: msgPerm.ok ? 'status' : 'alert',
+    style: msgPerm.ok ? {
+      color: 'var(--verde, #1e7b3a)',
+      fontWeight: 600,
+      fontSize: 13,
+      margin: '0 0 10px'
+    } : {
+      margin: '0 0 10px'
+    }
+  }, msgPerm.texto), podeEditarPermissoes ? /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn",
     disabled: salvando,
