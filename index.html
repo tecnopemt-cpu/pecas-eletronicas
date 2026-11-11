@@ -526,6 +526,10 @@
   .pc-indicados small{font-size:11.5px;color:var(--texto-fraco);}
   .pc-add{display:flex;gap:8px;margin-top:10px;}
   .pc-add select{flex:1;min-width:0;}
+  .pc-add .pc-seletor{flex:1;min-width:0;}
+  .pc-add-rotulo{margin-top:6px;}
+  .pc-cliente-resumo{margin:6px 0 10px;padding:8px 12px;border:1px solid var(--borda);border-radius:8px;background:var(--fundo-suave, rgba(0,0,0,.02));}
+  .pc-indicados small.pc-ind-dados{color:var(--texto-fraco);}
   .pc-hist{margin-top:12px;font-size:12.5px;}
   .pc-hist ul{margin:6px 0 0;padding-left:18px;color:var(--texto-fraco);}
   .pc-lista-reg{margin:0;padding-left:18px;font-size:13px;}
@@ -6072,6 +6076,7 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -15584,7 +15589,7 @@ function ListaItensParceiro({
     "data-rotulo": "Faturamento"
   }, i.dataFaturamento ? formatarDataBr(i.dataFaturamento) : '—'))))));
 }
-// ---- configuração do parceiro (administradores; a base de cálculo só o Master muda) ----
+// ---- configuração do parceiro (Master e administradores, inclusive a base de cálculo) ----
 function ModalConfigParceiro({
   usuario,
   parceiro,
@@ -15613,6 +15618,9 @@ function ModalConfigParceiro({
   const master = ehMaster(usuario);
   const nomeCliente = id => (clientes.find(c => c.id === id) || {}).razaoSocial || '—';
   const ordenados = clientes.slice().sort((a, b) => (a.razaoSocial || '').localeCompare(b.razaoSocial || ''));
+  const clientePorId = id => clientes.find(c => c.id === id) || null;
+  const clientesParceiroLivres = useMemo(() => clientes.filter(c => !(parceiros || []).some(p => p.id === c.id)), [clientes, parceiros]);
+  const clientesIndicaveis = useMemo(() => clientes.filter(c => c.id !== f.id && !(f.indicados || {})[c.id]), [clientes, f.id, f.indicados]);
   const set = (k, v) => setF(x => ({
     ...x,
     [k]: v
@@ -15703,7 +15711,7 @@ function ModalConfigParceiro({
       ativo: f.ativo !== false,
       inativoDesde: f.ativo === false ? ant.ativo === false && ant.inativoDesde ? ant.inativoDesde : hoje : null,
       percentualPadrao: pct,
-      baseCalculo: master ? f.baseCalculo : ant.baseCalculo || 'total',
+      baseCalculo: f.baseCalculo || 'total',
       inicio: f.inicio || hoje,
       indicados: Object.fromEntries(Object.entries(f.indicados || {}).map(([id, ind]) => [id, {
         periodos: ind.periodos || [],
@@ -15734,15 +15742,21 @@ function ModalConfigParceiro({
     onClick: e => e.target === e.currentTarget && aoFechar()
   }, /*#__PURE__*/React.createElement("div", {
     className: "modal pc-modal"
-  }, /*#__PURE__*/React.createElement("h3", null, parceiro ? `Parceria — ${parceiro.nome || nomeCliente(parceiro.id)}` : 'Cadastrar parceiro'), !parceiro && !clienteInicial && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Cliente parceiro (recebe comiss\xE3o por indica\xE7\xE3o)"), /*#__PURE__*/React.createElement("select", {
+  }, /*#__PURE__*/React.createElement("h3", null, parceiro ? `Parceria — ${parceiro.nome || nomeCliente(parceiro.id)}` : 'Cadastrar parceiro'), !parceiro && !clienteInicial ? /*#__PURE__*/React.createElement("div", {
+    className: "pc-seletor"
+  }, /*#__PURE__*/React.createElement("label", null, "Cliente parceiro (recebe comiss\xE3o por indica\xE7\xE3o)"), /*#__PURE__*/React.createElement(SeletorCliente, {
+    clientes: clientesParceiroLivres,
     value: f.id,
-    onChange: e => set('id', e.target.value)
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Escolha o cliente\u2026"), ordenados.filter(c => !(parceiros || []).some(p => p.id === c.id)).map(c => /*#__PURE__*/React.createElement("option", {
-    key: c.id,
-    value: c.id
-  }, c.razaoSocial)))), /*#__PURE__*/React.createElement("div", {
+    onChange: id => set('id', id)
+  }), f.id && /*#__PURE__*/React.createElement("div", {
+    className: "pc-cliente-resumo"
+  }, /*#__PURE__*/React.createElement(ClienteResumo, {
+    cliente: clientePorId(f.id)
+  }))) : /*#__PURE__*/React.createElement("div", {
+    className: "pc-cliente-resumo"
+  }, /*#__PURE__*/React.createElement(ClienteResumo, {
+    cliente: clientePorId(f.id)
+  })), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Percentual padr\xE3o (%)"), /*#__PURE__*/React.createElement("input", {
     inputMode: "decimal",
@@ -15752,9 +15766,8 @@ function ModalConfigParceiro({
     type: "date",
     value: f.inicio || '',
     onChange: e => set('inicio', e.target.value)
-  }))), /*#__PURE__*/React.createElement("label", null, "Base de c\xE1lculo", !master && ' (só o Administrador Master altera)'), /*#__PURE__*/React.createElement("select", {
+  }))), /*#__PURE__*/React.createElement("label", null, "Base de c\xE1lculo"), /*#__PURE__*/React.createElement("select", {
     value: f.baseCalculo,
-    disabled: !master,
     onChange: e => set('baseCalculo', e.target.value)
   }, Object.entries(PARC_BASES).map(([k, n]) => /*#__PURE__*/React.createElement("option", {
     key: k,
@@ -15774,7 +15787,9 @@ function ModalConfigParceiro({
     return /*#__PURE__*/React.createElement("li", {
       key: id,
       className: ativoV ? '' : 'inativo'
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, nomeCliente(id)), /*#__PURE__*/React.createElement("small", null, (ind.periodos || []).map(p => `${formatarDataBr(p.de)} a ${p.ate ? formatarDataBr(p.ate) : 'hoje'}`).join(' · '))), /*#__PURE__*/React.createElement("input", {
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, nomeCliente(id)), clienteLinhaResumo(clientePorId(id)) && /*#__PURE__*/React.createElement("small", {
+      className: "pc-ind-dados"
+    }, clienteLinhaResumo(clientePorId(id))), /*#__PURE__*/React.createElement("small", null, (ind.periodos || []).map(p => `${formatarDataBr(p.de)} a ${p.ate ? formatarDataBr(p.ate) : 'hoje'}`).join(' · '))), /*#__PURE__*/React.createElement("input", {
       inputMode: "decimal",
       placeholder: `${parcPct(f.percentualPadrao || 0)} (padrão)`,
       value: ind.percentual ?? '',
@@ -15811,18 +15826,17 @@ function ModalConfigParceiro({
         }));
       }
     }, "Reativar"));
-  })), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("label", {
+    className: "pc-add-rotulo"
+  }, "Adicionar cliente indicado"), /*#__PURE__*/React.createElement("div", {
     className: "pc-add"
-  }, /*#__PURE__*/React.createElement("select", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pc-seletor"
+  }, /*#__PURE__*/React.createElement(SeletorCliente, {
+    clientes: clientesIndicaveis,
     value: novoInd,
-    onChange: e => setNovoInd(e.target.value),
-    "aria-label": "Cliente indicado"
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Adicionar cliente indicado\u2026"), ordenados.filter(c => c.id !== f.id && !(f.indicados || {})[c.id]).map(c => /*#__PURE__*/React.createElement("option", {
-    key: c.id,
-    value: c.id
-  }, c.razaoSocial))), /*#__PURE__*/React.createElement("button", {
+    onChange: setNovoInd
+  })), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario",
     onClick: adicionar,
