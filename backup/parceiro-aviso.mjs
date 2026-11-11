@@ -9,7 +9,7 @@ import { tipado } from './medir-banco.mjs';
 import { carregarRegrasDoSite } from './regras-do-site.mjs';
 import { desCampos, diaBr } from './arquivamento.mjs';
 
-export const FUNCOES = ['parcApurar', 'parcInclusao', 'parcUltimoDiaUtil', 'parcVigente', 'parcPercentual', 'parcCent', 'parcDiaDe', 'parcMesNome', 'testeReprovado', 'dataDe', 'chaveDia', 'formatarDataInput'];
+export const FUNCOES = ['parcApurar', 'parcInclusao', 'parcMesSomar', 'parcUltimoDiaUtil', 'parcVigente', 'parcPercentual', 'parcCent', 'parcDiaDe', 'parcMesNome', 'testeReprovado', 'dataDe', 'chaveDia', 'formatarDataInput'];
 export const CONSTANTES = ['PARC_STATUS_APROVADO', 'PARC_MESES'];
 const log = m => console.log(m);
 

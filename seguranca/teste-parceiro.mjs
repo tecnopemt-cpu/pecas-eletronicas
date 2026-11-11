@@ -58,5 +58,21 @@ passo('inclusão manual com percentual próprio (10% = 140)', ap.itens.find(i =>
 ap = R.parcApurar({ ...Pm, inclusoesManuais: { X9: { ...Pm.inclusoesManuais.X9, ativa: false } } }, comX, '2026-10', [], '2026-11-02');
 passo('inclusão retirada (mantida no histórico) deixa de contar', !ap.itens.some(i => i.orcamentoId === 'X9') && R.parcDoOrcamento([{ ...Pm, inclusoesManuais: { X9: { ativa: false } } }], comX.find(o => o.id === 'X9')) === null);
 passo('outros orçamentos do parceiro (sem inclusão) continuam fora', R.parcApurar(P, comX, '2026-10', [], '2026-11-02').itens.every(i => i.orcamentoId !== 'X9'));
+// acúmulo: mês não fechado passa para o seguinte (com a data original); fechar zera
+const nov = [...comX, orc('N1', 'C1', '2026-11-05', 'Concluído', 600)];
+ap = R.parcApurar(Pm, nov, '2026-11', [], '2026-11-30');
+passo('outubro não fechado: novembro acumula outubro (inclusive o incluído manualmente) + novembro', ap.itens.length === 5 && ap.itens.find(i => i.orcamentoId === 'X9').acumulado && !ap.itens.find(i => i.orcamentoId === 'N1').acumulado && ap.desdeMes === '2026-10' && ap.comissaoApurada === 825, `${ap.itens.length} ${ap.comissaoApurada}`);
+passo('acumulado mantém a data original do orçamento', ap.itens.find(i => i.orcamentoId === 'X9').data === '2026-10-23');
+ap = R.parcApurar(Pm, nov, '2026-12', [], '2026-12-31');
+passo('outubro e novembro não fechados: dezembro acumula os dois', ap.itens.length === 5 && ap.desdeMes === '2026-10');
+const fOut = { id: 'PARC_2026-10', parceiroId: 'PARC', mes: '2026-10', itens: R.parcApurar(Pm, nov, '2026-10', [], '2026-11-02').concluidos.map(i => ({ orcamentoId: i.orcamentoId })) };
+ap = R.parcApurar(Pm, nov, '2026-11', [fOut], '2026-11-30');
+passo('outubro fechado: novembro zera e traz só novembro', ap.itens.length === 1 && ap.itens[0].orcamentoId === 'N1' && ap.desdeMes === '2026-11' && ap.comissaoApurada === 90);
+ap = R.parcApurar(Pm, nov, '2026-10', [fOut], '2026-11-30');
+passo('outubro fechado continua mostrando os próprios orçamentos', ap.itens.length === 4 && ap.fechamento && ap.bloqueio === 'fechado');
+const comPend = [...nov, orc('P1', 'C2', '2026-10-28', 'Em Análise', 300)];
+ap = R.parcApurar(Pm, comPend, '2026-11', [], '2026-11-30');
+passo('pendente de outubro (não fechado) também segura o fechamento de novembro', ap.bloqueio === 'pendentes' && ap.pendentes[0].orcamentoId === 'P1');
+passo('mês seguinte calculado certo (virada de ano)', R.parcMesSomar('2026-12', 1) === '2027-01' && R.parcMesSomar('2027-01', -1) === '2026-12');
 console.log(`\n${ok}/${ok + falhas} verificações da comissão do parceiro ${falhas ? 'com FALHAS' : 'OK'}`);
 process.exit(falhas ? 1 : 0);

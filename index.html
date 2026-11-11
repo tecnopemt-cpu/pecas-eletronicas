@@ -527,6 +527,8 @@
   .pc-add{display:flex;gap:8px;margin-top:10px;}
   .pc-add select{flex:1;min-width:0;}
   .pc-add .pc-seletor{flex:1;min-width:0;}
+  .pc-acumulo{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#EEF4FB;color:#1F4E79;font-size:13px;}
+  .pc-acumulado{background:#EEF4FB;color:#1F4E79;}
   .pc-incluir{display:grid;grid-template-columns:130px minmax(0,1fr) 90px auto;gap:8px;margin-top:8px;}
   @media (max-width:600px){.pc-incluir{grid-template-columns:1fr 1fr;}.pc-incluir input[aria-label="Motivo da inclusão"]{grid-column:1 / -1;order:-1;}}
   .pc-manual{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:#FFF1E0;color:#9A4B00;font-size:11px;font-weight:600;}
@@ -6079,6 +6081,7 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -15092,6 +15095,11 @@ function parcDiaDe(v) {
   return d && !isNaN(d.getTime()) ? chaveDia(d) : null;
 }
 const PARC_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+function parcMesSomar(m, n) {
+  const [a, x] = m.split('-').map(Number);
+  const d = new Date(a, x - 1 + n, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
 function parcMesNome(m) {
   const [a, x] = m.split('-').map(Number);
   return `${PARC_MESES[x - 1]}/${a}`;
@@ -15148,6 +15156,9 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
     const f = fechOutros.find(x => (x.itens || []).some(i => i.orcamentoId === id));
     return f ? f.mes : null;
   };
+  // acumula: enquanto um mês não é fechado, os orçamentos dele passam para os meses seguintes (com a data
+  // original). O fechamento "zera": entram só os meses depois do último fechamento anterior a este mês.
+  const ultimoFechadoAntes = fechOutros.filter(f => f.mes < mes).map(f => f.mes).sort().pop() || null;
   const itens = [];
   for (const o of orcamentos || []) {
     // inclusão manual (exceção registrada com motivo): conta mesmo sem o cliente estar vinculado
@@ -15155,7 +15166,7 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
     const ind = (parceiro.indicados || {})[o.clienteId];
     if (!ind && !inc) continue;
     const dia = parcDiaDe(o.criadoEm);
-    if (!dia || dia.slice(0, 7) !== mes || !inc && !parcVigente(parceiro, ind, dia)) continue;
+    if (!dia || dia.slice(0, 7) > mes || ultimoFechadoAntes && dia.slice(0, 7) <= ultimoFechadoAntes || !inc && !parcVigente(parceiro, ind, dia)) continue;
     const pct = inc ? inc.percentual != null && inc.percentual !== '' ? Number(inc.percentual) : Number(parceiro.percentualPadrao) || 0 : parcPercentual(parceiro, ind);
     const total = parcCent(o.total);
     let situacao = o.status === 'Concluído' ? 'concluido' : 'pendente',
@@ -15188,7 +15199,8 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
       situacao,
       motivo,
       manual: !!inc,
-      motivoInclusao: inc ? inc.motivo || '' : ''
+      motivoInclusao: inc ? inc.motivo || '' : '',
+      acumulado: dia.slice(0, 7) < mes
     });
   }
   itens.sort((a, b) => a.data.localeCompare(b.data) || String(a.numero).localeCompare(String(b.numero)));
@@ -15220,8 +15232,11 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
   const fechamento = (fechamentos || []).find(f => f.parceiroId === parceiro.id && f.mes === mes) || null;
   let bloqueio = null;
   if (fechamento) bloqueio = 'fechado';else if (!elegiveis.length) bloqueio = 'vazio';else if (pendentes.length) bloqueio = 'pendentes';else if (!mesPronto) bloqueio = 'mesAberto';
+  const meses = itens.map(i => i.data.slice(0, 7)).sort();
   return {
     mes,
+    desdeMes: meses.length && meses[0] < mes ? meses[0] : mes,
+    ultimoFechadoAntes,
     modo,
     itens,
     elegiveis,
@@ -15405,7 +15420,7 @@ function AbaComissaoParceiro({
     const bloq = {
       pendentes: ['vermelho', `Fechamento indisponível. ${ap.pendentes.length === 1 ? 'Existe 1 orçamento pendente.' : `Existem ${ap.pendentes.length} orçamentos pendentes.`}`],
       mesAberto: ['amarelo', `Todos os orçamentos lançados até agora estão concluídos. O fechamento libera no último dia útil do mês (${formatarDataBr(ap.ultimoUtil)}).`],
-      vazio: ['cinza', 'Nenhum orçamento de clientes indicados neste mês.'],
+      vazio: ['cinza', 'Nenhum orçamento de clientes indicados neste mês (nem acumulado de meses não fechados).'],
       fechado: ['verde', ap.fechamento ? `Mês fechado em ${formatData(ap.fechamento.fechadoEm)} por ${ap.fechamento.fechadoPor || '—'}.` : 'Mês fechado.']
     }[ap.bloqueio] || ['verde', 'Todos os orçamentos do período foram concluídos. Fechamento disponível.'];
     corpo = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
@@ -15424,7 +15439,10 @@ function AbaComissaoParceiro({
       className: "pc-ind pc-prevista"
     }, /*#__PURE__*/React.createElement("span", null, "Comiss\xE3o prevista"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.comissaoPrevista)), /*#__PURE__*/React.createElement("small", null, "estimativa com todos do m\xEAs (", formatMoeda(ap.totalBasePrevista), ")")), /*#__PURE__*/React.createElement("div", {
       className: "pc-ind pc-apurada"
-    }, /*#__PURE__*/React.createElement("span", null, "Pronta para fechamento"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.comissaoApurada)), /*#__PURE__*/React.createElement("small", null, "apurada nos conclu\xEDdos"))), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("span", null, "Pronta para fechamento"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.comissaoApurada)), /*#__PURE__*/React.createElement("small", null, "apurada nos conclu\xEDdos"))), ap.desdeMes < mes && /*#__PURE__*/React.createElement("p", {
+      className: "pc-acumulo",
+      role: "note"
+    }, "Acumulado: inclui os or\xE7amentos de ", parcMesNome(ap.desdeMes), " a ", parcMesNome(mes), ", porque ", ap.desdeMes === parcMesSomar(mes, -1) ? 'o mês anterior não foi fechado' : 'os meses anteriores não foram fechados', ". Cada or\xE7amento mant\xE9m a data original. Ao fechar, a contagem recome\xE7a."), /*#__PURE__*/React.createElement("div", {
       className: `pc-faixa pc-${bloq[0]}`
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, bloq[1]), ap.bloqueio === 'pendentes' && /*#__PURE__*/React.createElement("ul", null, ap.pendentes.map(i => /*#__PURE__*/React.createElement("li", {
       key: i.orcamentoId
@@ -15591,7 +15609,9 @@ function ListaItensParceiro({
   }, "#", i.numero) : `#${i.numero}`, i.manual && /*#__PURE__*/React.createElement("small", {
     className: "pc-manual",
     title: i.motivoInclusao
-  }, " inclu\xEDdo manualmente")), /*#__PURE__*/React.createElement("td", {
+  }, " inclu\xEDdo manualmente"), i.acumulado && /*#__PURE__*/React.createElement("small", {
+    className: "pc-manual pc-acumulado"
+  }, " de ", parcMesNome(i.data.slice(0, 7)))), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Cliente"
   }, nomeCliente(i.clienteId)), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Data"
@@ -15958,7 +15978,7 @@ function ModalConfigParceiro({
     className: "pc-nota"
   }, "Encerrar o v\xEDnculo n\xE3o apaga nada: os or\xE7amentos do per\xEDodo em que o cliente estava vinculado continuam contando. Percentual em branco = padr\xE3o."), /*#__PURE__*/React.createElement("h4", null, "Or\xE7amentos inclu\xEDdos manualmente (exce\xE7\xE3o)"), /*#__PURE__*/React.createElement("p", {
     className: "pc-nota"
-  }, "Para um caso espec\xEDfico em que o or\xE7amento saiu em outro nome (por exemplo, no nome do pr\xF3prio parceiro). O or\xE7amento entra na comiss\xE3o do m\xEAs da data dele, com as mesmas regras dos demais."), Object.entries(f.inclusoesManuais || {}).length > 0 && /*#__PURE__*/React.createElement("ul", {
+  }, "Para um caso espec\xEDfico em que o or\xE7amento saiu em outro nome (por exemplo, no nome do pr\xF3prio parceiro). O or\xE7amento mant\xE9m a data dele e entra no primeiro m\xEAs ainda n\xE3o fechado, com as mesmas regras dos demais."), Object.entries(f.inclusoesManuais || {}).length > 0 && /*#__PURE__*/React.createElement("ul", {
     className: "pc-indicados pc-inclusoes"
   }, Object.entries(f.inclusoesManuais).map(([id, inc]) => {
     const o = orcPorId(id);
@@ -16058,7 +16078,8 @@ function ModalConferenciaParceiro({
             percentual: i.percentual,
             comissao: i.comissao,
             manual: !!i.manual,
-            motivoInclusao: i.motivoInclusao || ''
+            motivoInclusao: i.motivoInclusao || '',
+            mesOrigem: i.data.slice(0, 7)
           })),
           naoConsiderados: ap.itens.filter(i => i.situacao === 'naoAplicavel').map(i => ({
             orcamentoId: i.orcamentoId,
@@ -16091,7 +16112,9 @@ function ModalConferenciaParceiro({
     onClick: e => e.target === e.currentTarget && !salvando && aoFechar()
   }, /*#__PURE__*/React.createElement("div", {
     className: "modal pc-modal pc-modal-largo"
-  }, /*#__PURE__*/React.createElement("h3", null, "Confer\xEAncia \u2014 ", parcMesNome(ap.mes)), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h3", null, "Confer\xEAncia \u2014 ", parcMesNome(ap.mes)), ap.desdeMes < ap.mes && /*#__PURE__*/React.createElement("p", {
+    className: "pc-acumulo"
+  }, "Acumulado de ", parcMesNome(ap.desdeMes), " a ", parcMesNome(ap.mes), " (meses ainda n\xE3o fechados)."), /*#__PURE__*/React.createElement("div", {
     className: "pc-resumo pc-resumo-mini"
   }, /*#__PURE__*/React.createElement("div", {
     className: "pc-ind"
