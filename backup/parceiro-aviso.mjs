@@ -9,7 +9,7 @@ import { tipado } from './medir-banco.mjs';
 import { carregarRegrasDoSite } from './regras-do-site.mjs';
 import { desCampos, diaBr } from './arquivamento.mjs';
 
-export const FUNCOES = ['parcApurar', 'parcUltimoDiaUtil', 'parcVigente', 'parcPercentual', 'parcCent', 'parcDiaDe', 'parcMesNome', 'testeReprovado', 'dataDe', 'chaveDia', 'formatarDataInput'];
+export const FUNCOES = ['parcApurar', 'parcInclusao', 'parcUltimoDiaUtil', 'parcVigente', 'parcPercentual', 'parcCent', 'parcDiaDe', 'parcMesNome', 'testeReprovado', 'dataDe', 'chaveDia', 'formatarDataInput'];
 export const CONSTANTES = ['PARC_STATUS_APROVADO', 'PARC_MESES'];
 const log = m => console.log(m);
 
@@ -32,6 +32,12 @@ async function principal() {
   for (const p of parceiros.filter(x => x.ativo !== false)) {
     const orcs = [];
     for (const cid of Object.keys(p.indicados || {})) orcs.push(...(await cli.consultarTudo('orcamentos', 'clienteId', cid)).map(d => ({ id: d.id, ...desCampos(d.fields) })));
+    // orçamentos incluídos manualmente (exceção com motivo), que podem estar em nome de outro cliente
+    for (const oid of Object.keys(p.inclusoesManuais || {})) {
+      if (orcs.some(o => o.id === oid)) continue;
+      const f = await cli.obterDocumento('orcamentos', oid);
+      if (f) orcs.push({ id: oid, ...desCampos(f) });
+    }
     const ap = regras.parcApurar(p, orcs, mes, fechamentos, hoje);
     log(`Parceiro: ${ap.elegiveis.length} orçamento(s) no mês, ${ap.concluidos.length} concluído(s), ${ap.pendentes.length} pendente(s); fechamento ${ap.liberado ? 'liberado' : ap.bloqueio}.`);
     const texto = textoAviso(p.nome || 'parceiro', ap, regras);

@@ -46,5 +46,17 @@ passo('pagamento parcial e ajuste: fechada 600, paga 300, saldo 300', sd.devido 
 ap = R.parcApurar(P, base, '2026-10', [], '2026-10-30');
 const t = textoAviso('Parceiro', ap, R);
 passo('aviso do último dia útil: contagens e situação, sem valores', /4 orçamento\(s\) no período: 3 concluído\(s\), 1 pendente\(s\)\. Fechamento bloqueado/.test(t) && !/R\$/.test(t), t);
+// inclusão manual (exceção): orçamento no nome do próprio parceiro conta, com motivo
+const Pm = { ...P, inclusoesManuais: { X9: { numero: 'X9', clienteId: 'PARC', motivo: 'faturado direto ao cliente indicado', percentual: null, ativa: true } } };
+const comX = [...base.filter(o => o.id !== 'C1x'), orc('X9', 'PARC', '2026-10-23', 'Concluído', 1400)];
+ap = R.parcApurar(Pm, comX, '2026-10', [], '2026-11-02');
+const x9 = ap.itens.find(i => i.orcamentoId === 'X9');
+passo('inclusão manual: orçamento no nome do parceiro entra na comissão (15% de 1.400 = 210)', x9 && x9.manual && x9.situacao === 'concluido' && x9.comissao === 210 && ap.comissaoApurada === 735, JSON.stringify(x9));
+passo('inclusão manual: selo do orçamento aponta o parceiro', R.parcDoOrcamento([Pm], comX.find(o => o.id === 'X9')).manual === true);
+ap = R.parcApurar({ ...Pm, inclusoesManuais: { X9: { ...Pm.inclusoesManuais.X9, percentual: 10 } } }, comX, '2026-10', [], '2026-11-02');
+passo('inclusão manual com percentual próprio (10% = 140)', ap.itens.find(i => i.orcamentoId === 'X9').comissao === 140);
+ap = R.parcApurar({ ...Pm, inclusoesManuais: { X9: { ...Pm.inclusoesManuais.X9, ativa: false } } }, comX, '2026-10', [], '2026-11-02');
+passo('inclusão retirada (mantida no histórico) deixa de contar', !ap.itens.some(i => i.orcamentoId === 'X9') && R.parcDoOrcamento([{ ...Pm, inclusoesManuais: { X9: { ativa: false } } }], comX.find(o => o.id === 'X9')) === null);
+passo('outros orçamentos do parceiro (sem inclusão) continuam fora', R.parcApurar(P, comX, '2026-10', [], '2026-11-02').itens.every(i => i.orcamentoId !== 'X9'));
 console.log(`\n${ok}/${ok + falhas} verificações da comissão do parceiro ${falhas ? 'com FALHAS' : 'OK'}`);
 process.exit(falhas ? 1 : 0);

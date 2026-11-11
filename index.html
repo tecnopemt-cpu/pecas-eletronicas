@@ -527,6 +527,9 @@
   .pc-add{display:flex;gap:8px;margin-top:10px;}
   .pc-add select{flex:1;min-width:0;}
   .pc-add .pc-seletor{flex:1;min-width:0;}
+  .pc-incluir{display:grid;grid-template-columns:130px minmax(0,1fr) 90px auto;gap:8px;margin-top:8px;}
+  @media (max-width:600px){.pc-incluir{grid-template-columns:1fr 1fr;}.pc-incluir input[aria-label="Motivo da inclusão"]{grid-column:1 / -1;order:-1;}}
+  .pc-manual{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:#FFF1E0;color:#9A4B00;font-size:11px;font-weight:600;}
   .pc-add-rotulo{margin-top:6px;}
   .pc-cliente-resumo{margin:6px 0 10px;padding:8px 12px;border:1px solid var(--borda);border-radius:8px;background:var(--fundo-suave, rgba(0,0,0,.02));}
   .pc-indicados small.pc-ind-dados{color:var(--texto-fraco);}
@@ -6076,6 +6079,7 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -15111,8 +15115,21 @@ function parcPercentual(parceiro, ind) {
   return ind && ind.percentual != null && ind.percentual !== '' ? Number(ind.percentual) : Number(parceiro.percentualPadrao) || 0;
 }
 // parceiro (e %) de um orçamento, ou null
+function parcInclusao(parceiro, orcamentoId) {
+  const inc = (parceiro && parceiro.inclusoesManuais || {})[orcamentoId];
+  return inc && inc.ativa !== false ? inc : null;
+}
 function parcDoOrcamento(parceiros, o) {
   const dia = parcDiaDe(o && o.criadoEm);
+  for (const p of parceiros || []) {
+    const inc = o && parcInclusao(p, o.id);
+    if (inc) return {
+      parceiro: p,
+      ind: null,
+      percentual: inc.percentual != null && inc.percentual !== '' ? Number(inc.percentual) : Number(p.percentualPadrao) || 0,
+      manual: true
+    };
+  }
   for (const p of parceiros || []) {
     const ind = (p.indicados || {})[o.clienteId];
     if (ind && parcVigente(p, ind, dia)) return {
@@ -15133,11 +15150,13 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
   };
   const itens = [];
   for (const o of orcamentos || []) {
+    // inclusão manual (exceção registrada com motivo): conta mesmo sem o cliente estar vinculado
+    const inc = parcInclusao(parceiro, o.id);
     const ind = (parceiro.indicados || {})[o.clienteId];
-    if (!ind) continue;
+    if (!ind && !inc) continue;
     const dia = parcDiaDe(o.criadoEm);
-    if (!dia || dia.slice(0, 7) !== mes || !parcVigente(parceiro, ind, dia)) continue;
-    const pct = parcPercentual(parceiro, ind);
+    if (!dia || dia.slice(0, 7) !== mes || !inc && !parcVigente(parceiro, ind, dia)) continue;
+    const pct = inc ? inc.percentual != null && inc.percentual !== '' ? Number(inc.percentual) : Number(parceiro.percentualPadrao) || 0 : parcPercentual(parceiro, ind);
     const total = parcCent(o.total);
     let situacao = o.status === 'Concluído' ? 'concluido' : 'pendente',
       motivo = '';
@@ -15167,7 +15186,9 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
       comissao: parcCent(base * pct / 100),
       previsto: situacao === 'naoAplicavel' ? 0 : parcCent(total * pct / 100),
       situacao,
-      motivo
+      motivo,
+      manual: !!inc,
+      motivoInclusao: inc ? inc.motivo || '' : ''
     });
   }
   itens.sort((a, b) => a.data.localeCompare(b.data) || String(a.numero).localeCompare(String(b.numero)));
@@ -15567,7 +15588,10 @@ function ListaItensParceiro({
     type: "button",
     className: "pc-link",
     onClick: () => aoAbrir(i.orcamentoId)
-  }, "#", i.numero) : `#${i.numero}`), /*#__PURE__*/React.createElement("td", {
+  }, "#", i.numero) : `#${i.numero}`, i.manual && /*#__PURE__*/React.createElement("small", {
+    className: "pc-manual",
+    title: i.motivoInclusao
+  }, " inclu\xEDdo manualmente")), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Cliente"
   }, nomeCliente(i.clienteId)), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Data"
@@ -15613,6 +15637,10 @@ function ModalConfigParceiro({
     indicados: {}
   });
   const [novoInd, setNovoInd] = useState('');
+  const [orcsTodos] = useColecao('orcamentos');
+  const [incNumero, setIncNumero] = useState('');
+  const [incMotivo, setIncMotivo] = useState('');
+  const [incPct, setIncPct] = useState('');
   const [msg, setMsg] = useState('');
   const [salvando, setSalvando] = useState(false);
   const master = ehMaster(usuario);
@@ -15675,6 +15703,86 @@ function ModalConfigParceiro({
     setNovoInd('');
     setMsg('');
   }
+  const orcPorId = id => (orcsTodos || []).find(o => o.id === id) || null;
+  function incluirOrcamento() {
+    const num = incNumero.replace(/[^0-9A-Za-z-]/g, '');
+    if (!num) {
+      setMsg('Informe o número do orçamento.');
+      return;
+    }
+    const achados = (orcsTodos || []).filter(o => String(o.numero || '').replace(/[^0-9A-Za-z-]/g, '') === num);
+    if (!achados.length) {
+      setMsg(`Orçamento #${num} não encontrado.`);
+      return;
+    }
+    if (achados.length > 1) {
+      setMsg(`Há mais de um orçamento com o número #${num}. Abra o orçamento e confira antes.`);
+      return;
+    }
+    const o = achados[0];
+    if (!incMotivo.trim()) {
+      setMsg('Informe o motivo da inclusão manual.');
+      return;
+    }
+    if (parcInclusao(f, o.id)) {
+      setMsg(`O orçamento #${num} já está incluído.`);
+      return;
+    }
+    const outroDono = (parceiros || []).find(p => p.id !== f.id && parcInclusao(p, o.id));
+    if (outroDono) {
+      setMsg(`O orçamento #${num} já está incluído no parceiro ${outroDono.nome || nomeCliente(outroDono.id)}.`);
+      return;
+    }
+    const pelaRegra = parcDoOrcamento((parceiros || []).filter(p => p.id !== f.id).concat([{
+      ...f,
+      inclusoesManuais: {}
+    }]), o);
+    if (pelaRegra) {
+      setMsg(`O orçamento #${num} já conta para ${pelaRegra.parceiro.nome || 'este parceiro'} pelo cliente vinculado; não precisa incluir.`);
+      return;
+    }
+    const v = incPct === '' ? null : Number(String(incPct).replace(',', '.'));
+    if (v != null && !(v >= 0 && v <= 100)) {
+      setMsg('Percentual inválido.');
+      return;
+    }
+    setF(x => ({
+      ...x,
+      inclusoesManuais: {
+        ...(x.inclusoesManuais || {}),
+        [o.id]: {
+          numero: o.numero || num,
+          clienteId: o.clienteId || '',
+          motivo: incMotivo.trim(),
+          percentual: v,
+          por: usuario.nome || '',
+          em: new Date().toISOString(),
+          ativa: true
+        }
+      }
+    }));
+    setIncNumero('');
+    setIncMotivo('');
+    setIncPct('');
+    setMsg('');
+  }
+  function retirarInclusao(id) {
+    const motivo = window.prompt('Motivo para retirar este orçamento da comissão do parceiro:');
+    if (!motivo || !motivo.trim()) return;
+    setF(x => ({
+      ...x,
+      inclusoesManuais: {
+        ...x.inclusoesManuais,
+        [id]: {
+          ...x.inclusoesManuais[id],
+          ativa: false,
+          retiradaPor: usuario.nome || '',
+          retiradaEm: new Date().toISOString(),
+          motivoRetirada: motivo.trim()
+        }
+      }
+    }));
+  }
   async function salvar() {
     if (!f.id) {
       setMsg('Escolha o cliente parceiro.');
@@ -15706,8 +15814,13 @@ function ModalConfigParceiro({
       if (!a) mudancas.push(`vinculou ${nomeCliente(id)}`);else if (JSON.stringify(a.periodos) !== JSON.stringify(ind.periodos)) mudancas.push(`${(ind.periodos || []).some(p => !p.ate) ? 'reativou' : 'encerrou'} o vínculo de ${nomeCliente(id)}`);
       if (a && String(a.percentual ?? '') !== String(ind.percentual ?? '')) mudancas.push(`percentual de ${nomeCliente(id)}: ${ind.percentual != null && ind.percentual !== '' ? parcPct(ind.percentual) : 'padrão'}`);
     }
+    for (const [id, inc] of Object.entries(f.inclusoesManuais || {})) {
+      const a = (ant.inclusoesManuais || {})[id];
+      if (!a && inc.ativa !== false) mudancas.push(`incluiu manualmente o orçamento #${inc.numero} (${inc.motivo})`);else if (a && a.ativa !== false && inc.ativa === false) mudancas.push(`retirou a inclusão manual do orçamento #${inc.numero} (${inc.motivoRetirada})`);
+    }
     const dados = {
       nome: nomeCliente(f.id),
+      inclusoesManuais: f.inclusoesManuais || {},
       ativo: f.ativo !== false,
       inativoDesde: f.ativo === false ? ant.ativo === false && ant.inativoDesde ? ant.inativoDesde : hoje : null,
       percentualPadrao: pct,
@@ -15843,7 +15956,46 @@ function ModalConfigParceiro({
     disabled: !novoInd
   }, "Adicionar")), /*#__PURE__*/React.createElement("p", {
     className: "pc-nota"
-  }, "Encerrar o v\xEDnculo n\xE3o apaga nada: os or\xE7amentos do per\xEDodo em que o cliente estava vinculado continuam contando. Percentual em branco = padr\xE3o."), parceiro && (parceiro.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+  }, "Encerrar o v\xEDnculo n\xE3o apaga nada: os or\xE7amentos do per\xEDodo em que o cliente estava vinculado continuam contando. Percentual em branco = padr\xE3o."), /*#__PURE__*/React.createElement("h4", null, "Or\xE7amentos inclu\xEDdos manualmente (exce\xE7\xE3o)"), /*#__PURE__*/React.createElement("p", {
+    className: "pc-nota"
+  }, "Para um caso espec\xEDfico em que o or\xE7amento saiu em outro nome (por exemplo, no nome do pr\xF3prio parceiro). O or\xE7amento entra na comiss\xE3o do m\xEAs da data dele, com as mesmas regras dos demais."), Object.entries(f.inclusoesManuais || {}).length > 0 && /*#__PURE__*/React.createElement("ul", {
+    className: "pc-indicados pc-inclusoes"
+  }, Object.entries(f.inclusoesManuais).map(([id, inc]) => {
+    const o = orcPorId(id);
+    return /*#__PURE__*/React.createElement("li", {
+      key: id,
+      className: inc.ativa === false ? 'inativo' : ''
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "#", inc.numero, " \u2014 ", nomeCliente(inc.clienteId || o && o.clienteId)), /*#__PURE__*/React.createElement("small", null, o ? `${formatarDataBr(parcDiaDe(o.criadoEm))} · ${formatMoeda(parcCent(o.total))} · ${o.status || ''}` : ''), /*#__PURE__*/React.createElement("small", null, "Motivo: ", inc.motivo, " \xB7 ", inc.por, inc.ativa === false ? ` · retirado: ${inc.motivoRetirada}` : '')), /*#__PURE__*/React.createElement("span", {
+      className: "pc-nota"
+    }, inc.percentual != null ? parcPct(inc.percentual) : `${parcPct(f.percentualPadrao || 0)} (padrão)`), inc.ativa !== false ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn secundario pequeno",
+      onClick: () => retirarInclusao(id)
+    }, "Retirar") : /*#__PURE__*/React.createElement("span", null));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "pc-incluir"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: incNumero,
+    onChange: e => setIncNumero(e.target.value),
+    placeholder: "N\xBA do or\xE7amento",
+    "aria-label": "N\xFAmero do or\xE7amento",
+    inputMode: "numeric"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: incMotivo,
+    onChange: e => setIncMotivo(e.target.value),
+    placeholder: "Motivo (obrigat\xF3rio)",
+    "aria-label": "Motivo da inclus\xE3o"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: incPct,
+    onChange: e => setIncPct(e.target.value.replace(/[^0-9.,]/g, '')),
+    placeholder: `% (${parcPct(f.percentualPadrao || 0)})`,
+    "aria-label": "Percentual do or\xE7amento inclu\xEDdo",
+    inputMode: "decimal"
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: incluirOrcamento
+  }, "Incluir")), parceiro && (parceiro.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
     className: "pc-hist"
   }, /*#__PURE__*/React.createElement("summary", null, "Hist\xF3rico de altera\xE7\xF5es (", parceiro.historico.length, ")"), /*#__PURE__*/React.createElement("ul", null, parceiro.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
     key: i
@@ -15904,7 +16056,9 @@ function ModalConferenciaParceiro({
             total: i.total,
             base: i.base,
             percentual: i.percentual,
-            comissao: i.comissao
+            comissao: i.comissao,
+            manual: !!i.manual,
+            motivoInclusao: i.motivoInclusao || ''
           })),
           naoConsiderados: ap.itens.filter(i => i.situacao === 'naoAplicavel').map(i => ({
             orcamentoId: i.orcamentoId,
