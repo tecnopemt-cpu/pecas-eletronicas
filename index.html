@@ -6099,6 +6099,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -15071,7 +15072,7 @@ function MonAlertasConfig({
 // cliente indicado → parceiro), então editar/mover o cartão nunca duplica nada.
 // Mês de referência = data do orçamento (criadoEm). Fechamento: um documento por parceiro e mês
 // (parceiroFechamentos/<parceiro>_<AAAA-MM>), com a foto dos valores no momento — depois de fechado, nada muda
-// sozinho: correções viram "ajustes" identificados. Só administradores leem; só o Master fecha e paga
+// sozinho: correções viram "ajustes" identificados. Só administradores leem e fecham; só o Master registra pagamentos
 // (as regras do banco garantem isso). Separado da comissão dos funcionários.
 const PARC_BASES = {
   total: 'Valor total do orçamento',
@@ -15374,6 +15375,7 @@ function AbaComissaoParceiro({
   const [conferir, setConferir] = useState(false);
   const [fechAberto, setFechAberto] = useState(null);
   const master = ehMaster(usuario);
+  const podeFechar = ehAdministrador(usuario); // Master e administradores fecham
   const nomeCliente = id => (clientes.find(c => c.id === id) || {}).razaoSocial || '—';
   const lista = parc && parc.lista || [];
   const p = lista.find(x => x.id === parcId) || lista.find(x => x.ativo !== false) || lista[0] || null;
@@ -15457,16 +15459,16 @@ function AbaComissaoParceiro({
     }, "#", i.numero), " \u2014 ", nomeCliente(i.clienteId), " \xB7 ", i.status)))), !ap.fechamento && /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn",
-      disabled: !ap.liberado || !master,
-      title: !master ? 'Só o Administrador Master fecha a comissão' : '',
+      disabled: !ap.liberado || !podeFechar,
+      title: !podeFechar ? 'Só administradores fecham a comissão' : '',
       onClick: () => setConferir(true)
     }, "Fechar comiss\xE3o do m\xEAs"), ap.fechamento && /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn secundario",
       onClick: () => setFechAberto(ap.fechamento.id)
-    }, "Ver fechamento")), !master && !ap.fechamento && /*#__PURE__*/React.createElement("p", {
+    }, "Ver fechamento")), !master && /*#__PURE__*/React.createElement("p", {
       className: "pc-nota"
-    }, "S\xF3 o Administrador Master fecha a comiss\xE3o e registra pagamentos."), /*#__PURE__*/React.createElement("section", {
+    }, "S\xF3 o Administrador Master registra pagamentos e ajustes."), /*#__PURE__*/React.createElement("section", {
       className: "card pc-bloco"
     }, /*#__PURE__*/React.createElement("h3", null, "Por cliente indicado"), ap.porCliente.length === 0 ? /*#__PURE__*/React.createElement("p", {
       className: "pc-nota"
@@ -16039,7 +16041,7 @@ function ModalConfigParceiro({
     onClick: salvar
   }, salvando ? 'Salvando…' : 'Salvar'))));
 }
-// ---- conferência antes de fechar (Master) ----
+// ---- conferência antes de fechar (Master e administradores) ----
 function ModalConferenciaParceiro({
   usuario,
   parceiro,
@@ -16107,7 +16109,7 @@ function ModalConferenciaParceiro({
       aoFechar();
     } catch (e) {
       console.error(e);
-      setMsg(e.jaFechado ? 'Esse mês já foi fechado (por outra pessoa ou em outro aparelho).' : 'Não consegui fechar (só o Administrador Master fecha; verifique a conexão).');
+      setMsg(e.jaFechado ? 'Esse mês já foi fechado (por outra pessoa ou em outro aparelho).' : 'Não consegui fechar (sem permissão ou sem conexão).');
     }
     setSalvando(false);
   }
