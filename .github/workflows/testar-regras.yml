@@ -37,6 +37,11 @@ jobs:
         env:
           TZ: America/Sao_Paulo
         run: node teste-parceiro.mjs
+      - name: Testar o cálculo de Benefícios (VR e VT)
+        working-directory: seguranca
+        env:
+          TZ: America/Sao_Paulo
+        run: node teste-beneficios.mjs
       - name: Testar as regras
         working-directory: seguranca
         run: npx firebase emulators:exec --only firestore --project demo-controle-pecas "node teste-regras.mjs"

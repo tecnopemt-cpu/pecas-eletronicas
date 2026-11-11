@@ -366,6 +366,17 @@ try {
   passo('monitoramento: funcionário não tem o item no menu', await fabio.page.locator('.sidebar-item', { hasText: 'Central de Monitoramento' }).count() === 0);
   const negadoF = await fabio.page.evaluate(async () => { try { await db.collection('monitoramento').doc('fontes').get(); return 'leu'; } catch (e) { return e.code; } });
   passo('monitoramento: banco recusa a leitura para funcionário', negadoF === 'permission-denied', negadoF);
+  // Benefícios (VR e VT): Master abre e grava com as regras valendo; funcionário sem o módulo não vê nem lê
+  etapa = 'benefícios';
+  await w.page.locator('.sidebar-item', { hasText: 'Benefícios' }).first().click();
+  await w.page.waitForSelector('.bn-tela', { timeout: 20000 }).catch(() => {});
+  passo('benefícios: Master abre a tela (regras valendo)', /Compra do mês/.test(await w.page.locator('.bn-tela').innerText().catch(() => '')));
+  const gravouBen = await w.page.evaluate(async () => { try { await db.collection('beneficiosFuncionarios').doc('FUN').set({ recebeVR: true, vrDiario: 30 }, { merge: true }); return 'ok'; } catch (e) { return e.code; } });
+  passo('benefícios: Master grava a configuração', gravouBen === 'ok', gravouBen);
+  passo('benefícios: sem erros de permissão', w.erros.length === 0, w.erros.join(' | '));
+  passo('benefícios: funcionário sem o módulo não tem o item no menu', await fabio.page.locator('.sidebar-item', { hasText: 'Benefícios' }).count() === 0);
+  const negadoB = await fabio.page.evaluate(async () => { try { await db.collection('beneficiosFuncionarios').doc('FUN').get(); return 'leu'; } catch (e) { return e.code; } });
+  passo('benefícios: banco recusa a leitura para funcionário', negadoB === 'permission-denied', negadoB);
   // 11) Arquivamento automático: a rotina (conta do backup, regras valendo) arquiva só conjuntos inteiros
   etapa = 'arquivamento';
   const diaSP = (d) => new Date(d).toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });

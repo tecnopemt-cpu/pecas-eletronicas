@@ -26,6 +26,9 @@ await env.withSecurityRulesDisabled(async ctx => {
   await ficha('FUN', { nome: 'Fábio', perfil: 'funcionario', status: 'ativo', login: 'fabio', permissoes: permFunc });
   await ficha('FU2', { nome: 'Fernanda', perfil: 'funcionario', status: 'ativo', login: 'fe', permissoes: permFunc }, 2);
   await ficha('LEG', { nome: 'Legado', ativo: true, login: 'leg' });
+  await ficha('TAM', { nome: 'Tamara', perfil: 'administrador', status: 'ativo', login: 'tamara', permissoes: { ...permEditar, beneficios: 'editar' }, beneficiosFechar: true });
+  await ficha('BVI', { nome: 'Bia', perfil: 'funcionario', status: 'ativo', login: 'bia', permissoes: { ...permFunc, beneficios: 'visualizar' } });
+  await ficha('BED', { nome: 'Beto', perfil: 'funcionario', status: 'ativo', login: 'beto', permissoes: { ...permFunc, beneficios: 'editar' } });
   await ficha('PEN', { nome: 'Pedro', perfil: 'funcionario', status: 'pendente', login: 'pedro', permissoes: {} });
   await ficha('BLO', { nome: 'Bruno', perfil: 'funcionario', status: 'bloqueado', login: 'bruno' });
   await set('contas/uid-intruso', { funcionarioId: 'WAL', email: 'intruso@gmail.com' });
@@ -56,7 +59,7 @@ const como = {
   cadastrouSozinho: env.authenticatedContext('uid-x', { email: 'qualquer@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
   semFicha: conta('NAOEXISTE'),
   intruso: env.authenticatedContext('uid-intruso', { email: 'intruso@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
-  master: conta('WAL'), admin: conta('RAI'), func: conta('FUN'), legado: conta('LEG'),
+  master: conta('WAL'), admin: conta('RAI'), tamara: conta('TAM'), benVe: conta('BVI'), benEdita: conta('BED'), func: conta('FUN'), legado: conta('LEG'),
   contaAntiga: conta('FU2', 1), contaAtual: conta('FU2', 2),
   pendente: conta('PEN'), bloqueado: conta('BLO'), novo: conta('NOVO'),
   visitante: env.authenticatedContext('uid-anon', { firebase: { sign_in_provider: 'anonymous' } }).firestore(),
@@ -221,6 +224,28 @@ await caso('parceiro: rotina lê para preparar o aviso', SIM, () => como.backup.
 await caso('parceiro: rotina cria o aviso do último dia útil', SIM, () => como.backup.doc('notificacoes/parceiro_PA_2026-10_WAL').set({ funcionarioId: 'WAL', tipo: 'parceiro', texto: 'x', lida: false }));
 await caso('parceiro: rotina NÃO cria outro tipo de notificação', NAO, () => como.backup.doc('notificacoes/parceiro_X').set({ funcionarioId: 'WAL', tipo: 'geral', texto: 'x', lida: false }));
 await caso('parceiro: rotina NÃO sobrescreve aviso existente', NAO, () => como.backup.doc('notificacoes/parceiro_PA_2026-10_WAL').set({ funcionarioId: 'WAL', tipo: 'parceiro', texto: 'y', lida: false }));
+// ---------- benefícios (VR e VT) ----------
+await env.withSecurityRulesDisabled(async ctx => { const d = ctx.firestore(); await d.doc('beneficiosFuncionarios/FUN').set({ recebeVR: true, vrDiario: 30 }); await d.doc('beneficiosFechamentos/2026-11').set({ mes: '2026-11', total: 660, linhas: [], versoesAnteriores: [], historico: [{ texto: 'fechado' }] }); });
+const fechBen = { mes: '2026-12', total: 990, linhas: [], versoesAnteriores: [], historico: [{ texto: 'fechado' }] };
+await caso('benefícios: Master lê e edita a configuração', SIM, () => como.master.doc('beneficiosFuncionarios/FUN').update({ vrDiario: 32 }));
+await caso('benefícios: Tamara (editar) altera valores individuais', SIM, () => como.tamara.doc('beneficiosFuncionarios/FUN').update({ recebeVT: true, linhas: [{ valor: 5, ida: 1, volta: 1 }] }));
+await caso('benefícios: Tamara ajusta o calendário geral', SIM, () => como.tamara.doc('beneficiosCalendario/geral').set({ municipio: 'Arujá/SP', dias: { '2026-12-24': { conta: false } } }));
+await caso('benefícios: administradora SEM o módulo na matriz NÃO lê', NAO, () => como.admin.doc('beneficiosFuncionarios/FUN').get());
+await caso('benefícios: funcionário sem acesso NÃO lê', NAO, () => como.func.doc('beneficiosFuncionarios/FUN').get());
+await caso('benefícios: usuário antigo (sem matriz) NÃO lê', NAO, () => como.legado.doc('beneficiosFechamentos/2026-11').get());
+await caso('benefícios: quem só visualiza lê', SIM, () => como.benVe.doc('beneficiosFechamentos/2026-11').get());
+await caso('benefícios: quem só visualiza NÃO altera', NAO, () => como.benVe.doc('beneficiosFuncionarios/FUN').update({ vrDiario: 1 }));
+await caso('benefícios: quem edita sem "fechar o mês" NÃO fecha', NAO, () => como.benEdita.doc('beneficiosFechamentos/2026-12').set(fechBen));
+await caso('benefícios: Tamara fecha o mês', SIM, () => como.tamara.doc('beneficiosFechamentos/2026-12').set(fechBen));
+await caso('benefícios: fechamento com id fora de AAAA-MM é recusado', NAO, () => como.master.doc('beneficiosFechamentos/dezembro').set(fechBen));
+await caso('benefícios: refazer o mês guardando a versão anterior', SIM, () => como.tamara.doc('beneficiosFechamentos/2026-11').update({ total: 700, versoesAnteriores: FV.arrayUnion({ total: 660 }), historico: FV.arrayUnion({ texto: 'refeito: correção' }) }));
+await caso('benefícios: refazer apagando o histórico é recusado', NAO, () => como.tamara.doc('beneficiosFechamentos/2026-11').update({ historico: [] }));
+await caso('benefícios: ninguém apaga fechamento nem configuração', NAO, () => como.master.doc('beneficiosFechamentos/2026-11').delete());
+await caso('benefícios: ninguém apaga a configuração do funcionário', NAO, () => como.tamara.doc('beneficiosFuncionarios/FUN').delete());
+await caso('benefícios: visitante e estranho NÃO leem', NAO, () => como.estranho.doc('beneficiosFechamentos/2026-11').get());
+await caso('benefícios: rotina de backup lê', SIM, () => como.backup.collection('beneficiosFechamentos').get());
+await caso('benefícios: rotina de backup NÃO grava', NAO, () => como.backup.doc('beneficiosFuncionarios/FUN').update({ vrDiario: 1 }));
+await caso('benefícios: Tamara lança falta no registro da Comissão (mesmo documento)', SIM, () => como.tamara.doc('apuracaoRegistros/2026-11-01_2026-11-30_FUN').set({ ocorrencias: FV.arrayUnion({ id: 'x', tipo: 'nao_justificada', data: '2026-11-10', origem: 'beneficios' }) }, { merge: true }));
 // ---------- avaliação de desempenho ----------
 await env.withSecurityRulesDisabled(async ctx => {
   const db = ctx.firestore();

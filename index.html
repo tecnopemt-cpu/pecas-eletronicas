@@ -413,6 +413,68 @@
     .mon-link{padding:8px 0;}
     .btn-menu-pontos{min-width:36px;min-height:36px;}
   }
+  /* ---- Benefícios (VR e VT) ---- */
+  .perm-fixas{display:flex;flex-direction:column;gap:8px;margin:4px 0 16px;padding:12px;border-radius:10px;background:var(--fundo);font-size:12.5px;}
+  .perm-fixas div{display:flex;flex-direction:column;gap:2px;}
+  .perm-fixas span{color:var(--texto-fraco);}
+  .bn-tela{display:flex;flex-direction:column;gap:14px;}
+  .bn-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;}
+  .bn-cab h2{margin:0;}
+  .bn-acoes{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+  .bn-acoes label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--texto-fraco);margin:0;}
+  .bn-acoes input{width:auto;}
+  .bn-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+  .bn-kpi{display:flex;flex-direction:column;gap:3px;padding:13px 14px;border-radius:12px;background:var(--card);border:1px solid var(--borda);min-width:0;}
+  .bn-kpi span,.bn-memoria span{font-size:12.5px;color:var(--texto-fraco);font-weight:600;}
+  .bn-kpi b,.bn-memoria b{font-size:19px;color:#0F2A47;overflow-wrap:anywhere;}
+  .bn-kpi small,.bn-memoria small{font-size:12px;color:var(--texto-fraco);}
+  .bn-total{border-left:4px solid #E97307 !important;}
+  .bn-faixa{padding:11px 14px;border-radius:12px;background:#EEF3F9;border:1px solid #D3DFEC;color:#0F2A47;font-size:13.5px;}
+  .bn-fechado{color:#1A7A42;font-weight:600;}
+  .bn-grade{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,2fr);gap:14px;align-items:start;}
+  .bn-bloco h3{margin:0 0 10px;font-size:15.5px;}
+  .bn-modal h4{margin:16px 0 6px;font-size:14px;}
+  .bn-nota{font-size:12.5px;color:var(--texto-fraco);margin:8px 0 0;}
+  small.bn-nota{margin:0;}
+  .bn-linha-total td{font-weight:700;background:var(--fundo);}
+  .bn-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+  .bn-cal-sem{font-size:11px;text-align:center;color:var(--texto-fraco);font-weight:600;}
+  .bn-dia{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:44px;padding:4px 2px;border-radius:8px;border:1px solid transparent;font:inherit;cursor:pointer;}
+  .bn-dia:disabled{cursor:default;}
+  .bn-cal.compacto .bn-dia{min-height:32px;}
+  .bn-dia b{font-size:13px;}
+  .bn-dia small{font-size:9.5px;line-height:1.1;}
+  .bn-dia.verde{background:#E3F4EA;color:#145C33;}
+  .bn-dia.azul{background:#E5EDF7;color:#2A4B70;}
+  .bn-dia.vermelho{background:#FCE5E2;color:#A3241A;}
+  .bn-dia.laranja{background:#FDEBD8;color:#8A4300;border-color:#F0C28F;}
+  .bn-dia.falta{box-shadow:inset 0 0 0 2px #E97307;}
+  .bn-legenda{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:12px;color:var(--texto-fraco);}
+  .bn-legenda span{display:inline-flex;align-items:center;gap:5px;}
+  .bn-legenda i{width:11px;height:11px;border-radius:3px;}
+  .bn-legenda i.verde{background:#BFE5CD;} .bn-legenda i.azul{background:#C9D9EC;} .bn-legenda i.vermelho{background:#F3B9B2;} .bn-legenda i.laranja{background:#F6C28E;}
+  .bn-modal{max-width:760px;}
+  .bn-modal-dia{max-width:440px;}
+  .bn-memoria{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:8px 0;}
+  .bn-memoria > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;background:var(--fundo);border-left:4px solid transparent;}
+  .bn-check{display:flex;align-items:center;gap:8px;margin-top:10px;}
+  .bn-check input{width:auto;}
+  .bn-linha-onibus{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) 70px 70px auto;gap:8px;align-items:end;margin-top:8px;}
+  .bn-acoes-esq{justify-content:flex-start !important;}
+  .bn-falta-info{padding:10px 12px;border-radius:10px;background:#FDEBD8;color:#7A3B00;font-size:13px;margin-bottom:8px;}
+  .bn-mes-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px;}
+  .bn-especiais{margin:10px 0 0;padding-left:18px;font-size:13px;}
+  .bn-ajuste{margin-top:12px;padding:12px;border-radius:12px;background:var(--fundo);}
+  .bn-ajuste-bts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .bn-fora{margin-top:10px;font-size:13px;}
+  .bn-fora ul{margin:6px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .bn-fora li{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  @media (max-width:900px){ .bn-grade{grid-template-columns:minmax(0,1fr);} }
+  @media (max-width:640px){
+    .bn-acoes{width:100%;} .bn-acoes label{flex:1 1 100%;} .bn-acoes input{width:100%;}
+    .bn-linha-onibus{grid-template-columns:1fr 1fr;}
+    .bn-dia{min-height:40px;}
+  }
   /* ---- Comissão do Parceiro (Orçamentos) ---- */
   .pc-cab-tit{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;}
   .pc-abas{display:inline-flex;gap:3px;padding:3px;border-radius:10px;background:var(--card);border:1px solid var(--borda);}
@@ -2458,8 +2520,14 @@ function confirmarSenhaMaster(mensagem) {
 }
 
 // ======================= PERFIS E PERMISSÕES =======================
-const MODULOS_PERMISSAO = ['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios'];
+const MODULOS_PERMISSAO = ['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios', 'beneficios'];
+// Módulos que já existiam quando as permissões foram criadas: contas antigas sem permissões configuradas
+// continuam com acesso a eles. TODO módulo novo (fora desta lista) começa SEM ACESSO para todos — inclusive
+// contas antigas — até alguém liberar na Equipe. Para um módulo novo aparecer na matriz de permissões basta
+// incluí-lo em MODULOS_PERMISSAO e NOME_MODULO (e, se tiver divisões internas, um bloco próprio na matriz).
+const MODULOS_LEGADO = ['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios'];
 const NOME_MODULO = {
+  beneficios: 'Benefícios (VR e VT)',
   dashboard: 'Painel',
   lotes: 'Entrada de Peças',
   catalogo: 'Cadastro de Peças',
@@ -2471,6 +2539,7 @@ const NOME_MODULO = {
 function nivelAcesso(usuario, modulo) {
   if (!usuario) return 'sem_acesso';
   if (usuario.perfil === 'master') return 'editar';
+  if (!MODULOS_LEGADO.includes(modulo)) return usuario.permissoes && usuario.permissoes[modulo] || 'sem_acesso';
   // usuário legado (cadastrado antes desse sistema de permissões) sem o campo definido:
   // não restringe, pra não trancar ninguém que já usava o sistema livremente.
   if (!usuario.permissoes) return 'editar';
@@ -6013,6 +6082,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -6501,7 +6572,8 @@ function avOcorrenciasDe(docs) {
         removido: !!o.removido,
         removidoPor: o.removidoPor || '',
         removidoEm: o.removidoEm || '',
-        motivoRemocao: o.motivoRemocao || ''
+        motivoRemocao: o.motivoRemocao || '',
+        origem: o.origem || ''
       });
     });
   });
@@ -12910,7 +12982,8 @@ const MON_NOMES_TELA = {
   comissoes: 'Comissão',
   funcionarios: 'Equipe',
   avaliacoes: 'Avaliação',
-  monitoramento: 'Central de Monitoramento'
+  monitoramento: 'Central de Monitoramento',
+  beneficios: 'Benefícios'
 };
 const monNomeTela = t => MON_NOMES_TELA[t] || t || '—';
 const MON_TIPO_ERRO = {
@@ -16186,6 +16259,1241 @@ function SecaoParceiroCliente({
     aoFechar: () => setAberto(false)
   }), document.body));
 }
+// ======================= BENEFÍCIOS (VR e VT) =======================
+// Cálculo mensal do que comprar de Vale-Refeição e Vale-Transporte. Cada funcionário tem a SUA configuração
+// (beneficiosFuncionarios/<id>): participa, VR diário, linhas de ônibus (valor, quantidade na ida e na volta).
+// Compra do mês M = dias úteis de M (calendário geral: fins de semana, feriados nacionais/SP/Arujá e ajustes)
+// − faltas do mês anterior (M−1) caídas em dia útil. As faltas NÃO têm cadastro próprio: são as mesmas da
+// Comissão (apuracaoRegistros.ocorrencias), então nunca são lançadas duas vezes; uma falta lançada aqui grava
+// nesse mesmo registro com origem "Benefícios". Atrasos não entram. O fechamento é uma fotografia do mês
+// (beneficiosFechamentos/<AAAA-MM>); refazer guarda a versão anterior e registra a mudança.
+const BEN_MUNICIPIO = 'Arujá/SP';
+const BEN_DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const BEN_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+function benMesNome(m) {
+  const [a, x] = m.split('-').map(Number);
+  return `${BEN_MESES[x - 1]}/${a}`;
+}
+function benMesSomar(m, n) {
+  const [a, x] = m.split('-').map(Number);
+  const d = new Date(a, x - 1 + n, 1, 12);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+function benNum(v) {
+  const n = Number(String(v ?? '').replace(',', '.'));
+  return isFinite(n) && n > 0 ? n : 0;
+}
+function benCent(v) {
+  return Math.round((Number(v) || 0) * 100) / 100;
+}
+// Páscoa (algoritmo de Meeus/Jones/Butcher)
+function benPascoa(ano) {
+  const a = ano % 19,
+    b = Math.floor(ano / 100),
+    c = ano % 100,
+    d = Math.floor(b / 4),
+    e = b % 4,
+    f = Math.floor((b + 8) / 25),
+    g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30,
+    i = Math.floor(c / 4),
+    k = c % 4,
+    l = (32 + 2 * e + 2 * i - h - k) % 7,
+    m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31),
+    dia = (h + l - 7 * m + 114) % 31 + 1;
+  return `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+}
+function benSomarDias(iso, n) {
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// feriados automáticos: nacionais (fixos e Sexta-feira Santa), estadual de SP e municipais de Arujá;
+// Carnaval e Corpus Christi são pontos facultativos (contam como dia útil, a menos que o calendário geral diga outra coisa)
+function benFeriadosAuto(ano, municipio) {
+  const f = {};
+  const add = (md, nome, esfera, tipo = 'feriado') => {
+    f[md.length === 5 ? `${ano}-${md}` : md] = {
+      nome,
+      esfera,
+      tipo
+    };
+  };
+  add('01-01', 'Confraternização Universal', 'nacional');
+  add('04-21', 'Tiradentes', 'nacional');
+  add('05-01', 'Dia do Trabalho', 'nacional');
+  add('09-07', 'Independência do Brasil', 'nacional');
+  add('10-12', 'Nossa Senhora Aparecida', 'nacional');
+  add('11-02', 'Finados', 'nacional');
+  add('11-15', 'Proclamação da República', 'nacional');
+  if (ano >= 2024) add('11-20', 'Dia Nacional de Zumbi e da Consciência Negra', 'nacional');
+  add('12-25', 'Natal', 'nacional');
+  const p = benPascoa(ano);
+  add(benSomarDias(p, -2), 'Sexta-feira Santa', 'nacional');
+  add(benSomarDias(p, -48), 'Carnaval (segunda-feira)', 'nacional', 'facultativo');
+  add(benSomarDias(p, -47), 'Carnaval (terça-feira)', 'nacional', 'facultativo');
+  add(benSomarDias(p, 60), 'Corpus Christi', 'nacional', 'facultativo');
+  add('07-09', 'Revolução Constitucionalista', 'estadual');
+  if ((municipio || BEN_MUNICIPIO) === 'Arujá/SP') {
+    add('06-08', 'Aniversário de Arujá', 'municipal');
+    add('08-06', 'Dia do Padroeiro de Arujá', 'municipal');
+  }
+  return f;
+}
+// dias do mês com a regra do calendário geral (ajustes manuais valem por cima do automático)
+function benDiasDoMes(mes, cal) {
+  const [a, m] = mes.split('-').map(Number);
+  const auto = benFeriadosAuto(a, cal && cal.municipio || BEN_MUNICIPIO);
+  const ajustes = cal && cal.dias || {};
+  const out = [];
+  for (let d = 1; d <= new Date(a, m, 0).getDate(); d++) {
+    const data = `${mes}-${String(d).padStart(2, '0')}`;
+    const dow = new Date(a, m - 1, d, 12).getDay();
+    const fer = auto[data],
+      aj = ajustes[data];
+    let conta = dow !== 0 && dow !== 6 && !(fer && fer.tipo === 'feriado');
+    let cor = conta ? 'verde' : fer && fer.tipo === 'feriado' ? 'vermelho' : 'azul';
+    let rotulo = fer ? `${fer.nome}${fer.tipo === 'facultativo' ? ' (ponto facultativo)' : ` (feriado ${fer.esfera})`}` : dow === 0 ? 'Domingo' : dow === 6 ? 'Sábado' : 'Dia útil';
+    if (aj && typeof aj.conta === 'boolean') {
+      conta = aj.conta;
+      cor = 'laranja';
+      rotulo = `${aj.nome || (aj.conta ? 'Dia útil (ajuste)' : 'Não contabilizado (ajuste)')}${aj.conta ? ' — contabilizado' : ' — não contabilizado'}`;
+    }
+    out.push({
+      data,
+      dia: d,
+      dow,
+      conta,
+      cor,
+      rotulo,
+      feriado: fer || null,
+      ajuste: aj || null
+    });
+  }
+  return out;
+}
+// faltas (não removidas) de um funcionário num mês, vindas do registro único da Comissão
+function benFaltasDoMes(ocorrencias, fid, mes) {
+  const vistas = new Set();
+  return (ocorrencias || []).filter(o => o.funcionarioId === fid && o.tipo === 'falta' && !o.removido && String(o.data).slice(0, 7) === mes && !vistas.has(o.data) && vistas.add(o.data));
+}
+// cálculo de um funcionário (puro): compra do mês = dias úteis do mês − faltas do mês anterior em dia útil
+function benCalcular(cfg, diasMes, diasMesAnterior, faltasMesAnterior) {
+  const c = cfg || {};
+  const uteis = diasMes.filter(d => d.conta).length;
+  const contaAnt = new Set(diasMesAnterior.filter(d => d.conta).map(d => d.data));
+  const faltas = (faltasMesAnterior || []).filter(f => contaAnt.has(f.data));
+  const dias = Math.max(0, uteis - faltas.length);
+  const vrDia = c.recebeVR ? benNum(c.vrDiario) : 0;
+  const linhas = (c.linhas || []).map(l => ({
+    nome: l.nome || 'Linha',
+    valor: benNum(l.valor),
+    ida: Math.max(0, Math.floor(Number(l.ida) || 0)),
+    volta: Math.max(0, Math.floor(Number(l.volta) || 0))
+  }));
+  const passagensDia = c.recebeVT ? linhas.reduce((s, l) => s + l.ida + l.volta, 0) : 0;
+  const vtDia = c.recebeVT ? benCent(linhas.reduce((s, l) => s + l.valor * (l.ida + l.volta), 0)) : 0;
+  const vr = benCent(vrDia * dias),
+    vt = benCent(vtDia * dias);
+  return {
+    uteis,
+    faltas: faltas.map(f => f.data),
+    faltasForaDeDiaUtil: (faltasMesAnterior || []).length - faltas.length,
+    dias,
+    vrDia,
+    vtDia,
+    passagensDia,
+    linhas,
+    vr,
+    vt,
+    total: benCent(vr + vt),
+    impactoFalta: benCent(vrDia + vtDia)
+  };
+}
+// funcionários no cálculo: todos os ativos da Equipe, a menos que tenham sido retirados (participa: false)
+function benFuncionariosDoCalculo(funcionarios, configs) {
+  const porId = Object.fromEntries((configs || []).map(c => [c.id, c]));
+  const ativos = (funcionarios || []).filter(f => !['inativo', 'recusado', 'pendente', 'bloqueado'].includes(f.status) && f.ativo !== false).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+  return {
+    dentro: ativos.filter(f => (porId[f.id] || {}).participa !== false),
+    fora: ativos.filter(f => (porId[f.id] || {}).participa === false),
+    porId
+  };
+}
+function benMontarMes(mes, funcionarios, configs, cal, ocorrencias) {
+  const ant = benMesSomar(mes, -1);
+  const diasMes = benDiasDoMes(mes, cal),
+    diasAnt = benDiasDoMes(ant, cal);
+  const {
+    dentro,
+    fora,
+    porId
+  } = benFuncionariosDoCalculo(funcionarios, configs);
+  const linhas = dentro.map(f => ({
+    funcionarioId: f.id,
+    nome: f.nome || '',
+    cfg: porId[f.id] || {},
+    ...benCalcular(porId[f.id], diasMes, diasAnt, benFaltasDoMes(ocorrencias, f.id, ant))
+  }));
+  const soma = k => benCent(linhas.reduce((s, l) => s + l[k], 0));
+  return {
+    mes,
+    mesFaltas: ant,
+    diasMes,
+    diasAnt,
+    uteis: diasMes.filter(d => d.conta).length,
+    linhas,
+    fora,
+    nVR: linhas.filter(l => l.cfg.recebeVR).length,
+    nVT: linhas.filter(l => l.cfg.recebeVT).length,
+    totalVR: soma('vr'),
+    totalVT: soma('vt'),
+    total: soma('total')
+  };
+}
+
+// ---- permissões (nível do módulo + "fechar o mês") ----
+function benPodeEditar(u) {
+  return podeEditar(u, 'beneficios');
+}
+function benPodeFechar(u) {
+  return ehMaster(u) || benPodeEditar(u) && u.beneficiosFechar === true;
+}
+
+// ---- faltas compartilhadas com a Comissão (mesmo documento, mesmo formato) ----
+async function benRegistrarFalta({
+  fid,
+  data,
+  tipo,
+  nomeTipo,
+  obs,
+  usuario,
+  funcionarios,
+  calendarioPeriodos,
+  fechamentosComissao
+}) {
+  const per = periodoDaDataNoCalendario(calendarioPeriodos, data);
+  const participa = funcionariosElegiveisComissao(funcionarios, per.inicioStr, per.fimStr).some(f => f.id === fid);
+  const fechado = (fechamentosComissao || []).find(f => f.inicio <= data && data <= f.fim);
+  if (participa && fechado) throw new Error(`O período da Comissão de ${formatarDataBr(fechado.inicio)} a ${formatarDataBr(fechado.fim)} já está fechado. Reabra o período na Comissão para registrar esta falta.`);
+  const ref = db.collection('apuracaoRegistros').doc(`${per.inicioStr}_${per.fimStr}_${fid}`);
+  const snap = await ref.get();
+  if (snap.exists && (snap.data().ocorrencias || []).some(o => !o.removido && o.tipo !== 'atraso' && o.data === data)) throw new Error('Já existe uma falta registrada neste dia (na Comissão ou em Benefícios).');
+  const oc = {
+    id: Math.random().toString(36).slice(2, 10),
+    tipo,
+    nomeTipo,
+    data,
+    previsto: '',
+    chegada: '',
+    minutos: 0,
+    obs: (obs || '').trim(),
+    por: usuario.nome,
+    em: new Date().toISOString(),
+    origem: 'beneficios'
+  };
+  await ref.set({
+    periodoInicio: per.inicioStr,
+    periodoFim: per.fimStr,
+    funcionarioId: fid,
+    ocorrencias: firebase.firestore.FieldValue.arrayUnion(oc)
+  }, {
+    merge: true
+  });
+  if (participa) {
+    const f = funcionarios.find(x => x.id === fid);
+    try {
+      await registrarHistoricoComissao({
+        tipo: 'ocorrencia',
+        descricao: `${nomeTipo} de ${f?.nome} em ${formatarDataBr(data)} (lançada em Benefícios)${oc.obs ? ` — ${oc.obs}` : ''}`,
+        valorNovo: nomeTipo
+      }, usuario);
+      await notificarFuncionario(fid, `⏱️ ${nomeTipo} em ${formatarDataBr(data)} registrada.${oc.obs ? ` Obs.: ${oc.obs}` : ''}`, 'ocorrencia');
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+  return {
+    participa
+  };
+}
+async function benRemoverFalta({
+  ocorrencia,
+  motivo,
+  usuario,
+  funcionarios,
+  calendarioPeriodos,
+  fechamentosComissao
+}) {
+  const o = ocorrencia;
+  const per = periodoDaDataNoCalendario(calendarioPeriodos, o.data);
+  const participa = funcionariosElegiveisComissao(funcionarios, per.inicioStr, per.fimStr).some(f => f.id === o.funcionarioId);
+  const fechado = (fechamentosComissao || []).find(f => f.inicio <= o.data && o.data <= f.fim);
+  if (participa && fechado) throw new Error(`O período da Comissão de ${formatarDataBr(fechado.inicio)} a ${formatarDataBr(fechado.fim)} já está fechado. Reabra o período na Comissão para remover esta falta.`);
+  const ref = db.collection('apuracaoRegistros').doc(o.documentoComissao);
+  const snap = await ref.get();
+  const lista = snap.exists ? snap.data().ocorrencias || [] : [];
+  const novas = lista.map(x => x.id === o.ocorrenciaId ? {
+    ...x,
+    removido: true,
+    removidoPor: usuario.nome,
+    removidoEm: new Date().toISOString(),
+    motivoRemocao: motivo.trim()
+  } : x);
+  await ref.set({
+    ocorrencias: novas
+  }, {
+    merge: true
+  });
+  if (participa) {
+    const f = funcionarios.find(x => x.id === o.funcionarioId);
+    try {
+      await registrarHistoricoComissao({
+        tipo: 'ocorrencia',
+        descricao: `Removeu ocorrência de ${f?.nome}: ${o.nome} em ${formatarDataBr(o.data)} (em Benefícios) — motivo: ${motivo.trim()}`
+      }, usuario);
+      await notificarFuncionario(o.funcionarioId, `A ocorrência "${o.nome}" de ${formatarDataBr(o.data)} foi removida da sua apuração de comissão.`, 'ocorrencia');
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+}
+
+// ---- telas ----
+function BenCalendario({
+  dias,
+  faltas,
+  observacoes,
+  aoTocar,
+  compacto
+}) {
+  const primeiro = dias[0] ? dias[0].dow : 0;
+  const faltaDe = d => (faltas || []).find(f => f.data === d);
+  return /*#__PURE__*/React.createElement("div", {
+    className: `bn-cal${compacto ? ' compacto' : ''}`
+  }, BEN_DIAS_SEMANA.map(s => /*#__PURE__*/React.createElement("span", {
+    key: s,
+    className: "bn-cal-sem"
+  }, s)), Array.from({
+    length: primeiro
+  }, (_, i) => /*#__PURE__*/React.createElement("span", {
+    key: 'v' + i
+  })), dias.map(d => {
+    const fal = faltaDe(d.data),
+      obs = observacoes && observacoes[d.data];
+    const cor = fal || obs ? 'laranja' : d.cor;
+    const titulo = `${formatarDataBr(d.data)} — ${d.rotulo}${fal ? ` · FALTA (${fal.nome}${fal.origem === 'beneficios' ? ', lançada em Benefícios' : ', lançada na Comissão'})` : ''}${obs ? ` · Obs.: ${obs.texto}` : ''}`;
+    return /*#__PURE__*/React.createElement("button", {
+      key: d.data,
+      type: "button",
+      className: `bn-dia ${cor}${fal ? ' falta' : ''}`,
+      title: titulo,
+      "aria-label": titulo,
+      onClick: aoTocar ? () => aoTocar(d) : undefined,
+      disabled: !aoTocar
+    }, /*#__PURE__*/React.createElement("b", null, d.dia), !compacto && /*#__PURE__*/React.createElement("small", null, fal ? 'Falta' : d.feriado && !d.ajuste ? d.feriado.tipo === 'feriado' ? 'Feriado' : 'Facult.' : d.ajuste ? 'Ajuste' : obs ? 'Obs.' : ''));
+  }));
+}
+function BenLegenda() {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bn-legenda"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "verde"
+  }), "Dia \xFAtil contabilizado"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "azul"
+  }), "N\xE3o contabilizado"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "vermelho"
+  }), "Feriado"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "laranja"
+  }), "Ocorr\xEAncia ou ajuste"));
+}
+function AbaBeneficios({
+  usuario,
+  funcionarios
+}) {
+  const hoje = formatarDataInput(new Date());
+  const [mes, setMes] = useState(benMesSomar(hoje.slice(0, 7), 1));
+  const [configs, carregandoCfg] = useColecao('beneficiosFuncionarios');
+  const [cals] = useColecao('beneficiosCalendario');
+  const [fechamentos] = useColecao('beneficiosFechamentos');
+  const ocorrencias = useAvOcorrencias();
+  const [aberto, setAberto] = useState(null);
+  const [calGeral, setCalGeral] = useState(false);
+  const [conferir, setConferir] = useState(false);
+  const [verFech, setVerFech] = useState(null);
+  const cal = cals.find(c => c.id === 'geral') || {
+    municipio: BEN_MUNICIPIO,
+    dias: {}
+  };
+  const r = useMemo(() => benMontarMes(mes, funcionarios, configs, cal, ocorrencias), [mes, funcionarios, configs, cal, ocorrencias]);
+  const fech = fechamentos.find(f => f.id === mes);
+  const editar = benPodeEditar(usuario),
+    fechar = benPodeFechar(usuario);
+  async function incluir(f, participa) {
+    try {
+      await db.collection('beneficiosFuncionarios').doc(f.id).set({
+        participa,
+        atualizadoEm: new Date().toISOString(),
+        atualizadoPor: usuario.nome,
+        historico: firebase.firestore.FieldValue.arrayUnion({
+          em: new Date().toISOString(),
+          por: usuario.nome,
+          texto: participa ? 'incluiu no cálculo' : 'retirou do cálculo'
+        })
+      }, {
+        merge: true
+      });
+    } catch (e) {
+      alert('Não consegui salvar (sem permissão ou sem conexão).');
+    }
+  }
+  const difFech = fech && (benCent(fech.total) !== r.total || fech.linhas.length !== r.linhas.length);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bn-tela"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bn-cab"
+  }, /*#__PURE__*/React.createElement("h2", null, "Benef\xEDcios (VR e VT)"), /*#__PURE__*/React.createElement("div", {
+    className: "bn-acoes"
+  }, /*#__PURE__*/React.createElement("label", null, "M\xEAs de refer\xEAncia", /*#__PURE__*/React.createElement("input", {
+    type: "month",
+    value: mes,
+    onChange: e => e.target.value && setMes(e.target.value)
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setCalGeral(true)
+  }, "Calend\xE1rio geral"), fechamentos.length > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setVerFech(fech ? fech.id : fechamentos.slice().sort((a, b) => b.id.localeCompare(a.id))[0].id)
+  }, "Fechamentos"), fechar && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: () => setConferir(true),
+    disabled: !r.linhas.length
+  }, fech ? 'Refazer fechamento' : 'Fechar o mês'))), /*#__PURE__*/React.createElement("div", {
+    className: "bn-kpis"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bn-kpi"
+  }, /*#__PURE__*/React.createElement("span", null, "Funcion\xE1rios no c\xE1lculo"), /*#__PURE__*/React.createElement("b", null, r.linhas.length), /*#__PURE__*/React.createElement("small", null, r.fora.length ? `${r.fora.length} fora do cálculo` : 'todos os ativos')), /*#__PURE__*/React.createElement("div", {
+    className: "bn-kpi"
+  }, /*#__PURE__*/React.createElement("span", null, "Recebem VR"), /*#__PURE__*/React.createElement("b", null, r.nVR)), /*#__PURE__*/React.createElement("div", {
+    className: "bn-kpi"
+  }, /*#__PURE__*/React.createElement("span", null, "Recebem VT"), /*#__PURE__*/React.createElement("b", null, r.nVT)), /*#__PURE__*/React.createElement("div", {
+    className: "bn-kpi"
+  }, /*#__PURE__*/React.createElement("span", null, "Total de VR"), /*#__PURE__*/React.createElement("b", null, formatMoeda(r.totalVR))), /*#__PURE__*/React.createElement("div", {
+    className: "bn-kpi"
+  }, /*#__PURE__*/React.createElement("span", null, "Total de VT"), /*#__PURE__*/React.createElement("b", null, formatMoeda(r.totalVT))), /*#__PURE__*/React.createElement("div", {
+    className: "bn-kpi bn-total"
+  }, /*#__PURE__*/React.createElement("span", null, "Total de benef\xEDcios"), /*#__PURE__*/React.createElement("b", null, formatMoeda(r.total)), /*#__PURE__*/React.createElement("small", null, benMesNome(mes)))), /*#__PURE__*/React.createElement("div", {
+    className: "bn-faixa"
+  }, /*#__PURE__*/React.createElement("b", null, benMesNome(mes), ": ", r.uteis, " dias \xFAteis."), " Descontadas as faltas de ", /*#__PURE__*/React.createElement("b", null, benMesNome(r.mesFaltas)), " em dia \xFAtil (as mesmas da Comiss\xE3o). Munic\xEDpio: ", cal.municipio || BEN_MUNICIPIO, ".", fech && /*#__PURE__*/React.createElement("span", {
+    className: "bn-fechado"
+  }, " \xB7 M\xEAs fechado em ", quandoBrasilia(fech.fechadoEm), " por ", fech.fechadoPor, difFech ? ' — os valores mudaram desde o fechamento' : '', ".")), /*#__PURE__*/React.createElement("div", {
+    className: "bn-grade"
+  }, /*#__PURE__*/React.createElement("section", {
+    className: "card bn-bloco"
+  }, /*#__PURE__*/React.createElement("h3", null, "Calend\xE1rio geral \u2014 ", benMesNome(mes)), /*#__PURE__*/React.createElement(BenCalendario, {
+    dias: r.diasMes,
+    aoTocar: () => setCalGeral(true),
+    compacto: true
+  }), /*#__PURE__*/React.createElement(BenLegenda, null)), /*#__PURE__*/React.createElement("section", {
+    className: "card bn-bloco bn-bloco-tabela"
+  }, /*#__PURE__*/React.createElement("h3", null, "Compra do m\xEAs"), carregandoCfg ? /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Carregando\u2026") : r.linhas.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Nenhum funcion\xE1rio no c\xE1lculo.") : /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela bn-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Dias contabilizados"), /*#__PURE__*/React.createElement("th", null, "Total VR"), /*#__PURE__*/React.createElement("th", null, "Total VT"), /*#__PURE__*/React.createElement("th", null, "Total geral"))), /*#__PURE__*/React.createElement("tbody", null, r.linhas.map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.funcionarioId,
+    className: "clicavel",
+    onClick: () => setAberto(l.funcionarioId)
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Funcion\xE1rio"
+  }, /*#__PURE__*/React.createElement("b", null, l.nome), !l.cfg.recebeVR && !l.cfg.recebeVT && /*#__PURE__*/React.createElement("small", {
+    className: "bn-nota"
+  }, " \xB7 sem VR e sem VT")), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Dias"
+  }, l.dias, l.faltas.length ? /*#__PURE__*/React.createElement("small", {
+    className: "bn-nota"
+  }, " (", l.uteis, " \u2212 ", l.faltas.length, " falta", l.faltas.length > 1 ? 's' : '', ")") : null), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total VR"
+  }, l.cfg.recebeVR ? formatMoeda(l.vr) : '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total VT"
+  }, l.cfg.recebeVT ? formatMoeda(l.vt) : '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total geral"
+  }, /*#__PURE__*/React.createElement("b", null, formatMoeda(l.total))))), /*#__PURE__*/React.createElement("tr", {
+    className: "bn-linha-total"
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": ""
+  }, "Total"), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": ""
+  }), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total VR"
+  }, formatMoeda(r.totalVR)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total VT"
+  }, formatMoeda(r.totalVT)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total geral"
+  }, /*#__PURE__*/React.createElement("b", null, formatMoeda(r.total))))))), r.fora.length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "bn-fora"
+  }, /*#__PURE__*/React.createElement("summary", null, "Fora do c\xE1lculo (", r.fora.length, ")"), /*#__PURE__*/React.createElement("ul", null, r.fora.map(f => /*#__PURE__*/React.createElement("li", {
+    key: f.id
+  }, f.nome, editar && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => incluir(f, true)
+  }, "Incluir"))))), /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Toque no funcion\xE1rio para ver o calend\xE1rio individual, lan\xE7ar faltas e consultar a mem\xF3ria de c\xE1lculo."))), aberto && /*#__PURE__*/React.createElement(ModalBenFuncionario, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    fid: aberto,
+    r: r,
+    ocorrencias: ocorrencias,
+    aoIncluir: incluir,
+    aoFechar: () => setAberto(null)
+  }), calGeral && /*#__PURE__*/React.createElement(ModalBenCalendarioGeral, {
+    usuario: usuario,
+    mes: mes,
+    cal: cal,
+    aoFechar: () => setCalGeral(false)
+  }), conferir && /*#__PURE__*/React.createElement(ModalBenFechar, {
+    usuario: usuario,
+    r: r,
+    anterior: fech,
+    aoFechar: () => setConferir(false)
+  }), verFech && /*#__PURE__*/React.createElement(ModalBenFechamentos, {
+    fechamentos: fechamentos,
+    inicial: verFech,
+    aoFechar: () => setVerFech(null)
+  }));
+}
+function ModalBenFuncionario({
+  usuario,
+  funcionarios,
+  fid,
+  r,
+  ocorrencias,
+  aoIncluir,
+  aoFechar
+}) {
+  const l = r.linhas.find(x => x.funcionarioId === fid);
+  const f = funcionarios.find(x => x.id === fid) || {};
+  const editar = benPodeEditar(usuario);
+  const cfg0 = l && l.cfg || {};
+  const [cfg, setCfg] = useState(() => ({
+    recebeVR: !!cfg0.recebeVR,
+    vrDiario: cfg0.vrDiario ?? '',
+    recebeVT: !!cfg0.recebeVT,
+    linhas: (cfg0.linhas || []).map(x => ({
+      ...x
+    }))
+  }));
+  const [editando, setEditando] = useState(false);
+  const [dia, setDia] = useState(null); // dia tocado no calendário individual
+  const [msg, setMsg] = useState('');
+  const calP = useCalendarioPeriodos();
+  const [versoes] = useColecao('regrasComissao');
+  const [fechComissao] = useColecao('comissaoFechamentos');
+  if (!l) return null;
+  const faltasMes = benFaltasDoMes(ocorrencias, fid, r.mes),
+    faltasAnt = benFaltasDoMes(ocorrencias, fid, r.mesFaltas);
+  const prev = benCalcular(cfg, r.diasMes, r.diasAnt, faltasAnt);
+  async function salvarCfg() {
+    setMsg('');
+    const dados = {
+      participa: true,
+      recebeVR: cfg.recebeVR,
+      vrDiario: benNum(cfg.vrDiario),
+      recebeVT: cfg.recebeVT,
+      linhas: cfg.linhas.map(x => ({
+        nome: (x.nome || '').trim() || 'Linha',
+        valor: benNum(x.valor),
+        ida: Math.max(0, Math.floor(Number(x.ida) || 0)),
+        volta: Math.max(0, Math.floor(Number(x.volta) || 0))
+      })),
+      atualizadoEm: new Date().toISOString(),
+      atualizadoPor: usuario.nome
+    };
+    const mud = [];
+    if (!!cfg0.recebeVR !== dados.recebeVR) mud.push(dados.recebeVR ? 'passou a receber VR' : 'deixou de receber VR');
+    if (benNum(cfg0.vrDiario) !== dados.vrDiario) mud.push(`VR diário ${formatMoeda(benNum(cfg0.vrDiario))} → ${formatMoeda(dados.vrDiario)}`);
+    if (!!cfg0.recebeVT !== dados.recebeVT) mud.push(dados.recebeVT ? 'passou a receber VT' : 'deixou de receber VT');
+    if (JSON.stringify(cfg0.linhas || []) !== JSON.stringify(dados.linhas)) mud.push(`linhas: ${dados.linhas.map(x => `${x.nome} ${formatMoeda(x.valor)} (${x.ida} ida, ${x.volta} volta)`).join('; ') || 'nenhuma'}`);
+    if (mud.length) dados.historico = firebase.firestore.FieldValue.arrayUnion({
+      em: new Date().toISOString(),
+      por: usuario.nome,
+      texto: mud.join('; ')
+    });
+    try {
+      await db.collection('beneficiosFuncionarios').doc(fid).set(dados, {
+        merge: true
+      });
+      setEditando(false);
+    } catch (e) {
+      setMsg('Não consegui salvar (sem permissão ou sem conexão).');
+    }
+  }
+  const setLinha = (i, k, v) => setCfg(x => ({
+    ...x,
+    linhas: x.linhas.map((y, j) => j === i ? {
+      ...y,
+      [k]: v
+    } : y)
+  }));
+  const obsMap = cfg0.observacoes || {};
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bn-modal"
+  }, /*#__PURE__*/React.createElement("h3", null, f.nome, " \u2014 ", benMesNome(r.mes)), /*#__PURE__*/React.createElement("div", {
+    className: "bn-memoria"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Dias contabilizados"), /*#__PURE__*/React.createElement("b", null, l.dias), /*#__PURE__*/React.createElement("small", null, l.uteis, " dias \xFAteis \u2212 ", l.faltas.length, " falta(s) de ", benMesNome(r.mesFaltas))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "VR"), /*#__PURE__*/React.createElement("b", null, l.cfg.recebeVR ? formatMoeda(l.vr) : 'Não recebe'), l.cfg.recebeVR && /*#__PURE__*/React.createElement("small", null, formatMoeda(l.vrDia), " \xD7 ", l.dias, " dias")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "VT"), /*#__PURE__*/React.createElement("b", null, l.cfg.recebeVT ? formatMoeda(l.vt) : 'Não recebe'), l.cfg.recebeVT && /*#__PURE__*/React.createElement("small", null, formatMoeda(l.vtDia), "/dia (", l.passagensDia, " passagens) \xD7 ", l.dias, " dias")), /*#__PURE__*/React.createElement("div", {
+    className: "bn-total"
+  }, /*#__PURE__*/React.createElement("span", null, "Total"), /*#__PURE__*/React.createElement("b", null, formatMoeda(l.total)), (l.cfg.recebeVR || l.cfg.recebeVT) && /*#__PURE__*/React.createElement("small", null, "cada falta reduz ", formatMoeda(l.impactoFalta)))), l.cfg.recebeVT && l.linhas.length > 0 && /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Passagens: ", l.linhas.map(x => `${x.nome}: ${formatMoeda(x.valor)} × (${x.ida} ida + ${x.volta} volta)`).join(' · ')), /*#__PURE__*/React.createElement("h4", null, "Faltas de ", benMesNome(r.mesFaltas), " \u2014 descontadas nesta compra"), /*#__PURE__*/React.createElement(BenCalendario, {
+    dias: r.diasAnt,
+    faltas: faltasAnt,
+    observacoes: obsMap,
+    aoTocar: editar ? d => setDia(d) : null
+  }), /*#__PURE__*/React.createElement("h4", null, benMesNome(r.mes), " \u2014 dias contabilizados"), /*#__PURE__*/React.createElement(BenCalendario, {
+    dias: r.diasMes,
+    faltas: faltasMes,
+    observacoes: obsMap,
+    aoTocar: editar ? d => setDia(d) : null
+  }), /*#__PURE__*/React.createElement(BenLegenda, null), faltasMes.length > 0 && /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Faltas lan\xE7adas em ", benMesNome(r.mes), " ser\xE3o descontadas na compra de ", benMesNome(benMesSomar(r.mes, 1)), "."), editar && /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Toque num dia para lan\xE7ar ou remover uma falta, ou registrar uma observa\xE7\xE3o. Faltas s\xE3o as mesmas da Comiss\xE3o."), /*#__PURE__*/React.createElement("h4", null, "Configura\xE7\xE3o individual"), !editando ? /*#__PURE__*/React.createElement("div", {
+    className: "bn-cfg-ver"
+  }, /*#__PURE__*/React.createElement("p", null, "VR: ", /*#__PURE__*/React.createElement("b", null, cfg0.recebeVR ? `${formatMoeda(benNum(cfg0.vrDiario))} por dia` : 'não recebe'), " \xB7 VT: ", /*#__PURE__*/React.createElement("b", null, cfg0.recebeVT ? `${(cfg0.linhas || []).length} linha(s), ${formatMoeda(l.vtDia)} por dia` : 'não recebe')), editar && /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes bn-acoes-esq"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setEditando(true)
+  }, "Editar configura\xE7\xE3o"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => {
+      aoIncluir(f, false);
+      aoFechar();
+    }
+  }, "Retirar do c\xE1lculo"))) : /*#__PURE__*/React.createElement("div", {
+    className: "bn-cfg"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "bn-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: cfg.recebeVR,
+    onChange: e => setCfg(x => ({
+      ...x,
+      recebeVR: e.target.checked
+    }))
+  }), " Recebe VR"), cfg.recebeVR && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Valor di\xE1rio do VR (R$)"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    value: cfg.vrDiario,
+    onChange: e => setCfg(x => ({
+      ...x,
+      vrDiario: e.target.value.replace(/[^0-9.,]/g, '')
+    }))
+  })), /*#__PURE__*/React.createElement("label", {
+    className: "bn-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: cfg.recebeVT,
+    onChange: e => setCfg(x => ({
+      ...x,
+      recebeVT: e.target.checked
+    }))
+  }), " Recebe VT"), cfg.recebeVT && /*#__PURE__*/React.createElement(React.Fragment, null, cfg.linhas.map((x, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "bn-linha-onibus"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Linha"), /*#__PURE__*/React.createElement("input", {
+    value: x.nome || '',
+    placeholder: `Ônibus ${i + 1}`,
+    onChange: e => setLinha(i, 'nome', e.target.value)
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Passagem (R$)"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    value: x.valor ?? '',
+    onChange: e => setLinha(i, 'valor', e.target.value.replace(/[^0-9.,]/g, ''))
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Na ida"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "numeric",
+    value: x.ida ?? '',
+    onChange: e => setLinha(i, 'ida', e.target.value.replace(/\D/g, ''))
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Na volta"), /*#__PURE__*/React.createElement("input", {
+    inputMode: "numeric",
+    value: x.volta ?? '',
+    onChange: e => setLinha(i, 'volta', e.target.value.replace(/\D/g, ''))
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    "aria-label": "Remover linha",
+    onClick: () => setCfg(y => ({
+      ...y,
+      linhas: y.linhas.filter((_, j) => j !== i)
+    }))
+  }, "\xD7"))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setCfg(y => ({
+      ...y,
+      linhas: [...y.linhas, {
+        nome: '',
+        valor: '',
+        ida: 1,
+        volta: 1
+      }]
+    }))
+  }, "+ Linha de \xF4nibus")), /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Pr\xE9via: ", prev.passagensDia, " passagens/dia \xB7 VT ", formatMoeda(prev.vtDia), "/dia \xB7 VR ", formatMoeda(prev.vrDia), "/dia \u2192 ", formatMoeda(prev.total), " em ", benMesNome(r.mes), "."), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setEditando(false)
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: salvarCfg
+  }, "Salvar configura\xE7\xE3o"))), (cfg0.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "pc-hist"
+  }, /*#__PURE__*/React.createElement("summary", null, "Hist\xF3rico da configura\xE7\xE3o (", cfg0.historico.length, ")"), /*#__PURE__*/React.createElement("ul", null, cfg0.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(h.em), " \u2014 ", h.por, ": ", h.texto)))), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, msg), dia && /*#__PURE__*/React.createElement(ModalBenDia, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    fid: fid,
+    dia: dia,
+    falta: [...faltasAnt, ...faltasMes].find(x => x.data === dia.data) || ocorrencias.find(o => o.funcionarioId === fid && o.tipo === 'falta' && !o.removido && o.data === dia.data),
+    obs: obsMap[dia.data],
+    versoes: versoes,
+    calP: calP,
+    fechComissao: fechComissao,
+    impacto: l.impactoFalta,
+    aoFechar: () => setDia(null)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+function ModalBenDia({
+  usuario,
+  funcionarios,
+  fid,
+  dia,
+  falta,
+  obs,
+  versoes,
+  calP,
+  fechComissao,
+  impacto,
+  aoFechar
+}) {
+  const regras = regrasVigentesEm(versoes, dia.data);
+  const tipos = regras.faltas && regras.faltas.tipos || [];
+  const [tipo, setTipo] = useState('');
+  const [texto, setTexto] = useState('');
+  const [obsTxt, setObsTxt] = useState(obs ? obs.texto : '');
+  const [motivo, setMotivo] = useState('');
+  const [msg, setMsg] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const per = periodoDaDataNoCalendario(calP.calendario, dia.data);
+  const participa = funcionariosElegiveisComissao(funcionarios, per.inicioStr, per.fimStr).some(f => f.id === fid);
+  const efeito = t => t.efeito === 'zerar' ? ' — zera a comissão do período' : t.efeito === 'desconto' ? ` — desconta ${t.descontoPct}% da comissão` : ' — não afeta a comissão';
+  async function rodar(fn) {
+    setSalvando(true);
+    setMsg('');
+    try {
+      await fn();
+      aoFechar();
+    } catch (e) {
+      console.error(e);
+      setMsg(e.message || 'Não consegui salvar.');
+    }
+    setSalvando(false);
+  }
+  const lancar = () => rodar(async () => {
+    if (!tipo) throw new Error('Escolha o tipo da falta.');
+    const t = tipos.find(x => x.id === tipo);
+    await benRegistrarFalta({
+      fid,
+      data: dia.data,
+      tipo,
+      nomeTipo: t && t.nome || 'Falta',
+      obs: texto,
+      usuario,
+      funcionarios,
+      calendarioPeriodos: calP.calendario,
+      fechamentosComissao: fechComissao
+    });
+  });
+  const remover = () => rodar(async () => {
+    if (!motivo.trim()) throw new Error('Informe o motivo da remoção.');
+    await benRemoverFalta({
+      ocorrencia: falta,
+      motivo,
+      usuario,
+      funcionarios,
+      calendarioPeriodos: calP.calendario,
+      fechamentosComissao: fechComissao
+    });
+  });
+  const salvarObs = () => rodar(async () => {
+    const quando = new Date().toISOString();
+    await db.collection('beneficiosFuncionarios').doc(fid).set({
+      observacoes: {
+        [dia.data]: obsTxt.trim() ? {
+          texto: obsTxt.trim(),
+          por: usuario.nome,
+          em: quando
+        } : firebase.firestore.FieldValue.delete()
+      },
+      historico: firebase.firestore.FieldValue.arrayUnion({
+        em: quando,
+        por: usuario.nome,
+        texto: obsTxt.trim() ? `observação em ${formatarDataBr(dia.data)}: ${obsTxt.trim()}` : `removeu a observação de ${formatarDataBr(dia.data)}`
+      })
+    }, {
+      merge: true
+    });
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && !salvando && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bn-modal-dia"
+  }, /*#__PURE__*/React.createElement("h3", null, formatarDataBr(dia.data), " \xB7 ", BEN_DIAS_SEMANA[dia.dow]), /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, dia.rotulo, dia.conta ? '' : ' — falta neste dia não desconta benefícios'), falta ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "bn-falta-info"
+  }, /*#__PURE__*/React.createElement("b", null, falta.nome), " \xB7 lan\xE7ada ", falta.origem === 'beneficios' ? 'em Benefícios' : 'na Comissão', " por ", falta.por || '—', falta.obs ? ` · ${falta.obs}` : ''), /*#__PURE__*/React.createElement("label", null, "Motivo da remo\xE7\xE3o (fica no hist\xF3rico)"), /*#__PURE__*/React.createElement("input", {
+    value: motivo,
+    onChange: e => setMotivo(e.target.value)
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, participa ? 'Este funcionário participa da Comissão: a remoção vale lá também.' : 'A remoção vale também no registro da Comissão.'), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Voltar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: remover
+  }, "Remover falta"))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Lan\xE7ar falta \u2014 tipo"), /*#__PURE__*/React.createElement("select", {
+    value: tipo,
+    onChange: e => setTipo(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Escolha\u2026"), tipos.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t.id,
+    value: t.id
+  }, t.nome, participa ? efeito(t) : ''))), /*#__PURE__*/React.createElement("label", null, "Observa\xE7\xE3o da falta (opcional)"), /*#__PURE__*/React.createElement("input", {
+    value: texto,
+    onChange: e => setTexto(e.target.value)
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, dia.conta ? `Impacto nos benefícios: ${formatMoeda(impacto)} (VR + VT do dia), descontado na compra do mês seguinte.` : 'Dia não contabilizado: não muda os benefícios.', " ", participa ? 'Como participa da Comissão, a falta aparece lá também.' : ''), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Voltar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: lancar
+  }, "Lan\xE7ar falta")), /*#__PURE__*/React.createElement("label", null, "Observa\xE7\xE3o do dia (sem falta)"), /*#__PURE__*/React.createElement("input", {
+    value: obsTxt,
+    onChange: e => setObsTxt(e.target.value),
+    placeholder: "Ex.: folga compensada"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: salvando,
+    onClick: salvarObs
+  }, "Salvar observa\xE7\xE3o"))), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, msg)));
+}
+function ModalBenCalendarioGeral({
+  usuario,
+  mes,
+  cal,
+  aoFechar
+}) {
+  const [m, setM] = useState(mes);
+  const [dia, setDia] = useState(null);
+  const [nome, setNome] = useState('');
+  const [msg, setMsg] = useState('');
+  const editar = benPodeEditar(usuario);
+  const dias = benDiasDoMes(m, cal);
+  async function ajustar(conta) {
+    const quando = new Date().toISOString();
+    const val = conta === null ? firebase.firestore.FieldValue.delete() : {
+      conta,
+      nome: nome.trim(),
+      por: usuario.nome,
+      em: quando
+    };
+    const txt = conta === null ? `voltou ${formatarDataBr(dia.data)} ao automático` : `${formatarDataBr(dia.data)}: ${conta ? 'contabilizar como dia útil' : 'não contabilizar'}${nome.trim() ? ` (${nome.trim()})` : ''}`;
+    try {
+      await db.collection('beneficiosCalendario').doc('geral').set({
+        municipio: cal.municipio || BEN_MUNICIPIO,
+        dias: {
+          [dia.data]: val
+        },
+        historico: firebase.firestore.FieldValue.arrayUnion({
+          em: quando,
+          por: usuario.nome,
+          texto: txt
+        })
+      }, {
+        merge: true
+      });
+      setDia(null);
+      setNome('');
+    } catch (e) {
+      setMsg('Não consegui salvar (sem permissão ou sem conexão).');
+    }
+  }
+  const especiais = dias.filter(d => d.feriado || d.ajuste);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bn-modal"
+  }, /*#__PURE__*/React.createElement("h3", null, "Calend\xE1rio geral \u2014 ", cal.municipio || BEN_MUNICIPIO), /*#__PURE__*/React.createElement("div", {
+    className: "bn-mes-nav"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setM(benMesSomar(m, -1))
+  }, "\u2039"), /*#__PURE__*/React.createElement("b", null, benMesNome(m)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setM(benMesSomar(m, 1))
+  }, "\u203A")), /*#__PURE__*/React.createElement(BenCalendario, {
+    dias: dias,
+    aoTocar: editar ? d => {
+      setDia(d);
+      setNome(d.ajuste ? d.ajuste.nome || '' : '');
+    } : null
+  }), /*#__PURE__*/React.createElement(BenLegenda, null), /*#__PURE__*/React.createElement("ul", {
+    className: "bn-especiais"
+  }, especiais.map(d => /*#__PURE__*/React.createElement("li", {
+    key: d.data
+  }, /*#__PURE__*/React.createElement("b", null, formatarDataBr(d.data)), " \u2014 ", d.rotulo)), !especiais.length && /*#__PURE__*/React.createElement("li", null, "Sem feriados neste m\xEAs.")), /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Autom\xE1tico: s\xE1bados, domingos, feriados nacionais (inclui Sexta-feira Santa), estadual de SP (9 de julho) e municipais de Aruj\xE1 (8 de junho e 6 de agosto). Carnaval e Corpus Christi s\xE3o pontos facultativos: contam como dia \xFAtil, a menos que voc\xEA ajuste."), dia && /*#__PURE__*/React.createElement("div", {
+    className: "bn-ajuste"
+  }, /*#__PURE__*/React.createElement("b", null, formatarDataBr(dia.data), " \u2014 ", dia.rotulo), /*#__PURE__*/React.createElement("label", null, "Nome (feriado municipal, ponto facultativo, exce\xE7\xE3o\u2026)"), /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "bn-ajuste-bts"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => ajustar(false)
+  }, "N\xE3o contabilizar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => ajustar(true)
+  }, "Contabilizar como dia \xFAtil"), dia.ajuste && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => ajustar(null)
+  }, "Voltar ao autom\xE1tico"))), (cal.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "pc-hist"
+  }, /*#__PURE__*/React.createElement("summary", null, "Hist\xF3rico de ajustes (", cal.historico.length, ")"), /*#__PURE__*/React.createElement("ul", null, cal.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(h.em), " \u2014 ", h.por, ": ", h.texto)))), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, msg), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+function benFoto(r) {
+  return {
+    mes: r.mes,
+    mesFaltas: r.mesFaltas,
+    diasUteis: r.uteis,
+    totalVR: r.totalVR,
+    totalVT: r.totalVT,
+    total: r.total,
+    linhas: r.linhas.map(l => ({
+      funcionarioId: l.funcionarioId,
+      nome: l.nome,
+      recebeVR: !!l.cfg.recebeVR,
+      vrDiario: l.vrDia,
+      recebeVT: !!l.cfg.recebeVT,
+      linhasOnibus: l.linhas,
+      passagensDia: l.passagensDia,
+      vtDiario: l.vtDia,
+      diasUteis: l.uteis,
+      faltas: l.faltas,
+      dias: l.dias,
+      vr: l.vr,
+      vt: l.vt,
+      total: l.total
+    }))
+  };
+}
+function ModalBenFechar({
+  usuario,
+  r,
+  anterior,
+  aoFechar
+}) {
+  const [salvando, setSalvando] = useState(false);
+  const [motivo, setMotivo] = useState('');
+  const [msg, setMsg] = useState('');
+  async function confirmar() {
+    if (anterior && !motivo.trim()) {
+      setMsg('Informe o motivo de refazer o fechamento.');
+      return;
+    }
+    setSalvando(true);
+    const quando = new Date().toISOString();
+    const foto = benFoto(r);
+    const ref = db.collection('beneficiosFechamentos').doc(r.mes);
+    try {
+      if (!anterior) await ref.set({
+        ...foto,
+        fechadoEm: quando,
+        fechadoPor: usuario.nome,
+        fechadoPorId: usuario.id || '',
+        versoesAnteriores: [],
+        historico: [{
+          em: quando,
+          por: usuario.nome,
+          texto: `fechou ${benMesNome(r.mes)}: VR ${formatMoeda(r.totalVR)}, VT ${formatMoeda(r.totalVT)}, total ${formatMoeda(r.total)} (${r.linhas.length} funcionário(s)).`
+        }]
+      });else {
+        const {
+          versoesAnteriores,
+          historico,
+          ...ant
+        } = anterior;
+        delete ant.id;
+        await ref.update({
+          ...foto,
+          fechadoEm: quando,
+          fechadoPor: usuario.nome,
+          fechadoPorId: usuario.id || '',
+          versoesAnteriores: firebase.firestore.FieldValue.arrayUnion({
+            ...ant,
+            substituidaEm: quando
+          }),
+          historico: firebase.firestore.FieldValue.arrayUnion({
+            em: quando,
+            por: usuario.nome,
+            texto: `refez o fechamento (${motivo.trim()}): total ${formatMoeda(anterior.total)} → ${formatMoeda(r.total)}.`
+          })
+        });
+      }
+      aoFechar();
+    } catch (e) {
+      console.error(e);
+      setMsg('Não consegui fechar (sem permissão para fechar o mês ou sem conexão).');
+    }
+    setSalvando(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && !salvando && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bn-modal"
+  }, /*#__PURE__*/React.createElement("h3", null, anterior ? 'Refazer o fechamento' : 'Fechar o mês', " \u2014 ", benMesNome(r.mes)), /*#__PURE__*/React.createElement("div", {
+    className: "bn-memoria"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Funcion\xE1rios"), /*#__PURE__*/React.createElement("b", null, r.linhas.length)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Total de VR"), /*#__PURE__*/React.createElement("b", null, formatMoeda(r.totalVR))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Total de VT"), /*#__PURE__*/React.createElement("b", null, formatMoeda(r.totalVT))), /*#__PURE__*/React.createElement("div", {
+    className: "bn-total"
+  }, /*#__PURE__*/React.createElement("span", null, "Total a comprar"), /*#__PURE__*/React.createElement("b", null, formatMoeda(r.total)))), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela bn-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Dias"), /*#__PURE__*/React.createElement("th", null, "VR"), /*#__PURE__*/React.createElement("th", null, "VT"), /*#__PURE__*/React.createElement("th", null, "Total"))), /*#__PURE__*/React.createElement("tbody", null, r.linhas.map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.funcionarioId
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Funcion\xE1rio"
+  }, l.nome), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Dias"
+  }, l.dias), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "VR"
+  }, formatMoeda(l.vr)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "VT"
+  }, formatMoeda(l.vt)), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total"
+  }, formatMoeda(l.total))))))), anterior && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Fechamento atual: ", formatMoeda(anterior.total), " em ", quandoBrasilia(anterior.fechadoEm), " por ", anterior.fechadoPor, ". Ele fica guardado como vers\xE3o anterior."), /*#__PURE__*/React.createElement("label", null, "Motivo"), /*#__PURE__*/React.createElement("input", {
+    value: motivo,
+    onChange: e => setMotivo(e.target.value)
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "O fechamento guarda os valores, os dias, as faltas consideradas e a configura\xE7\xE3o de cada funcion\xE1rio. Nenhum fechamento anterior \xE9 apagado."), msg && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, msg), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    disabled: salvando,
+    onClick: aoFechar
+  }, "Voltar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: salvando,
+    onClick: confirmar
+  }, salvando ? 'Salvando…' : 'Confirmar'))));
+}
+function ModalBenFechamentos({
+  fechamentos,
+  inicial,
+  aoFechar
+}) {
+  const lista = fechamentos.slice().sort((a, b) => b.id.localeCompare(a.id));
+  const [id, setId] = useState(inicial || lista[0] && lista[0].id);
+  const f = lista.find(x => x.id === id);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && aoFechar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal bn-modal"
+  }, /*#__PURE__*/React.createElement("h3", null, "Fechamentos de benef\xEDcios"), /*#__PURE__*/React.createElement("select", {
+    value: id,
+    onChange: e => setId(e.target.value)
+  }, lista.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x.id,
+    value: x.id
+  }, benMesNome(x.id), " \u2014 ", formatMoeda(x.total)))), f && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    className: "bn-nota"
+  }, "Fechado em ", quandoBrasilia(f.fechadoEm), " por ", f.fechadoPor, " \xB7 ", f.diasUteis, " dias \xFAteis \xB7 faltas de ", benMesNome(f.mesFaltas), "."), /*#__PURE__*/React.createElement("div", {
+    className: "bn-memoria"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Total de VR"), /*#__PURE__*/React.createElement("b", null, formatMoeda(f.totalVR))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "Total de VT"), /*#__PURE__*/React.createElement("b", null, formatMoeda(f.totalVT))), /*#__PURE__*/React.createElement("div", {
+    className: "bn-total"
+  }, /*#__PURE__*/React.createElement("span", null, "Total"), /*#__PURE__*/React.createElement("b", null, formatMoeda(f.total)))), /*#__PURE__*/React.createElement("div", {
+    className: "av-tabela-wrap"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "av-tabela bn-tabela"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("th", null, "Dias"), /*#__PURE__*/React.createElement("th", null, "Faltas"), /*#__PURE__*/React.createElement("th", null, "VR"), /*#__PURE__*/React.createElement("th", null, "VT"), /*#__PURE__*/React.createElement("th", null, "Total"))), /*#__PURE__*/React.createElement("tbody", null, f.linhas.map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.funcionarioId
+  }, /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Funcion\xE1rio"
+  }, l.nome), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Dias"
+  }, l.dias), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Faltas"
+  }, (l.faltas || []).map(formatarDataBr).join(', ') || '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "VR"
+  }, l.recebeVR ? `${formatMoeda(l.vr)} (${formatMoeda(l.vrDiario)}/dia)` : '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "VT"
+  }, l.recebeVT ? `${formatMoeda(l.vt)} (${formatMoeda(l.vtDiario)}/dia)` : '—'), /*#__PURE__*/React.createElement("td", {
+    "data-rotulo": "Total"
+  }, formatMoeda(l.total))))))), (f.versoesAnteriores || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "pc-hist"
+  }, /*#__PURE__*/React.createElement("summary", null, "Vers\xF5es anteriores (", f.versoesAnteriores.length, ")"), /*#__PURE__*/React.createElement("ul", null, f.versoesAnteriores.map((v, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(v.fechadoEm), " por ", v.fechadoPor, ": total ", formatMoeda(v.total), " (VR ", formatMoeda(v.totalVR), ", VT ", formatMoeda(v.totalVT), ") \u2014 substitu\xEDda em ", quandoBrasilia(v.substituidaEm))))), (f.historico || []).length > 0 && /*#__PURE__*/React.createElement("details", {
+    className: "pc-hist"
+  }, /*#__PURE__*/React.createElement("summary", null, "Hist\xF3rico (", f.historico.length, ")"), /*#__PURE__*/React.createElement("ul", null, f.historico.slice().reverse().map((h, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, quandoBrasilia(h.em), " \u2014 ", h.por, ": ", h.texto))))), /*#__PURE__*/React.createElement("div", {
+    className: "fp-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoFechar
+  }, "Fechar"))));
+}
+// ---- acesso inicial (uma vez, na sessão do Master): Raiany e Tamara com "Visualizar e editar" + fechar o mês.
+// Identifica as fichas já cadastradas pelo primeiro nome (só se houver exatamente uma ficha ativa com aquele
+// nome); não cria ninguém. Se não achar com segurança, nada é alterado e o Master libera pela Equipe.
+const BEN_ACESSO_INICIAL = ['raiany', 'tamara'];
+function benPrimeiroNome(n) {
+  return String(n || '').trim().split(/\s+/)[0].normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+function benAcessoInicialAlvos(funcionarios) {
+  const ativos = (funcionarios || []).filter(f => !['inativo', 'recusado', 'pendente', 'bloqueado'].includes(f.status) && f.ativo !== false && f.perfil !== 'master');
+  return BEN_ACESSO_INICIAL.map(nome => {
+    const achados = ativos.filter(f => benPrimeiroNome(f.nome) === nome);
+    return {
+      nome,
+      ficha: achados.length === 1 ? achados[0] : null,
+      quantos: achados.length
+    };
+  });
+}
+let benAcessoInicialFeito = false;
+function BenAcessoInicial({
+  usuario,
+  funcionarios
+}) {
+  useEffect(() => {
+    if (!ehMaster(usuario) || benAcessoInicialFeito || !(funcionarios || []).length) return;
+    benAcessoInicialFeito = true;
+    (async () => {
+      try {
+        const ref = db.collection('config').doc('beneficiosAcessoInicial');
+        if ((await ref.get()).exists) return;
+        const alvos = benAcessoInicialAlvos(funcionarios);
+        const feitos = [];
+        for (const a of alvos) {
+          if (!a.ficha) continue;
+          const f = a.ficha;
+          if (f.permissoes && f.permissoes.beneficios) {
+            feitos.push(`${f.nome} (já configurado)`);
+            continue;
+          }
+          await db.collection('funcionarios').doc(f.id).update({
+            'permissoes.beneficios': 'editar',
+            beneficiosFechar: true
+          });
+          await registrarHistorico(f.id, `${usuario.nome} (configuração inicial do módulo Benefícios) liberou Benefícios (VR e VT): visualizar e editar, pode fechar o mês, em ${new Date().toLocaleString('pt-BR')}.`);
+          feitos.push(f.nome);
+        }
+        await ref.set({
+          feitoEm: new Date().toISOString(),
+          por: usuario.nome,
+          liberados: feitos,
+          naoEncontrados: alvos.filter(a => !a.ficha).map(a => `${a.nome} (${a.quantos} ficha(s) com esse nome)`)
+        });
+      } catch (e) {
+        console.warn('acesso inicial de benefícios', e);
+        benAcessoInicialFeito = false;
+      }
+    })();
+  }, [usuario && usuario.id, (funcionarios || []).length]);
+  return null;
+}
 
 // ======================= LAYOUT =======================
 // Mesma tela de abertura do index (logo + barra), enquanto a lista de usuários chega
@@ -16587,6 +17895,10 @@ function App() {
     id: 'funcionarios',
     nome: 'Equipe',
     icone: '👤'
+  }, {
+    id: 'beneficios',
+    nome: 'Benefícios',
+    icone: '🎫'
   }];
   // Avisos é acessível a todo funcionário ativo, independente das permissões por módulo —
   // por isso fica fora do filtro de permissão e sempre em primeiro na navegação.
@@ -16812,6 +18124,9 @@ function App() {
     className: "conteudo-principal"
   }, /*#__PURE__*/React.createElement(MonMedidorTela, {
     tela: aba
+  }), /*#__PURE__*/React.createElement(BenAcessoInicial, {
+    usuario: usuario,
+    funcionarios: funcionarios
   }), aba !== 'avisos' && aba !== 'avaliacoes' && aba !== 'monitoramento' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -16845,6 +18160,9 @@ function App() {
     usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'monitoramento' && /*#__PURE__*/React.createElement(CentralMonitoramento, {
+    usuario: usuario,
+    funcionarios: funcionarios
+  }), aba === 'beneficios' && podeVisualizar(usuario, 'beneficios') && /*#__PURE__*/React.createElement(AbaBeneficios, {
     usuario: usuario,
     funcionarios: funcionarios
   }), aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, {
@@ -29731,6 +31049,12 @@ function AbaAcessoFuncionario({
     }
   }, "⭐ Promover a Administrador"))));
 }
+// Módulos com regra própria (não configurável por pessoa): aparecem na matriz para ficar claro quem acessa.
+function PermissoesFixasInfo() {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "perm-fixas"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Central de Monitoramento"), /*#__PURE__*/React.createElement("span", null, "Administrador Master e administradores: acesso liberado \u00b7 funcion\u00e1rios: sem acesso (garantido pelas regras do banco).")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Avalia\u00e7\u00e3o"), /*#__PURE__*/React.createElement("span", null, "Cada funcion\u00e1rio v\u00ea s\u00f3 a pr\u00f3pria avalia\u00e7\u00e3o; administradores veem todas; o Master tem acesso completo.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Avisos"), /*#__PURE__*/React.createElement("span", null, "Todo funcion\u00e1rio ativo.")));
+}
 function AbaPermissoesFuncionario({
   funcionario,
   usuarioLogado,
@@ -29746,6 +31070,7 @@ function AbaPermissoesFuncionario({
   // permissão antiga com "Entregue/Faturado" aparece como Rota + Concluído
   const [colunas, setColunas] = useState(funcionario.colunasOrcamento ? [...new Set(funcionario.colunasOrcamento.flatMap(c => c === 'Entregue/Faturado' ? ['Rota', 'Concluído'] : [c]))] : STATUS_ORCAMENTO.slice());
   const [escopoComissao, setEscopoComissao] = useState(funcionario.comissaoEscopo || 'propria');
+  const [fecharBeneficios, setFecharBeneficios] = useState(funcionario.beneficiosFechar === true);
   const [salvando, setSalvando] = useState(false);
   function alternarColuna(c) {
     setColunas(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
@@ -29756,9 +31081,12 @@ function AbaPermissoesFuncionario({
     await db.collection('funcionarios').doc(funcionario.id).update({
       permissoes,
       colunasOrcamento: colunas,
-      comissaoEscopo: escopoComissao
+      comissaoEscopo: escopoComissao,
+      beneficiosFechar: permissoes.beneficios === 'editar' && fecharBeneficios
     });
     const mudancas = MODULOS_PERMISSAO.filter(m => (antesPermissoes[m] || 'sem_acesso') !== permissoes[m]).map(m => `${NOME_MODULO[m]}: ${antesPermissoes[m] || 'sem_acesso'} → ${permissoes[m]}`);
+    const fecharAgora = permissoes.beneficios === 'editar' && fecharBeneficios;
+    if ((funcionario.beneficiosFechar === true) !== fecharAgora) mudancas.push(`Benefícios: ${fecharAgora ? 'pode' : 'não pode'} fechar o mês`);
     if (mudancas.length > 0) {
       await registrarHistorico(funcionario.id, `${usuarioLogado.nome} alterou as permissões (${mudancas.join(', ')}) em ${new Date().toLocaleString('pt-BR')}.`);
     }
@@ -29860,7 +31188,23 @@ function AbaPermissoesFuncionario({
     value: "outros"
   }, "Visualizar comissão de outros funcionários também"), /*#__PURE__*/React.createElement("option", {
     value: "administrar"
-  }, "Administrar comissões (acesso completo)"))))), podeEditarPermissoes ? /*#__PURE__*/React.createElement("button", {
+  }, "Administrar comissões (acesso completo)"))), m === 'beneficios' && permissoes.beneficios === 'editar' && /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      fontSize: 13,
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: fecharBeneficios,
+    disabled: !podeEditarPermissoes,
+    onChange: e => setFecharBeneficios(e.target.checked),
+    style: {
+      width: 'auto'
+    }
+  }), "Pode fechar o mês (gravar o fechamento de VR e VT)"))), /*#__PURE__*/React.createElement(PermissoesFixasInfo, null), podeEditarPermissoes ? /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn",
     disabled: salvando,

@@ -164,6 +164,33 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---------- Benefícios (VR e VT) ----------
+    // Nível do módulo na matriz da Equipe (permissoes.beneficios): visualizar lê; editar grava configurações e
+    // calendário; fechar o mês exige também beneficiosFechar. O Master tem tudo. Sem permissão: nem leitura.
+    // Nada é apagado; fechamentos só ganham versões e histórico. (As faltas ficam no registro da Comissão.)
+    function nivelBeneficios() { return eu().get('permissoes', {}).get('beneficios', 'sem_acesso'); }
+    function veBeneficios() { return master() || (ativo() && nivelBeneficios() in ['visualizar', 'editar']); }
+    function editaBeneficios() { return master() || (ativo() && nivelBeneficios() == 'editar'); }
+    function fechaBeneficios() { return master() || (editaBeneficios() && eu().get('beneficiosFechar', false) == true); }
+    match /beneficiosFuncionarios/{id} {
+      allow read: if veBeneficios() || backup();
+      allow create, update: if editaBeneficios();
+      allow delete: if false;
+    }
+    match /beneficiosCalendario/{id} {
+      allow read: if veBeneficios() || backup();
+      allow create, update: if editaBeneficios();
+      allow delete: if false;
+    }
+    match /beneficiosFechamentos/{id} {
+      allow read: if veBeneficios() || backup();
+      allow create: if fechaBeneficios() && id.matches('^[0-9]{4}-[0-9]{2}$');
+      allow update: if fechaBeneficios()
+        && request.resource.data.get('versoesAnteriores', []).hasAll(resource.data.get('versoesAnteriores', []))
+        && request.resource.data.get('historico', []).hasAll(resource.data.get('historico', []));
+      allow delete: if false;
+    }
+
     // ---------- comissão do parceiro (indicação de clientes) ----------
     // Configuração: administradores leem e editam (a base de cálculo é escolhida pelo Master na tela).
     // Fechamento: um documento por parceiro e mês — só o Master cria (uma única vez) e registra pagamentos e
