@@ -2540,9 +2540,10 @@ function nivelAcesso(usuario, modulo) {
   if (!usuario) return 'sem_acesso';
   if (usuario.perfil === 'master') return 'editar';
   if (!MODULOS_LEGADO.includes(modulo)) return usuario.permissoes && usuario.permissoes[modulo] || 'sem_acesso';
-  // usuário legado (cadastrado antes desse sistema de permissões) sem o campo definido:
-  // não restringe, pra não trancar ninguém que já usava o sistema livremente.
-  if (!usuario.permissoes) return 'editar';
+  // usuário legado (cadastrado antes desse sistema de permissões) sem os módulos antigos definidos:
+  // não restringe, pra não trancar ninguém que já usava o sistema livremente. Ter só um módulo
+  // novo configurado (ex.: Benefícios) não tira o acesso legado.
+  if (!usuario.permissoes || !MODULOS_LEGADO.some(m => usuario.permissoes[m])) return 'editar';
   return usuario.permissoes[modulo] || 'sem_acesso';
 }
 function podeVisualizar(usuario, modulo) {
@@ -6071,6 +6072,7 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }

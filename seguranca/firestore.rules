@@ -39,7 +39,11 @@ service cloud.firestore {
     // quem pode cadastrar/editar funcionários: administradores e quem tem "Editar" em Equipe
     // (contas antigas sem permissões configuradas mantêm o acesso total que já tinham)
     function editaEquipe() {
-      return administrador() || (ativo() && (!('permissoes' in eu()) || eu().permissoes.get('funcionarios', 'sem_acesso') == 'editar'));
+      return administrador() || (ativo() && (semMatrizAntiga() || eu().permissoes.get('funcionarios', 'sem_acesso') == 'editar'));
+    }
+    // conta antiga: nenhum dos módulos originais configurado (um módulo novo sozinho, como Benefícios, não conta)
+    function semMatrizAntiga() {
+      return !eu().get('permissoes', {}).keys().hasAny(['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios']);
     }
     function backup() {
       return logado() && !anonimo() && exists(/databases/$(database)/documents/seguranca/backup)

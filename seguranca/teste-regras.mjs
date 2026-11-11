@@ -28,6 +28,7 @@ await env.withSecurityRulesDisabled(async ctx => {
   await ficha('LEG', { nome: 'Legado', ativo: true, login: 'leg' });
   await ficha('TAM', { nome: 'Tamara', perfil: 'administrador', status: 'ativo', login: 'tamara', permissoes: { ...permEditar, beneficios: 'editar' }, beneficiosFechar: true });
   await ficha('BVI', { nome: 'Bia', perfil: 'funcionario', status: 'ativo', login: 'bia', permissoes: { ...permFunc, beneficios: 'visualizar' } });
+  await ficha('LGB', { nome: 'Lia', ativo: true, login: 'lia', permissoes: { beneficios: 'editar' } });
   await ficha('BED', { nome: 'Beto', perfil: 'funcionario', status: 'ativo', login: 'beto', permissoes: { ...permFunc, beneficios: 'editar' } });
   await ficha('PEN', { nome: 'Pedro', perfil: 'funcionario', status: 'pendente', login: 'pedro', permissoes: {} });
   await ficha('BLO', { nome: 'Bruno', perfil: 'funcionario', status: 'bloqueado', login: 'bruno' });
@@ -59,7 +60,7 @@ const como = {
   cadastrouSozinho: env.authenticatedContext('uid-x', { email: 'qualquer@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
   semFicha: conta('NAOEXISTE'),
   intruso: env.authenticatedContext('uid-intruso', { email: 'intruso@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
-  master: conta('WAL'), admin: conta('RAI'), tamara: conta('TAM'), benVe: conta('BVI'), benEdita: conta('BED'), func: conta('FUN'), legado: conta('LEG'),
+  master: conta('WAL'), admin: conta('RAI'), tamara: conta('TAM'), benVe: conta('BVI'), benEdita: conta('BED'), legadoBen: conta('LGB'), func: conta('FUN'), legado: conta('LEG'),
   contaAntiga: conta('FU2', 1), contaAtual: conta('FU2', 2),
   pendente: conta('PEN'), bloqueado: conta('BLO'), novo: conta('NOVO'),
   visitante: env.authenticatedContext('uid-anon', { firebase: { sign_in_provider: 'anonymous' } }).firestore(),
@@ -227,6 +228,8 @@ await caso('parceiro: rotina NÃO sobrescreve aviso existente', NAO, () => como.
 // ---------- benefícios (VR e VT) ----------
 await env.withSecurityRulesDisabled(async ctx => { const d = ctx.firestore(); await d.doc('beneficiosFuncionarios/FUN').set({ recebeVR: true, vrDiario: 30 }); await d.doc('beneficiosFechamentos/2026-11').set({ mes: '2026-11', total: 660, linhas: [], versoesAnteriores: [], historico: [{ texto: 'fechado' }] }); });
 const fechBen = { mes: '2026-12', total: 990, linhas: [], versoesAnteriores: [], historico: [{ texto: 'fechado' }] };
+await caso('benefícios: conta antiga com só Benefícios liberado mantém o acesso antigo à Equipe', SIM, () => como.legadoBen.doc('funcionarios/FUN').update({ cargo: 'Técnico' }));
+await caso('benefícios: conta antiga com só Benefícios liberado lê Benefícios', SIM, () => como.legadoBen.doc('beneficiosFuncionarios/FUN').get());
 await caso('benefícios: Master lê e edita a configuração', SIM, () => como.master.doc('beneficiosFuncionarios/FUN').update({ vrDiario: 32 }));
 await caso('benefícios: Tamara (editar) altera valores individuais', SIM, () => como.tamara.doc('beneficiosFuncionarios/FUN').update({ recebeVT: true, linhas: [{ valor: 5, ida: 1, volta: 1 }] }));
 await caso('benefícios: Tamara ajusta o calendário geral', SIM, () => como.tamara.doc('beneficiosCalendario/geral').set({ municipio: 'Arujá/SP', dias: { '2026-12-24': { conta: false } } }));
