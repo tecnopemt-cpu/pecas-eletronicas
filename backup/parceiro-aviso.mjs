@@ -14,7 +14,7 @@ export const CONSTANTES = ['PARC_STATUS_APROVADO', 'PARC_MESES'];
 const log = m => console.log(m);
 
 export function textoAviso(nome, ap, regras) {
-  return `Comissão do parceiro ${nome}: conferir o fechamento de ${regras.parcMesNome(ap.mes)}. ${ap.elegiveis.length} orçamento(s) no período: ${ap.concluidos.length} concluído(s), ${ap.pendentes.length} pendente(s). Fechamento ${ap.fechamento ? 'já realizado' : ap.pendentes.length || !ap.elegiveis.length ? 'bloqueado' : 'liberado'}.`;
+  return `Comissão do parceiro ${nome}: conferir o fechamento de ${regras.parcMesNome(ap.mes)}. ${ap.elegiveis.length} orçamento(s) no período: ${ap.concluidos.length} concluído(s), ${ap.pendentes.length} pendente(s). Fechamento ${ap.fechamento ? 'já realizado' : ap.liberado ? (ap.pendentes.length ? 'liberado (pendentes passam para o próximo mês)' : 'liberado') : 'sem orçamentos concluídos'}.`;
 }
 
 async function principal() {

@@ -6098,6 +6098,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -15156,9 +15157,12 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
     const f = fechOutros.find(x => (x.itens || []).some(i => i.orcamentoId === id));
     return f ? f.mes : null;
   };
-  // acumula: enquanto um mês não é fechado, os orçamentos dele passam para os meses seguintes (com a data
-  // original). O fechamento "zera": entram só os meses depois do último fechamento anterior a este mês.
+  // Acumula: todo orçamento que ainda não entrou num fechamento passa para o mês seguinte, com a data
+  // original. O fechamento pode ser feito a qualquer dia: leva os concluídos e "zera"; os pendentes seguem
+  // para o próximo mês. Um mês já fechado mostra só os orçamentos que entraram no fechamento dele.
   const ultimoFechadoAntes = fechOutros.filter(f => f.mes < mes).map(f => f.mes).sort().pop() || null;
+  const fechamento = (fechamentos || []).find(f => f.parceiroId === parceiro.id && f.mes === mes) || null;
+  const noFechamento = fechamento ? new Set((fechamento.itens || []).map(i => i.orcamentoId)) : null;
   const itens = [];
   for (const o of orcamentos || []) {
     // inclusão manual (exceção registrada com motivo): conta mesmo sem o cliente estar vinculado
@@ -15166,7 +15170,10 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
     const ind = (parceiro.indicados || {})[o.clienteId];
     if (!ind && !inc) continue;
     const dia = parcDiaDe(o.criadoEm);
-    if (!dia || dia.slice(0, 7) > mes || ultimoFechadoAntes && dia.slice(0, 7) <= ultimoFechadoAntes || !inc && !parcVigente(parceiro, ind, dia)) continue;
+    if (!dia || dia.slice(0, 7) > mes || !inc && !parcVigente(parceiro, ind, dia)) continue;
+    if (jaFechadoEm(o.id)) continue; // já pago/registrado em outro fechamento
+    if (noFechamento && !noFechamento.has(o.id)) continue; // mês fechado: só o que entrou nele
+    const deFechado = ultimoFechadoAntes && dia.slice(0, 7) <= ultimoFechadoAntes;
     const pct = inc ? inc.percentual != null && inc.percentual !== '' ? Number(inc.percentual) : Number(parceiro.percentualPadrao) || 0 : parcPercentual(parceiro, ind);
     const total = parcCent(o.total);
     let situacao = o.status === 'Concluído' ? 'concluido' : 'pendente',
@@ -15178,11 +15185,7 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
       situacao = 'naoAplicavel';
       motivo = 'Arquivado sem conclusão';
     }
-    const outro = jaFechadoEm(o.id);
-    if (outro) {
-      situacao = 'naoAplicavel';
-      motivo = `Já contabilizado no fechamento de ${parcMesNome(outro)}`;
-    }
+    if (deFechado && situacao === 'naoAplicavel') continue; // não arrasta descartados de meses já fechados
     const base = situacao === 'naoAplicavel' ? 0 : modo === 'total' ? total : modo === 'aprovado' ? PARC_STATUS_APROVADO.includes(o.status) ? total : 0 : o.status === 'Concluído' ? total : 0;
     itens.push({
       orcamentoId: o.id,
@@ -15229,9 +15232,9 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
   const ultimoUtil = parcUltimoDiaUtil(mes);
   const hoje = hojeStr || formatarDataInput(new Date());
   const mesPronto = hoje >= ultimoUtil;
-  const fechamento = (fechamentos || []).find(f => f.parceiroId === parceiro.id && f.mes === mes) || null;
+  const posterior = fechOutros.filter(f => f.mes > mes).map(f => f.mes).sort()[0] || null;
   let bloqueio = null;
-  if (fechamento) bloqueio = 'fechado';else if (!elegiveis.length) bloqueio = 'vazio';else if (pendentes.length) bloqueio = 'pendentes';else if (!mesPronto) bloqueio = 'mesAberto';
+  if (fechamento) bloqueio = 'fechado';else if (posterior) bloqueio = 'posterior';else if (!concluidos.length) bloqueio = elegiveis.length ? 'semConcluidos' : 'vazio';
   const meses = itens.map(i => i.data.slice(0, 7)).sort();
   return {
     mes,
@@ -15250,6 +15253,7 @@ function parcApurar(parceiro, orcamentos, mes, fechamentos, hojeStr) {
     ultimoUtil,
     mesPronto,
     fechamento,
+    posterior,
     liberado: !bloqueio,
     bloqueio
   };
@@ -15418,11 +15422,11 @@ function AbaComissaoParceiro({
     onClick: () => setConfig('novo')
   }, "Cadastrar parceiro"));else {
     const bloq = {
-      pendentes: ['vermelho', `Fechamento indisponível. ${ap.pendentes.length === 1 ? 'Existe 1 orçamento pendente.' : `Existem ${ap.pendentes.length} orçamentos pendentes.`}`],
-      mesAberto: ['amarelo', `Todos os orçamentos lançados até agora estão concluídos. O fechamento libera no último dia útil do mês (${formatarDataBr(ap.ultimoUtil)}).`],
+      semConcluidos: ['amarelo', `Nenhum orçamento concluído para fechar ainda. ${ap.pendentes.length === 1 ? 'O pendente segue' : `Os ${ap.pendentes.length} pendentes seguem`} para o próximo mês se não for concluído.`],
+      posterior: ['cinza', `${ap.posterior ? parcMesNome(ap.posterior) : 'Um mês seguinte'} já foi fechado; este mês não pode mais ser fechado.`],
       vazio: ['cinza', 'Nenhum orçamento de clientes indicados neste mês (nem acumulado de meses não fechados).'],
       fechado: ['verde', ap.fechamento ? `Mês fechado em ${formatData(ap.fechamento.fechadoEm)} por ${ap.fechamento.fechadoPor || '—'}.` : 'Mês fechado.']
-    }[ap.bloqueio] || ['verde', 'Todos os orçamentos do período foram concluídos. Fechamento disponível.'];
+    }[ap.bloqueio] || (ap.pendentes.length ? ['amarelo', `Fechamento disponível: ${ap.concluidos.length} concluído(s) entram no fechamento. ${ap.pendentes.length === 1 ? 'Existe 1 orçamento pendente, que passa' : `Existem ${ap.pendentes.length} orçamentos pendentes, que passam`} para o próximo mês.`] : ['verde', 'Todos os orçamentos do período foram concluídos. Fechamento disponível.']);
     corpo = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
       className: "pc-resumo"
     }, /*#__PURE__*/React.createElement("div", {
@@ -15442,9 +15446,9 @@ function AbaComissaoParceiro({
     }, /*#__PURE__*/React.createElement("span", null, "Pronta para fechamento"), /*#__PURE__*/React.createElement("b", null, formatMoeda(ap.comissaoApurada)), /*#__PURE__*/React.createElement("small", null, "apurada nos conclu\xEDdos"))), ap.desdeMes < mes && /*#__PURE__*/React.createElement("p", {
       className: "pc-acumulo",
       role: "note"
-    }, "Acumulado: inclui os or\xE7amentos de ", parcMesNome(ap.desdeMes), " a ", parcMesNome(mes), ", porque ", ap.desdeMes === parcMesSomar(mes, -1) ? 'o mês anterior não foi fechado' : 'os meses anteriores não foram fechados', ". Cada or\xE7amento mant\xE9m a data original. Ao fechar, a contagem recome\xE7a."), /*#__PURE__*/React.createElement("div", {
+    }, "Acumulado: inclui or\xE7amentos de ", parcMesNome(ap.desdeMes), " a ", parcMesNome(mes), " que ainda n\xE3o entraram em nenhum fechamento. Cada or\xE7amento mant\xE9m a data original. Ao fechar, os conclu\xEDdos saem e a contagem recome\xE7a; os pendentes seguem para o pr\xF3ximo m\xEAs."), /*#__PURE__*/React.createElement("div", {
       className: `pc-faixa pc-${bloq[0]}`
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, bloq[1]), ap.bloqueio === 'pendentes' && /*#__PURE__*/React.createElement("ul", null, ap.pendentes.map(i => /*#__PURE__*/React.createElement("li", {
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, bloq[1]), ap.pendentes.length > 0 && !ap.fechamento && /*#__PURE__*/React.createElement("ul", null, ap.pendentes.map(i => /*#__PURE__*/React.createElement("li", {
       key: i.orcamentoId
     }, /*#__PURE__*/React.createElement("button", {
       type: "button",
@@ -16114,7 +16118,9 @@ function ModalConferenciaParceiro({
     className: "modal pc-modal pc-modal-largo"
   }, /*#__PURE__*/React.createElement("h3", null, "Confer\xEAncia \u2014 ", parcMesNome(ap.mes)), ap.desdeMes < ap.mes && /*#__PURE__*/React.createElement("p", {
     className: "pc-acumulo"
-  }, "Acumulado de ", parcMesNome(ap.desdeMes), " a ", parcMesNome(ap.mes), " (meses ainda n\xE3o fechados)."), /*#__PURE__*/React.createElement("div", {
+  }, "Acumulado de ", parcMesNome(ap.desdeMes), " a ", parcMesNome(ap.mes), " (or\xE7amentos que ainda n\xE3o entraram em nenhum fechamento)."), ap.pendentes.length > 0 && /*#__PURE__*/React.createElement("p", {
+    className: "pc-acumulo"
+  }, ap.pendentes.length === 1 ? 'Fica de fora 1 orçamento pendente, que passa' : `Ficam de fora ${ap.pendentes.length} orçamentos pendentes, que passam`, " para o pr\xF3ximo m\xEAs: ", ap.pendentes.map(i => `#${i.numero}`).join(', '), "."), /*#__PURE__*/React.createElement("div", {
     className: "pc-resumo pc-resumo-mini"
   }, /*#__PURE__*/React.createElement("div", {
     className: "pc-ind"
