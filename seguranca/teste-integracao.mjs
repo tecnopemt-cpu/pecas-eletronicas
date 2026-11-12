@@ -312,19 +312,24 @@ try {
   await fm.locator('input[type=file]').setInputFiles({ name: 'potencia.pdf', mimeType: 'application/pdf', buffer: PDFI }); await esperar(800);
   await fm.locator('button[type=submit]').click(); await esperar(3000);
   const cursosI = await listar('cursosProfissionais');
-  const certI = await listar('certificadosPartes');
+  const cursoCertId = cursosI[0] && cursosI[0].certificado && cursosI[0].certificado.id;
+  const certI = (await listar('certificadosPartes')).filter(p => p.certificadoId === cursoCertId);
   passo('formação: gestão cadastra curso com certificado (regras aceitam curso + certificado em partes)', cursosI.length === 1 && cursosI[0].funcionarioId === 'FUN' && cursosI[0].certificado && certI.length === cursosI[0].certificado.partes && certI.length >= 2, JSON.stringify(cursosI.map(c => c.nome)) + ' ' + certI.length + ' ' + w.erros.join('|'));
-  // relatório geral: só leituras, com as regras valendo (gestão lê registros, avaliações, metas e cursos do colaborador)
-  await w.page.locator('.fp-resumo button', { hasText: 'Gerar relatório geral' }).click();
-  await w.page.waitForSelector('.rg-corpo, .rg-modal .av-erro', { timeout: 20000 }).catch(() => {});
-  const rgT = await w.page.locator('.rg-modal').innerText().catch(() => '');
-  passo('relatório geral: monta com as regras valendo (registro, avaliação aprovada, meta e curso do Fábio)', /Organizou a bancada e as peças/.test(rgT) && /Aprovada/.test(rgT) && /Conferir as peças antes de separar/.test(rgT) && /Eletrônica de Potência/.test(rgT) && /Certificado anexado: potencia\.pdf/.test(rgT), rgT.slice(0, 300));
+  // relatório de avaliação (gerador): só leituras, com as regras valendo (gestão lê registros, avaliações, metas e cursos)
+  await w.page.locator('.av-secao-cab .av-voltar').click(); await w.page.locator('.av-area[data-secao=relatorios]').click(); await esperar(800);
+  await w.page.locator('.rl-passo').first().locator('.av-chip', { hasText: 'Todo o histórico' }).click();
+  await w.page.locator('.rl-modelo strong', { hasText: /^Completo$/ }).click();
+  await w.page.locator('.rl-config button', { hasText: 'Ver prévia' }).click();
+  await w.page.waitForSelector('.rl-previa', { timeout: 20000 }).catch(() => {}); await esperar(800);
+  const rgT = await w.page.locator('.rl-previa').innerText().catch(() => '');
+  passo('relatório de avaliação: monta com as regras valendo (registro com anexo, avaliação aprovada, meta e curso do Fábio)', /Organizou a bancada e as peças/.test(rgT) && /📎 1/.test(rgT) && /Aprovada/.test(rgT) && /Conferir as peças antes de separar/.test(rgT) && /Eletrônica de Potência/.test(rgT) && /Certificado anexado/.test(rgT), rgT.slice(0, 300));
   passo('relatório geral: não grava nada', !(await ler('resumosProfissionais/FUN')));
-  await w.page.locator('.rg-modal button', { hasText: 'Fechar' }).first().click();
-  await fabio.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await esperar(2500);
-  const tfF = await fabio.page.locator('.fp-minhas').innerText().catch(() => '');
+  await fabio.page.locator('.sidebar-item', { hasText: 'Avaliação' }).first().click(); await esperar(1500);
+  await fabio.page.locator('.av-perfil-secao .av-voltar').click().catch(() => {}); await esperar(300);
+  await fabio.page.locator('.av-area[data-secao=cursos]').click().catch(() => {}); await esperar(2000);
+  const tfF = await fabio.page.locator('.fp-secao').innerText().catch(() => '');
   passo('formação: funcionário vê o próprio curso', /Eletrônica de Potência/.test(tfF), tfF.slice(0, 200));
-  await fabio.page.locator('.fp-minhas .fp-item button', { hasText: 'Ver / baixar' }).click();
+  await fabio.page.locator('.fp-secao .fp-item button', { hasText: 'Ver / baixar' }).click();
   await fabio.page.waitForSelector('.fp-visor-pdf, .fp-visor .av-erro', { timeout: 15000 }).catch(() => {});
   passo('formação: funcionário abre o próprio certificado', await fabio.page.locator('.fp-visor-pdf').count() === 1);
   await fabio.page.locator('.fp-visor button', { hasText: 'Fechar' }).click().catch(() => {});
