@@ -28,6 +28,9 @@ await env.withSecurityRulesDisabled(async ctx => {
   await ficha('LEG', { nome: 'Legado', ativo: true, login: 'leg' });
   await ficha('TAM', { nome: 'Tamara', perfil: 'administrador', status: 'ativo', login: 'tamara', permissoes: { ...permEditar, beneficios: 'editar' }, beneficiosFechar: true });
   await ficha('BVI', { nome: 'Bia', perfil: 'funcionario', status: 'ativo', login: 'bia', permissoes: { ...permFunc, beneficios: 'visualizar' } });
+  await ficha('MVI', { nome: 'Mia', perfil: 'funcionario', status: 'ativo', login: 'mia', permissoes: { ...permFunc, monitoramento: 'visualizar' } });
+  await ficha('ASA', { nome: 'Ada', perfil: 'administrador', status: 'ativo', login: 'ada', permissoes: { ...permEditar, monitoramento: 'sem_acesso' } });
+  await ficha('AVI', { nome: 'Ari', perfil: 'administrador', status: 'ativo', login: 'ari', permissoes: { ...permEditar, monitoramento: 'visualizar' } });
   await ficha('LGB', { nome: 'Lia', ativo: true, login: 'lia', permissoes: { beneficios: 'editar' } });
   await ficha('BED', { nome: 'Beto', perfil: 'funcionario', status: 'ativo', login: 'beto', permissoes: { ...permFunc, beneficios: 'editar' } });
   await ficha('PEN', { nome: 'Pedro', perfil: 'funcionario', status: 'pendente', login: 'pedro', permissoes: {} });
@@ -60,7 +63,7 @@ const como = {
   cadastrouSozinho: env.authenticatedContext('uid-x', { email: 'qualquer@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
   semFicha: conta('NAOEXISTE'),
   intruso: env.authenticatedContext('uid-intruso', { email: 'intruso@gmail.com', firebase: { sign_in_provider: 'password' } }).firestore(),
-  master: conta('WAL'), admin: conta('RAI'), tamara: conta('TAM'), benVe: conta('BVI'), benEdita: conta('BED'), legadoBen: conta('LGB'), func: conta('FUN'), legado: conta('LEG'),
+  master: conta('WAL'), admin: conta('RAI'), tamara: conta('TAM'), benVe: conta('BVI'), benEdita: conta('BED'), legadoBen: conta('LGB'), centralVe: conta('MVI'), admSemCentral: conta('ASA'), admVeCentral: conta('AVI'), func: conta('FUN'), legado: conta('LEG'),
   contaAntiga: conta('FU2', 1), contaAtual: conta('FU2', 2),
   pendente: conta('PEN'), bloqueado: conta('BLO'), novo: conta('NOVO'),
   visitante: env.authenticatedContext('uid-anon', { firebase: { sign_in_provider: 'anonymous' } }).firestore(),
@@ -397,6 +400,13 @@ await caso('monitoramento: funcionário NÃO lista a coleção', NAO, () => av.a
 await caso('monitoramento: rotina (backup) grava os resumos', SIM, () => como.backup.doc('monitoramento/banco_2026-11-09').set({ data: '2026-11-09', documentos: 10 }));
 await caso('monitoramento: conta parecida com a do backup NÃO grava', NAO, () => como.backupFalso.doc('monitoramento/banco_2026-11-09').set({ data: 'x' }));
 await caso('monitoramento: Master grava só a configuração dos alertas', SIM, () => como.master.doc('monitoramento/config').set({ niveis: [70, 85, 95] }));
+await caso('monitoramento: funcionário com Central "somente visualizar" lê', SIM, () => como.centralVe.doc('monitoramento/fontes').get());
+await caso('monitoramento: funcionário com Central "somente visualizar" lê o uso', SIM, () => como.centralVe.collection('monitoramentoUso').get());
+await caso('monitoramento: "somente visualizar" NÃO muda a configuração', NAO, () => como.centralVe.doc('monitoramento/config').set({ niveis: [1, 2, 3] }));
+await caso('monitoramento: administrador com Central "sem acesso" NÃO lê', NAO, () => como.admSemCentral.doc('monitoramento/fontes').get());
+await caso('monitoramento: administrador com Central "somente visualizar" lê', SIM, () => como.admVeCentral.doc('monitoramento/fontes').get());
+await caso('monitoramento: administrador com Central "somente visualizar" NÃO muda a configuração', NAO, () => como.admVeCentral.doc('monitoramento/config').set({ niveis: [1, 2, 3] }));
+await caso('monitoramento: administrador sem configuração (padrão) muda a configuração', SIM, () => av.adm.doc('monitoramento/config').set({ niveis: [70, 85, 95] }));
 await caso('monitoramento: Master NÃO altera os números das rotinas', NAO, () => como.master.doc('monitoramento/banco_2026-11-09').update({ documentos: 1 }));
 await caso('monitoramento: administrador configura os alertas', SIM, () => av.adm.doc('monitoramento/config').set({ niveis: [70, 85, 95] }));
 await caso('monitoramento: administrador NÃO altera os números das rotinas', NAO, () => av.adm.doc('monitoramento/banco_2026-11-09').update({ documentos: 1 }));

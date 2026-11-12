@@ -173,6 +173,17 @@ service cloud.firestore {
     // calendário; fechar o mês exige também beneficiosFechar. O Master tem tudo. Sem permissão: nem leitura.
     // Nada é apagado; fechamentos só ganham versões e histórico. (As faltas ficam no registro da Comissão.)
     function nivelBeneficios() { return eu().get('permissoes', {}).get('beneficios', 'sem_acesso'); }
+    // Central de Monitoramento pela matriz da Equipe (permissoes.monitoramento). Sem configuração vale o
+    // padrão: administradores com acesso completo, funcionários sem acesso. O Master sempre entra.
+    function nivelCentral() {
+      return eu().get('permissoes', {}).get('monitoramento', 'padrao');
+    }
+    function veCentral() {
+      return master() || (ativo() && (nivelCentral() in ['visualizar', 'editar'] || (nivelCentral() == 'padrao' && administrador())));
+    }
+    function editaCentral() {
+      return master() || (ativo() && (nivelCentral() == 'editar' || (nivelCentral() == 'padrao' && administrador())));
+    }
     function veBeneficios() { return master() || (ativo() && nivelBeneficios() in ['visualizar', 'editar']); }
     function editaBeneficios() { return master() || (ativo() && nivelBeneficios() == 'editar'); }
     function fechaBeneficios() { return master() || (editaBeneficios() && eu().get('beneficiosFechar', false) == true); }
@@ -354,14 +365,14 @@ service cloud.firestore {
     // monitoramento/: resumos gravados pelas rotinas do GitHub (conta do backup); os administradores leem e
     // só podem mudar a configuração dos alertas. Ninguém apaga.
     match /monitoramento/{id} {
-      allow read: if administrador() || backup();
-      allow create, update: if backup() || (administrador() && id == 'config');
+      allow read: if veCentral() || backup();
+      allow create, update: if backup() || (editaCentral() && id == 'config');
       allow delete: if false;
     }
     // monitoramentoUso/<dia>_<uid>: contadores do próprio aplicativo (leituras, gravações, falhas), um por
     // pessoa por dia, gravados pelo aparelho de quem usa. Cada um só grava o próprio; só administradores leem.
     match /monitoramentoUso/{id} {
-      allow read: if administrador() || backup();
+      allow read: if veCentral() || backup();
       allow create, update: if ativo()
         && id.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_' + request.auth.uid + '$')
         && request.resource.data.uid == request.auth.uid

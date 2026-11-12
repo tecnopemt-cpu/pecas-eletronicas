@@ -417,6 +417,24 @@
   .perm-fixas{display:flex;flex-direction:column;gap:8px;margin:4px 0 16px;padding:12px;border-radius:10px;background:var(--fundo);font-size:12.5px;}
   .perm-fixas div{display:flex;flex-direction:column;gap:2px;}
   .perm-fixas span{color:var(--texto-fraco);}
+  .perm-matriz{display:flex;flex-direction:column;gap:14px;}
+  .perm-intro{font-size:12.5px;color:var(--texto-fraco);margin:0;}
+  .perm-grupo{border:1px solid var(--borda);border-radius:10px;overflow:hidden;}
+  .perm-grupo-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--fundo-suave, rgba(0,0,0,.03));border-bottom:1px solid var(--borda);}
+  .perm-grupo-cab h4{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--texto-fraco);}
+  .perm-grupo-atalhos{display:flex;gap:6px;flex-wrap:wrap;}
+  .perm-modulo{padding:12px;}
+  .perm-modulo+.perm-modulo{border-top:1px solid var(--borda);}
+  .perm-mod-nome{font-weight:700;font-size:13.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .perm-padrao{font-weight:600;font-size:11px;padding:1px 6px;border-radius:6px;background:#EEF4FB;color:#1F4E79;}
+  .perm-niveis{display:flex;gap:14px;flex-wrap:wrap;}
+  .perm-niveis label,.perm-especifico label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
+  .perm-niveis input,.perm-especifico input{width:auto;}
+  .perm-nota{font-size:12px;color:var(--texto-fraco);margin-top:6px;}
+  .perm-especifico{margin-top:10px;}
+  .perm-esp-tit{font-size:12px;color:var(--texto-fraco);margin-bottom:6px;}
+  .perm-esp-opcoes{display:flex;flex-wrap:wrap;gap:10px;}
+  .perm-esp-opcoes label{font-size:12.5px;}
   .bn-tela{display:flex;flex-direction:column;gap:14px;}
   .bn-escolher-atalhos{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 10px;}
   .bn-escolher-lista{list-style:none;margin:0 0 12px;padding:0;max-height:52dvh;overflow:auto;border:1px solid var(--borda);border-radius:8px;}
@@ -2536,31 +2554,63 @@ function confirmarSenhaMaster(mensagem) {
 }
 
 // ======================= PERFIS E PERMISSÕES =======================
-const MODULOS_PERMISSAO = ['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios', 'beneficios'];
-// Módulos que já existiam quando as permissões foram criadas: contas antigas sem permissões configuradas
-// continuam com acesso a eles. TODO módulo novo (fora desta lista) começa SEM ACESSO para todos — inclusive
-// contas antigas — até alguém liberar na Equipe. Para um módulo novo aparecer na matriz de permissões basta
-// incluí-lo em MODULOS_PERMISSAO e NOME_MODULO (e, se tiver divisões internas, um bloco próprio na matriz).
-const MODULOS_LEGADO = ['dashboard', 'lotes', 'catalogo', 'clientes', 'orcamentos', 'comissoes', 'funcionarios'];
-const NOME_MODULO = {
-  beneficios: 'Benefícios (VR e VT)',
-  dashboard: 'Painel',
-  lotes: 'Entrada de Peças',
-  catalogo: 'Cadastro de Peças',
-  clientes: 'Clientes',
-  orcamentos: 'Orçamentos',
-  comissoes: 'Comissão',
-  funcionarios: 'Equipe'
-};
+// ---------- CADASTRO CENTRAL DE MÓDULOS ----------
+// Única lista dos módulos do sistema. O menu lateral, a matriz de permissões da Equipe (Equipe →
+// Permissões de acesso), a aprovação de cadastro e a checagem de acesso (nivelAcesso) leem daqui.
+// Módulo novo: acrescente UMA entrada aqui — ele aparece sozinho no menu e na matriz, e começa
+// SEM ACESSO para todos (só o Master entra) até alguém liberar na Equipe.
+//   id: chave da permissão (funcionarios.permissoes[id]) e da aba; menu: nome no menu; grupo: seção da matriz
+//   niveis: níveis possíveis (padrão: sem acesso / somente visualizar / visualizar e editar)
+//   legado: módulo que já existia antes das permissões (contas antigas sem configuração mantêm acesso total)
+//   padrao(usuario): nível de quem ainda não foi configurado (módulos que já tinham regra própria);
+//     sem "padrao" e sem "legado" = sem acesso (regra de todo módulo novo)
+//   nota: explicação curta na matriz (o que cada nível libera, funções com regra própria)
+const NIVEIS_PERMISSAO = [['sem_acesso', 'Sem acesso'], ['visualizar', 'Somente visualizar'], ['editar', 'Visualizar e editar']];
+const GRUPOS_MODULOS = ['Comunicação', 'Operação', 'Pessoas', 'Sistema'];
+const MODULOS_SISTEMA = [{
+  id: 'avisos', nome: 'Avisos', icone: '📢', grupo: 'Comunicação',
+  niveis: [['sem_acesso', 'Sem acesso'], ['visualizar', 'Ver os avisos']],
+  padrao: () => 'visualizar',
+  nota: 'Publicar e encerrar avisos: administradores.'
+}, { id: 'dashboard', nome: 'Painel', icone: '📊', grupo: 'Operação', legado: true
+}, { id: 'lotes', nome: 'Entrada de Peças', icone: '📦', grupo: 'Operação', legado: true
+}, { id: 'catalogo', nome: 'Cadastro de Peças', icone: '🔩', grupo: 'Operação', legado: true
+}, { id: 'clientes', nome: 'Clientes', icone: '🏢', grupo: 'Operação', legado: true
+}, { id: 'orcamentos', nome: 'Orçamentos', menu: 'Orçamento', icone: '📋', grupo: 'Operação', legado: true,
+  nota: 'Comissão do Parceiro (dentro do Orçamento): Master e administradores.'
+}, { id: 'comissoes', nome: 'Comissão', icone: '💰', grupo: 'Pessoas', legado: true
+}, { id: 'funcionarios', nome: 'Equipe', icone: '👤', grupo: 'Pessoas', legado: true
+}, { id: 'beneficios', nome: 'Benefícios (VR e VT)', menu: 'Benefícios', icone: '🎫', grupo: 'Pessoas'
+}, { id: 'avaliacoes', nome: 'Avaliação de Desempenho', menu: 'Avaliação', icone: '📝', grupo: 'Pessoas',
+  niveis: [['sem_acesso', 'Sem acesso'], ['padrao', 'Acesso conforme o perfil']],
+  padrao: () => 'padrao',
+  nota: 'Conforme o perfil: o funcionário vê só as próprias avaliações aprovadas; administradores veem e fazem todas (garantido pelas regras do banco).'
+}, { id: 'monitoramento', nome: 'Central de Monitoramento', icone: '📡', grupo: 'Sistema',
+  padrao: u => ehAdministrador(u) ? 'editar' : 'sem_acesso',
+  nota: 'Somente visualizar: vê os painéis. Visualizar e editar: também marca erros como resolvidos e muda os limites dos alertas. Padrão: administradores.'
+}];
+const MODULO_POR_ID = Object.fromEntries(MODULOS_SISTEMA.map(m => [m.id, m]));
+const niveisDoModulo = m => (MODULO_POR_ID[m] && MODULO_POR_ID[m].niveis) || NIVEIS_PERMISSAO;
+// módulos de configuração comum (gravados com o mesmo nível na criação/aprovação de contas). Os que têm
+// "padrao" ficam de fora: sem chave gravada, valem as regras padrão (ex.: Avisos para todos).
+const MODULOS_PERMISSAO = MODULOS_SISTEMA.filter(m => !m.padrao).map(m => m.id);
+const MODULOS_LEGADO = MODULOS_SISTEMA.filter(m => m.legado).map(m => m.id);
+const NOME_MODULO = Object.fromEntries(MODULOS_SISTEMA.map(m => [m.id, m.nome]));
+const NOME_NIVEL = { sem_acesso: 'sem acesso', visualizar: 'somente visualizar', editar: 'visualizar e editar', padrao: 'conforme o perfil' };
 function nivelAcesso(usuario, modulo) {
   if (!usuario) return 'sem_acesso';
   if (usuario.perfil === 'master') return 'editar';
-  if (!MODULOS_LEGADO.includes(modulo)) return usuario.permissoes && usuario.permissoes[modulo] || 'sem_acesso';
-  // usuário legado (cadastrado antes desse sistema de permissões) sem os módulos antigos definidos:
-  // não restringe, pra não trancar ninguém que já usava o sistema livremente. Ter só um módulo
-  // novo configurado (ex.: Benefícios) não tira o acesso legado.
-  if (!usuario.permissoes || !MODULOS_LEGADO.some(m => usuario.permissoes[m])) return 'editar';
-  return usuario.permissoes[modulo] || 'sem_acesso';
+  const def = MODULO_POR_ID[modulo];
+  const salvo = usuario.permissoes && usuario.permissoes[modulo];
+  if (def && def.legado) {
+    // usuário legado (cadastrado antes desse sistema de permissões) sem os módulos antigos definidos:
+    // não restringe, pra não trancar ninguém que já usava o sistema livremente. Ter só um módulo
+    // novo configurado (ex.: Benefícios) não tira o acesso legado.
+    if (!usuario.permissoes || !MODULOS_LEGADO.some(m => usuario.permissoes[m])) return 'editar';
+    return salvo || 'sem_acesso';
+  }
+  if (salvo) return salvo;
+  return def && def.padrao ? def.padrao(usuario) : 'sem_acesso';
 }
 function podeVisualizar(usuario, modulo) {
   return nivelAcesso(usuario, modulo) !== 'sem_acesso';
@@ -6088,6 +6138,7 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -13364,7 +13415,9 @@ function CentralMonitoramento({
   usuario,
   funcionarios
 }) {
-  const master = ehAdministrador(usuario); // Master e administradores (regras do banco iguais)
+  // acesso pela matriz da Equipe (padrão: administradores com "Visualizar e editar"); as regras do banco são iguais
+  const master = podeVisualizar(usuario, 'monitoramento');
+  const editarMon = podeEditar(usuario, 'monitoramento');
   const [d, recarregar] = useMonDados(master);
   const [secao, setSecao] = useState('geral');
   const [tipo, setTipo] = useState('30d');
@@ -13379,7 +13432,7 @@ function CentralMonitoramento({
   }, [secao, d.carregando]);
   if (!master) return /*#__PURE__*/React.createElement("div", {
     className: "card"
-  }, /*#__PURE__*/React.createElement("h3", null, "Acesso restrito"), /*#__PURE__*/React.createElement("p", null, "A Central de Monitoramento \xE9 exclusiva dos administradores."));
+  }, /*#__PURE__*/React.createElement("h3", null, "Acesso restrito"), /*#__PURE__*/React.createElement("p", null, "Voc\xEA n\xE3o tem acesso \xE0 Central de Monitoramento. Fale com o Administrador Master."));
   const cab = lido => /*#__PURE__*/React.createElement("header", {
     className: "mon-cab"
   }, /*#__PURE__*/React.createElement("div", {
@@ -13513,10 +13566,10 @@ function CentralMonitoramento({
     className: "mon-conteudo",
     role: "tabpanel"
   }, secao === 'geral' && /*#__PURE__*/React.createElement(MonGeral, ctx), secao === 'armazenamento' && /*#__PURE__*/React.createElement(MonArmazenamento, ctx), secao === 'operacoes' && /*#__PURE__*/React.createElement(MonOperacoes, ctx), secao === 'trafego' && /*#__PURE__*/React.createElement(MonTrafego, ctx), secao === 'backups' && /*#__PURE__*/React.createElement(MonBackups, ctx), secao === 'saude' && /*#__PURE__*/React.createElement(MonSaude, _extends({}, ctx, {
-    aoMudar: recarregar
+    aoMudar: editarMon ? recarregar : null
   })), secao === 'crescimento' && /*#__PURE__*/React.createElement(MonCrescimento, ctx), secao === 'custos' && /*#__PURE__*/React.createElement(MonCustos, ctx), secao === 'alertas' && /*#__PURE__*/React.createElement(MonAlertasConfig, _extends({}, ctx, {
     usuario: usuario,
-    aoSalvar: recarregar
+    aoSalvar: editarMon ? recarregar : null
   }))));
 }
 // operações (leituras/gravações/exclusões): oficiais quando existem; senão, a contagem do próprio sistema
@@ -14592,7 +14645,7 @@ function MonErrosAgrupados({
     s: x.situacao[0]
   }, x.situacao[1])), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": ""
-  }, x.situacao[1] !== 'Resolvido' && /*#__PURE__*/React.createElement("button", {
+  }, x.situacao[1] !== 'Resolvido' && aoMudar && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "mon-link",
     disabled: salvando === x.sig,
@@ -15061,13 +15114,15 @@ function MonAlertasConfig({
         niveis: nv
       };
     })
-  })), " %")), campo('fatorPadrao', 'Leituras/gravações acima do padrão: quando passar de', '× a média dos 7 dias anteriores'), campo('crescimentoPct', 'Aumento inesperado: período com mais de', '% acima do período anterior'), campo('backupAtrasoHoras', 'Backup atrasado: sem backup concluído há mais de', 'horas'), campo('errosPorDia', 'Erros frequentes: a partir de', 'erros/falhas no dia'), campo('lentidaoS', 'Lentidão: módulo que leva em média mais de', 'segundos para abrir')), /*#__PURE__*/React.createElement("div", {
+  })), " %")), campo('fatorPadrao', 'Leituras/gravações acima do padrão: quando passar de', '× a média dos 7 dias anteriores'), campo('crescimentoPct', 'Aumento inesperado: período com mais de', '% acima do período anterior'), campo('backupAtrasoHoras', 'Backup atrasado: sem backup concluído há mais de', 'horas'), campo('errosPorDia', 'Erros frequentes: a partir de', 'erros/falhas no dia'), campo('lentidaoS', 'Lentidão: módulo que leva em média mais de', 'segundos para abrir')), aoSalvar ? /*#__PURE__*/React.createElement("div", {
     className: "fp-acoes"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn",
     onClick: salvar
-  }, "Salvar configura\xE7\xE3o")), msg && /*#__PURE__*/React.createElement("div", {
+  }, "Salvar configura\xE7\xE3o")) : /*#__PURE__*/React.createElement("p", {
+    className: "mon-nota"
+  }, "Somente visualizar: para mudar os limites, pe\xE7a ao Administrador Master o n\xEDvel \"Visualizar e editar\" na Central."), msg && /*#__PURE__*/React.createElement("div", {
     className: "av-dica",
     role: "status"
   }, msg), /*#__PURE__*/React.createElement("p", {
@@ -18192,58 +18247,13 @@ function App() {
     limparErroInicial: () => setErroAcesso(''),
     setTelaAtual: setTelaAtual
   });
-  const abasTodas = [{
-    id: 'dashboard',
-    nome: 'Painel',
-    icone: '📊'
-  }, {
-    id: 'lotes',
-    nome: 'Entrada de Peças',
-    icone: '📦'
-  }, {
-    id: 'catalogo',
-    nome: 'Cadastro de Peças',
-    icone: '🔩'
-  }, {
-    id: 'clientes',
-    nome: 'Clientes',
-    icone: '🏢'
-  }, {
-    id: 'orcamentos',
-    nome: 'Orçamento',
-    icone: '📋'
-  }, {
-    id: 'comissoes',
-    nome: 'Comissão',
-    icone: '💰'
-  }, {
-    id: 'funcionarios',
-    nome: 'Equipe',
-    icone: '👤'
-  }, {
-    id: 'beneficios',
-    nome: 'Benefícios',
-    icone: '🎫'
-  }];
-  // Avisos é acessível a todo funcionário ativo, independente das permissões por módulo —
-  // por isso fica fora do filtro de permissão e sempre em primeiro na navegação.
-  // Avaliação também: a gestão vê o módulo completo; o funcionário, só as próprias avaliações aprovadas
-  // (o que cada um pode ler é garantido pelas regras do banco).
-  const abas = [{
-    id: 'avisos',
-    nome: 'Avisos',
-    icone: '📢'
-  }, ...abasTodas.filter(a => podeVisualizar(usuario, a.id)), {
-    id: 'avaliacoes',
-    nome: 'Avaliação',
-    icone: '📝'
-  },
-  // Central de Monitoramento: só administradores (as regras do banco também só liberam para eles)
-  ...(ehAdministrador(usuario) ? [{
-    id: 'monitoramento',
-    nome: 'Central de Monitoramento',
-    icone: '📡'
-  }] : [])];
+  // menu montado do cadastro central de módulos (MODULOS_SISTEMA): aparece o que a pessoa pode ver
+  const abas = MODULOS_SISTEMA.filter(m => podeVisualizar(usuario, m.id)).map(m => ({
+    id: m.id,
+    nome: m.menu || m.nome,
+    icone: m.icone
+  }));
+  if (aba === 'avisos' && abas.length && !podeVisualizar(usuario, 'avisos')) setTimeout(() => setAba(abas[0].id), 0);
   // contadores da Central de Monitoramento: quem está usando e em qual tela (só para os registros de uso)
   window.MON_USUARIO = {
     id: usuario.id,
@@ -18452,7 +18462,7 @@ function App() {
   }), /*#__PURE__*/React.createElement(BenAcessoInicial, {
     usuario: usuario,
     funcionarios: funcionarios
-  }), aba !== 'avisos' && aba !== 'avaliacoes' && aba !== 'monitoramento' && !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
+  }), !podeVisualizar(usuario, aba) ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -31374,12 +31384,6 @@ function AbaAcessoFuncionario({
     }
   }, "⭐ Promover a Administrador"))));
 }
-// Módulos com regra própria (não configurável por pessoa): aparecem na matriz para ficar claro quem acessa.
-function PermissoesFixasInfo() {
-  return /*#__PURE__*/React.createElement("div", {
-    className: "perm-fixas"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Central de Monitoramento"), /*#__PURE__*/React.createElement("span", null, "Administrador Master e administradores: acesso liberado \u00b7 funcion\u00e1rios: sem acesso (garantido pelas regras do banco).")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Avalia\u00e7\u00e3o"), /*#__PURE__*/React.createElement("span", null, "Cada funcion\u00e1rio v\u00ea s\u00f3 a pr\u00f3pria avalia\u00e7\u00e3o; administradores veem todas; o Master tem acesso completo.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Avisos"), /*#__PURE__*/React.createElement("span", null, "Todo funcion\u00e1rio ativo.")));
-}
 function AbaPermissoesFuncionario({
   funcionario,
   usuarioLogado,
@@ -31389,14 +31393,16 @@ function AbaPermissoesFuncionario({
     const base = {};
     // conta antiga (sem os módulos originais configurados) mostra o acesso que ela realmente tem hoje
     // (visualizar e editar nos módulos antigos), para que salvar não tire nada sem querer
-    MODULOS_PERMISSAO.forEach(m => {
-      base[m] = funcionario.perfil === 'master' ? 'editar' : nivelAcesso({
+    MODULOS_SISTEMA.forEach(({ id: m }) => {
+      base[m] = funcionario.perfil === 'master' ? (niveisDoModulo(m).some(n => n[0] === 'editar') ? 'editar' : niveisDoModulo(m).slice(-1)[0][0]) : nivelAcesso({
         ...funcionario,
         perfil: funcionario.perfil === 'master' ? 'funcionario' : funcionario.perfil
       }, m);
     });
     return base;
   });
+  // nível que vale sem configuração (módulos com regra própria): não é gravado, para seguir o perfil
+  const padraoDe = m => MODULO_POR_ID[m] && MODULO_POR_ID[m].padrao ? MODULO_POR_ID[m].padrao(funcionario) : null;
   const contaAntigaPerm = !funcionario.permissoes || !MODULOS_LEGADO.some(m => funcionario.permissoes[m]);
   const [msgPerm, setMsgPerm] = useState(null);
   // permissão antiga com "Entregue/Faturado" aparece como Rota + Concluído
@@ -31411,15 +31417,20 @@ function AbaPermissoesFuncionario({
     setSalvando(true);
     setMsgPerm(null);
     const antesPermissoes = funcionario.permissoes || {};
-    const antesNivel = m => contaAntigaPerm ? nivelAcesso({ ...funcionario, perfil: 'funcionario' }, m) : antesPermissoes[m] || 'sem_acesso';
+    const antesNivel = m => nivelAcesso({ ...funcionario, perfil: funcionario.perfil === 'master' ? 'funcionario' : funcionario.perfil }, m);
+    // grava todos os módulos comuns; os de regra própria só quando diferentes do padrão do perfil
+    const gravar = {};
+    MODULOS_SISTEMA.forEach(({ id: m }) => {
+      if (padraoDe(m) === null || permissoes[m] !== padraoDe(m)) gravar[m] = permissoes[m];
+    });
     try {
       await db.collection('funcionarios').doc(funcionario.id).update({
-        permissoes,
+        permissoes: gravar,
         colunasOrcamento: colunas,
         comissaoEscopo: escopoComissao,
         beneficiosFechar: permissoes.beneficios === 'editar' && fecharBeneficios
       });
-      const mudancas = MODULOS_PERMISSAO.filter(m => antesNivel(m) !== permissoes[m]).map(m => `${NOME_MODULO[m]}: ${antesNivel(m)} → ${permissoes[m]}`);
+      const mudancas = MODULOS_SISTEMA.map(x => x.id).filter(m => antesNivel(m) !== permissoes[m]).map(m => `${NOME_MODULO[m]}: ${NOME_NIVEL[antesNivel(m)] || antesNivel(m)} → ${NOME_NIVEL[permissoes[m]] || permissoes[m]}`);
       const fecharAgora = permissoes.beneficios === 'editar' && fecharBeneficios;
       if ((funcionario.beneficiosFechar === true) !== fecharAgora) mudancas.push(`Benefícios: ${fecharAgora ? 'pode' : 'não pode'} fechar o mês`);
       if (mudancas.length > 0) {
@@ -31436,119 +31447,50 @@ function AbaPermissoesFuncionario({
     }
     setSalvando(false);
   }
-  const NIVEIS = [['sem_acesso', 'Sem acesso'], ['visualizar', 'Somente visualizar'], ['editar', 'Visualizar e editar']];
-  return /*#__PURE__*/React.createElement("div", null, MODULOS_PERMISSAO.map(m => /*#__PURE__*/React.createElement("div", {
-    key: m,
-    style: {
-      marginBottom: 14,
-      paddingBottom: 14,
-      borderBottom: '1px solid var(--borda)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 13.5,
-      marginBottom: 6
-    }
-  }, NOME_MODULO[m]), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 14,
-      flexWrap: 'wrap'
-    }
-  }, NIVEIS.map(([valor, rotulo]) => /*#__PURE__*/React.createElement("label", {
-    key: valor,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      fontSize: 13,
-      cursor: podeEditarPermissoes ? 'pointer' : 'default'
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "radio",
-    name: `nivel-${m}`,
-    checked: permissoes[m] === valor,
-    disabled: !podeEditarPermissoes,
-    onChange: () => setPermissoes(prev => ({
-      ...prev,
-      [m]: valor
-    })),
-    style: {
-      width: 'auto'
-    }
-  }), rotulo))), m === 'orcamentos' && permissoes.orcamentos !== 'sem_acesso' && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--texto-fraco)',
-      marginBottom: 6
-    }
-  }, "Colunas de orçamento visíveis:"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: 10
-    }
-  }, STATUS_ORCAMENTO.map(c => /*#__PURE__*/React.createElement("label", {
-    key: c,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 5,
-      fontSize: 12.5
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: colunas.includes(c),
-    disabled: !podeEditarPermissoes,
-    onChange: () => alternarColuna(c),
-    style: {
-      width: 'auto'
-    }
-  }), c)))), m === 'comissoes' && permissoes.comissoes !== 'sem_acesso' && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--texto-fraco)',
-      marginBottom: 6
-    }
-  }, "Escopo das informações de comissão:"), /*#__PURE__*/React.createElement("select", {
-    value: escopoComissao,
-    onChange: e => setEscopoComissao(e.target.value),
-    disabled: !podeEditarPermissoes,
-    style: {
-      maxWidth: 320
-    }
-  }, /*#__PURE__*/React.createElement("option", {
-    value: "propria"
-  }, "Acessar somente a própria comissão"), /*#__PURE__*/React.createElement("option", {
-    value: "outros"
-  }, "Visualizar comissão de outros funcionários também"), /*#__PURE__*/React.createElement("option", {
-    value: "administrar"
-  }, "Administrar comissões (acesso completo)"))), m === 'beneficios' && permissoes.beneficios === 'editar' && /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      fontSize: 13,
-      marginTop: 10
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: fecharBeneficios,
-    disabled: !podeEditarPermissoes,
-    onChange: e => setFecharBeneficios(e.target.checked),
-    style: {
-      width: 'auto'
-    }
-  }), "Pode fechar o mês (gravar o fechamento de VR e VT)"))), /*#__PURE__*/React.createElement(PermissoesFixasInfo, null), contaAntigaPerm && podeEditarPermissoes && /*#__PURE__*/React.createElement("p", {
+  const h = React.createElement;
+  const marcarTodos = (grupo, nivel) => setPermissoes(prev => {
+    const n = { ...prev };
+    MODULOS_SISTEMA.filter(x => x.grupo === grupo).forEach(x => {
+      const ns = niveisDoModulo(x.id).map(v => v[0]);
+      n[x.id] = ns.includes(nivel) ? nivel : nivel === 'sem_acesso' ? 'sem_acesso' : ns[ns.length - 1];
+    });
+    return n;
+  });
+  const especificos = m => {
+    if (m === 'orcamentos' && permissoes.orcamentos !== 'sem_acesso') return h("div", { className: "perm-especifico" },
+      h("div", { className: "perm-esp-tit" }, "Colunas de orçamento visíveis:"),
+      h("div", { className: "perm-esp-opcoes" }, STATUS_ORCAMENTO.map(c => h("label", { key: c },
+        h("input", { type: "checkbox", checked: colunas.includes(c), disabled: !podeEditarPermissoes, onChange: () => alternarColuna(c) }), c))));
+    if (m === 'comissoes' && permissoes.comissoes !== 'sem_acesso') return h("div", { className: "perm-especifico" },
+      h("div", { className: "perm-esp-tit" }, "Escopo das informações de comissão:"),
+      h("select", { value: escopoComissao, onChange: e => setEscopoComissao(e.target.value), disabled: !podeEditarPermissoes, style: { maxWidth: 320 } },
+        h("option", { value: "propria" }, "Acessar somente a própria comissão"),
+        h("option", { value: "outros" }, "Visualizar comissão de outros funcionários também"),
+        h("option", { value: "administrar" }, "Administrar comissões (acesso completo)")));
+    if (m === 'beneficios' && permissoes.beneficios === 'editar') return h("div", { className: "perm-especifico" },
+      h("label", null, h("input", { type: "checkbox", checked: fecharBeneficios, disabled: !podeEditarPermissoes, onChange: e => setFecharBeneficios(e.target.checked) }), "Pode fechar o mês (gravar o fechamento de VR e VT)"));
+    return null;
+  };
+  return /*#__PURE__*/h("div", { className: "perm-matriz" },
+    h("p", { className: "perm-intro" }, "Todos os módulos do sistema. Módulos novos aparecem aqui sozinhos e começam sem acesso. O Administrador Master sempre tem acesso completo."),
+    GRUPOS_MODULOS.map(g => {
+      const mods = MODULOS_SISTEMA.filter(x => x.grupo === g);
+      if (!mods.length) return null;
+      return h("section", { key: g, className: "perm-grupo" },
+        h("div", { className: "perm-grupo-cab" }, h("h4", null, g), podeEditarPermissoes && h("div", { className: "perm-grupo-atalhos" },
+          h("button", { type: "button", className: "btn secundario pequeno", onClick: () => marcarTodos(g, 'sem_acesso') }, "Tudo sem acesso"),
+          h("button", { type: "button", className: "btn secundario pequeno", onClick: () => marcarTodos(g, 'visualizar') }, "Tudo visualizar"),
+          h("button", { type: "button", className: "btn secundario pequeno", onClick: () => marcarTodos(g, 'editar') }, "Tudo editar"))),
+        mods.map(x => {
+          const m = x.id, pd = padraoDe(m);
+          return h("div", { key: m, className: "perm-modulo", "data-modulo": m },
+            h("div", { className: "perm-mod-nome" }, h("span", { "aria-hidden": true }, x.icone), " ", x.nome, pd !== null && permissoes[m] === pd && h("small", { className: "perm-padrao" }, "padrão")),
+            h("div", { className: "perm-niveis", role: "radiogroup", "aria-label": x.nome }, niveisDoModulo(m).map(([valor, rotulo]) => h("label", { key: valor },
+              h("input", { type: "radio", name: `nivel-${m}`, checked: permissoes[m] === valor, disabled: !podeEditarPermissoes, onChange: () => setPermissoes(prev => ({ ...prev, [m]: valor })) }), rotulo))),
+            x.nota && h("div", { className: "perm-nota" }, x.nota),
+            especificos(m));
+        }));
+    }), contaAntigaPerm && podeEditarPermissoes && /*#__PURE__*/React.createElement("p", {
     className: "perm-conta-antiga",
     style: {
       fontSize: 12.5,
