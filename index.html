@@ -417,6 +417,101 @@
   .perm-fixas{display:flex;flex-direction:column;gap:8px;margin:4px 0 16px;padding:12px;border-radius:10px;background:var(--fundo);font-size:12.5px;}
   .perm-fixas div{display:flex;flex-direction:column;gap:2px;}
   .perm-fixas span{color:var(--texto-fraco);}
+  /* ---- Avaliação e Desenvolvimento: ficha com 4 áreas ---- */
+  .av-ficha-cab{display:grid;grid-template-columns:minmax(220px,auto) 1fr auto;align-items:center;gap:16px;padding:16px;border:1px solid var(--borda);border-radius:14px;background:var(--card);margin-bottom:16px;}
+  .av-ficha-dados{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+  .av-ficha-dado{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:10px;background:var(--fundo-suave, rgba(0,0,0,.025));min-width:0;}
+  .av-ficha-dado>span{font-size:11.5px;color:var(--texto-fraco);text-transform:uppercase;letter-spacing:.03em;}
+  .av-ficha-dado>strong{font-size:17px;}
+  .av-ficha-dado>em{font-style:normal;font-size:12px;color:var(--texto-fraco);}
+  .av-ficha-dado .av-select-tri{margin-top:6px;width:100%;min-width:0;max-width:100%;font-size:13px;padding:6px 8px;height:auto;}
+  .av-ficha-btn-av{white-space:nowrap;}
+  .av-areas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+  .av-area{display:flex;align-items:center;gap:16px;padding:20px;border-radius:16px;border:1px solid var(--borda);background:var(--card);font:inherit;color:inherit;text-align:left;cursor:pointer;min-height:112px;transition:border-color .15s ease,box-shadow .15s ease;}
+  .av-area:hover{border-color:var(--primaria, #E8770F);box-shadow:0 4px 16px rgba(0,0,0,.06);}
+  .av-area-icone{font-size:30px;width:56px;height:56px;display:grid;place-items:center;border-radius:14px;background:var(--fundo-suave, rgba(0,0,0,.04));flex:none;}
+  .av-area-txt{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+  .av-area-txt strong{font-size:16.5px;}
+  .av-area-txt span{font-size:13px;color:var(--texto-fraco);}
+  .av-area-txt em{font-style:normal;font-size:12.5px;font-weight:600;color:var(--texto);margin-top:4px;}
+  @media (max-width:900px){.av-ficha-cab{grid-template-columns:1fr;}.av-ficha-dados{grid-template-columns:repeat(2,minmax(0,1fr));}.av-ficha-btn-av{width:100%;}}
+  @media (max-width:640px){.av-areas{grid-template-columns:1fr;}.av-area{min-height:88px;padding:16px;}.av-area-icone{width:46px;height:46px;font-size:24px;}}
+  /* linha do tempo */
+  .av-tl-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
+  .av-tl-filtros select,.av-tl-filtros input{width:auto;max-width:100%;}
+  .av-tl-resumo{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;margin-bottom:12px;color:var(--texto-fraco);}
+  .av-tl-resumo .pos{color:#167F3D;}.av-tl-resumo .neg{color:#B91C1C;}.av-tl-resumo .oc{color:#9A4B00;}
+  .av-tl-lista,.av-tl-lista ol{list-style:none;margin:0;padding:0;}
+  .av-tl-mes-tit{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--texto-fraco);margin:14px 0 6px;}
+  .av-tl-item{position:relative;padding-left:18px;border-left:2px solid var(--borda);margin-left:22px;}
+  .av-tl-item::before{content:'';position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9CA3AF;border:2px solid var(--card);}
+  .av-tl-item.sp::before{background:#16A34A;}.av-tl-item.sn::before{background:#DC2626;}.av-tl-item.sf::before,.av-tl-item.sa::before{background:#D97706;}
+  .av-tl-btn{display:flex;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;margin:6px 0;cursor:pointer;}
+  .av-tl-btn:hover{border-color:var(--primaria, #E8770F);}
+  .av-tl-data{display:flex;flex-direction:column;align-items:center;min-width:34px;}
+  .av-tl-data b{font-size:18px;line-height:1;}.av-tl-data small{font-size:11px;color:var(--texto-fraco);}
+  .av-tl-corpo{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;}
+  .av-tl-topo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .av-tl-area{font-size:12px;color:var(--texto-fraco);}
+  .av-tl-anexo{font-size:12px;}
+  .av-tl-desc{font-size:13.5px;overflow-wrap:anywhere;}
+  .av-tl-por{font-size:12px;color:var(--texto-fraco);}
+  .av-tl-mais{margin-top:10px;}
+  /* anexos */
+  .av-anexos{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;}
+  .av-anexo-botao{cursor:pointer;}
+  .av-anexo-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;border:1px solid var(--borda);background:var(--fundo-suave, rgba(0,0,0,.03));font-size:12.5px;max-width:100%;overflow-wrap:anywhere;}
+  button.av-anexo-abrir{cursor:pointer;font:inherit;font-size:12.5px;color:inherit;min-height:32px;}
+  /* metas */
+  .av-progresso{display:flex;align-items:center;gap:8px;width:100%;}
+  .av-progresso-trilho{flex:1;height:8px;border-radius:6px;background:#EEEAE7;overflow:hidden;}
+  .av-progresso-trilho span{display:block;height:100%;background:#D97706;border-radius:6px;}
+  .av-progresso b{font-size:12.5px;min-width:38px;text-align:right;}
+  .av-progresso-linha{display:flex;align-items:center;gap:10px;min-height:38px;}
+  .av-progresso-linha input[type=range]{flex:1;}
+  .av-metas-filtros{justify-content:space-between;}
+  .av-metas-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+  .av-meta-card{border:1px solid var(--borda);border-radius:14px;background:var(--card);overflow:hidden;}
+  .av-meta-card.atrasada{border-color:#FCA5A5;}
+  .av-meta-btn{display:flex;flex-direction:column;gap:8px;width:100%;padding:14px;font:inherit;color:inherit;text-align:left;background:none;border:0;cursor:pointer;}
+  .av-meta-topo{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+  .av-meta-topo strong{overflow-wrap:anywhere;}
+  .av-meta-sit{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:8px;background:#F3F4F6;white-space:nowrap;}
+  .av-meta-sit.s-concluida{background:#DCFCE7;color:#166534;}.av-meta-sit.s-em-andamento{background:#FEF3C7;color:#92400E;}.av-meta-sit.s-atrasada{background:#FEE2E2;color:#991B1B;}
+  .av-meta-desc{font-size:13px;color:var(--texto-fraco);overflow-wrap:anywhere;}
+  .av-meta-info{font-size:12px;color:var(--texto-fraco);}
+  .av-meta-detalhe{padding:0 14px 14px;font-size:13px;}
+  .av-acoes-meta{list-style:none;margin:6px 0;padding:0;display:flex;flex-direction:column;gap:4px;}
+  .av-acoes-meta li{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .av-acoes-meta .feita{text-decoration:line-through;color:var(--texto-fraco);}
+  /* formação */
+  .fp-sit{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:7px;margin-left:6px;vertical-align:middle;background:#DCFCE7;color:#166534;}
+  .fp-sit.s-em_andamento{background:#FEF3C7;color:#92400E;}.fp-sit.s-interrompido{background:#F3F4F6;color:#4B5563;}
+  /* relatórios */
+  .rl-abas{margin-bottom:12px;}
+  .rl-config{display:flex;flex-direction:column;gap:14px;}
+  .rl-passo{border:1px solid var(--borda);border-radius:14px;background:var(--card);padding:14px;}
+  .rl-passo-tit{font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .rl-passo-tit span{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#0F2A47;color:#fff;font-size:12.5px;}
+  .rl-periodo-campos{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center;}
+  .rl-periodo-campos select,.rl-periodo-campos input{width:auto;}
+  .rl-periodo-rotulo{margin-top:8px;font-size:13px;color:var(--texto-fraco);}
+  .rl-modelos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .rl-modelo{display:flex;flex-direction:column;gap:4px;text-align:left;padding:12px;border-radius:12px;border:2px solid var(--borda);background:var(--card);font:inherit;color:inherit;cursor:pointer;}
+  .rl-modelo span{font-size:12.5px;color:var(--texto-fraco);}
+  .rl-modelo.ativo{border-color:#E8770F;background:#FFF7ED;}
+  .rl-secoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px 14px;}
+  .rl-previa-cab{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:12px;border-radius:12px;background:var(--fundo-suave, rgba(0,0,0,.03));}
+  .rl-previa-acoes{display:flex;gap:8px;flex-wrap:wrap;}
+  .rl-grafico{display:flex;flex-direction:column;gap:6px;margin:8px 0;}
+  .rl-barra{display:grid;grid-template-columns:minmax(90px,30%) 1fr 54px;gap:8px;align-items:center;font-size:12.5px;}
+  .rl-barra>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rl-trilho{height:10px;border-radius:6px;background:#EEEAE7;overflow:hidden;}
+  .rl-trilho span{display:block;height:100%;background:#0F2A47;}
+  .rl-trilho.atrasada span{background:#DC2626;}
+  .rl-barra b{text-align:right;}
+  .rl-sem-dados{margin-top:12px;font-size:12.5px;font-style:italic;color:var(--texto-fraco);}
+  @media (max-width:640px){.rl-modelos{grid-template-columns:1fr;}.rl-previa-acoes{width:100%;}.rl-previa-acoes .btn{flex:1;}.av-ficha-dados{gap:8px;}.av-ficha-dado>strong{font-size:15px;}}
   .perm-matriz{display:flex;flex-direction:column;gap:14px;}
   .perm-intro{font-size:12.5px;color:var(--texto-fraco);margin:0;}
   .perm-grupo{border:1px solid var(--borda);border-radius:10px;overflow:hidden;}
@@ -6160,6 +6255,13 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -6196,6 +6298,20 @@ const AV_TIPOS_PADRAO = [{
 }, {
   id: 'ocorrencia',
   nome: 'Ocorrência relevante',
+  sentido: '0'
+},
+// acrescentados na reorganização (os 7 acima não mudam)
+{
+  id: 'reconhecimento',
+  nome: 'Reconhecimento',
+  sentido: '+'
+}, {
+  id: 'observacao',
+  nome: 'Observação do dia a dia',
+  sentido: '0'
+}, {
+  id: 'orientacao',
+  nome: 'Orientação e acompanhamento',
   sentido: '0'
 }];
 const AV_CRITERIOS_PADRAO = [{
@@ -6327,11 +6443,13 @@ function avPodeAvaliar(usuario, alvo) {
 function avFuncionariosAvaliaveis(usuario, funcionarios) {
   return (funcionarios || []).filter(f => f.id !== usuario.id && !motivoSemAcesso(f) && avPodeAvaliar(usuario, f)).sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
 }
+const AV_TIPOS_NOVOS = AV_TIPOS_PADRAO.filter(t => ['reconhecimento', 'observacao', 'orientacao'].includes(t.id));
 function avConfigCompleta(c) {
   c = c || {};
   return {
     categorias: c.categorias && c.categorias.length ? c.categorias : AV_CATEGORIAS_PADRAO,
-    tipos: c.tipos && c.tipos.length ? c.tipos : AV_TIPOS_PADRAO,
+    // tipos salvos são mantidos como estão; só se acrescentam os tipos novos do padrão que ainda não existem
+    tipos: c.tipos && c.tipos.length ? [...c.tipos, ...AV_TIPOS_NOVOS.filter(t => !c.tipos.some(x => x.id === t.id))] : AV_TIPOS_PADRAO,
     criterios: c.criterios && c.criterios.length ? c.criterios : AV_CRITERIOS_PADRAO,
     registrosVisiveisFuncionario: !!c.registrosVisiveisFuncionario,
     lembretesAtivos: c.lembretesAtivos !== false
@@ -6737,6 +6855,103 @@ function AvModalOcorrencia({
   }, "Fechar"))));
 }
 
+// ---- anexos dos registros (foto ou PDF): guardados como os certificados (em partes, fora do registro);
+// só o próprio colaborador e a gestão conseguem abrir (mesmas regras do banco dos certificados).
+const AV_MAX_ANEXOS = 3;
+function avGravarAnexo(lote, arq, funcionarioId, registroId, usuario) {
+  const ref = db.collection('certificados').doc();
+  const partes = [];
+  for (let i = 0; i < arq.base64.length; i += FP_PARTE) partes.push(arq.base64.slice(i, i + FP_PARTE));
+  partes.forEach((dados, n) => lote.set(db.collection('certificadosPartes').doc(`${ref.id}_${n}`), {
+    funcionarioId,
+    certificadoId: ref.id,
+    n,
+    dados
+  }));
+  const info = {
+    id: ref.id,
+    nome: arq.nome,
+    tipo: arq.tipo,
+    tamanho: arq.tamanho,
+    partes: partes.length,
+    enviadoEm: new Date().toISOString(),
+    enviadoPorNome: usuario.nome || '-'
+  };
+  lote.set(ref, {
+    ...info,
+    funcionarioId,
+    cursoId: '',
+    registroId,
+    origem: 'registro',
+    enviadoPorId: usuario.id,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  return info;
+}
+async function avAbrirAnexo(a) {
+  const blob = await fpBaixarArquivo(a);
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
+  if (!w) {
+    const l = document.createElement('a');
+    l.href = url;
+    l.download = a.nome || 'anexo';
+    document.body.appendChild(l);
+    l.click();
+    l.remove();
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+function AvEscolherAnexos({
+  arquivos,
+  setArquivos,
+  jaTem = 0,
+  setErro
+}) {
+  const [lendo, setLendo] = useState(false);
+  async function escolher(e) {
+    const files = [...(e.target.files || [])];
+    e.target.value = '';
+    if (!files.length) return;
+    if (jaTem + arquivos.length + files.length > AV_MAX_ANEXOS) {
+      setErro(`No máximo ${AV_MAX_ANEXOS} anexos por registro.`);
+      return;
+    }
+    setLendo(true);
+    try {
+      const prontos = [];
+      for (const f of files) prontos.push(await fpPrepararArquivo(f));
+      setArquivos(x => [...x, ...prontos]);
+      setErro('');
+    } catch (err) {
+      setErro(err.message || 'Não consegui ler o arquivo.');
+    }
+    setLendo(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-anexos"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "btn secundario pequeno av-anexo-botao"
+  }, lendo ? 'Preparando…' : '📎 Anexar foto ou PDF', /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "application/pdf,image/jpeg,image/png",
+    multiple: true,
+    onChange: escolher,
+    disabled: lendo,
+    hidden: true
+  })), arquivos.map((a, i) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    className: "av-anexo-chip"
+  }, a.tipo === 'application/pdf' ? '📄' : '🖼', " ", a.nome, " ", /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-x",
+    "aria-label": `Tirar ${a.nome}`,
+    onClick: () => setArquivos(x => x.filter((_, j) => j !== i))
+  }, "\xD7"))), /*#__PURE__*/React.createElement("span", {
+    className: "av-dica"
+  }, "At\xE9 ", AV_MAX_ANEXOS, " arquivos (PDF, JPG ou PNG, 4 MB cada). S\xF3 o colaborador e a gest\xE3o abrem."));
+}
+
 // ---- registro diário (digitado ou por voz). Nada é salvo sem a pessoa conferir e clicar em Salvar.
 function AvFormRegistro({
   usuario,
@@ -6768,6 +6983,7 @@ function AvFormRegistro({
   const [divergencia, setDivergencia] = useState(null); // { ids: [...] }
   const [pedindoCancelar, setPedindoCancelar] = useState(false);
   const [sugeridos, setSugeridos] = useState({});
+  const [arquivos, setArquivos] = useState([]);
   const campo = (k, v) => setF(x => ({
     ...x,
     [k]: v
@@ -6871,7 +7087,10 @@ function AvFormRegistro({
     setErro('');
     try {
       const tipo = avTipo(config, f.tipoId);
-      await db.collection('avaliacaoRegistros').add({
+      const ref = db.collection('avaliacaoRegistros').doc();
+      const lote = db.batch();
+      const anexos = arquivos.map(a => avGravarAnexo(lote, a, f.funcionarioId, ref.id, usuario));
+      lote.set(ref, {
         funcionarioId: f.funcionarioId,
         funcionarioNome: alvo ? alvo.nome : '',
         dataOcorrido: f.dataOcorrido,
@@ -6891,8 +7110,12 @@ function AvFormRegistro({
         registradoEm: firebase.firestore.FieldValue.serverTimestamp(),
         registradoPorId: usuario.id,
         registradoPorNome: usuario.nome || '-',
-        historicoAlteracoes: []
+        historicoAlteracoes: [],
+        ...(anexos.length ? {
+          anexos
+        } : {})
       });
+      await lote.commit();
       setEtapa('salvo'); // só depois que o banco confirmou
     } catch (err) {
       console.error(err);
@@ -6917,6 +7140,7 @@ function AvFormRegistro({
     setOrigem('texto');
     setSugeridos({});
     setDivergencia(null);
+    setArquivos([]);
     setEtapa('editar');
   }
   const nomeDe = id => (funcionarios.find(x => x.id === id) || {}).nome || '-';
@@ -6951,7 +7175,7 @@ function AvFormRegistro({
     className: "av-previa-aviso"
   }, "Confira antes de salvar. O registro s\xF3 \xE9 gravado quando voc\xEA clicar em ", /*#__PURE__*/React.createElement("strong", null, "Salvar registro"), "."), /*#__PURE__*/React.createElement("dl", {
     className: "av-previa"
-  }, /*#__PURE__*/React.createElement("dt", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("dd", null, nomeDe(f.funcionarioId)), /*#__PURE__*/React.createElement("dt", null, "Data do ocorrido"), /*#__PURE__*/React.createElement("dd", null, formatarDataBr(f.dataOcorrido), f.horaOcorrido ? ` às ${f.horaOcorrido}` : ''), /*#__PURE__*/React.createElement("dt", null, "Categoria"), /*#__PURE__*/React.createElement("dd", null, f.categoria), /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, avTipo(config, f.tipoId).nome), /*#__PURE__*/React.createElement("dt", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, f.descricao), f.impacto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Impacto"), /*#__PURE__*/React.createElement("dd", null, f.impacto)), f.comentarios && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Coment\xE1rios"), /*#__PURE__*/React.createElement("dd", null, f.comentarios)), f.metaId && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Meta vinculada"), /*#__PURE__*/React.createElement("dd", null, (metasDoFuncionario.find(m => m.id === f.metaId) || {}).descricao || '-')), f.avaliacaoRelacionadaId && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Avalia\xE7\xE3o vinculada"), /*#__PURE__*/React.createElement("dd", null, avRotuloTri((avaliacoesDoFuncionario.find(a => a.id === f.avaliacaoRelacionadaId) || {}).trimestre))), /*#__PURE__*/React.createElement("dt", null, "Origem"), /*#__PURE__*/React.createElement("dd", null, origem === 'voz' ? 'Comando de voz (texto conferido)' : 'Digitado'), /*#__PURE__*/React.createElement("dt", null, "Respons\xE1vel"), /*#__PURE__*/React.createElement("dd", null, usuario.nome)), erro && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("dt", null, "Funcion\xE1rio"), /*#__PURE__*/React.createElement("dd", null, nomeDe(f.funcionarioId)), /*#__PURE__*/React.createElement("dt", null, "Data do ocorrido"), /*#__PURE__*/React.createElement("dd", null, formatarDataBr(f.dataOcorrido), f.horaOcorrido ? ` às ${f.horaOcorrido}` : ''), /*#__PURE__*/React.createElement("dt", null, "Categoria"), /*#__PURE__*/React.createElement("dd", null, f.categoria), /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, avTipo(config, f.tipoId).nome), /*#__PURE__*/React.createElement("dt", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, f.descricao), f.impacto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Impacto"), /*#__PURE__*/React.createElement("dd", null, f.impacto)), f.comentarios && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Coment\xE1rios"), /*#__PURE__*/React.createElement("dd", null, f.comentarios)), f.metaId && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Meta vinculada"), /*#__PURE__*/React.createElement("dd", null, (metasDoFuncionario.find(m => m.id === f.metaId) || {}).descricao || '-')), f.avaliacaoRelacionadaId && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Avalia\xE7\xE3o vinculada"), /*#__PURE__*/React.createElement("dd", null, avRotuloTri((avaliacoesDoFuncionario.find(a => a.id === f.avaliacaoRelacionadaId) || {}).trimestre))), arquivos.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Anexos"), /*#__PURE__*/React.createElement("dd", null, arquivos.map(a => a.nome).join(', '))), /*#__PURE__*/React.createElement("dt", null, "Origem"), /*#__PURE__*/React.createElement("dd", null, origem === 'voz' ? 'Comando de voz (texto conferido)' : 'Digitado'), /*#__PURE__*/React.createElement("dt", null, "Respons\xE1vel"), /*#__PURE__*/React.createElement("dd", null, usuario.nome)), erro && /*#__PURE__*/React.createElement("div", {
     className: "av-erro",
     role: "alert"
   }, erro), /*#__PURE__*/React.createElement("div", {
@@ -7128,7 +7352,11 @@ function AvFormRegistro({
   }, "Nenhuma"), avaliacoesDoFuncionario.map(a => /*#__PURE__*/React.createElement("option", {
     key: a.id,
     value: a.id
-  }, avRotuloTri(a.trimestre)))))), Object.keys(sugeridos).length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, avRotuloTri(a.trimestre)))))), /*#__PURE__*/React.createElement(AvEscolherAnexos, {
+    arquivos: arquivos,
+    setArquivos: setArquivos,
+    setErro: setErro
+  }), Object.keys(sugeridos).length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "av-dica"
   }, "Os campos marcados como \u201Csugerido\u201D foram preenchidos a partir da fala, sem acrescentar nada que n\xE3o foi dito. Confira e corrija se precisar."), erro && /*#__PURE__*/React.createElement("div", {
     className: "av-erro",
@@ -7171,6 +7399,8 @@ function AvModalRegistro({
   const [removendo, setRemovendo] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
+  const [novosAnexos, setNovosAnexos] = useState([]);
+  const [abrindo, setAbrindo] = useState('');
   const alvo = funcionarios.find(x => x.id === registro.funcionarioId);
   const podeEditar = avPodeAvaliar(usuario, alvo || {
     perfil: 'funcionario'
@@ -7182,8 +7412,19 @@ function AvModalRegistro({
     tipoId: 'Tipo',
     descricao: 'Descrição',
     impacto: 'Impacto',
-    comentarios: 'Comentários'
+    comentarios: 'Comentários',
+    anexos: 'Anexos'
   };
+  async function abrir(a) {
+    setAbrindo(a.id);
+    try {
+      await avAbrirAnexo(a);
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui abrir o anexo.');
+    }
+    setAbrindo('');
+  }
   async function salvarCorrecao() {
     const campos = {};
     Object.keys(f).forEach(k => {
@@ -7192,6 +7433,10 @@ function AvModalRegistro({
         para: f[k] || ''
       };
     });
+    if (novosAnexos.length) campos.anexos = {
+      de: `${(registro.anexos || []).length} anexo(s)`,
+      para: `${(registro.anexos || []).length + novosAnexos.length} anexo(s): + ${novosAnexos.map(a => a.nome).join(', ')}`
+    };
     if (!Object.keys(campos).length) {
       setEditando(false);
       return;
@@ -7204,12 +7449,17 @@ function AvModalRegistro({
     setErro('');
     try {
       const tipo = avTipo(config, f.tipoId);
-      await db.collection('avaliacaoRegistros').doc(registro.id).update({
+      const lote = db.batch();
+      const anexos = novosAnexos.map(a => avGravarAnexo(lote, a, registro.funcionarioId, registro.id, usuario));
+      lote.update(db.collection('avaliacaoRegistros').doc(registro.id), {
         ...f,
         descricao: f.descricao.trim(),
         trimestre: avTrimestreDe(f.dataOcorrido),
         tipoNome: tipo.nome,
         sentido: tipo.sentido,
+        ...(anexos.length ? {
+          anexos: [...(registro.anexos || []), ...anexos]
+        } : {}),
         historicoAlteracoes: [...(registro.historicoAlteracoes || []), {
           em: new Date().toISOString(),
           porId: usuario.id,
@@ -7219,8 +7469,10 @@ function AvModalRegistro({
           justificativa: justificativa.trim()
         }]
       });
+      await lote.commit();
       setEditando(false);
       setJustificativa('');
+      setNovosAnexos([]);
     } catch (err) {
       console.error(err);
       setErro('Não consegui salvar a correção. Nada foi alterado.');
@@ -7273,7 +7525,15 @@ function AvModalRegistro({
     className: "av-previa"
   }, /*#__PURE__*/React.createElement("dt", null, "Data do ocorrido"), /*#__PURE__*/React.createElement("dd", null, avDataHora(registro)), /*#__PURE__*/React.createElement("dt", null, "Categoria"), /*#__PURE__*/React.createElement("dd", null, registro.categoria), /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, /*#__PURE__*/React.createElement("span", {
     className: `av-chip-tipo s${t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : 'z'}`
-  }, registro.tipoNome || t.nome)), /*#__PURE__*/React.createElement("dt", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, registro.descricao), registro.impacto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Impacto"), /*#__PURE__*/React.createElement("dd", null, registro.impacto)), registro.comentarios && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Coment\xE1rios"), /*#__PURE__*/React.createElement("dd", null, registro.comentarios)), /*#__PURE__*/React.createElement("dt", null, "Registrado por"), /*#__PURE__*/React.createElement("dd", null, registro.registradoPorNome, " em ", formatDataHora(registro.registradoEm), " (", registro.origem === 'voz' ? 'por voz' : 'digitado', ")")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, registro.tipoNome || t.nome)), /*#__PURE__*/React.createElement("dt", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, registro.descricao), registro.impacto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Impacto"), /*#__PURE__*/React.createElement("dd", null, registro.impacto)), registro.comentarios && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Coment\xE1rios"), /*#__PURE__*/React.createElement("dd", null, registro.comentarios)), (registro.anexos || []).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Anexos"), /*#__PURE__*/React.createElement("dd", {
+    className: "av-anexos"
+  }, registro.anexos.map(a => /*#__PURE__*/React.createElement("button", {
+    key: a.id,
+    type: "button",
+    className: "av-anexo-chip av-anexo-abrir",
+    onClick: () => abrir(a),
+    disabled: abrindo === a.id
+  }, a.tipo === 'application/pdf' ? '📄' : '🖼', " ", abrindo === a.id ? 'Abrindo…' : a.nome)))), /*#__PURE__*/React.createElement("dt", null, "Registrado por"), /*#__PURE__*/React.createElement("dd", null, registro.registradoPorNome, " em ", formatDataHora(registro.registradoEm), " (", registro.origem === 'voz' ? 'por voz' : 'digitado', ")")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "grid2"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data"), /*#__PURE__*/React.createElement("input", {
     type: "date",
@@ -7331,6 +7591,11 @@ function AvModalRegistro({
       ...f,
       comentarios: e.target.value
     })
+  }), /*#__PURE__*/React.createElement(AvEscolherAnexos, {
+    arquivos: novosAnexos,
+    setArquivos: setNovosAnexos,
+    jaTem: (registro.anexos || []).length,
+    setErro: setErro
   }), /*#__PURE__*/React.createElement("label", null, "Motivo da corre\xE7\xE3o (opcional)"), /*#__PURE__*/React.createElement("input", {
     value: justificativa,
     onChange: e => setJustificativa(e.target.value)
@@ -7562,6 +7827,220 @@ function AvHistorico({
       className: "av-selo-comissao"
     }, "Comiss\xE3o") : ''));
   })))), registroAberto && (registroAberto._oc ? /*#__PURE__*/React.createElement(AvModalOcorrencia, {
+    o: registroAberto._oc,
+    nomeFuncionario: nomeDe(registroAberto.funcionarioId),
+    aoFechar: () => setAberto(null)
+  }) : /*#__PURE__*/React.createElement(AvModalRegistro, {
+    registro: registroAberto,
+    usuario: usuario,
+    funcionarios: funcionarios,
+    config: config,
+    aoFechar: () => setAberto(null)
+  })));
+}
+
+// ---- linha do tempo de UM colaborador (ficha): registros + faltas/atrasos da Comissão (só leitura, sem cópia)
+const AV_PERIODOS_TL = [['30d', 'Últimos 30 dias'], ['tri', 'Este trimestre'], ['6m', 'Últimos 6 meses'], ['12m', 'Últimos 12 meses'], ['tudo', 'Tudo'], ['datas', 'Escolher datas']];
+function avIntervaloTL(p, de, ate) {
+  const hoje = avHoje();
+  const menos = dias => {
+    const d = new Date(hoje + 'T12:00:00');
+    d.setDate(d.getDate() - dias);
+    return d.toLocaleDateString('sv-SE');
+  };
+  if (p === '30d') return {
+    de: menos(30),
+    ate: hoje
+  };
+  if (p === 'tri') {
+    const l = avLimites(avTrimestreDe(hoje));
+    return {
+      de: l.inicio,
+      ate: l.fim
+    };
+  }
+  if (p === '6m') return {
+    de: menos(183),
+    ate: hoje
+  };
+  if (p === '12m') return {
+    de: menos(365),
+    ate: hoje
+  };
+  if (p === 'datas') return {
+    de: de || '',
+    ate: ate || ''
+  };
+  return {
+    de: '',
+    ate: ''
+  };
+}
+function avItensComissao(ocorrencias, fid) {
+  return (ocorrencias || []).filter(o => o.funcionarioId === fid).map(o => ({
+    id: 'oc:' + o.chave,
+    _oc: o,
+    funcionarioId: o.funcionarioId,
+    dataOcorrido: o.data,
+    horaOcorrido: o.tipo === 'atraso' ? o.chegada : '',
+    categoria: 'Pontualidade e assiduidade',
+    tipoId: '__comissao_' + o.tipo,
+    tipoNome: o.tipo === 'falta' ? 'Falta' : 'Atraso',
+    sentido: '0',
+    descricao: avTextoOcorrencia(o) + (o.obs ? ` · ${o.obs}` : ''),
+    registradoPorId: 'comissao:' + (o.por || '-'),
+    registradoPorNome: o.por || '-',
+    status: o.removido ? 'removido' : 'ativo'
+  }));
+}
+function AvLinhaDoTempo({
+  usuario,
+  funcionarios,
+  config,
+  registros,
+  fid,
+  somenteLeitura,
+  comComissao = true
+}) {
+  const [periodo, setPeriodo] = useState('12m');
+  const [de, setDe] = useState(''),
+    [ate, setAte] = useState('');
+  const [tipoId, setTipoId] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [removidos, setRemovidos] = useState(false);
+  const [aberto, setAberto] = useState(null);
+  const [limite, setLimite] = useState(60);
+  const ocorrencias = useAvOcorrencias();
+  const intervalo = avIntervaloTL(periodo, de, ate);
+  const todos = [...registros.filter(r => r.funcionarioId === fid), ...(comComissao ? avItensComissao(ocorrencias, fid) : [])];
+  const lista = todos.filter(r => (removidos || r.status !== 'removido') && (!intervalo.de || r.dataOcorrido >= intervalo.de) && (!intervalo.ate || r.dataOcorrido <= intervalo.ate) && (!tipoId || (tipoId === '__comissao' ? !!r._oc : r.tipoId === tipoId)) && (!categoria || r.categoria === categoria)).sort((a, b) => (b.dataOcorrido + (b.horaOcorrido || '')).localeCompare(a.dataOcorrido + (a.horaOcorrido || '')));
+  const visiveis = lista.slice(0, limite);
+  const meses = [];
+  visiveis.forEach(r => {
+    const m = (r.dataOcorrido || '').slice(0, 7);
+    const g = meses[meses.length - 1];
+    if (g && g.mes === m) g.itens.push(r);else meses.push({
+      mes: m,
+      itens: [r]
+    });
+  });
+  const nomeMes = m => {
+    if (!m) return 'Sem data';
+    const [a, x] = m.split('-').map(Number);
+    return `${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][x - 1]} de ${a}`;
+  };
+  const contagem = {
+    pos: lista.filter(r => !r._oc && avTipo(config, r.tipoId).sentido === '+').length,
+    neg: lista.filter(r => !r._oc && avTipo(config, r.tipoId).sentido === '-').length,
+    oc: lista.filter(r => r._oc).length
+  };
+  const nomeDe = id => (funcionarios.find(x => x.id === id) || {}).nome || '-';
+  const registroAberto = aberto ? todos.find(r => r.id === aberto) : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-tl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-tl-filtros"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: periodo,
+    onChange: e => {
+      setPeriodo(e.target.value);
+      setLimite(60);
+    },
+    "aria-label": "Per\xEDodo"
+  }, AV_PERIODOS_TL.map(([k, n]) => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k
+  }, n))), periodo === 'datas' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: de,
+    onChange: e => setDe(e.target.value),
+    "aria-label": "De"
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: ate,
+    onChange: e => setAte(e.target.value),
+    "aria-label": "At\xE9"
+  })), /*#__PURE__*/React.createElement("select", {
+    value: tipoId,
+    onChange: e => setTipoId(e.target.value),
+    "aria-label": "Categoria do registro"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todas as categorias"), config.tipos.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t.id,
+    value: t.id
+  }, t.nome)), comComissao && /*#__PURE__*/React.createElement("option", {
+    value: "__comissao"
+  }, "Faltas e atrasos (Comiss\xE3o)")), /*#__PURE__*/React.createElement("select", {
+    value: categoria,
+    onChange: e => setCategoria(e.target.value),
+    "aria-label": "\xC1rea"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todas as \xE1reas"), config.categorias.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c))), !somenteLeitura && /*#__PURE__*/React.createElement("label", {
+    className: "av-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: removidos,
+    onChange: e => setRemovidos(e.target.checked)
+  }), " Mostrar removidos")), /*#__PURE__*/React.createElement("div", {
+    className: "av-tl-resumo",
+    role: "status"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, lista.length), " no per\xEDodo"), /*#__PURE__*/React.createElement("span", {
+    className: "pos"
+  }, "\u2191 ", contagem.pos, " positivos"), /*#__PURE__*/React.createElement("span", {
+    className: "neg"
+  }, "\u2212 ", contagem.neg, " de melhoria"), comComissao && /*#__PURE__*/React.createElement("span", {
+    className: "oc"
+  }, "\u23F1 ", contagem.oc, " faltas/atrasos")), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Nenhum registro nesse per\xEDodo.") : /*#__PURE__*/React.createElement("ol", {
+    className: "av-tl-lista"
+  }, meses.map(g => /*#__PURE__*/React.createElement("li", {
+    key: g.mes,
+    className: "av-tl-mes"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-tl-mes-tit"
+  }, nomeMes(g.mes)), /*#__PURE__*/React.createElement("ol", null, g.itens.map(r => {
+    const t = r._oc ? {
+      sentido: r._oc.tipo === 'falta' ? 'f' : 'a'
+    } : avTipo(config, r.tipoId);
+    const cls = t.sentido === '+' ? 'p' : t.sentido === '-' ? 'n' : t.sentido === 'f' || t.sentido === 'a' ? t.sentido : 'z';
+    return /*#__PURE__*/React.createElement("li", {
+      key: r.id,
+      className: `av-tl-item s${cls} ${r.status === 'removido' ? 'av-removido' : ''}`
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "av-tl-btn",
+      onClick: () => setAberto(r.id)
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "av-tl-data"
+    }, /*#__PURE__*/React.createElement("b", null, (r.dataOcorrido || '').slice(8, 10)), /*#__PURE__*/React.createElement("small", null, r.horaOcorrido || '')), /*#__PURE__*/React.createElement("span", {
+      className: "av-tl-corpo"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "av-tl-topo"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `av-chip-tipo s${cls}`
+    }, r.tipoNome || t.nome), /*#__PURE__*/React.createElement("span", {
+      className: "av-tl-area"
+    }, r.categoria), r._oc && /*#__PURE__*/React.createElement("span", {
+      className: "av-selo-comissao"
+    }, "Comiss\xE3o"), (r.anexos || []).length > 0 && /*#__PURE__*/React.createElement("span", {
+      className: "av-tl-anexo",
+      title: "Tem anexo"
+    }, "\uD83D\uDCCE ", r.anexos.length)), /*#__PURE__*/React.createElement("span", {
+      className: "av-tl-desc"
+    }, r.descricao), /*#__PURE__*/React.createElement("span", {
+      className: "av-tl-por"
+    }, r._oc ? `lançado na Comissão por ${r.registradoPorNome}` : `por ${r.registradoPorNome}`, r.status === 'removido' ? ' · removido' : '', (r.historicoAlteracoes || []).length ? ' · corrigido' : ''))));
+  }))))), lista.length > limite && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario av-tl-mais",
+    onClick: () => setLimite(l => l + 60)
+  }, "Mostrar mais (", lista.length - limite, ")"), registroAberto && (registroAberto._oc ? /*#__PURE__*/React.createElement(AvModalOcorrencia, {
     o: registroAberto._oc,
     nomeFuncionario: nomeDe(registroAberto.funcionarioId),
     aoFechar: () => setAberto(null)
@@ -8649,6 +9128,32 @@ const FP_TIPOS = {
 const FP_MAX_BYTES = 4 * 1024 * 1024; // depois de reduzir as fotos
 const FP_PARTE = 700000; // caracteres de base64 por documento (o Firestore aceita até ~1 MB por documento)
 const FP_SECOES = [['formacao', '1. Formação e qualificação'], ['cursos', '2. Cursos e capacitações'], ['conhecimentos', '3. Conhecimentos identificados'], ['aplicacao', '4. Aplicação nas atividades da empresa'], ['desenvolvimento', '5. Desenvolvimento profissional'], ['sintese', '6. Síntese profissional']];
+
+// tipos de formação (reorganização). Os cursos antigos guardam a "categoria" antiga e são mostrados com o tipo
+// equivalente, sem regravar nada; os novos gravam o tipo (e a mesma descrição em "categoria", que as telas e
+// PDFs antigos mostram).
+const FP_TIPOS_FORMACAO = ['Faculdade e graduação', 'Pós-graduação e especialização', 'Curso técnico', 'Cursos livres', 'Treinamentos internos', 'Treinamentos externos', 'Certificações', 'Palestras e workshops', 'Outras qualificações'];
+const FP_TIPO_DA_CATEGORIA = {
+  'Formação acadêmica': 'Faculdade e graduação',
+  'Especialização': 'Pós-graduação e especialização',
+  'Curso técnico': 'Curso técnico',
+  'Curso livre': 'Cursos livres',
+  'Treinamento': 'Treinamentos internos',
+  'Capacitação interna': 'Treinamentos internos',
+  'Capacitação externa': 'Treinamentos externos',
+  'Certificação profissional': 'Certificações',
+  'Outros conhecimentos': 'Outras qualificações'
+};
+const FP_SITUACOES = [['em_andamento', 'Em andamento'], ['concluido', 'Concluído'], ['interrompido', 'Interrompido']];
+function fpTipoDe(c) {
+  return c.tipo || FP_TIPO_DA_CATEGORIA[c.categoria] || (FP_TIPOS_FORMACAO.includes(c.categoria) ? c.categoria : 'Outras qualificações');
+}
+function fpSituacaoDe(c) {
+  return c.situacao || 'concluido';
+} // cursos antigos: só existiam concluídos
+function fpNomeSituacao(c) {
+  return (FP_SITUACOES.find(x => x[0] === fpSituacaoDe(c)) || [])[1] || 'Concluído';
+}
 function fpNorm(t) {
   return avSemAcento(String(t || '')).replace(/[^a-z0-9]+/g, ' ').trim();
 }
@@ -8826,8 +9331,11 @@ function FpModalCurso({
   const [f, setF] = useState(() => ({
     nome: curso?.nome || '',
     instituicao: curso?.instituicao || '',
-    categoria: curso?.categoria || '',
+    tipo: curso ? fpTipoDe(curso) : '',
+    situacao: curso ? fpSituacaoDe(curso) : 'concluido',
+    dataInicio: curso?.dataInicio || '',
     dataConclusao: curso?.dataConclusao || '',
+    dataPrevisao: curso?.dataPrevisao || '',
     cargaHoraria: curso?.cargaHoraria ?? '',
     descricao: curso?.descricao || '',
     observacoes: curso?.observacoes || ''
@@ -8860,11 +9368,16 @@ function FpModalCurso({
   async function salvar(e) {
     e.preventDefault();
     if (salvandoRef.current) return;
+    const concl = f.situacao === 'concluido';
     const dados = {
       nome: f.nome.trim(),
       instituicao: f.instituicao.trim(),
-      categoria: f.categoria,
-      dataConclusao: f.dataConclusao,
+      tipo: f.tipo,
+      categoria: curso && !curso.tipo && FP_TIPO_DA_CATEGORIA[curso.categoria] === f.tipo ? curso.categoria : f.tipo,
+      situacao: f.situacao,
+      dataInicio: f.dataInicio || '',
+      dataConclusao: concl ? f.dataConclusao : '',
+      dataPrevisao: f.situacao === 'em_andamento' ? f.dataPrevisao || '' : '',
       cargaHoraria: f.cargaHoraria === '' ? null : Number(String(f.cargaHoraria).replace(',', '.')),
       descricao: f.descricao.trim(),
       observacoes: f.observacoes.trim()
@@ -8873,8 +9386,12 @@ function FpModalCurso({
       setErro('Informe o nome do curso ou formação.');
       return;
     }
-    if (!dados.categoria) {
-      setErro('Escolha a categoria.');
+    if (!dados.tipo) {
+      setErro('Escolha o tipo de formação.');
+      return;
+    }
+    if (dados.dataInicio && concl && dados.dataConclusao && dados.dataInicio > dados.dataConclusao) {
+      setErro('A data de início é depois da conclusão.');
       return;
     }
     if (dados.cargaHoraria !== null && (!isFinite(dados.cargaHoraria) || dados.cargaHoraria < 0 || dados.cargaHoraria > 20000)) {
@@ -8919,13 +9436,18 @@ function FpModalCurso({
         const ref = db.collection('cursosProfissionais').doc(curso.id);
         const mud = {},
           antes = {};
+        const atualDe = k => k === 'tipo' ? curso.tipo || (FP_TIPO_DA_CATEGORIA[curso.categoria] === dados.tipo ? dados.tipo : curso.tipo || '') : k === 'situacao' ? fpSituacaoDe(curso) : curso[k] ?? (k === 'cargaHoraria' ? null : '');
         Object.keys(dados).forEach(k => {
-          const a = curso[k] ?? (k === 'cargaHoraria' ? null : '');
+          const a = atualDe(k);
           if (a !== dados[k]) {
             mud[k] = dados[k];
-            antes[k] = a;
+            antes[k] = curso[k] ?? null;
           }
         });
+        if (Object.keys(mud).length && !curso.tipo) {
+          mud.tipo = dados.tipo;
+          mud.situacao = dados.situacao;
+        }
         let texto = Object.keys(mud).length ? `editou: ${Object.keys(mud).join(', ')}` : '';
         if (arquivo) {
           mud.certificado = fpGravarCertificado(lote, arquivo, funcionario.id, curso.id, usuario);
@@ -8980,30 +9502,49 @@ function FpModalCurso({
     onChange: e => set('instituicao', e.target.value),
     maxLength: 140,
     "aria-label": "Institui\xE7\xE3o respons\xE1vel"
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Categoria *"), /*#__PURE__*/React.createElement("select", {
-    value: f.categoria,
-    onChange: e => set('categoria', e.target.value),
-    "aria-label": "Categoria"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Tipo de forma\xE7\xE3o *"), /*#__PURE__*/React.createElement("select", {
+    value: f.tipo,
+    onChange: e => set('tipo', e.target.value),
+    "aria-label": "Tipo de forma\xE7\xE3o"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "Escolha\u2026"), FP_CATEGORIAS.map(c => /*#__PURE__*/React.createElement("option", {
+  }, "Escolha\u2026"), FP_TIPOS_FORMACAO.map(c => /*#__PURE__*/React.createElement("option", {
     key: c,
     value: c
   }, c))))), /*#__PURE__*/React.createElement("div", {
     className: "fp-linha"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de conclus\xE3o"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: f.dataConclusao,
-    max: avHoje(),
-    onChange: e => set('dataConclusao', e.target.value),
-    "aria-label": "Data de conclus\xE3o"
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Carga hor\xE1ria (horas)"), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Situa\xE7\xE3o"), /*#__PURE__*/React.createElement("select", {
+    value: f.situacao,
+    onChange: e => set('situacao', e.target.value),
+    "aria-label": "Situa\xE7\xE3o"
+  }, FP_SITUACOES.map(([k, n]) => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k
+  }, n)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Carga hor\xE1ria (horas)"), /*#__PURE__*/React.createElement("input", {
     inputMode: "decimal",
     value: f.cargaHoraria,
     onChange: e => set('cargaHoraria', e.target.value.replace(/[^0-9,.]/g, '')),
     placeholder: "Ex.: 40",
     "aria-label": "Carga hor\xE1ria"
-  }))), /*#__PURE__*/React.createElement("label", null, "Descri\xE7\xE3o ou conte\xFAdo estudado"), /*#__PURE__*/React.createElement("textarea", {
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "fp-linha"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de in\xEDcio"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.dataInicio,
+    onChange: e => set('dataInicio', e.target.value),
+    "aria-label": "Data de in\xEDcio"
+  })), f.situacao === 'concluido' ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Data de conclus\xE3o"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.dataConclusao,
+    max: avHoje(),
+    onChange: e => set('dataConclusao', e.target.value),
+    "aria-label": "Data de conclus\xE3o"
+  })) : f.situacao === 'em_andamento' ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Previs\xE3o de conclus\xE3o"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: f.dataPrevisao,
+    onChange: e => set('dataPrevisao', e.target.value),
+    "aria-label": "Previs\xE3o de conclus\xE3o"
+  })) : /*#__PURE__*/React.createElement("div", null)), /*#__PURE__*/React.createElement("label", null, "Descri\xE7\xE3o ou conte\xFAdo estudado"), /*#__PURE__*/React.createElement("textarea", {
     rows: 3,
     value: f.descricao,
     onChange: e => set('descricao', e.target.value),
@@ -9194,20 +9735,7 @@ function FpResumo({
   // Resumos gravados antes continuam guardados e visíveis aqui, sem nada novo ser gerado.
   return /*#__PURE__*/React.createElement("div", {
     className: "fp-resumo"
-  }, podeRelatorio && /*#__PURE__*/React.createElement("div", {
-    className: "fp-resumo-cab"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo",
-    style: {
-      margin: 0
-    }
-  }, "Relat\xF3rio geral"), /*#__PURE__*/React.createElement("div", {
-    className: "av-dica"
-  }, "Re\xFAne registros di\xE1rios, avalia\xE7\xF5es, notas, metas, cursos e certificados deste colaborador \u2014 s\xF3 o que est\xE1 cadastrado, sem IA.")), /*#__PURE__*/React.createElement(BotaoRelatorioGeral, {
-    funcionario: funcionario,
-    usuario: usuario,
-    className: "btn fp-btn-ia"
-  })), erroDoc && /*#__PURE__*/React.createElement("div", {
+  }, erroDoc && /*#__PURE__*/React.createElement("div", {
     className: "av-erro"
   }, erroDoc), gestao && !consulta && pendente && /*#__PURE__*/React.createElement("div", {
     className: "fp-pendente"
@@ -9252,12 +9780,14 @@ function DesenvolvimentoProfissional({
   const [modal, setModal] = useState(null); // {curso?}
   const [vendo, setVendo] = useState(null);
   const [cat, setCat] = useState('');
+  const [sit, setSit] = useState('');
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
   const [msg, setMsg] = useState('');
   if (!funcionario) return null;
   const pode = !consulta && fpPodeCuidar(usuario, funcionario);
-  const filtrados = cursos.filter(c => (!cat || c.categoria === cat) && (!de || c.dataConclusao && c.dataConclusao >= de) && (!ate || c.dataConclusao && c.dataConclusao <= ate));
+  const dataRef = c => c.dataConclusao || c.dataPrevisao || c.dataInicio || '';
+  const filtrados = cursos.filter(c => (!cat || fpTipoDe(c) === cat) && (!sit || fpSituacaoDe(c) === sit) && (!de || dataRef(c) && dataRef(c) >= de) && (!ate || dataRef(c) && dataRef(c) <= ate));
   const horas = filtrados.reduce((s, c) => s + (Number(c.cargaHoraria) || 0), 0);
   const comCert = filtrados.filter(c => c.certificado).length;
   async function excluir(c) {
@@ -9283,9 +9813,9 @@ function DesenvolvimentoProfissional({
     className: "fp-cab"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "fp-titulo"
-  }, "Desenvolvimento Profissional"), /*#__PURE__*/React.createElement("div", {
+  }, "Forma\xE7\xE3o"), /*#__PURE__*/React.createElement("div", {
     className: "av-dica"
-  }, "Cursos, forma\xE7\xF5es e certifica\xE7\xF5es. Servem de contexto para a avalia\xE7\xE3o \u2014 ", /*#__PURE__*/React.createElement("strong", null, "n\xE3o geram nota"), ".")), pode && /*#__PURE__*/React.createElement("button", {
+  }, "Forma\xE7\xE3o acad\xEAmica, cursos, treinamentos e certifica\xE7\xF5es. Servem de contexto para a avalia\xE7\xE3o \u2014 ", /*#__PURE__*/React.createElement("strong", null, "n\xE3o geram nota"), ".")), pode && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn",
     onClick: () => {
@@ -9297,13 +9827,22 @@ function DesenvolvimentoProfissional({
   }, /*#__PURE__*/React.createElement("select", {
     value: cat,
     onChange: e => setCat(e.target.value),
-    "aria-label": "Filtrar por categoria"
+    "aria-label": "Filtrar por tipo"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "Todas as categorias"), FP_CATEGORIAS.map(c => /*#__PURE__*/React.createElement("option", {
+  }, "Todos os tipos"), FP_TIPOS_FORMACAO.map(c => /*#__PURE__*/React.createElement("option", {
     key: c,
     value: c
-  }, c))), /*#__PURE__*/React.createElement("label", {
+  }, c))), /*#__PURE__*/React.createElement("select", {
+    value: sit,
+    onChange: e => setSit(e.target.value),
+    "aria-label": "Filtrar por situa\xE7\xE3o"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todas as situa\xE7\xF5es"), FP_SITUACOES.map(([k, n]) => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k
+  }, n))), /*#__PURE__*/React.createElement("label", {
     className: "fp-periodo"
   }, "De ", /*#__PURE__*/React.createElement("input", {
     type: "date",
@@ -9317,11 +9856,12 @@ function DesenvolvimentoProfissional({
     value: ate,
     onChange: e => setAte(e.target.value),
     "aria-label": "Conclu\xEDdo at\xE9"
-  })), (cat || de || ate) && /*#__PURE__*/React.createElement("button", {
+  })), (cat || sit || de || ate) && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "av-link",
     onClick: () => {
       setCat('');
+      setSit('');
       setDe('');
       setAte('');
     }
@@ -9343,13 +9883,15 @@ function DesenvolvimentoProfissional({
     className: "fp-item"
   }, /*#__PURE__*/React.createElement("div", {
     className: "fp-item-data"
-  }, c.dataConclusao ? formatarDataBr(c.dataConclusao) : 'Sem data'), /*#__PURE__*/React.createElement("div", {
+  }, c.dataConclusao ? formatarDataBr(c.dataConclusao) : c.dataPrevisao ? /*#__PURE__*/React.createElement(React.Fragment, null, "prev. ", formatarDataBr(c.dataPrevisao)) : c.dataInicio ? /*#__PURE__*/React.createElement(React.Fragment, null, "in\xEDcio ", formatarDataBr(c.dataInicio)) : 'Sem data'), /*#__PURE__*/React.createElement("div", {
     className: "fp-item-corpo"
   }, /*#__PURE__*/React.createElement("div", {
     className: "fp-item-nome"
-  }, c.nome), /*#__PURE__*/React.createElement("div", {
+  }, c.nome), /*#__PURE__*/React.createElement("span", {
+    className: `fp-sit s-${fpSituacaoDe(c)}`
+  }, fpNomeSituacao(c)), /*#__PURE__*/React.createElement("div", {
     className: "fp-item-info"
-  }, [c.instituicao, c.categoria, fpHoras(c.cargaHoraria)].filter(Boolean).join(' · ')), c.descricao && /*#__PURE__*/React.createElement("div", {
+  }, [fpTipoDe(c), c.instituicao, fpHoras(c.cargaHoraria), c.dataInicio && c.dataConclusao ? `${formatarDataBr(c.dataInicio)} a ${formatarDataBr(c.dataConclusao)}` : ''].filter(Boolean).join(' · ')), c.descricao && /*#__PURE__*/React.createElement("div", {
     className: "fp-item-desc"
   }, c.descricao), /*#__PURE__*/React.createElement("div", {
     className: "fp-item-rodape"
@@ -9423,9 +9965,13 @@ function AvModalMeta({
   const nova = !meta;
   const avaliaveis = avFuncionariosAvaliaveis(usuario, funcionarios);
   const [f, setF] = useState(() => meta ? {
+    titulo: '',
+    acoes: [],
+    progresso: null,
     ...meta
   } : {
     funcionarioId: '',
+    titulo: '',
     descricao: '',
     objetivo: '',
     criterioConclusao: '',
@@ -9433,8 +9979,11 @@ function AvModalMeta({
     responsavelNome: usuario.nome || '',
     status: 'Não iniciada',
     visivelFuncionario: true,
+    acoes: [],
+    progresso: 0,
     ...(inicial || {})
   });
+  const [novaAcao, setNovaAcao] = useState('');
   const [comentario, setComentario] = useState('');
   const [justificativa, setJustificativa] = useState('');
   const [salvando, setSalvando] = useState(false);
@@ -9454,8 +10003,8 @@ function AvModalMeta({
       setErro('Escolha o funcionário.');
       return;
     }
-    if (!String(f.descricao || '').trim()) {
-      setErro('Descreva a meta.');
+    if (!String(f.titulo || '').trim() && !String(f.descricao || '').trim()) {
+      setErro('Dê um título à meta.');
       return;
     }
     if (f.status === 'Cancelada' && (!meta || meta.status !== 'Cancelada') && !justificativa.trim()) {
@@ -9469,14 +10018,17 @@ function AvModalMeta({
       const dados = {
         funcionarioId: f.funcionarioId,
         funcionarioNome: alvo ? alvo.nome : '',
-        descricao: f.descricao.trim(),
+        titulo: String(f.titulo || '').trim(),
+        descricao: String(f.descricao || '').trim() || String(f.titulo || '').trim(),
         objetivo: f.objetivo || '',
         criterioConclusao: f.criterioConclusao || '',
         prazo: f.prazo || '',
         responsavelNome: f.responsavelNome || '',
         status: f.status,
         visivelFuncionario: !!f.visivelFuncionario,
-        evidencias: f.evidencias || []
+        evidencias: f.evidencias || [],
+        acoes: (f.acoes || []).filter(a => String(a.texto || '').trim()),
+        progresso: avProgressoMeta(f)
       };
       if (nova) {
         await db.collection('avaliacaoMetas').add({
@@ -9493,9 +10045,13 @@ function AvModalMeta({
       } else {
         const mudou = [];
         if (meta.status !== f.status) mudou.push(`status: ${meta.status} → ${f.status}`);
-        ['descricao', 'objetivo', 'criterioConclusao', 'prazo', 'responsavelNome'].forEach(k => {
-          if (String(meta[k] || '') !== String(dados[k] || '')) mudou.push(k === 'prazo' ? `prazo: ${meta.prazo ? formatarDataBr(meta.prazo) : '-'} → ${dados.prazo ? formatarDataBr(dados.prazo) : '-'}` : `alterou ${k === 'criterioConclusao' ? 'critério de conclusão' : k === 'responsavelNome' ? 'responsável' : k}`);
+        ['titulo', 'descricao', 'objetivo', 'criterioConclusao', 'prazo', 'responsavelNome'].forEach(k => {
+          if (String(meta[k] || '') !== String(dados[k] || '')) mudou.push(k === 'prazo' ? `prazo: ${meta.prazo ? formatarDataBr(meta.prazo) : '-'} → ${dados.prazo ? formatarDataBr(dados.prazo) : '-'}` : `alterou ${k === 'criterioConclusao' ? 'critério de conclusão' : k === 'responsavelNome' ? 'responsável' : k === 'titulo' ? 'título' : k}`);
         });
+        const acoesAntes = (meta.acoes || []).map(a => `${a.texto}|${!!a.feita}`).join(';'),
+          acoesDepois = dados.acoes.map(a => `${a.texto}|${!!a.feita}`).join(';');
+        if (acoesAntes !== acoesDepois) mudou.push(`ações: ${dados.acoes.filter(a => a.feita).length} de ${dados.acoes.length} concluídas`);
+        if ((meta.progresso ?? null) !== dados.progresso) mudou.push(`progresso: ${meta.progresso != null ? meta.progresso + '%' : '—'} → ${dados.progresso}%`);
         if (!!meta.visivelFuncionario !== dados.visivelFuncionario) mudou.push(dados.visivelFuncionario ? 'tornou visível ao funcionário' : 'ocultou do funcionário');
         if ((meta.evidencias || []).join() !== dados.evidencias.join()) mudou.push('atualizou as evidências');
         await db.collection('avaliacaoMetas').doc(meta.id).update({
@@ -9550,19 +10106,23 @@ function AvModalMeta({
   }, "Escolha\u2026"), avaliaveis.map(x => /*#__PURE__*/React.createElement("option", {
     key: x.id,
     value: x.id
-  }, x.nome))), /*#__PURE__*/React.createElement("label", null, "Meta"), /*#__PURE__*/React.createElement("textarea", {
+  }, x.nome))), /*#__PURE__*/React.createElement("label", null, "T\xEDtulo da meta"), /*#__PURE__*/React.createElement("input", {
+    value: f.titulo || '',
+    onChange: e => set('titulo', e.target.value),
+    placeholder: meta && !meta.titulo ? meta.descricao : 'Ex.: Dominar o diagnóstico de placas Genie',
+    maxLength: 120,
+    "aria-label": "T\xEDtulo da meta"
+  }), /*#__PURE__*/React.createElement("label", null, "Descri\xE7\xE3o"), /*#__PURE__*/React.createElement("textarea", {
     rows: 2,
     value: f.descricao,
-    onChange: e => set('descricao', e.target.value)
-  }), /*#__PURE__*/React.createElement("label", null, "Objetivo"), /*#__PURE__*/React.createElement("input", {
+    onChange: e => set('descricao', e.target.value),
+    "aria-label": "Descri\xE7\xE3o da meta"
+  }), /*#__PURE__*/React.createElement("label", null, "Objetivo esperado"), /*#__PURE__*/React.createElement("input", {
     value: f.objetivo,
     onChange: e => set('objetivo', e.target.value)
-  }), /*#__PURE__*/React.createElement("label", null, "Crit\xE9rio de conclus\xE3o (como saber que foi cumprida)"), /*#__PURE__*/React.createElement("input", {
-    value: f.criterioConclusao,
-    onChange: e => set('criterioConclusao', e.target.value)
   }), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Prazo"), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Prazo para conclus\xE3o"), /*#__PURE__*/React.createElement("input", {
     type: "date",
     value: f.prazo,
     onChange: e => set('prazo', e.target.value)
@@ -9571,21 +10131,97 @@ function AvModalMeta({
     onChange: e => set('responsavelNome', e.target.value)
   }))), /*#__PURE__*/React.createElement("div", {
     className: "grid2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Status"), /*#__PURE__*/React.createElement("select", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Situa\xE7\xE3o"), /*#__PURE__*/React.createElement("select", {
     value: f.status,
     onChange: e => set('status', e.target.value)
   }, AV_STATUS_META.map(s => /*#__PURE__*/React.createElement("option", {
     key: s
-  }, s)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "av-check",
-    style: {
-      marginTop: 30
+  }, s))), avMetaAtrasada(f) && /*#__PURE__*/React.createElement("div", {
+    className: "av-atrasada"
+  }, "Prazo vencido: aparece como atrasada.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "Progresso ", (f.acoes || []).length ? '(pelas ações)' : ''), (f.acoes || []).length ? /*#__PURE__*/React.createElement("div", {
+    className: "av-progresso-linha"
+  }, /*#__PURE__*/React.createElement(AvBarraProgresso, {
+    valor: avProgressoMeta(f)
+  })) : /*#__PURE__*/React.createElement("div", {
+    className: "av-progresso-linha"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "0",
+    max: "100",
+    step: "5",
+    value: f.progresso || 0,
+    onChange: e => set('progresso', Number(e.target.value)),
+    "aria-label": "Progresso"
+  }), /*#__PURE__*/React.createElement("b", null, f.progresso || 0, "%")))), /*#__PURE__*/React.createElement("div", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-titulo"
+  }, "A\xE7\xF5es necess\xE1rias"), (f.acoes || []).length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio-pequeno"
+  }, "Nenhuma a\xE7\xE3o. Sem a\xE7\xF5es, o progresso \xE9 informado \xE0 m\xE3o."), /*#__PURE__*/React.createElement("ul", {
+    className: "av-acoes-meta"
+  }, (f.acoes || []).map((a, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "av-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: !!a.feita,
+    onChange: e => set('acoes', f.acoes.map((x, j) => j === i ? {
+      ...x,
+      feita: e.target.checked,
+      feitaEm: e.target.checked ? avHoje() : ''
+    } : x))
+  }), " ", /*#__PURE__*/React.createElement("span", {
+    className: a.feita ? 'feita' : ''
+  }, a.texto)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-x",
+    "aria-label": `Tirar ${a.texto}`,
+    onClick: () => set('acoes', f.acoes.filter((_, j) => j !== i))
+  }, "\xD7")))), /*#__PURE__*/React.createElement("div", {
+    className: "av-linha"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: novaAcao,
+    onChange: e => setNovaAcao(e.target.value),
+    onKeyDown: e => {
+      if (e.key === 'Enter' && novaAcao.trim()) {
+        e.preventDefault();
+        set('acoes', [...(f.acoes || []), {
+          texto: novaAcao.trim(),
+          feita: false
+        }]);
+        setNovaAcao('');
+      }
+    },
+    placeholder: "Nova a\xE7\xE3o (ex.: acompanhar 3 diagn\xF3sticos com o supervisor)",
+    "aria-label": "Nova a\xE7\xE3o"
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => {
+      if (novaAcao.trim()) {
+        set('acoes', [...(f.acoes || []), {
+          texto: novaAcao.trim(),
+          feita: false
+        }]);
+        setNovaAcao('');
+      }
     }
+  }, "Acrescentar"))), /*#__PURE__*/React.createElement("details", {
+    className: "av-secao"
+  }, /*#__PURE__*/React.createElement("summary", {
+    className: "av-secao-titulo"
+  }, "Mais detalhes"), /*#__PURE__*/React.createElement("label", null, "Crit\xE9rio de conclus\xE3o (como saber que foi cumprida)"), /*#__PURE__*/React.createElement("input", {
+    value: f.criterioConclusao,
+    onChange: e => set('criterioConclusao', e.target.value)
+  }), /*#__PURE__*/React.createElement("label", {
+    className: "av-check"
   }, /*#__PURE__*/React.createElement("input", {
     type: "checkbox",
     checked: !!f.visivelFuncionario,
     onChange: e => set('visivelFuncionario', e.target.checked)
-  }), " Vis\xEDvel para o funcion\xE1rio"))), f.status === 'Cancelada' && (!meta || meta.status !== 'Cancelada') && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Justificativa do cancelamento (obrigat\xF3ria)"), /*#__PURE__*/React.createElement("input", {
+  }), " Vis\xEDvel para o funcion\xE1rio")), f.status === 'Cancelada' && (!meta || meta.status !== 'Cancelada') && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Justificativa do cancelamento (obrigat\xF3ria)"), /*#__PURE__*/React.createElement("input", {
     value: justificativa,
     onChange: e => setJustificativa(e.target.value)
   })), meta && meta.justificativaCancelamento && /*#__PURE__*/React.createElement("div", {
@@ -9605,7 +10241,7 @@ function AvModalMeta({
     className: "av-secao"
   }, /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo"
-  }, "Coment\xE1rios de acompanhamento"), (meta.comentarios || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, "Coment\xE1rios e atualiza\xE7\xF5es"), (meta.comentarios || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "av-vazio-pequeno"
   }, "Nenhum coment\xE1rio.") : /*#__PURE__*/React.createElement("ul", {
     className: "av-lista"
@@ -9648,6 +10284,126 @@ function AvModalMeta({
   }, salvando ? 'Salvando…' : 'Salvar meta'))));
 }
 const avMetaAtrasada = m => m.prazo && m.prazo < avHoje() && !['Concluída', 'Cancelada', 'Não concluída', 'Parcialmente concluída'].includes(m.status);
+// progresso: com ações, a fração de ações concluídas; sem ações, o valor informado (meta concluída = 100%)
+function avProgressoMeta(m) {
+  const acoes = (m.acoes || []).filter(a => String(a.texto || '').trim());
+  if (acoes.length) return Math.round(acoes.filter(a => a.feita).length / acoes.length * 100);
+  if (m.status === 'Concluída') return 100;
+  return Math.max(0, Math.min(100, Number(m.progresso) || 0));
+}
+function avTituloMeta(m) {
+  return m.titulo || m.descricao || '-';
+}
+function avSituacaoMeta(m) {
+  return avMetaAtrasada(m) ? 'Atrasada' : m.status;
+}
+function AvBarraProgresso({
+  valor
+}) {
+  const v = Math.max(0, Math.min(100, Number(valor) || 0));
+  return /*#__PURE__*/React.createElement("span", {
+    className: "av-progresso",
+    role: "progressbar",
+    "aria-valuenow": v,
+    "aria-valuemin": 0,
+    "aria-valuemax": 100
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "av-progresso-trilho"
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: `${v}%`
+    }
+  })), /*#__PURE__*/React.createElement("b", null, v, "%"));
+}
+// cartões de metas de UM colaborador (ficha). Funcionário: só leitura, abre os detalhes no próprio cartão.
+function AvMetasCards({
+  usuario,
+  funcionarios,
+  registros,
+  metas,
+  fid,
+  aoNovaMeta,
+  somenteLeitura
+}) {
+  const [filtro, setFiltro] = useState(somenteLeitura ? 'todas' : 'abertas');
+  const [aberta, setAberta] = useState(null);
+  const doF = metas.filter(m => m.funcionarioId === fid);
+  const grupos = {
+    abertas: m => ['Não iniciada', 'Em andamento'].includes(m.status),
+    atrasadas: avMetaAtrasada,
+    concluidas: m => ['Concluída', 'Parcialmente concluída'].includes(m.status),
+    todas: () => true
+  };
+  const lista = doF.filter(grupos[filtro]).sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999'));
+  const conta = k => doF.filter(grupos[k]).length;
+  const metaAberta = !somenteLeitura && aberta ? metas.find(m => m.id === aberta) : null;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "av-filtros av-metas-filtros"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro",
+    role: "group",
+    "aria-label": "Situa\xE7\xE3o das metas"
+  }, [['abertas', 'Em aberto'], ['atrasadas', 'Atrasadas'], ['concluidas', 'Concluídas'], ['todas', 'Todas']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `av-chip ${filtro === k ? 'ativo' : ''}`,
+    onClick: () => setFiltro(k)
+  }, n, " (", conta(k), ")"))), !somenteLeitura && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: () => aoNovaMeta({
+      funcionarioId: fid
+    })
+  }, "+ Nova meta")), lista.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Nenhuma meta ", filtro === 'todas' ? 'cadastrada' : 'nessa situação', ".") : /*#__PURE__*/React.createElement("div", {
+    className: "av-metas-grade"
+  }, lista.map(m => {
+    const sit = avSituacaoMeta(m);
+    const ac = m.acoes || [];
+    const exp = somenteLeitura && aberta === m.id;
+    return /*#__PURE__*/React.createElement("div", {
+      key: m.id,
+      className: `av-meta-card ${sit === 'Atrasada' ? 'atrasada' : ''}`
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "av-meta-btn",
+      onClick: () => setAberta(aberta === m.id ? null : m.id),
+      "aria-expanded": somenteLeitura ? exp : undefined
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "av-meta-topo"
+    }, /*#__PURE__*/React.createElement("strong", null, avTituloMeta(m)), /*#__PURE__*/React.createElement("span", {
+      className: `av-meta-sit s-${avSemAcento(sit).replace(/\s+/g, '-')}`
+    }, sit)), m.titulo && m.descricao && m.descricao !== m.titulo && /*#__PURE__*/React.createElement("span", {
+      className: "av-meta-desc"
+    }, m.descricao), /*#__PURE__*/React.createElement(AvBarraProgresso, {
+      valor: avProgressoMeta(m)
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "av-meta-info"
+    }, m.prazo ? `Prazo ${formatarDataBr(m.prazo)}` : 'Sem prazo', ac.length ? ` · ${ac.filter(a => a.feita).length}/${ac.length} ações` : '', m.responsavelNome ? ` · ${m.responsavelNome}` : '', !somenteLeitura && !m.visivelFuncionario ? ' · interna' : '')), exp && /*#__PURE__*/React.createElement("div", {
+      className: "av-meta-detalhe"
+    }, m.objetivo && /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "Objetivo:"), " ", m.objetivo), m.criterioConclusao && /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "Conclu\xEDda quando:"), " ", m.criterioConclusao), ac.length > 0 && /*#__PURE__*/React.createElement("ul", {
+      className: "av-acoes-meta"
+    }, ac.map((a, i) => /*#__PURE__*/React.createElement("li", {
+      key: i
+    }, /*#__PURE__*/React.createElement("span", {
+      className: a.feita ? 'feita' : ''
+    }, a.feita ? '✓' : '○', " ", a.texto)))), (m.comentarios || []).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: "av-secao-titulo"
+    }, "Atualiza\xE7\xF5es"), /*#__PURE__*/React.createElement("ul", {
+      className: "av-lista"
+    }, m.comentarios.map((c, i) => /*#__PURE__*/React.createElement("li", {
+      key: i
+    }, quandoBrasilia(c.em), " \u2014 ", c.porNome, ": ", c.texto))))));
+  })), metaAberta && /*#__PURE__*/React.createElement(AvModalMeta, {
+    key: metaAberta.id,
+    meta: metaAberta,
+    usuario: usuario,
+    funcionarios: funcionarios,
+    registros: registros,
+    aoFechar: () => setAberta(null)
+  }));
+}
 function AvMetas({
   usuario,
   funcionarios,
@@ -9708,7 +10464,7 @@ function AvMetas({
   }, m.funcionarioNome), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Meta",
     className: "av-desc"
-  }, m.descricao, !m.visivelFuncionario ? /*#__PURE__*/React.createElement("span", {
+  }, avTituloMeta(m), !m.visivelFuncionario ? /*#__PURE__*/React.createElement("span", {
     className: "av-dica"
   }, " \xB7 interna") : ''), /*#__PURE__*/React.createElement("td", {
     "data-rotulo": "Prazo"
@@ -10036,7 +10792,8 @@ function AvRelatorios({
 // ---- visão do funcionário: só o que foi aprovado e liberado para ele
 function AvMinhas({
   usuario,
-  config
+  config,
+  soAvaliacoes
 }) {
   const [publicadas, carregando, erro] = useAvConsulta('avaliacoesPublicadas', [['funcionarioId', '==', usuario.id]]);
   const [metas] = useAvConsulta('avaliacaoMetas', [['funcionarioId', '==', usuario.id], ['visivelFuncionario', '==', true]]);
@@ -10045,7 +10802,7 @@ function AvMinhas({
   const [pdfFormacao, setPdfFormacao] = useState(false);
   const lista = publicadas.slice().sort((a, b) => b.trimestre.localeCompare(a.trimestre));
   const p = aberta ? lista.find(x => x.id === aberta) : null;
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", null, !soAvaliacoes && /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo"
   }, "Minhas avalia\xE7\xF5es"), erro && /*#__PURE__*/React.createElement("div", {
     className: "av-erro"
@@ -10111,7 +10868,7 @@ function AvMinhas({
     className: "av-secao-titulo"
   }, "Coment\xE1rios do avaliador"), /*#__PURE__*/React.createElement("p", {
     className: "av-texto"
-  }, p.comentariosAvaliador))), /*#__PURE__*/React.createElement("div", {
+  }, p.comentariosAvaliador))), !soAvaliacoes && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo"
   }, "Minhas metas"), metas.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "av-vazio"
@@ -10132,14 +10889,19 @@ function AvMinhas({
     className: "av-lista"
   }, registros.slice().sort((a, b) => b.dataOcorrido.localeCompare(a.dataOcorrido)).map(r => /*#__PURE__*/React.createElement("li", {
     key: r.id
-  }, formatarDataBr(r.dataOcorrido), " \xB7 ", r.tipoNome, " \xB7 ", r.categoria, ": ", r.descricao)))));
+  }, formatarDataBr(r.dataOcorrido), " \xB7 ", r.tipoNome, " \xB7 ", r.categoria, ": ", r.descricao))))));
 }
 
 // ======================= NAVEGAÇÃO POR COLABORADOR =======================
 // EQUIPE → COLABORADOR → FUNCIONALIDADE. Só reorganiza as telas que já existiam (registros, avaliações,
 // metas, cursos, relatórios): os dados, as coleções e as regras de acesso são os mesmos.
 // Painel da equipe, relatórios gerais, configurações e "Minhas avaliações" ficam em botões discretos no topo.
-const AV_SECOES_PERFIL = [['visao', '📋', 'Visão geral', 'Situação, média e o período atual'], ['registros', '📝', 'Registros diários', 'Observações do dia a dia, por texto ou voz'], ['avaliacoes', '⭐', 'Avaliações trimestrais', 'Gerar, revisar e aprovar'], ['metas', '🎯', 'Metas e PDI', 'Objetivos, compromissos e desenvolvimento'], ['cursos', '🎓', 'Cursos e formação', 'Cursos, certificados e resumo profissional'], ['relatorios', '📄', 'Relatórios', 'Relatório geral e PDFs das avaliações'], ['historico', '📈', 'Histórico', 'Evolução ao longo dos trimestres']];
+// Reorganização: a ficha tem só QUATRO áreas. A avaliação trimestral (gerar, revisar, aprovar) abre pelo
+// botão do cabeçalho; histórico e evolução ficam dentro de Relatórios.
+const AV_SECOES_PERFIL = [['registros', '📝', 'Registros diários', 'Pontos positivos, melhorias, feedbacks, ocorrências e faltas da Comissão'], ['cursos', '🎓', 'Formação', 'Graduação, cursos, treinamentos e certificações'], ['metas', '🎯', 'Metas e desenvolvimento', 'Objetivos, ações e progresso'], ['relatorios', '📄', 'Relatórios de avaliação', 'Relatório resumido ou completo, PDFs e evolução']];
+const AV_SECOES_EXTRAS = {
+  avaliacoes: ['⭐', 'Avaliação do trimestre']
+};
 function avTopo() {
   try {
     const el = document.querySelector('.av-modulo');
@@ -10234,7 +10996,7 @@ function AvBarraModulo({
     })
   }, "\u2039 Equipe"), /*#__PURE__*/React.createElement("div", {
     className: "av-atalhos"
-  }, atalho('painel', '📊', 'Painel da equipe'), atalho('relatorios', '📄', 'Relatórios gerais'), atalho('minhas', '👤', 'Minhas avaliações'), atalho('config', '⚙️', 'Configurações')));
+  }, atalho('painel', '📊', 'Painel da equipe'), atalho('minhas', '👤', 'Minha ficha'), atalho('config', '⚙️', 'Configurações')));
 }
 
 // ---- 1. tela principal: cartões da equipe
@@ -10349,7 +11111,82 @@ function AvEquipe({
   }, "Abrir perfil \u203A"))))));
 }
 
-// ---- 2. perfil individual
+// ---- 2. ficha do colaborador: cabeçalho + quatro áreas
+function AvCabecalhoFicha({
+  f,
+  s,
+  tri,
+  setTri,
+  avaliacoes,
+  config,
+  aoAvaliacao,
+  rotuloAvaliacao
+}) {
+  const ant = avMediaAnteriores(f.id, avaliacoes, config);
+  const ultima = avaliacoes.filter(a => a.funcionarioId === f.id && (a.status === 'aprovada' || a.status === 'feedback')).sort((a, b) => b.trimestre.localeCompare(a.trimestre))[0];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-cab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pessoa"
+  }, /*#__PURE__*/React.createElement(AvAvatar, {
+    f: f,
+    tamanho: 64
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-nome"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "av-perfil-nome"
+  }, f.nome), /*#__PURE__*/React.createElement("span", null, f.cargo || 'Cargo não informado'))), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dados"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "Situa\xE7\xE3o no trimestre"), /*#__PURE__*/React.createElement("strong", null, /*#__PURE__*/React.createElement(AvSeloSituacao, {
+    s: s
+  })), setTri && /*#__PURE__*/React.createElement(AvSeletorTri, {
+    tri: tri,
+    setTri: setTri
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "Nota do trimestre"), /*#__PURE__*/React.createElement("strong", null, s.nota != null ? `${avNum1(s.nota)}/5` : '—'), /*#__PURE__*/React.createElement("em", null, s.nota != null ? /*#__PURE__*/React.createElement(AvEstrelas, {
+    nota: s.nota,
+    tamanho: 14
+  }) : 'sem avaliação aprovada')), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "M\xE9dia geral"), /*#__PURE__*/React.createElement("strong", null, ant ? `${avNum1(ant.media)}/5` : '—'), /*#__PURE__*/React.createElement("em", null, ant ? avPlural(ant.qtd, 'avaliação aprovada', 'avaliações aprovadas') : 'nenhuma aprovada')), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "\xDAltimo per\xEDodo avaliado"), /*#__PURE__*/React.createElement("strong", null, ultima ? avRotuloTri(ultima.trimestre) : '—'), /*#__PURE__*/React.createElement("em", null, ultima ? AV_STATUS[ultima.status] : 'ainda não avaliado'))), aoAvaliacao && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn av-ficha-btn-av",
+    onClick: aoAvaliacao
+  }, "\u2B50 ", rotuloAvaliacao));
+}
+function AvCartoesAreas({
+  itens,
+  aoIr
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-areas"
+  }, itens.map(({
+    k,
+    icone,
+    nome,
+    sub,
+    info
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: "av-area",
+    "data-secao": k,
+    onClick: () => aoIr(k)
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "av-area-icone",
+    "aria-hidden": "true"
+  }, icone), /*#__PURE__*/React.createElement("span", {
+    className: "av-area-txt"
+  }, /*#__PURE__*/React.createElement("strong", null, nome), /*#__PURE__*/React.createElement("span", null, sub), info && /*#__PURE__*/React.createElement("em", null, info)), /*#__PURE__*/React.createElement("span", {
+    className: "av-opcao-seta",
+    "aria-hidden": "true"
+  }, "\u203A"))));
+}
 function AvPerfilColaborador({
   f,
   usuario,
@@ -10367,48 +11204,45 @@ function AvPerfilColaborador({
 }) {
   const ocorrencias = useAvOcorrencias();
   const s = avSituacao(f, tri, avaliacoes, registros, config, ocorrencias);
+  const [cursos] = useFpCursos(f.id);
   const titulo = AV_SECOES_PERFIL.find(x => x[0] === secao);
+  const extra = AV_SECOES_EXTRAS[secao];
   const ir = k => {
     setSecao(k);
     avTopo();
   };
+  const ms = metas.filter(m => m.funcionarioId === f.id);
+  const abertas = ms.filter(m => ['Não iniciada', 'Em andamento'].includes(m.status)).length,
+    atrasadas = ms.filter(avMetaAtrasada).length;
+  const info = {
+    registros: `${avPlural(s.registros.length, 'registro', 'registros')} no trimestre · ↑ ${s.pos} · − ${s.neg} · ⏱ ${s.oc.faltas} falta(s), ${s.oc.atrasos} atraso(s)`,
+    cursos: cursos.length ? `${avPlural(cursos.length, 'formação', 'formações')}${cursos.some(c => fpSituacaoDe(c) === 'em_andamento') ? ` · ${cursos.filter(c => fpSituacaoDe(c) === 'em_andamento').length} em andamento` : ''}` : 'nenhuma cadastrada',
+    metas: ms.length ? `${abertas} em aberto${atrasadas ? ` · ${atrasadas} atrasada${atrasadas > 1 ? 's' : ''}` : ''}` : 'nenhuma meta',
+    relatorios: `${avPlural(avaliacoes.filter(a => a.funcionarioId === f.id).length, 'avaliação', 'avaliações')} no histórico`
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "av-perfil"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-perfil-cab"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "av-card-pessoa"
-  }, /*#__PURE__*/React.createElement(AvAvatar, {
+  }, /*#__PURE__*/React.createElement(AvCabecalhoFicha, {
     f: f,
-    tamanho: 60
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "av-card-nome"
-  }, /*#__PURE__*/React.createElement("strong", {
-    className: "av-perfil-nome"
-  }, f.nome), /*#__PURE__*/React.createElement("span", null, f.cargo || 'Cargo não informado'))), /*#__PURE__*/React.createElement("div", {
-    className: "av-perfil-situacao"
-  }, /*#__PURE__*/React.createElement(AvSeloSituacao, {
-    s: s
-  }), /*#__PURE__*/React.createElement(AvSeletorTri, {
+    s: s,
     tri: tri,
-    setTri: setTri
-  }))), !secao ? /*#__PURE__*/React.createElement("div", {
-    className: "av-opcoes"
-  }, AV_SECOES_PERFIL.map(([k, icone, nome, sub]) => /*#__PURE__*/React.createElement("button", {
-    key: k,
-    type: "button",
-    className: "av-opcao",
-    "data-secao": k,
-    onClick: () => ir(k)
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "av-opcao-icone",
-    "aria-hidden": "true"
-  }, icone), /*#__PURE__*/React.createElement("span", {
-    className: "av-opcao-txt"
-  }, /*#__PURE__*/React.createElement("strong", null, nome), /*#__PURE__*/React.createElement("span", null, sub)), /*#__PURE__*/React.createElement("span", {
-    className: "av-opcao-seta",
-    "aria-hidden": "true"
-  }, "\u203A")))) : /*#__PURE__*/React.createElement("div", {
+    setTri: setTri,
+    avaliacoes: avaliacoes,
+    config: config,
+    aoAvaliacao: () => ir('avaliacoes'),
+    rotuloAvaliacao: s.a ? 'Abrir avaliação do trimestre' : 'Avaliação do trimestre'
+  }), !secao ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(AvCartoesAreas, {
+    itens: AV_SECOES_PERFIL.map(([k, icone, nome, sub]) => ({
+      k,
+      icone,
+      nome,
+      sub,
+      info: info[k]
+    })),
+    aoIr: ir
+  }), s.registros.length < AV_MIN_EVIDENCIAS && /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Poucos registros no trimestre (", s.registros.length, "). Avalia\xE7\xF5es com menos de ", AV_MIN_EVIDENCIAS, " registros ficam marcadas como \u201Cevid\xEAncias insuficientes\u201D.")) : /*#__PURE__*/React.createElement("div", {
     className: "av-perfil-secao"
   }, /*#__PURE__*/React.createElement("div", {
     className: "av-secao-cab"
@@ -10416,17 +11250,7 @@ function AvPerfilColaborador({
     type: "button",
     className: "av-voltar",
     onClick: () => ir(null)
-  }, "\u2039 ", avPrimeiroNome(f)), /*#__PURE__*/React.createElement("h3", null, titulo ? `${titulo[1]} ${titulo[2]}` : '')), secao === 'visao' && /*#__PURE__*/React.createElement(AvPerfilVisao, {
-    f: f,
-    s: s,
-    tri: tri,
-    usuario: usuario,
-    avaliacoes: avaliacoes,
-    metas: metas,
-    config: config,
-    aoRegistrar: aoRegistrar,
-    aoIr: ir
-  }), secao === 'registros' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "\u2039 ", avPrimeiroNome(f)), /*#__PURE__*/React.createElement("h3", null, titulo ? `${titulo[1]} ${titulo[2]}` : extra ? `${extra[0]} ${extra[1]}` : '')), secao === 'registros' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "av-botoes-rapidos"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -10441,12 +11265,12 @@ function AvPerfilColaborador({
       funcionarioId: f.id,
       voz: true
     })
-  }, "\uD83C\uDFA4 Registrar por voz")), /*#__PURE__*/React.createElement(AvHistorico, {
+  }, "\uD83C\uDFA4 Registrar por voz")), /*#__PURE__*/React.createElement(AvLinhaDoTempo, {
     usuario: usuario,
     funcionarios: funcionarios,
     config: config,
     registros: registros,
-    fixoId: f.id
+    fid: f.id
   })), secao === 'avaliacoes' && /*#__PURE__*/React.createElement(AvPerfilAvaliacoes, {
     f: f,
     usuario: usuario,
@@ -10457,36 +11281,118 @@ function AvPerfilColaborador({
     config: config,
     tri: tri,
     aoNovaMeta: aoNovaMeta
-  }), secao === 'metas' && /*#__PURE__*/React.createElement(AvMetas, {
+  }), secao === 'metas' && /*#__PURE__*/React.createElement(AvMetasCards, {
     usuario: usuario,
     funcionarios: funcionarios,
     registros: registros,
     metas: metas,
-    aoNovaMeta: aoNovaMeta,
-    fixoId: f.id
+    fid: f.id,
+    aoNovaMeta: aoNovaMeta
   }), secao === 'cursos' && /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
     funcionario: f,
     usuario: usuario
-  }), secao === 'relatorios' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "rg-chamada"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Relat\xF3rio geral do colaborador"), /*#__PURE__*/React.createElement("span", null, "Toda a trajet\xF3ria: registros, avalia\xE7\xF5es, notas, metas, cursos e certificados \u2014 todo o hist\xF3rico, um trimestre ou um intervalo de datas. Na tela e em PDF.")), /*#__PURE__*/React.createElement(BotaoRelatorioGeral, {
-    funcionario: f,
-    usuario: usuario
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-titulo"
-  }, "PDFs das avalia\xE7\xF5es trimestrais"), /*#__PURE__*/React.createElement(AvRelatorios, {
+  }), secao === 'relatorios' && /*#__PURE__*/React.createElement(AvAreaRelatorios, {
+    f: f,
     usuario: usuario,
     funcionarios: funcionarios,
-    avaliacoes: avaliacoes,
-    config: config,
-    metas: metas,
-    fixoId: f.id
-  })), secao === 'historico' && /*#__PURE__*/React.createElement(AvPerfilHistorico, {
-    f: f,
-    avaliacoes: avaliacoes,
     registros: registros,
+    avaliacoes: avaliacoes,
     metas: metas,
     config: config
+  })));
+}
+// ---- ficha do próprio funcionário (só o que ele já podia ver: avaliações publicadas, metas visíveis,
+// a própria formação e os registros apenas se a configuração liberar)
+function AvMinhaFicha({
+  usuario,
+  config
+}) {
+  const [secao, setSecao] = useState(null);
+  const [publicadas] = useAvConsulta('avaliacoesPublicadas', [['funcionarioId', '==', usuario.id]]);
+  const [metas] = useAvConsulta('avaliacaoMetas', [['funcionarioId', '==', usuario.id], ['visivelFuncionario', '==', true]]);
+  const [registros] = useAvConsulta('avaliacaoRegistros', [['funcionarioId', '==', usuario.id], ['status', '==', 'ativo']], config.registrosVisiveisFuncionario);
+  const [cursos] = useFpCursos(usuario.id);
+  const ultima = publicadas.slice().sort((a, b) => b.trimestre.localeCompare(a.trimestre))[0];
+  const ir = k => {
+    setSecao(k);
+    avTopo();
+  };
+  const titulo = AV_SECOES_PERFIL.find(x => x[0] === secao);
+  const notas = publicadas.map(p => Number(p.media)).filter(n => n > 0);
+  const info = {
+    registros: config.registrosVisiveisFuncionario ? avPlural(registros.length, 'registro', 'registros') : 'acompanhados pela gestão',
+    cursos: cursos.length ? avPlural(cursos.length, 'formação', 'formações') : 'nenhuma cadastrada',
+    metas: metas.length ? `${metas.filter(m => ['Não iniciada', 'Em andamento'].includes(m.status)).length} em aberto` : 'nenhuma meta',
+    relatorios: avPlural(publicadas.length, 'avaliação aprovada', 'avaliações aprovadas')
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "av-perfil av-minha-ficha"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-cab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-card-pessoa"
+  }, /*#__PURE__*/React.createElement(AvAvatar, {
+    f: usuario,
+    tamanho: 64
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-card-nome"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "av-perfil-nome"
+  }, usuario.nome), /*#__PURE__*/React.createElement("span", null, usuario.cargo || 'Cargo não informado'))), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dados"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "Situa\xE7\xE3o"), /*#__PURE__*/React.createElement("strong", null, ultima ? /*#__PURE__*/React.createElement("span", {
+    className: "av-selo avaliado"
+  }, "\u2713 Avaliado") : /*#__PURE__*/React.createElement("span", {
+    className: "av-selo pendente"
+  }, "\u25F7 Sem avalia\xE7\xE3o aprovada"))), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "Nota da \xFAltima avalia\xE7\xE3o"), /*#__PURE__*/React.createElement("strong", null, ultima && ultima.media ? `${String(ultima.media).replace('.', ',')}/5` : '—')), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "M\xE9dia geral"), /*#__PURE__*/React.createElement("strong", null, notas.length ? `${avNum1(notas.reduce((a, b) => a + b, 0) / notas.length)}/5` : '—')), /*#__PURE__*/React.createElement("div", {
+    className: "av-ficha-dado"
+  }, /*#__PURE__*/React.createElement("span", null, "\xDAltimo per\xEDodo avaliado"), /*#__PURE__*/React.createElement("strong", null, ultima ? avRotuloTri(ultima.trimestre) : '—')))), !secao ? /*#__PURE__*/React.createElement(AvCartoesAreas, {
+    itens: AV_SECOES_PERFIL.map(([k, icone, nome, sub]) => ({
+      k,
+      icone,
+      nome,
+      sub: k === 'relatorios' ? 'Suas avaliações aprovadas, em tela e PDF' : sub,
+      info: info[k]
+    })),
+    aoIr: ir
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "av-perfil-secao"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-secao-cab"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "av-voltar",
+    onClick: () => ir(null)
+  }, "\u2039 Minha ficha"), /*#__PURE__*/React.createElement("h3", null, titulo ? `${titulo[1]} ${titulo[2]}` : '')), secao === 'registros' && (config.registrosVisiveisFuncionario ? /*#__PURE__*/React.createElement(AvLinhaDoTempo, {
+    usuario: usuario,
+    funcionarios: [usuario],
+    config: config,
+    registros: registros,
+    fid: usuario.id,
+    somenteLeitura: true,
+    comComissao: false
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "av-vazio"
+  }, "Os registros di\xE1rios s\xE3o acompanhados pela gest\xE3o. As avalia\xE7\xF5es aprovadas aparecem em Relat\xF3rios de avalia\xE7\xE3o.")), secao === 'cursos' && /*#__PURE__*/React.createElement(DesenvolvimentoProfissional, {
+    funcionario: usuario,
+    usuario: usuario
+  }), secao === 'metas' && /*#__PURE__*/React.createElement(AvMetasCards, {
+    usuario: usuario,
+    funcionarios: [usuario],
+    registros: [],
+    metas: metas,
+    fid: usuario.id,
+    somenteLeitura: true
+  }), secao === 'relatorios' && /*#__PURE__*/React.createElement(AvMinhas, {
+    usuario: usuario,
+    config: config,
+    soAvaliacoes: true
   })));
 }
 function AvPerfilVisao({
@@ -10702,7 +11608,7 @@ function AvPerfilHistorico({
     className: "av-lista"
   }, concluidas.map(m => /*#__PURE__*/React.createElement("li", {
     key: m.id
-  }, m.descricao, " \u2014 ", m.status, m.prazo ? ` (prazo ${formatarDataBr(m.prazo)})` : ''))), /*#__PURE__*/React.createElement("div", {
+  }, avTituloMeta(m), " \u2014 ", m.status, m.prazo ? ` (prazo ${formatarDataBr(m.prazo)})` : ''))), /*#__PURE__*/React.createElement("div", {
     className: "av-secao-titulo"
   }, "Cursos conclu\xEDdos (", cursos.length, ")"), cursos.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "av-vazio-pequeno"
@@ -10768,7 +11674,7 @@ function AvPainelGeral({
     type: "button",
     className: "av-voltar",
     onClick: () => setLista(null)
-  }, "\u2039 Painel da equipe"), /*#__PURE__*/React.createElement("h3", null, lista === 'registros' ? 'Todos os registros' : lista === 'metas' ? 'Todas as metas' : 'Avaliações da equipe por trimestre')), lista === 'registros' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "\u2039 Painel da equipe"), /*#__PURE__*/React.createElement("h3", null, lista === 'registros' ? 'Todos os registros' : lista === 'metas' ? 'Todas as metas' : lista === 'pdfs' ? 'PDFs das avaliações' : 'Avaliações da equipe por trimestre')), lista === 'registros' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "av-botoes-rapidos"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -10791,6 +11697,12 @@ function AvPainelGeral({
     registros: registros,
     metas: metas,
     aoNovaMeta: aoNovaMeta
+  }), lista === 'pdfs' && /*#__PURE__*/React.createElement(AvRelatorios, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    avaliacoes: avaliacoes,
+    config: config,
+    metas: metas
   }), lista === 'trimestrais' && /*#__PURE__*/React.createElement(AvTrimestrais, {
     usuario: usuario,
     funcionarios: funcionarios,
@@ -10885,7 +11797,11 @@ function AvPainelGeral({
     type: "button",
     className: "btn secundario",
     onClick: () => setLista('metas')
-  }, "\uD83C\uDFAF Todas as metas")));
+  }, "\uD83C\uDFAF Todas as metas"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setLista('pdfs')
+  }, "\uD83D\uDCC4 PDFs das avalia\xE7\xF5es")));
 }
 
 // ---- entrada do módulo
@@ -10906,7 +11822,7 @@ function AbaAvaliacoes({
   const [novaMeta, setNovaMeta] = useState(null);
   if (!gestor) return /*#__PURE__*/React.createElement("div", {
     className: "av-modulo"
-  }, /*#__PURE__*/React.createElement(AvMinhas, {
+  }, /*#__PURE__*/React.createElement(AvMinhaFicha, {
     usuario: usuario,
     config: config
   }));
@@ -10973,20 +11889,13 @@ function AbaAvaliacoes({
     aoAbrir: abrirPerfil,
     aoNovaMeta: setNovaMeta,
     aoRegistrar: setRegistrando
-  }), tela.nome === 'relatorios' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "av-secao-cab"
-  }, /*#__PURE__*/React.createElement("h3", null, "\uD83D\uDCC4 Relat\xF3rios gerais")), /*#__PURE__*/React.createElement(AvRelatorios, {
-    usuario: usuario,
-    funcionarios: lista,
-    avaliacoes: avaliacoes,
-    config: config,
-    metas: metas
-  })), tela.nome === 'config' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }), tela.nome === 'config' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "av-secao-cab"
   }, /*#__PURE__*/React.createElement("h3", null, "\u2699\uFE0F Configura\xE7\xF5es da avalia\xE7\xE3o")), /*#__PURE__*/React.createElement(AvConfiguracoes, {
     usuario: usuario,
     config: config
-  })), tela.nome === 'minhas' && /*#__PURE__*/React.createElement(AvMinhas, {
+  })), tela.nome === 'minhas' && /*#__PURE__*/React.createElement(AvMinhaFicha, {
+    key: tela.n,
     usuario: usuario,
     config: config
   }), registrando && /*#__PURE__*/React.createElement(AvFormRegistro, {
@@ -11567,6 +12476,729 @@ function BotaoRelatorioGeral({
     usuario: usuario,
     config: config,
     aoFechar: () => setAberto(false)
+  }));
+}
+
+// ======================= RELATÓRIOS DE AVALIAÇÃO (gerador) =======================
+// Período (anual, semestral, trimestral, bimestral ou datas livres) + modelo (resumido ou completo) + escolha
+// das informações → prévia na tela → PDF. Só organiza o que está cadastrado: não cria nota, média, texto ou
+// conclusão. Seção sem dados no período não aparece (e é listada no fim como "sem dados no período").
+const RL_PERIODOS = [['anual', 'Anual'], ['semestral', 'Semestral'], ['trimestral', 'Trimestral'], ['bimestral', 'Bimestral'], ['personalizado', 'Personalizado'], ['tudo', 'Todo o histórico']];
+const RL_PARTES = {
+  semestral: [['1', '1º semestre'], ['2', '2º semestre']],
+  trimestral: [['1', '1º trimestre'], ['2', '2º trimestre'], ['3', '3º trimestre'], ['4', '4º trimestre']],
+  bimestral: [['1', 'jan–fev'], ['2', 'mar–abr'], ['3', 'mai–jun'], ['4', 'jul–ago'], ['5', 'set–out'], ['6', 'nov–dez']]
+};
+const RL_SECOES = [['dados', 'Dados cadastrais'], ['notas', 'Notas e pontuações'], ['historico', 'Histórico de avaliações'], ['registros', 'Registros diários'], ['positivos', 'Pontos positivos'], ['melhorias', 'Pontos de melhoria'], ['feedbacks', 'Feedbacks'], ['formacao', 'Cursos e formações'], ['metas', 'Metas e progresso'], ['faltas', 'Faltas e atrasos'], ['comentarios', 'Comentários do avaliador'], ['conclusao', 'Conclusão geral']];
+const RL_MODELOS = {
+  resumido: ['dados', 'notas', 'positivos', 'melhorias', 'metas', 'conclusao'],
+  completo: RL_SECOES.map(x => x[0])
+};
+const RL_MAX_RESUMO = 5; // "principais" pontos no modelo resumido: os mais recentes
+function rlUltimoDia(a, m) {
+  return new Date(a, m, 0).getDate();
+}
+function rlIntervalo(tipo, ano, parte, de, ate) {
+  const p2 = n => String(n).padStart(2, '0');
+  const meses = {
+    anual: [1, 12],
+    semestral: parte === '2' ? [7, 12] : [1, 6],
+    trimestral: [(Number(parte) - 1) * 3 + 1, (Number(parte) - 1) * 3 + 3],
+    bimestral: [(Number(parte) - 1) * 2 + 1, (Number(parte) - 1) * 2 + 2]
+  }[tipo];
+  if (tipo === 'tudo') return {
+    de: '',
+    ate: ''
+  };
+  if (!meses) return {
+    de: de || '',
+    ate: ate || ''
+  };
+  return {
+    de: `${ano}-${p2(meses[0])}-01`,
+    ate: `${ano}-${p2(meses[1])}-${p2(rlUltimoDia(ano, meses[1]))}`
+  };
+}
+function rlRotulo(tipo, ano, parte, iv) {
+  if (tipo === 'anual') return `Ano de ${ano}`;
+  if (tipo === 'tudo') return 'Todo o histórico disponível';
+  if (tipo === 'personalizado') return `${iv.de ? formatarDataBr(iv.de) : 'início'} a ${iv.ate ? formatarDataBr(iv.ate) : 'hoje'}`;
+  const nome = (RL_PARTES[tipo].find(x => x[0] === parte) || [])[1] || '';
+  return `${tipo === 'bimestral' ? `Bimestre ${nome}` : nome} de ${ano} (${formatarDataBr(iv.de)} a ${formatarDataBr(iv.ate)})`;
+}
+// monta o relatório (função pura): reaproveita a montagem do relatório geral e acrescenta o que a reorganização trouxe
+function rlMontar(f, dados, config, iv, rotulo, ocorrencias, modelo, emissor) {
+  const base = rgMontar(f, dados, config, {
+    tipo: 'datas',
+    de: iv.de,
+    ate: iv.ate
+  }, emissor);
+  const dentro = d => rgDentro(d, iv);
+  const regs = dados.registros.filter(r => r.funcionarioId === f.id && r.status !== 'removido' && dentro(r.dataOcorrido));
+  const linha = r => ({
+    data: r.dataOcorrido || '',
+    tipo: r.tipoNome || avTipo(config, r.tipoId).nome,
+    categoria: r.categoria || '-',
+    descricao: r.descricao || '-',
+    por: r.registradoPorNome || '-',
+    sentido: avTipo(config, r.tipoId).sentido || r.sentido || '0',
+    anexos: (r.anexos || []).length
+  });
+  const ultimos = l => modelo === 'resumido' ? l.slice().sort((a, b) => b.data.localeCompare(a.data)).slice(0, RL_MAX_RESUMO) : l;
+  const finais = base.avaliacoes.filter(a => a.final);
+  const metasF = dados.metas.filter(m => m.funcionarioId === f.id && (dentro(m.prazo) || dentro(rgDataIso(m.criadoEm)) || m.status !== 'Cancelada' && rgDataIso(m.criadoEm) && rgDataIso(m.criadoEm) <= (iv.ate || '9999') && (!m.prazo || m.prazo >= (iv.de || ''))));
+  const metas = metasF.map(m => ({
+    titulo: avTituloMeta(m),
+    status: avSituacaoMeta(m),
+    prazo: m.prazo || '',
+    progresso: avProgressoMeta(m),
+    acoes: (m.acoes || []).length,
+    acoesFeitas: (m.acoes || []).filter(a => a.feita).length,
+    objetivo: m.objetivo || '',
+    comentarios: (m.comentarios || []).filter(c => dentro(rgDataIso(c.em))).map(c => ({
+      data: rgDataIso(c.em),
+      por: c.porNome || '-',
+      texto: c.texto
+    }))
+  })).sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999'));
+  const cursos = dados.cursos.filter(c => c.funcionarioId === f.id && c.status !== 'excluido' && (dentro(c.dataConclusao) || dentro(c.dataInicio) || fpSituacaoDe(c) === 'em_andamento' && (!c.dataInicio || c.dataInicio <= (iv.ate || '9999')))).map(c => ({
+    nome: c.nome,
+    tipo: fpTipoDe(c),
+    situacao: fpNomeSituacao(c),
+    instituicao: c.instituicao || '',
+    carga: c.cargaHoraria || null,
+    inicio: c.dataInicio || '',
+    fim: c.dataConclusao || c.dataPrevisao || '',
+    previsao: !c.dataConclusao && !!c.dataPrevisao,
+    certificado: !!c.certificado
+  }));
+  const ocs = (ocorrencias || []).filter(o => o.funcionarioId === f.id && !o.removido && dentro(o.data)).sort((a, b) => a.data.localeCompare(b.data));
+  const r = {
+    rotulo,
+    iv,
+    modelo,
+    emitidoEm: base.emitidoEm,
+    emitidoPor: base.emitidoPor,
+    ident: base.ident,
+    avaliacoes: base.avaliacoes,
+    finais,
+    mediaGeral: base.mediaGeral,
+    qtdMedias: base.qtdMedias,
+    registros: regs.map(linha).sort((a, b) => a.data.localeCompare(b.data)),
+    positivos: ultimos(regs.filter(x => (avTipo(config, x.tipoId).sentido || x.sentido) === '+').map(linha)),
+    melhorias: ultimos(regs.filter(x => (avTipo(config, x.tipoId).sentido || x.sentido) === '-').map(linha)),
+    pontosAvaliacao: {
+      positivos: finais.flatMap(a => a.pontosPositivos.map(t => ({
+        tri: a.trimestre,
+        t
+      }))),
+      melhorias: finais.flatMap(a => a.melhorias.map(t => ({
+        tri: a.trimestre,
+        t
+      })))
+    },
+    feedbacks: regs.filter(x => x.tipoId === 'feedback').map(linha),
+    metas,
+    cursos,
+    horas: cursos.reduce((s, c) => s + (Number(c.carga) || 0), 0),
+    faltas: ocs.map(o => ({
+      data: o.data,
+      tipo: o.tipo === 'falta' ? 'Falta' : 'Atraso',
+      texto: avTextoOcorrencia(o),
+      obs: o.obs || '',
+      por: o.por || '-'
+    })),
+    comentarios: finais.filter(a => a.comentarios).map(a => ({
+      tri: a.trimestre,
+      texto: a.comentarios
+    })),
+    conclusao: finais.filter(a => a.resumo || a.comentarios).map(a => ({
+      tri: a.trimestre,
+      resumo: a.resumo,
+      comentarios: a.comentarios
+    })),
+    evolucao: base.evolucao
+  };
+  r.temDados = {
+    dados: true,
+    notas: finais.some(a => a.media != null || a.notas.length),
+    historico: r.avaliacoes.length > 0,
+    registros: r.registros.length > 0,
+    positivos: r.positivos.length > 0 || r.pontosAvaliacao.positivos.length > 0,
+    melhorias: r.melhorias.length > 0 || r.pontosAvaliacao.melhorias.length > 0,
+    feedbacks: r.feedbacks.length > 0,
+    formacao: r.cursos.length > 0,
+    metas: r.metas.length > 0,
+    faltas: r.faltas.length > 0,
+    comentarios: r.comentarios.length > 0,
+    conclusao: r.conclusao.length > 0
+  };
+  return r;
+}
+const rlNota = n => n == null ? '—' : `${avNum1(n)}/5`;
+function rlResumoMetas(metas) {
+  const c = k => metas.filter(m => m.status === k).length;
+  return [['Concluída', c('Concluída')], ['Em andamento', c('Em andamento')], ['Não iniciada', c('Não iniciada')], ['Atrasada', c('Atrasada')]].filter(x => x[1]).map(([k, n]) => `${n} ${k.toLowerCase()}${n > 1 ? k === 'Em andamento' ? '' : 's' : ''}`).join(' · ');
+}
+
+// ---- PDF
+async function gerarPdfRelatorioAvaliacao(r, f, secoes) {
+  const {
+    jsPDF
+  } = window.jspdf;
+  const doc = new jsPDF();
+  const mx = 16,
+    larg = 210 - mx * 2,
+    limite = 278;
+  let y = 0;
+  const novaPagina = () => {
+    doc.addPage();
+    y = 22;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(120, 110, 108);
+    doc.text(`Relatório de avaliação — ${f.nome || ''}`, mx, 13);
+    doc.setFont('helvetica', 'normal');
+    doc.text(r.rotulo, 210 - mx, 13, {
+      align: 'right'
+    });
+    doc.setDrawColor(220, 214, 210);
+    doc.line(mx, 15.5, 210 - mx, 15.5);
+  };
+  const garantir = h => {
+    if (y + h > limite) novaPagina();
+  };
+  const texto = (t, tam = 9.5, estilo = 'normal', recuo = 0, cor = [40, 34, 33]) => {
+    doc.setFont('helvetica', estilo);
+    doc.setFontSize(tam);
+    doc.setTextColor(...cor);
+    for (const l of doc.splitTextToSize(String(t ?? '-'), larg - recuo)) {
+      garantir(4.8);
+      doc.text(l, mx + recuo, y);
+      y += 4.8;
+    }
+  };
+  let n = 0;
+  const secao = titulo => {
+    n++;
+    y += 4;
+    garantir(18);
+    desenharTituloSecaoTimbrado(doc, `${n}. ${titulo}`, mx, y, larg);
+    y += 8;
+  };
+  // gráfico de barras horizontais simples (só com dados)
+  const barras = (itens, max, sufixo) => {
+    const alto = 6.2;
+    for (const [rot, v, cor] of itens) {
+      garantir(alto + 1);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(60, 54, 52);
+      doc.text(doc.splitTextToSize(rot, 52)[0], mx, y + 4);
+      const w = (larg - 72) * Math.max(0, Math.min(1, v / max));
+      doc.setFillColor(238, 234, 231);
+      doc.rect(mx + 56, y, larg - 72, alto - 1.6, 'F');
+      doc.setFillColor(...(cor || [217, 119, 6]));
+      if (w > 0) doc.rect(mx + 56, y, w, alto - 1.6, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${typeof v === 'number' ? String(Math.round(v * 10) / 10).replace('.', ',') : v}${sufixo || ''}`, 210 - mx, y + 4, {
+        align: 'right'
+      });
+      y += alto;
+    }
+    y += 2;
+  };
+  await desenharTimbradoCabecalho(doc);
+  y = 58;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(40, 34, 33);
+  doc.text(`RELATÓRIO DE AVALIAÇÃO — ${r.modelo === 'resumido' ? 'RESUMIDO' : 'COMPLETO'}`, mx, y);
+  y += 10;
+  desenharCampoTimbrado(doc, 'Colaborador', f.nome || '-', mx, y);
+  desenharCampoTimbrado(doc, 'Cargo / função', f.cargo || 'Não informado', mx + 110, y);
+  y += 11;
+  desenharCampoTimbrado(doc, 'Período analisado', r.rotulo, mx, y);
+  desenharCampoTimbrado(doc, 'Emitido em', `${new Date(r.emitidoEm).toLocaleString('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  })} por ${r.emitidoPor}`, mx + 110, y);
+  y += 9;
+  texto('Montado com os dados cadastrados no sistema, sem interpretação: notas e textos são os originais.', 8.3, 'italic', 0, [120, 110, 108]);
+  const tem = k => secoes.includes(k) && r.temDados[k];
+  const linhaReg = x => {
+    texto(`${rgData(x.data)} · ${x.tipo} · ${x.categoria} · por ${x.por}${x.anexos ? ` · ${x.anexos} anexo(s)` : ''}`, 8.8, 'bold');
+    texto(x.descricao, 9.3, 'normal', 3);
+    y += 0.8;
+  };
+  if (tem('dados')) {
+    secao('Dados do colaborador');
+    for (const [k, v] of r.ident) texto(`${k}: ${v}`);
+  }
+  if (tem('notas')) {
+    secao('Notas e pontuações');
+    if (r.mediaGeral != null) texto(`Média das avaliações aprovadas no período (${r.qtdMedias}): ${rlNota(r.mediaGeral)}`, 10.5, 'bold');
+    const comMedia = r.finais.filter(a => a.media != null);
+    if (comMedia.length >= 2) {
+      y += 2;
+      texto('Evolução da nota por trimestre', 9, 'bold');
+      barras(comMedia.map(a => [avRotuloTri(a.trimestre), a.media, [15, 42, 71]]), 5, '/5');
+    }
+    if (r.modelo === 'completo') for (const a of r.finais) {
+      texto(`${avRotuloTri(a.trimestre)} — média ${rlNota(a.media)}`, 9.5, 'bold');
+      for (const nt of a.notas) texto(`${nt.criterio} (peso ${nt.peso}): ${nt.nota} — ${AV_ESCALA[nt.nota] || ''}`, 9, 'normal', 3);
+    }
+  }
+  if (tem('historico')) {
+    secao('Histórico de avaliações');
+    for (const a of r.avaliacoes) {
+      texto(`${avRotuloTri(a.trimestre)} — ${a.status}${a.media != null && a.final ? ` · média ${rlNota(a.media)}` : ''}`, 9.5, 'bold');
+      if (a.final) texto(`Aprovada${a.aprovadaEm ? ` em ${rgData(a.aprovadaEm)}` : ''}${a.aprovadoPor ? ` por ${a.aprovadoPor}` : ''}${a.feedbackEm ? ` · feedback em ${rgData(a.feedbackEm)}` : ''}`, 9, 'normal', 3);else texto('Ainda não aprovada: conteúdo e notas não são apresentados.', 8.8, 'italic', 3);
+    }
+  }
+  if (tem('registros')) {
+    secao('Registros diários');
+    const pos = r.registros.filter(x => x.sentido === '+').length,
+      neg = r.registros.filter(x => x.sentido === '-').length;
+    texto(`${avPlural(r.registros.length, 'registro', 'registros')} no período.`, 9, 'italic');
+    if (r.registros.length >= 3) barras([['Pontos positivos', pos, [22, 128, 61]], ['Pontos de melhoria', neg, [185, 28, 28]], ['Neutros', r.registros.length - pos - neg, [120, 110, 108]]], r.registros.length, '');
+    for (const x of r.registros) linhaReg(x);
+  }
+  for (const [k, titulo, lista, daAv] of [['positivos', r.modelo === 'resumido' ? 'Principais pontos positivos' : 'Pontos positivos', r.positivos, r.pontosAvaliacao.positivos], ['melhorias', r.modelo === 'resumido' ? 'Principais pontos de melhoria' : 'Pontos de melhoria', r.melhorias, r.pontosAvaliacao.melhorias]]) {
+    if (!tem(k)) continue;
+    secao(titulo);
+    if (daAv.length) {
+      texto('Das avaliações aprovadas:', 9, 'bold');
+      for (const p of daAv) texto(`• ${p.t} (${avRotuloTri(p.tri)})`, 9.3, 'normal', 2);
+      y += 1;
+    }
+    if (lista.length) {
+      texto(r.modelo === 'resumido' ? `Registros mais recentes (até ${RL_MAX_RESUMO}):` : 'Registros do período:', 9, 'bold');
+      for (const x of lista) texto(`• ${rgData(x.data)} — ${x.descricao} (${x.tipo}; ${x.por})`, 9.3, 'normal', 2);
+    }
+  }
+  if (tem('feedbacks')) {
+    secao('Feedbacks');
+    for (const x of r.feedbacks) linhaReg(x);
+  }
+  if (tem('formacao')) {
+    secao('Cursos e formações');
+    texto(`${avPlural(r.cursos.length, 'formação', 'formações')}${r.horas ? ` · ${fpHoras(r.horas)} informadas` : ''}`, 9, 'italic');
+    for (const c of r.cursos) {
+      texto(`• ${c.nome} — ${c.situacao}`, 9.5, 'bold');
+      texto([c.tipo, c.instituicao, c.carga ? fpHoras(c.carga) : '', c.inicio ? `início ${rgData(c.inicio)}` : '', c.fim ? `${c.previsao ? 'previsão' : 'conclusão'} ${rgData(c.fim)}` : '', c.certificado ? 'certificado anexado' : 'sem certificado'].filter(Boolean).join(' · '), 9, 'normal', 3);
+    }
+  }
+  if (tem('metas')) {
+    secao(r.modelo === 'resumido' ? 'Resumo das metas' : 'Metas e evolução');
+    texto(rlResumoMetas(r.metas) || '—', 9.5, 'bold');
+    barras(r.metas.map(m => [m.titulo, m.progresso, m.status === 'Atrasada' ? [185, 28, 28] : m.progresso >= 100 ? [22, 128, 61] : [217, 119, 6]]), 100, '%');
+    if (r.modelo === 'completo') for (const m of r.metas) {
+      texto(`${m.titulo} — ${m.status}${m.prazo ? ` · prazo ${rgData(m.prazo)}` : ''}${m.acoes ? ` · ${m.acoesFeitas}/${m.acoes} ações` : ''}`, 9.3, 'bold');
+      if (m.objetivo) texto(`Objetivo: ${m.objetivo}`, 9, 'normal', 3);
+      for (const c of m.comentarios) texto(`${rgData(c.data)} — ${c.por}: ${c.texto}`, 8.8, 'normal', 3);
+    }
+  }
+  if (tem('faltas')) {
+    secao('Faltas e atrasos (registrados na Comissão)');
+    texto(`${r.faltas.filter(x => x.tipo === 'Falta').length} falta(s) · ${r.faltas.filter(x => x.tipo === 'Atraso').length} atraso(s). Não alteram a nota.`, 9, 'italic');
+    for (const x of r.faltas) texto(`• ${rgData(x.data)} — ${x.texto}${x.obs ? ` · ${x.obs}` : ''} (lançado por ${x.por})`, 9.2, 'normal', 2);
+  }
+  if (tem('comentarios')) {
+    secao('Comentários do avaliador');
+    for (const c of r.comentarios) {
+      texto(avRotuloTri(c.tri), 9.3, 'bold');
+      texto(c.texto, 9.3, 'normal', 3);
+    }
+  }
+  if (tem('conclusao')) {
+    secao('Conclusão geral');
+    texto('Conforme registrado pelo avaliador nas avaliações aprovadas do período:', 8.8, 'italic', 0, [120, 110, 108]);
+    for (const c of r.conclusao) {
+      texto(avRotuloTri(c.tri), 9.3, 'bold');
+      if (c.resumo) texto(c.resumo, 9.3, 'normal', 3);
+      if (c.comentarios && !secoes.includes('comentarios')) texto(c.comentarios, 9.3, 'normal', 3);
+    }
+  }
+  const semDados = secoes.filter(k => !r.temDados[k]).map(k => (RL_SECOES.find(x => x[0] === k) || [])[1]).filter(Boolean);
+  if (semDados.length) {
+    y += 4;
+    texto(`Sem dados no período: ${semDados.join(', ')}.`, 8.5, 'italic', 0, [120, 110, 108]);
+  }
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(140, 130, 128);
+    doc.text(`Emitido em ${new Date(r.emitidoEm).toLocaleDateString('pt-BR')}`, mx, 290);
+    doc.text(`Página ${i} de ${total}`, 210 - mx, 290, {
+      align: 'right'
+    });
+  }
+  doc.save(`Relatório de avaliação ${r.modelo} - ${(f.nome || '').slice(0, 40)} - ${r.rotulo.replace(/[\/:]/g, '-').slice(0, 60)}.pdf`);
+}
+
+// ---- tela: gerador (configurar → prévia → PDF)
+function AvGeradorRelatorio({
+  f,
+  usuario,
+  registros,
+  avaliacoes,
+  metas,
+  config
+}) {
+  const anoAtual = Number(avHoje().slice(0, 4));
+  const [cursosTodos] = useAvConsulta('cursosProfissionais', [['funcionarioId', '==', f.id]]);
+  const ocorrencias = useAvOcorrencias();
+  const anos = useMemo(() => {
+    const ds = [...registros.filter(r => r.funcionarioId === f.id).map(r => r.dataOcorrido), ...avaliacoes.filter(a => a.funcionarioId === f.id).map(a => avLimites(a.trimestre).inicio)].filter(Boolean).map(d => Number(d.slice(0, 4)));
+    const min = Math.min(anoAtual, ...ds);
+    return Array.from({
+      length: anoAtual - min + 1
+    }, (_, i) => anoAtual - i);
+  }, [registros, avaliacoes, f.id]);
+  const [tipo, setTipo] = useState('trimestral');
+  const [ano, setAno] = useState(anoAtual);
+  const [parte, setParte] = useState(String(Math.floor((Number(avHoje().slice(5, 7)) - 1) / 3) + 1));
+  const [de, setDe] = useState(''),
+    [ate, setAte] = useState('');
+  const [modelo, setModelo] = useState('resumido');
+  const [secoes, setSecoes] = useState(RL_MODELOS.resumido);
+  const [etapa, setEtapa] = useState('config');
+  const [gerando, setGerando] = useState(false);
+  const [erro, setErro] = useState('');
+  const escolherModelo = m => {
+    setModelo(m);
+    setSecoes(RL_MODELOS[m]);
+  };
+  const ajustarParte = t => {
+    setTipo(t);
+    if (RL_PARTES[t]) setParte('1');
+  };
+  const iv = rlIntervalo(tipo, ano, parte, de, ate);
+  const invalido = tipo === 'personalizado' && (!de || !ate || de > ate);
+  const rotulo = rlRotulo(tipo, ano, parte, iv);
+  const r = etapa === 'previa' && !invalido ? rlMontar(f, {
+    registros,
+    avaliacoes,
+    metas,
+    cursos: cursosTodos
+  }, config, iv, rotulo, ocorrencias, modelo, usuario.nome) : null;
+  const alternar = k => setSecoes(x => x.includes(k) ? x.filter(y => y !== k) : RL_SECOES.map(s => s[0]).filter(y => y === k || x.includes(y)));
+  async function pdf() {
+    setGerando(true);
+    setErro('');
+    try {
+      await gerarPdfRelatorioAvaliacao(r, f, secoes);
+    } catch (e) {
+      console.error(e);
+      setErro('Não consegui gerar o PDF.');
+    }
+    setGerando(false);
+  }
+  if (etapa === 'config') return /*#__PURE__*/React.createElement("div", {
+    className: "rl-config"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rl-passo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rl-passo-tit"
+  }, /*#__PURE__*/React.createElement("span", null, "1"), " Per\xEDodo"), /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro",
+    role: "group",
+    "aria-label": "Tipo de per\xEDodo"
+  }, RL_PERIODOS.map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `av-chip ${tipo === k ? 'ativo' : ''}`,
+    onClick: () => ajustarParte(k)
+  }, n))), /*#__PURE__*/React.createElement("div", {
+    className: "rl-periodo-campos"
+  }, tipo !== 'personalizado' && tipo !== 'tudo' && /*#__PURE__*/React.createElement("select", {
+    value: ano,
+    onChange: e => setAno(Number(e.target.value)),
+    "aria-label": "Ano"
+  }, anos.map(a => /*#__PURE__*/React.createElement("option", {
+    key: a,
+    value: a
+  }, a))), RL_PARTES[tipo] && /*#__PURE__*/React.createElement("select", {
+    value: parte,
+    onChange: e => setParte(e.target.value),
+    "aria-label": "Parte do ano"
+  }, RL_PARTES[tipo].map(([k, n]) => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k
+  }, n))), tipo === 'personalizado' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "De ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: de,
+    onChange: e => setDe(e.target.value),
+    "aria-label": "Data inicial"
+  })), /*#__PURE__*/React.createElement("label", null, "at\xE9 ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: ate,
+    onChange: e => setAte(e.target.value),
+    "aria-label": "Data final"
+  })))), invalido ? /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "Escolha a data inicial e a final (a inicial antes da final).") : /*#__PURE__*/React.createElement("div", {
+    className: "rl-periodo-rotulo"
+  }, rotulo)), /*#__PURE__*/React.createElement("div", {
+    className: "rl-passo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rl-passo-tit"
+  }, /*#__PURE__*/React.createElement("span", null, "2"), " Modelo"), /*#__PURE__*/React.createElement("div", {
+    className: "rl-modelos"
+  }, [['resumido', 'Resumido', 'Dados, média, principais pontos positivos e de melhoria, resumo das metas e conclusão.'], ['completo', 'Completo', 'Tudo do resumido mais histórico, notas por critério, registros, feedbacks, formação, metas, faltas e comentários.']].map(([k, n, d]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    className: `rl-modelo ${modelo === k ? 'ativo' : ''}`,
+    onClick: () => escolherModelo(k),
+    "aria-pressed": modelo === k
+  }, /*#__PURE__*/React.createElement("strong", null, n), /*#__PURE__*/React.createElement("span", null, d))))), /*#__PURE__*/React.createElement("div", {
+    className: "rl-passo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rl-passo-tit"
+  }, /*#__PURE__*/React.createElement("span", null, "3"), " Informa\xE7\xF5es inclu\xEDdas"), /*#__PURE__*/React.createElement("div", {
+    className: "rl-secoes"
+  }, RL_SECOES.map(([k, n]) => /*#__PURE__*/React.createElement("label", {
+    key: k,
+    className: "av-check"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: secoes.includes(k),
+    onChange: () => alternar(k)
+  }), " ", n)))), /*#__PURE__*/React.createElement("div", {
+    className: "av-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    disabled: invalido || !secoes.length,
+    onClick: () => {
+      setEtapa('previa');
+      avTopo();
+    }
+  }, "Ver pr\xE9via")));
+  const Sec = ({
+    k,
+    titulo,
+    children
+  }) => secoes.includes(k) && r.temDados[k] ? /*#__PURE__*/React.createElement("section", {
+    className: "rg-secao"
+  }, /*#__PURE__*/React.createElement("h4", null, titulo), children) : null;
+  const Reg = x => /*#__PURE__*/React.createElement("li", {
+    key: x.data + x.descricao
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "rg-data"
+  }, rgData(x.data)), " ", /*#__PURE__*/React.createElement("strong", null, x.tipo), " \xB7 ", x.categoria, /*#__PURE__*/React.createElement("div", {
+    className: "rg-texto"
+  }, x.descricao), /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "por ", x.por, x.anexos ? ` · 📎 ${x.anexos}` : ''));
+  const semDados = secoes.filter(k => !r.temDados[k]).map(k => (RL_SECOES.find(x => x[0] === k) || [])[1]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rl-previa"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rl-previa-cab"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Pr\xE9via \u2014 relat\xF3rio ", modelo), /*#__PURE__*/React.createElement("div", {
+    className: "av-sub"
+  }, f.nome, " \xB7 ", rotulo)), /*#__PURE__*/React.createElement("div", {
+    className: "rl-previa-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setEtapa('config')
+  }, "\u2039 Alterar sele\xE7\xF5es"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn",
+    onClick: pdf,
+    disabled: gerando
+  }, gerando ? 'Gerando PDF…' : '⬇ Gerar PDF'))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "rg-corpo"
+  }, /*#__PURE__*/React.createElement(Sec, {
+    k: "dados",
+    titulo: "Dados do colaborador"
+  }, /*#__PURE__*/React.createElement("dl", {
+    className: "rg-ident"
+  }, r.ident.map(([a, b]) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: a
+  }, /*#__PURE__*/React.createElement("dt", null, a), /*#__PURE__*/React.createElement("dd", null, b))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "notas",
+    titulo: "Notas e pontua\xE7\xF5es"
+  }, r.mediaGeral != null && /*#__PURE__*/React.createElement("div", {
+    className: "rg-total"
+  }, "M\xE9dia das avalia\xE7\xF5es aprovadas no per\xEDodo (", r.qtdMedias, "): ", /*#__PURE__*/React.createElement("strong", null, rlNota(r.mediaGeral))), r.finais.filter(a => a.media != null).length >= 2 && /*#__PURE__*/React.createElement("div", {
+    className: "rl-grafico"
+  }, r.finais.filter(a => a.media != null).map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.trimestre,
+    className: "rl-barra"
+  }, /*#__PURE__*/React.createElement("span", null, avRotuloTri(a.trimestre)), /*#__PURE__*/React.createElement("span", {
+    className: "rl-trilho"
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: `${a.media / 5 * 100}%`
+    }
+  })), /*#__PURE__*/React.createElement("b", null, rlNota(a.media))))), modelo === 'completo' && r.finais.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.trimestre,
+    className: "rg-sub"
+  }, /*#__PURE__*/React.createElement("h5", null, avRotuloTri(a.trimestre), " \u2014 m\xE9dia ", rlNota(a.media)), /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, a.notas.map((n, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, n.criterio, " (peso ", n.peso, "): ", /*#__PURE__*/React.createElement("strong", null, n.nota), " \u2014 ", AV_ESCALA[n.nota])))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "historico",
+    titulo: "Hist\xF3rico de avalia\xE7\xF5es"
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.avaliacoes.map(a => /*#__PURE__*/React.createElement("li", {
+    key: a.trimestre
+  }, /*#__PURE__*/React.createElement("strong", null, avRotuloTri(a.trimestre)), " \u2014 ", a.status, a.final && a.media != null ? ` · média ${rlNota(a.media)}` : '', a.final ? /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "Aprovada", a.aprovadaEm ? ` em ${rgData(a.aprovadaEm)}` : '', a.aprovadoPor ? ` por ${a.aprovadoPor}` : '', a.feedbackEm ? ` · feedback em ${rgData(a.feedbackEm)}` : '') : /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "Ainda n\xE3o aprovada: conte\xFAdo e notas n\xE3o s\xE3o apresentados."))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "registros",
+    titulo: `Registros diários (${r.registros.length})`
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.registros.map(Reg))), [['positivos', modelo === 'resumido' ? 'Principais pontos positivos' : 'Pontos positivos', r.positivos, r.pontosAvaliacao.positivos], ['melhorias', modelo === 'resumido' ? 'Principais pontos de melhoria' : 'Pontos de melhoria', r.melhorias, r.pontosAvaliacao.melhorias]].map(([k, t, l, av]) => /*#__PURE__*/React.createElement(Sec, {
+    key: k,
+    k: k,
+    titulo: t
+  }, av.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "Das avalia\xE7\xF5es aprovadas"), /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, av.map((p, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, p.t, " ", /*#__PURE__*/React.createElement("span", {
+    className: "rg-meta"
+  }, "(", avRotuloTri(p.tri), ")"))))), l.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, modelo === 'resumido' ? `Registros mais recentes (até ${RL_MAX_RESUMO})` : 'Registros do período'), /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, l.map(Reg))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "feedbacks",
+    titulo: "Feedbacks"
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.feedbacks.map(Reg))), /*#__PURE__*/React.createElement(Sec, {
+    k: "formacao",
+    titulo: "Cursos e forma\xE7\xF5es"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rg-total"
+  }, avPlural(r.cursos.length, 'formação', 'formações'), r.horas ? ` · ${fpHoras(r.horas)}` : '', " \xB7 ", r.cursos.filter(c => c.certificado).length, " com certificado"), /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.cursos.map((c, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("strong", null, c.nome), " \u2014 ", c.situacao, /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, [c.tipo, c.instituicao, c.carga ? fpHoras(c.carga) : '', c.fim ? `${c.previsao ? 'previsão' : 'conclusão'} ${rgData(c.fim)}` : ''].filter(Boolean).join(' · ')), /*#__PURE__*/React.createElement("div", {
+    className: c.certificado ? 'rg-cert ok' : 'rg-cert'
+  }, c.certificado ? '📎 Certificado anexado' : 'Sem certificado anexado'))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "metas",
+    titulo: modelo === 'resumido' ? 'Resumo das metas' : 'Metas e evolução'
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rg-total"
+  }, rlResumoMetas(r.metas)), /*#__PURE__*/React.createElement("div", {
+    className: "rl-grafico"
+  }, r.metas.map((m, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "rl-barra"
+  }, /*#__PURE__*/React.createElement("span", null, m.titulo), /*#__PURE__*/React.createElement("span", {
+    className: `rl-trilho ${m.status === 'Atrasada' ? 'atrasada' : ''}`
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: `${m.progresso}%`
+    }
+  })), /*#__PURE__*/React.createElement("b", null, m.progresso, "%")))), modelo === 'completo' && /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.metas.map((m, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("strong", null, m.titulo), " \u2014 ", m.status, m.prazo ? ` · prazo ${rgData(m.prazo)}` : '', m.acoes ? ` · ${m.acoesFeitas}/${m.acoes} ações` : '', m.comentarios.map((c, j) => /*#__PURE__*/React.createElement("div", {
+    key: j,
+    className: "rg-meta"
+  }, rgData(c.data), " \u2014 ", c.por, ": ", c.texto)))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "faltas",
+    titulo: "Faltas e atrasos (Comiss\xE3o)"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "N\xE3o alteram a nota."), /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.faltas.map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "rg-data"
+  }, rgData(x.data)), " ", x.texto, x.obs ? ` · ${x.obs}` : '', /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "lan\xE7ado por ", x.por))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "comentarios",
+    titulo: "Coment\xE1rios do avaliador"
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.comentarios.map((c, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("strong", null, avRotuloTri(c.tri)), /*#__PURE__*/React.createElement("div", {
+    className: "rg-texto"
+  }, c.texto))))), /*#__PURE__*/React.createElement(Sec, {
+    k: "conclusao",
+    titulo: "Conclus\xE3o geral"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rg-meta"
+  }, "Conforme registrado pelo avaliador nas avalia\xE7\xF5es aprovadas do per\xEDodo."), /*#__PURE__*/React.createElement("ul", {
+    className: "rg-lista"
+  }, r.conclusao.map((c, i) => /*#__PURE__*/React.createElement("li", {
+    key: i
+  }, /*#__PURE__*/React.createElement("strong", null, avRotuloTri(c.tri)), c.resumo && /*#__PURE__*/React.createElement("div", {
+    className: "rg-texto"
+  }, c.resumo))))), semDados.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "rl-sem-dados"
+  }, "Sem dados no per\xEDodo: ", semDados.join(', '), ".")));
+}
+// ---- área "Relatórios de avaliação" da ficha
+function AvAreaRelatorios({
+  f,
+  usuario,
+  funcionarios,
+  registros,
+  avaliacoes,
+  metas,
+  config
+}) {
+  const [aba, setAba] = useState('gerar');
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rl-area"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "av-chips-filtro rl-abas",
+    role: "tablist"
+  }, [['gerar', '📄 Gerar relatório'], ['pdfs', '⭐ PDFs das avaliações'], ['evolucao', '📈 Evolução']].map(([k, n]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    type: "button",
+    role: "tab",
+    "aria-selected": aba === k,
+    className: `av-chip ${aba === k ? 'ativo' : ''}`,
+    onClick: () => setAba(k)
+  }, n))), aba === 'gerar' && /*#__PURE__*/React.createElement(AvGeradorRelatorio, {
+    f: f,
+    usuario: usuario,
+    registros: registros,
+    avaliacoes: avaliacoes,
+    metas: metas,
+    config: config
+  }), aba === 'pdfs' && /*#__PURE__*/React.createElement(AvRelatorios, {
+    usuario: usuario,
+    funcionarios: funcionarios,
+    avaliacoes: avaliacoes,
+    config: config,
+    metas: metas,
+    fixoId: f.id
+  }), aba === 'evolucao' && /*#__PURE__*/React.createElement(AvPerfilHistorico, {
+    f: f,
+    avaliacoes: avaliacoes,
+    registros: registros,
+    metas: metas,
+    config: config
   }));
 }
 // ======================= CENTRAL DE MONITORAMENTO (Master e administradores) =======================
