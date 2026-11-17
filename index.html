@@ -2965,7 +2965,11 @@ function useCodigoAssinatura(tipo, id, ativo) {
 function mensagemAssinatura(tipo, documento, link, codigo) {
   const doc = tipo === 'entrada' ? `da entrada nº ${documento.numero || ''} (recebimento do equipamento para análise e conserto)` : tipo === 'teste' ? `do recibo de entrega para teste do orçamento nº ${documento.numero || ''}` : `da entrega do orçamento nº ${documento.numero || ''}`;
   const objetivo = tipo === 'entrada' ? 'confirmar o recebimento do equipamento e formalizar a autorização do serviço' : tipo === 'teste' ? 'confirmar o recebimento das peças para teste' : 'confirmar o recebimento e formalizar a autorização correspondente';
-  return ['Olá! Encaminhamos o link para assinatura eletrônica ' + doc.replace(/nº \s*\(/, '(') + ', referente ao atendimento do equipamento.', '', `Por gentileza, acesse o link abaixo e realize a assinatura solicitada para ${objetivo}.`, '', `🔗 Link: ${link}`, codigo ? `🔑 Código de verificação: ${codigo}` : '🔑 O código de verificação será enviado em outra mensagem.', '', 'É importante concluir a assinatura para que possamos dar continuidade ao processo.', 'Em caso de dúvidas, estamos à disposição.'].join('\n');
+  return ['Olá! Encaminhamos o link para assinatura eletrônica ' + doc.replace(/nº \s*\(/, '(') + ', referente ao atendimento do equipamento.', '', `Por gentileza, acesse o link abaixo e realize a assinatura solicitada para ${objetivo}.`, '', `🔗 *Link:* ${link}`, '', ...(codigo ? blocoCodigoAssinatura(codigo) : ['🔑 O *código de verificação* será enviado em outra mensagem. Digite-o quando o link pedir.']), '', 'É importante concluir a assinatura para que possamos dar continuidade ao processo.', 'Em caso de dúvidas, estamos à disposição.'].join('\n');
+}
+// Código em destaque para WhatsApp (*negrito*), entre linhas, com a instrução de onde digitar.
+function blocoCodigoAssinatura(codigo) {
+  return ['━━━━━━━━━━━━━━', '🔑 *CÓDIGO DE VERIFICAÇÃO*', `👉 *${codigo}* 👈`, 'Digite este código quando o link pedir.', '━━━━━━━━━━━━━━'];
 }
 function linkAssinatura(tipo, id) {
   return `${window.location.origin}${window.location.pathname}?assinar=${tipo}&id=${id}`;
@@ -4927,7 +4931,8 @@ function BlocoAssinatura({
   }, codigo)), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
-    onClick: () => copiar(codigo)
+    onClick: () => copiar(blocoCodigoAssinatura(codigo).join('\n')),
+    title: "Copia o código em destaque, pronto para enviar ao cliente"
   }, "Copiar código")), /*#__PURE__*/React.createElement("div", {
     className: "codigo-assinatura-situacao",
     style: {
