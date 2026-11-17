@@ -1423,112 +1423,6 @@
   .etq-status.st-conserto{background:var(--st-conserto-bg);color:var(--st-conserto);border-color:var(--st-conserto-borda);}
   .etq-status.st-garantia{background:var(--st-garantia-bg);color:var(--st-garantia);border-color:var(--st-garantia-borda);}
   .etq-status.st-sem{background:var(--st-sem-bg);color:var(--st-sem);border-color:var(--st-sem-borda);}
-  /* ---- Entrada de Peças (tela redesenhada) ---- */
-.ep-linha1 .ep-cli{display:block;}
-.ep-cli-doc{font-size:12.5px;color:var(--texto-suave,#5b6577);margin:1px 0 3px;overflow-wrap:anywhere;}
-.ep-cli-doc span{display:block;}
-  .ep-tela{display:flex;flex-direction:column;gap:14px;}
-  .ep-cab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
-  .ep-titulo{display:flex;align-items:center;gap:14px;}
-  .ep-titulo-ic{color:#0F2A47;display:grid;place-items:center;}
-  .ep-titulo-ic .ep-ic{width:40px;height:40px;stroke-width:2.2;}
-  .ep-titulo h2{margin:0;font-size:28px;color:#0F2A47;}
-  .ep-titulo p{margin:2px 0 0;color:var(--texto-fraco);font-size:14px;}
-  .ep-cab-acoes{display:flex;gap:8px;flex-wrap:wrap;}
-  .ep-nova{font-size:15px;padding:10px 18px;box-shadow:0 4px 12px rgba(232,119,15,.25);}
-  .ep-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
-  .ep-kpi{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:14px;border:1px solid transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;min-height:96px;}
-  .ep-kpi.azul{background:#E5EFFB;border-color:#CFE0F5;}.ep-kpi.verde{background:#E6F4EA;border-color:#CBE8D3;}.ep-kpi.cinza{background:#EEEDEB;border-color:#E2E0DC;}
-  .ep-kpi.ativo{box-shadow:0 0 0 2px #0F2A47 inset;}
-  .ep-kpi-ic .ep-ic{width:44px;height:44px;stroke-width:1.8;}
-  .ep-kpi.azul .ep-kpi-ic{color:#1F4E9A;}.ep-kpi.verde .ep-kpi-ic{color:var(--st-conserto);}
-  .ep-kpi.cinza .ep-kpi-ic{width:46px;height:46px;border-radius:50%;background:var(--st-conserto);color:#fff;display:grid;place-items:center;}
-  .ep-kpi.cinza .ep-kpi-ic .ep-ic{width:28px;height:28px;stroke-width:3;}
-  .ep-kpi-txt{display:flex;flex-direction:column;gap:2px;}
-  .ep-kpi-txt>span{font-size:15px;font-weight:600;line-height:1.2;}
-  .ep-kpi-txt small{font-weight:500;font-size:13px;}
-  .ep-kpi-txt strong{font-size:30px;line-height:1.05;color:#0F2A47;}
-  .ep-filtros{display:grid;grid-template-columns:minmax(220px,1.6fr) repeat(3,minmax(150px,1fr));gap:10px;}
-  .ep-filtros select,.ep-filtros input{margin:0;}
-  .ep-busca,.ep-periodo{position:relative;display:block;}
-  .ep-busca .ep-ic,.ep-periodo .ep-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--texto-fraco);pointer-events:none;}
-  .ep-busca input{padding-left:38px;width:100%;}
-  .ep-periodo select{padding-left:38px;width:100%;}
-  .ep-legenda{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-  .ep-leg{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--borda);background:var(--card);font:inherit;font-size:13.5px;cursor:pointer;color:inherit;min-height:34px;}
-  .ep-leg i,.ep-dot i{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none;}
-  .ep-leg.consertada i,.ep-dot.consertada i{background:var(--st-conserto);}
-  .ep-leg.garantia i,.ep-dot.garantia i{background:var(--st-garantia-cor);}
-  .ep-leg.naoConsertada i,.ep-dot.naoConsertada i{background:var(--st-sem);}
-  .ep-dot.teste i{background:#3B82C4;}.ep-dot.aguardando i{background:#C9C4BF;}
-  .ep-leg.consertada{background:var(--st-conserto-bg);}.ep-leg.garantia{background:var(--st-garantia-bg);}.ep-leg.naoConsertada{background:var(--st-sem-bg);}
-  .ep-leg.ativo{box-shadow:0 0 0 2px #0F2A47 inset;font-weight:700;}
-  .ep-limpar{border:0;background:none;color:var(--laranja-escuro);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;}
-  .ep-arquivado{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-color:var(--laranja);}
-  .ep-arq-tit{font-weight:700;font-size:13.5px;margin-top:4px;}.ep-arq-data{font-size:11.5px;color:var(--texto-fraco);}
-  .ep-abas{display:flex;gap:6px;border-bottom:2px solid var(--borda);}
-  .ep-abas button{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:0;border-radius:10px 10px 0 0;background:#E9EEF5;color:#0F2A47;font:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:-2px;}
-  .ep-abas button .ep-ic{width:18px;height:18px;}
-  .ep-abas button.ativa{background:#0F2A47;color:#fff;}
-  .ep-lista{display:flex;flex-direction:column;border:1px solid var(--borda);border-radius:0 12px 12px 12px;background:var(--card);overflow:hidden;}
-  .ep-linha{display:grid;grid-template-columns:104px minmax(200px,1.5fr) minmax(170px,1fr) 180px 160px auto;align-items:center;gap:14px;padding:12px 16px;cursor:pointer;position:relative;}
-  .ep-linha+.ep-linha{border-top:1px solid var(--borda);}
-  .ep-linha:hover{background:#FAF8F6;}
-  .ep-linha.linha-garantia{background:var(--st-garantia-bg);box-shadow:inset 4px 0 0 var(--st-garantia-cor);}
-  .ep-linha.linha-prazo-vencido{box-shadow:inset 4px 0 0 var(--st-sem);}
-  .ep-linha.linha-garantia.linha-prazo-vencido{box-shadow:inset 4px 0 0 var(--st-sem),inset 8px 0 0 var(--st-garantia-cor);}
-  .ep-foto .foto-thumb,.ep-foto img{width:100px;height:80px;border-radius:8px;object-fit:cover;}
-  .ep-foto .miniatura-fotos,.ep-foto>div{max-width:100px;}
-  .ep-sem-foto{width:100px;height:80px;border-radius:8px;background:#F1EEEB;border:1px solid var(--borda);display:grid;place-items:center;color:#B9B2AC;}
-  .ep-info{min-width:0;display:flex;flex-direction:column;gap:6px;}
-  .ep-linha1{font-size:15px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;}
-  .ep-linha1 strong{font-size:16px;}
-  .ep-sep{color:var(--texto-fraco);}
-  .ep-cli-btn{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;font-weight:600;}
-  .ep-cli-btn:hover{text-decoration:underline;}
-  .ep-linha2{display:flex;align-items:center;gap:6px;color:var(--texto-fraco);font-size:13.5px;}
-  .ep-linha2 .ep-ic{width:16px;height:16px;}
-  .ep-class{display:flex;flex-direction:column;gap:4px;font-size:13.5px;min-width:0;}
-  .ep-class-rot{color:var(--texto-fraco);font-size:12.5px;}
-  .ep-class-lista{display:flex;flex-direction:column;gap:3px;}
-  .ep-dot{display:inline-flex;align-items:center;gap:7px;font-weight:600;}
-  .ep-dot.aguardando{color:var(--texto-fraco);font-weight:500;}
-  .ep-garantia-prio{font-size:11.5px;font-weight:700;color:var(--st-garantia);}
-  .ep-prazo{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;min-height:58px;}
-  .ep-prazo.vazio{background:none;}
-  .ep-prazo .ep-ic{width:26px;height:26px;flex:none;}
-  .ep-prazo div{display:flex;flex-direction:column;line-height:1.25;}
-  .ep-prazo strong{font-size:14.5px;}.ep-prazo span{font-size:12.5px;}
-  .ep-prazo.vencido{background:#FDE4E1;color:var(--st-sem);}
-  .ep-prazo.dentro{background:#FFF0DD;color:#9A4B00;}
-  .ep-prazo.dentro strong{color:#3B2A1A;}
-  .ep-orc{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:#EAF1FA;font-size:13.5px;line-height:1.25;color:#1E3550;min-height:58px;}
-  .ep-orc-ic{display:grid;place-items:center;color:#1F4E9A;}
-  .ep-orc-ic .ep-ic{width:24px;height:24px;}
-  .ep-orc.gerado .ep-orc-ic{width:28px;height:28px;border-radius:50%;background:var(--st-conserto);color:#fff;}
-  .ep-orc.gerado .ep-orc-ic .ep-ic{width:17px;height:17px;stroke-width:3;}
-  .ep-orc.parcial{background:#FFF6E5;}.ep-orc.parcial .ep-orc-ic{color:#9A4B00;}
-  .ep-acoes{display:flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:wrap;}
-  .ep-visualizar{background:#0F2A47;color:#fff;min-height:42px;padding:8px 18px;}
-  .ep-assinar{min-height:36px;}
-  .ep-mais{padding:10px;text-align:center;border-top:1px solid var(--borda);}
-  .ep-vazio{padding:28px;text-align:center;color:var(--texto-fraco);}
-  @media (max-width:1200px){.ep-linha{grid-template-columns:96px minmax(180px,1.4fr) minmax(150px,1fr) 170px 150px;}.ep-acoes{grid-column:1 / -1;justify-content:flex-end;}}
-  @media (max-width:900px){.ep-kpis{grid-template-columns:1fr 1fr 1fr;gap:8px;}.ep-kpi{flex-direction:column;align-items:flex-start;gap:8px;padding:12px;min-height:0;}.ep-kpi-ic .ep-ic{width:30px;height:30px;}.ep-kpi.cinza .ep-kpi-ic{width:32px;height:32px;}.ep-kpi.cinza .ep-kpi-ic .ep-ic{width:20px;height:20px;}.ep-kpi-txt>span{font-size:13px;}.ep-kpi-txt strong{font-size:24px;}
-    .ep-filtros{grid-template-columns:1fr 1fr;}.ep-busca{grid-column:1 / -1;}}
-  @media (max-width:760px){
-    .ep-titulo h2{font-size:22px;}.ep-titulo-ic .ep-ic{width:30px;height:30px;}
-    .ep-cab-acoes{width:100%;}.ep-cab-acoes .btn{flex:1;}
-    .ep-linha{grid-template-columns:84px minmax(0,1fr);gap:10px 12px;padding:12px;}
-    .ep-foto{grid-row:span 2;}.ep-foto .foto-thumb,.ep-foto img,.ep-sem-foto{width:84px;height:70px;}
-    .ep-class{grid-column:2;}
-    .ep-prazo,.ep-orc{grid-column:span 1;min-height:0;padding:8px 10px;}
-    .ep-prazo.vazio{display:none;}
-    .ep-prazo{grid-column:1 / -1;}.ep-orc{grid-column:1 / -1;}
-    .ep-acoes{grid-column:1 / -1;justify-content:stretch;}.ep-visualizar{flex:1;}
-    .ep-abas button{flex:1;justify-content:center;padding:10px 8px;font-size:14px;}
-    .ep-filtros{grid-template-columns:1fr;}
-  }
   .prazo-entrada{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11.5px;font-weight:700;white-space:nowrap;background:var(--fundo);color:var(--texto-fraco);border:1px solid var(--borda);}
   .prazo-entrada.perto{background:var(--laranja-bg);color:var(--laranja-escuro);border-color:#F2C49B;}
   .prazo-entrada.vencido{background:var(--st-sem);color:#fff;border-color:var(--st-sem);}
@@ -6394,10 +6288,6 @@ function TelaCriarConta({
   }, "Voltar")));
 }
 
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
@@ -19672,568 +19562,6 @@ function BenAcessoInicial({
   return null;
 }
 
-// ======================= ENTRADA DE PEÇAS (tela redesenhada) =======================
-// Cartões de resumo, filtros (busca, situação, classificação, período), abas Em aberto / Concluídas e linhas
-// com foto, classificação das peças (cores padrão), prazo de 48 h e situação do orçamento. Tudo calculado dos
-// dados que já existem; nada é gravado pela tela. Ações mantidas: dar entrada, arquivados, abrir, assinar,
-// copiar, imprimir, excluir, ver cliente, fotos.
-const EP_CLASSES = [['consertada', 'Conserto', 'qtdConsertada'], ['garantia', 'Garantia', 'qtdGarantia'], ['naoConsertada', 'Sem conserto', 'qtdNaoConsertada'], ['teste', 'Teste', 'qtdTeste']];
-const EP_PERIODOS = [['', 'Todo o período'], ['hoje', 'Hoje'], ['7', 'Últimos 7 dias'], ['30', 'Últimos 30 dias'], ['mes', 'Este mês']];
-function epClassificacao(l) {
-  const soma = k => (l.itens || []).reduce((s, i) => s + (Number(i[k]) || 0), 0);
-  return EP_CLASSES.map(([id, nome, k]) => ({
-    id,
-    nome,
-    qtd: soma(k)
-  })).filter(c => c.qtd > 0);
-}
-function epTotalPecas(l) {
-  return (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
-}
-// orçamento da entrada pelos contadores das peças: pendente (nenhuma orçada), parcial ou gerado (todas
-// as peças classificadas e orçadas)
-function situacaoOrcamentoLote(l) {
-  let total = 0,
-    classif = 0,
-    orcadas = 0;
-  for (const i of l.itens || []) {
-    total += Number(i.quantidade) || 0;
-    classif += (i.qtdConsertada || 0) + (i.qtdGarantia || 0) + (i.qtdTeste || 0) + (i.qtdNaoConsertada || 0);
-    orcadas += (i.qtdConsertadaOrcada || 0) + (i.qtdGarantiaOrcada || 0) + (i.qtdTesteOrcada || 0) + (i.qtdNaoConsertadaOrcada || 0);
-  }
-  if (!orcadas) return 'pendente';
-  return classif >= total && orcadas >= classif ? 'gerado' : 'parcial';
-}
-function epNoPeriodo(l, periodo, agora) {
-  if (!periodo) return true;
-  const d = dataDe(l.criadoEm);
-  if (!d || isNaN(d)) return true;
-  const hoje = new Date(agora);
-  if (periodo === 'hoje') return d.toDateString() === hoje.toDateString();
-  if (periodo === 'mes') return d.getFullYear() === hoje.getFullYear() && d.getMonth() === hoje.getMonth();
-  return agora - d.getTime() <= Number(periodo) * 86400e3;
-}
-function EpIcone({
-  nome
-}) {
-  const p = {
-    chave: /*#__PURE__*/React.createElement("path", {
-      d: "M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8V21h3.2l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.8-.7-.7-2.8z"
-    }),
-    caixa: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
-      d: "M21 8 12 3 3 8v8l9 5 9-5z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "m3 8 9 5 9-5M12 13v8"
-    })),
-    doc: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
-      d: "M14 3H6v18h12V7z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M14 3v4h4M9 12h6M9 16h6"
-    })),
-    docOk: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
-      d: "M14 3H6v18h7"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M14 3v4h4v5M9 12h5M9 16h3"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "m15 18 2 2 4-4"
-    })),
-    ok: /*#__PURE__*/React.createElement("path", {
-      d: "m5 12 5 5 9-10"
-    }),
-    relogio: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("circle", {
-      cx: "12",
-      cy: "12",
-      r: "9"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M12 7v5l3 2"
-    })),
-    busca: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("circle", {
-      cx: "11",
-      cy: "11",
-      r: "7"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "m20 20-3.5-3.5"
-    })),
-    calendario: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("rect", {
-      x: "3",
-      y: "5",
-      width: "18",
-      height: "16",
-      rx: "2"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M3 10h18M8 3v4M16 3v4"
-    }))
-  }[nome];
-  return /*#__PURE__*/React.createElement("svg", {
-    className: `ep-ic ep-ic-${nome}`,
-    viewBox: "0 0 24 24",
-    width: "22",
-    height: "22",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "2",
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    "aria-hidden": "true"
-  }, p);
-}
-function EpPrazo({
-  lote,
-  agora
-}) {
-  const p = prazoEntrada(lote, agora);
-  if (!p) return /*#__PURE__*/React.createElement("div", {
-    className: "ep-prazo vazio",
-    "aria-hidden": "true"
-  });
-  const quando = t => new Date(t).toLocaleString('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short'
-  });
-  return /*#__PURE__*/React.createElement("div", {
-    className: `ep-prazo ${p.vencido ? 'vencido' : 'dentro'}`,
-    title: `Entrada em ${quando(p.inicio)} · prazo até ${quando(p.limite)}`
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: "relogio"
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, p.vencido ? 'Mais de 48h' : 'Até 48h'), /*#__PURE__*/React.createElement("span", null, p.vencido ? `Prazo vencido há ${textoDuracao(-p.restanteMs)}` : `Restam: ${textoDuracao(p.restanteMs)}`)));
-}
-function EpOrcamento({
-  lote
-}) {
-  const s = situacaoOrcamentoLote(lote);
-  const conc = !entradaAberta(lote);
-  const [cls, ic, t1, t2] = s === 'gerado' ? ['gerado', 'ok', 'Orçamento', 'gerado'] : s === 'parcial' ? ['parcial', 'docOk', 'Orçamento', 'parcial'] : conc ? ['gerado', 'ok', 'Entrada', 'concluída'] : ['pendente', 'doc', 'Orçamento', 'pendente'];
-  return /*#__PURE__*/React.createElement("div", {
-    className: `ep-orc ${cls}`
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "ep-orc-ic"
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: ic
-  })), /*#__PURE__*/React.createElement("span", null, t1, /*#__PURE__*/React.createElement("br", null), t2));
-}
-function AbaLotes({
-  usuario,
-  funcionarios
-}) {
-  const [lotes, carregando] = useColecao('lotes', 'criadoEm', true);
-  const [clientes] = useColecao('clientes');
-  const [catalogo] = useColecao('catalogoPecas');
-  const [modalNovoAberto, setModalNovoAberto] = useState(false);
-  const [loteSelecionadoId, setLoteSelecionadoId] = useState(null);
-  const [aba, setAba] = useState('abertas');
-  const [filtroSituacao, setFiltroSituacao] = useState('');
-  const [filtroClasse, setFiltroClasse] = useState('');
-  const [periodo, setPeriodo] = useState('');
-  const [limiteLotes, setLimiteLotes] = useState(LISTA_LOTE);
-  const [fotoAmpliada, setFotoAmpliada] = useState(null);
-  const [loteAssinaturaId, setLoteAssinaturaId] = useState(null);
-  const [menuLote, setMenuLote] = useState(null);
-  const [loteParaCopiar, setLoteParaCopiar] = useState(null);
-  const [imprimindo, setImprimindo] = useState(false);
-  const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
-  const [resultadoArquivado, setResultadoArquivado] = useState(null);
-  const [clienteParaVer, setClienteParaVer] = useState(null);
-  const [busca, setBusca] = useState('');
-  const editar = podeEditar(usuario, 'lotes');
-  const clientePorId = useMemo(() => {
-    const m = {};
-    clientes.forEach(c => {
-      m[c.id] = c;
-    });
-    return m;
-  }, [clientes]);
-  const nomeCliente = id => (clientePorId[id] || {}).razaoSocial || '-';
-  const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId) || (resultadoArquivado?.id === loteSelecionadoId ? resultadoArquivado : null);
-  const loteParaAssinar = lotes.find(l => l.id === loteAssinaturaId);
-  useEffect(() => {
-    const numeroBuscado = Number(busca.trim().replace(/\D/g, ''));
-    if (!numeroBuscado || lotes.some(l => l.numero === numeroBuscado)) {
-      setResultadoArquivado(null);
-      return;
-    }
-    let cancelado = false;
-    (async () => {
-      const snap = await db.collection('lotes').where('numero', '==', numeroBuscado).where('arquivado', '==', true).limit(1).get();
-      if (!cancelado) setResultadoArquivado(snap.empty ? null : {
-        id: snap.docs[0].id,
-        ...snap.docs[0].data()
-      });
-    })();
-    return () => {
-      cancelado = true;
-    };
-  }, [busca, lotes]);
-  useEffect(() => {
-    setLimiteLotes(LISTA_LOTE);
-  }, [aba, filtroSituacao, filtroClasse, periodo, busca]);
-  const agora = useAgoraMinuto();
-  const abertas = lotes.filter(entradaAberta),
-    concluidas = lotes.filter(l => !entradaAberta(l));
-  const kpis = {
-    semOrc: abertas.filter(l => situacaoOrcamentoLote(l) !== 'gerado').length,
-    gerados: abertas.filter(l => situacaoOrcamentoLote(l) === 'gerado').length,
-    concluidas: concluidas.length
-  };
-  const passaFiltros = l => {
-    if (filtroSituacao) {
-      const s = situacaoOrcamentoLote(l);
-      if (filtroSituacao === 'vencido' ? !(prazoEntrada(l, agora) || {}).vencido : filtroSituacao === 'pendente' ? s === 'gerado' : s !== 'gerado') return false;
-    }
-    if (filtroClasse) {
-      const cs = epClassificacao(l);
-      if (filtroClasse === 'aguardando' ? cs.length > 0 : !cs.some(c => c.id === filtroClasse)) return false;
-    }
-    if (!epNoPeriodo(l, periodo, agora)) return false;
-    if (busca) {
-      const b = busca.trim().toLowerCase();
-      const n = b.replace(/\D/g, '');
-      const bateNumero = l.numero && n && String(l.numero) === n;
-      const bateCliente = nomeCliente(l.clienteId).toLowerCase().includes(b);
-      const batePeca = (l.itens || []).some(i => `${i.pecaDescricao || ''} ${frotaDe(i) || ''}`.toLowerCase().includes(b));
-      if (!bateNumero && !bateCliente && !batePeca) return false;
-    }
-    return true;
-  };
-  const daAba = aba === 'abertas' ? abertas : concluidas;
-  const filtrados = ordenarEntradas(daAba).filter(passaFiltros);
-  const contagemAba = {
-    abertas: ordenarEntradas(abertas).filter(passaFiltros).length,
-    concluidas: ordenarEntradas(concluidas).filter(passaFiltros).length
-  };
-  async function excluirLote(l) {
-    if (!confirm(`Excluir a entrada de ${nomeCliente(l.clienteId)} e todos os orçamentos/comissões gerados por ela? Essa ação não pode ser desfeita.`)) return;
-    if (!confirmarSenhaMaster('Digite a senha master para excluir esta entrada:')) return;
-    const opBatch = db.batch();
-    const orcamentosSnap = await db.collection('orcamentos').where('loteId', '==', l.id).get();
-    for (const orcDoc of orcamentosSnap.docs) {
-      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', orcDoc.id).get();
-      comSnap.docs.forEach(d => opBatch.delete(d.ref));
-      opBatch.delete(orcDoc.ref);
-    }
-    opBatch.delete(db.collection('lotes').doc(l.id));
-    await opBatch.commit();
-  }
-  async function imprimirLote(l) {
-    setImprimindo(true);
-    try {
-      await gerarPdfLoteImpressao(l, clientePorId[l.clienteId]);
-    } catch (err) {
-      console.error(err);
-      alert('Não consegui gerar o PDF.');
-    }
-    setImprimindo(false);
-    setMenuLote(null);
-  }
-  const irPara = (novaAba, situacao) => {
-    setAba(novaAba);
-    setFiltroSituacao(situacao || '');
-  };
-  const kpi = (cls, ic, rotulo, valor, onClick, ativo) => /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: `ep-kpi ${cls}${ativo ? ' ativo' : ''}`,
-    onClick: onClick,
-    "aria-pressed": ativo
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "ep-kpi-ic"
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: ic
-  })), /*#__PURE__*/React.createElement("span", {
-    className: "ep-kpi-txt"
-  }, /*#__PURE__*/React.createElement("span", null, rotulo), /*#__PURE__*/React.createElement("strong", null, String(valor).padStart(2, '0'))));
-  const algumFiltro = filtroSituacao || filtroClasse || periodo || busca;
-  return /*#__PURE__*/React.createElement("div", {
-    className: "painel-tela ep-tela"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "ep-cab"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "ep-titulo"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "ep-titulo-ic"
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: "chave"
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Entrada de Pe\xE7as"), /*#__PURE__*/React.createElement("p", null, "Acompanhe as entradas e os or\xE7amentos"))), /*#__PURE__*/React.createElement("div", {
-    className: "ep-cab-acoes"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: () => setModalArquivadosAberto(true)
-  }, "\uD83D\uDCC1 Arquivados"), editar && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn ep-nova",
-    onClick: () => setModalNovoAberto(true)
-  }, "+ Nova entrada"))), /*#__PURE__*/React.createElement("div", {
-    className: "ep-kpis"
-  }, kpi('azul', 'caixa', /*#__PURE__*/React.createElement(React.Fragment, null, "Em aberto", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("small", null, "(sem or\xE7amento)")), kpis.semOrc, () => irPara('abertas', filtroSituacao === 'pendente' && aba === 'abertas' ? '' : 'pendente'), aba === 'abertas' && filtroSituacao === 'pendente'), kpi('verde', 'docOk', 'Orçamentos gerados', kpis.gerados, () => irPara('abertas', filtroSituacao === 'gerado' && aba === 'abertas' ? '' : 'gerado'), aba === 'abertas' && filtroSituacao === 'gerado'), kpi('cinza', 'ok', 'Concluídas', kpis.concluidas, () => irPara('concluidas'), aba === 'concluidas' && !filtroSituacao)), /*#__PURE__*/React.createElement("div", {
-    className: "ep-filtros"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "ep-busca"
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: "busca"
-  }), /*#__PURE__*/React.createElement("input", {
-    placeholder: "Buscar por cliente, n\xFAmero ou pe\xE7a...",
-    value: busca,
-    onChange: e => setBusca(e.target.value),
-    "aria-label": "Buscar"
-  })), /*#__PURE__*/React.createElement("select", {
-    value: filtroSituacao,
-    onChange: e => setFiltroSituacao(e.target.value),
-    "aria-label": "Situa\xE7\xE3o"
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Todos os status"), /*#__PURE__*/React.createElement("option", {
-    value: "pendente"
-  }, "Or\xE7amento pendente"), /*#__PURE__*/React.createElement("option", {
-    value: "gerado"
-  }, "Or\xE7amento gerado"), /*#__PURE__*/React.createElement("option", {
-    value: "vencido"
-  }, "Prazo de 48h vencido")), /*#__PURE__*/React.createElement("select", {
-    value: filtroClasse,
-    onChange: e => setFiltroClasse(e.target.value),
-    "aria-label": "Classifica\xE7\xE3o"
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Todas as classifica\xE7\xF5es"), EP_CLASSES.map(([id, nome]) => /*#__PURE__*/React.createElement("option", {
-    key: id,
-    value: id
-  }, nome)), /*#__PURE__*/React.createElement("option", {
-    value: "aguardando"
-  }, "Aguardando an\xE1lise")), /*#__PURE__*/React.createElement("label", {
-    className: "ep-periodo"
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: "calendario"
-  }), /*#__PURE__*/React.createElement("select", {
-    value: periodo,
-    onChange: e => setPeriodo(e.target.value),
-    "aria-label": "Per\xEDodo"
-  }, EP_PERIODOS.map(([k, n]) => /*#__PURE__*/React.createElement("option", {
-    key: k,
-    value: k
-  }, k ? n : 'Período'))))), /*#__PURE__*/React.createElement("div", {
-    className: "ep-legenda",
-    role: "group",
-    "aria-label": "Filtrar por classifica\xE7\xE3o"
-  }, EP_CLASSES.slice(0, 3).map(([id, nome]) => /*#__PURE__*/React.createElement("button", {
-    key: id,
-    type: "button",
-    className: `ep-leg ${id}${filtroClasse === id ? ' ativo' : ''}`,
-    onClick: () => setFiltroClasse(filtroClasse === id ? '' : id),
-    "aria-pressed": filtroClasse === id
-  }, /*#__PURE__*/React.createElement("i", null), nome)), algumFiltro && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "ep-limpar",
-    onClick: () => {
-      setFiltroSituacao('');
-      setFiltroClasse('');
-      setPeriodo('');
-      setBusca('');
-    }
-  }, "Limpar filtros")), resultadoArquivado && /*#__PURE__*/React.createElement("div", {
-    className: "card clicavel ep-arquivado",
-    onClick: () => setLoteSelecionadoId(resultadoArquivado.id)
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    className: "badge estoque"
-  }, "\uD83D\uDCC1 ARQUIVADO"), /*#__PURE__*/React.createElement("div", {
-    className: "ep-arq-tit"
-  }, "Entrada #", resultadoArquivado.numero, " \u2014 ", nomeCliente(resultadoArquivado.clienteId)), /*#__PURE__*/React.createElement("div", {
-    className: "ep-arq-data"
-  }, formatData(resultadoArquivado.criadoEm))), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario pequeno",
-    onClick: () => setLoteSelecionadoId(resultadoArquivado.id)
-  }, "Abrir cart\xE3o")), /*#__PURE__*/React.createElement("div", {
-    className: "ep-abas",
-    role: "tablist"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    role: "tab",
-    "aria-selected": aba === 'abertas',
-    className: aba === 'abertas' ? 'ativa' : '',
-    onClick: () => setAba('abertas')
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: "relogio"
-  }), " Em aberto (", contagemAba.abertas, ")"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    role: "tab",
-    "aria-selected": aba === 'concluidas',
-    className: aba === 'concluidas' ? 'ativa' : '',
-    onClick: () => setAba('concluidas')
-  }, /*#__PURE__*/React.createElement(EpIcone, {
-    nome: "ok"
-  }), " Conclu\xEDdas (", contagemAba.concluidas, ")")), /*#__PURE__*/React.createElement("div", {
-    className: "ep-lista lista-entradas"
-  }, filtrados.slice(0, limiteLotes).map(l => {
-    const cs = epClassificacao(l),
-      p = prazoEntrada(l, agora),
-      g = entradaAberta(l) && entradaTemGarantia(l),
-      cli = clientePorId[l.clienteId];
-    return /*#__PURE__*/React.createElement("div", {
-      key: l.id,
-      className: `ep-linha linha-clicavel${g ? ' linha-garantia' : ''}${p && p.vencido ? ' linha-prazo-vencido' : ''}`,
-      onClick: () => setLoteSelecionadoId(l.id),
-      role: "button",
-      tabIndex: 0,
-      onKeyDown: e => {
-        if (e.key === 'Enter') setLoteSelecionadoId(l.id);
-      },
-      "data-lote": l.numero
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "ep-foto",
-      onClick: e => e.stopPropagation()
-    }, l.fotos && l.fotos[0] ? /*#__PURE__*/React.createElement(MiniaturaFotos, {
-      fotos: l.fotos,
-      aoAbrir: i => setFotoAmpliada({
-        fotos: fotosComRegistro(l.fotos, l.fotosRegistro),
-        indice: i
-      })
-    }) : /*#__PURE__*/React.createElement("div", {
-      className: "ep-sem-foto"
-    }, /*#__PURE__*/React.createElement(EpIcone, {
-      nome: "caixa"
-    }))), /*#__PURE__*/React.createElement("div", {
-      className: "ep-info"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "ep-linha1"
-    }, /*#__PURE__*/React.createElement("strong", null, l.numero ? `#${l.numero}` : '-'), /*#__PURE__*/React.createElement("span", {
-      className: "ep-cli"
-    }, "Cliente: ", /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "ep-cli-btn",
-      onClick: e => {
-        e.stopPropagation();
-        setClienteParaVer(cli);
-      }
-    }, cli ? cli.razaoSocial : '-'))), cli && (cli.cnpj || cli.cidade) && /*#__PURE__*/React.createElement("div", {
-      className: "ep-cli-doc"
-    }, [cli.cnpj && `CNPJ/CPF: ${formatCNPJ(cli.cnpj)}`, cli.cidade && (cli.uf ? `${cli.cidade}/${cli.uf}` : cli.cidade)].filter(Boolean).map((t, i) => /*#__PURE__*/React.createElement("span", {
-      key: i
-    }, t))), /*#__PURE__*/React.createElement("div", {
-      className: "ep-linha2"
-    }, /*#__PURE__*/React.createElement(EpIcone, {
-      nome: "calendario"
-    }), " ", formatData(l.criadoEm), /*#__PURE__*/React.createElement("span", {
-      className: "ep-sep"
-    }, "\u2022"), epTotalPecas(l), " ", epTotalPecas(l) === 1 ? 'peça' : 'peças')), /*#__PURE__*/React.createElement("div", {
-      className: "ep-class"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "ep-class-rot"
-    }, "Classifica\xE7\xE3o das pe\xE7as:"), cs.length ? /*#__PURE__*/React.createElement("span", {
-      className: "ep-class-lista"
-    }, cs.map(c => /*#__PURE__*/React.createElement("span", {
-      key: c.id,
-      className: `ep-dot ${c.id}`
-    }, /*#__PURE__*/React.createElement("i", null), c.nome, cs.length > 1 || c.qtd !== epTotalPecas(l) ? ` (${c.qtd})` : ''))) : /*#__PURE__*/React.createElement("span", {
-      className: "ep-dot aguardando"
-    }, /*#__PURE__*/React.createElement("i", null), "Aguardando an\xE1lise"), g && /*#__PURE__*/React.createElement("span", {
-      className: "ep-garantia-prio"
-    }, "Prioridade: conserto imediato")), /*#__PURE__*/React.createElement(EpPrazo, {
-      lote: l,
-      agora: agora
-    }), /*#__PURE__*/React.createElement(EpOrcamento, {
-      lote: l
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "ep-acoes",
-      onClick: e => e.stopPropagation()
-    }, /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "btn ep-visualizar",
-      onClick: () => setLoteSelecionadoId(l.id)
-    }, "Visualizar"), editar ? /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: `btn pequeno ep-assinar ${l.assinaturaEntrada ? 'verde' : 'secundario'}`,
-      onClick: () => setLoteAssinaturaId(l.id)
-    }, l.assinaturaEntrada ? '✓ Assinado' : '🖊️ Assinar') : l.assinaturaEntrada && /*#__PURE__*/React.createElement("span", {
-      className: "badge aprovado"
-    }, "\u2713 Assinado"), editar && /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "btn-menu-pontos",
-      onClick: () => setMenuLote(l),
-      title: "Mais a\xE7\xF5es",
-      "aria-label": "Mais a\xE7\xF5es"
-    }, "\u22EE")));
-  }), filtrados.length > limiteLotes && /*#__PURE__*/React.createElement("div", {
-    className: "linha-carregar-mais ep-mais"
-  }, /*#__PURE__*/React.createElement(KanbanCarregarMais, {
-    mostrando: limiteLotes,
-    total: filtrados.length,
-    aoMais: () => setLimiteLotes(n => n + LISTA_LOTE)
-  })), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("div", {
-    className: "ep-vazio"
-  }, algumFiltro ? 'Nenhuma entrada com esses filtros.' : aba === 'abertas' ? 'Nenhuma entrada em aberto.' : 'Nenhuma entrada concluída.')), modalNovoAberto && /*#__PURE__*/React.createElement(ModalNovoLote, {
-    clientes: clientes,
-    catalogo: catalogo,
-    usuario: usuario,
-    aoFechar: () => setModalNovoAberto(false)
-  }), loteParaCopiar && /*#__PURE__*/React.createElement(ModalNovoLote, {
-    clientes: clientes,
-    catalogo: catalogo,
-    usuario: usuario,
-    origemCopia: loteParaCopiar,
-    aoFechar: () => setLoteParaCopiar(null)
-  }), loteSelecionado && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
-    lote: loteSelecionado,
-    clientes: clientes,
-    funcionarios: funcionarios,
-    catalogo: catalogo,
-    usuario: usuario,
-    aoFechar: () => setLoteSelecionadoId(null)
-  }), modalArquivadosAberto && /*#__PURE__*/React.createElement(ModalArquivados, {
-    usuario: usuario,
-    clientes: clientes,
-    funcionarios: funcionarios,
-    catalogo: catalogo,
-    tipoInicial: "lotes",
-    aoFechar: () => setModalArquivadosAberto(false)
-  }), loteParaAssinar && /*#__PURE__*/React.createElement("div", {
-    className: "modal-fundo",
-    onClick: e => e.target === e.currentTarget && setLoteAssinaturaId(null)
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "modal",
-    style: {
-      maxWidth: 460
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      marginTop: 0
-    }
-  }, "Assinatura de entrada \u2014 ", nomeCliente(loteParaAssinar.clienteId)), /*#__PURE__*/React.createElement(BlocoAssinatura, {
-    tipo: "entrada",
-    documento: loteParaAssinar,
-    cliente: clientePorId[loteParaAssinar.clienteId],
-    colecao: "lotes",
-    usuario: usuario
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      marginTop: 16
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario",
-    onClick: () => setLoteAssinaturaId(null)
-  }, "Fechar")))), menuLote && /*#__PURE__*/React.createElement(ModalMenuAcoes, {
-    titulo: nomeCliente(menuLote.clienteId),
-    imprimindo: imprimindo,
-    onCopiar: () => {
-      setLoteParaCopiar(menuLote);
-      setMenuLote(null);
-    },
-    onImprimir: () => imprimirLote(menuLote),
-    onExcluir: () => {
-      const l = menuLote;
-      setMenuLote(null);
-      excluirLote(l);
-    },
-    aoFechar: () => setMenuLote(null)
-  }), /*#__PURE__*/React.createElement(FotoAmpliada, {
-    url: fotoAmpliada,
-    aoFechar: () => setFotoAmpliada(null)
-  }), clienteParaVer && /*#__PURE__*/React.createElement(ModalDetalheCliente, {
-    cliente: clienteParaVer,
-    aoFechar: () => setClienteParaVer(null)
-  }));
-}
-
 // ======================= LAYOUT =======================
 // Mesma tela de abertura do index (logo + barra), enquanto a lista de usuários chega
 function TelaAbertura() {
@@ -22709,8 +22037,7 @@ function entradaTemGarantia(l) {
   return (l.itens || []).some(i => (Number(i.qtdGarantia) || 0) > 0);
 }
 function prazoEntrada(l, agora) {
-  // sem prazo quando a entrada está concluída ou o orçamento já foi gerado para todas as peças
-  if (!entradaAberta(l) || situacaoOrcamentoLote(l) === 'gerado') return null;
+  if (!entradaAberta(l)) return null;
   const ini = dataDe(l.criadoEm);
   const inicio = ini && !isNaN(ini) ? ini.getTime() : agora; // gravando agora: começa agora
   const limite = inicio + PRAZO_ENTRADA_HORAS * 3600e3;
@@ -22775,7 +22102,313 @@ function EtiquetaGarantiaPrioridade({
     title: "Garantia: prioridade para conserto imediato"
   }, "🟡 Garantia · conserto imediato");
 }
-// AbaLotes (tela Entrada de Peças) está no módulo av12-entrada (tela redesenhada)
+function AbaLotes({
+  usuario,
+  funcionarios
+}) {
+  const [lotes, carregando] = useColecao('lotes', 'criadoEm', true);
+  const [clientes] = useColecao('clientes');
+  const [catalogo] = useColecao('catalogoPecas');
+  const [modalNovoAberto, setModalNovoAberto] = useState(false);
+  const [loteSelecionadoId, setLoteSelecionadoId] = useState(null);
+  const [filtroStatus, setFiltroStatus] = useState('');
+  const [limiteLotes, setLimiteLotes] = useState(LISTA_LOTE);
+  const [fotoAmpliada, setFotoAmpliada] = useState(null);
+  const [loteAssinaturaId, setLoteAssinaturaId] = useState(null);
+  const [menuLote, setMenuLote] = useState(null);
+  const [loteParaCopiar, setLoteParaCopiar] = useState(null);
+  const [imprimindo, setImprimindo] = useState(false);
+  const [modalArquivadosAberto, setModalArquivadosAberto] = useState(false);
+  const [resultadoArquivado, setResultadoArquivado] = useState(null);
+  const [clienteParaVer, setClienteParaVer] = useState(null);
+  const nomeCliente = id => clientes.find(c => c.id === id)?.razaoSocial || '-';
+  const loteSelecionado = lotes.find(l => l.id === loteSelecionadoId) || (resultadoArquivado?.id === loteSelecionadoId ? resultadoArquivado : null);
+  const loteParaAssinar = lotes.find(l => l.id === loteAssinaturaId);
+  const [busca, setBusca] = useState('');
+  useEffect(() => {
+    const numeroBuscado = Number(busca.trim().replace(/\D/g, ''));
+    if (!numeroBuscado || lotes.some(l => l.numero === numeroBuscado)) {
+      setResultadoArquivado(null);
+      return;
+    }
+    let cancelado = false;
+    (async () => {
+      const snap = await db.collection('lotes').where('numero', '==', numeroBuscado).where('arquivado', '==', true).limit(1).get();
+      if (!cancelado) setResultadoArquivado(snap.empty ? null : {
+        id: snap.docs[0].id,
+        ...snap.docs[0].data()
+      });
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, [busca, lotes]);
+  const agora = useAgoraMinuto();
+  const filtrados = ordenarEntradas(lotes).filter(l => {
+    if (filtroStatus && l.status !== filtroStatus) return false;
+    if (busca) {
+      const b = busca.trim().toLowerCase();
+      const bateNumero = l.numero && String(l.numero) === b.replace(/\D/g, '');
+      const bateCliente = nomeCliente(l.clienteId).toLowerCase().includes(b);
+      if (!bateNumero && !bateCliente) return false;
+    }
+    return true;
+  });
+  async function excluirLote(l) {
+    if (!confirm(`Excluir a entrada de ${nomeCliente(l.clienteId)} e todos os orçamentos/comissões gerados por ela? Essa ação não pode ser desfeita.`)) return;
+    if (!confirmarSenhaMaster('Digite a senha master para excluir esta entrada:')) return;
+    const opBatch = db.batch();
+    const orcamentosSnap = await db.collection('orcamentos').where('loteId', '==', l.id).get();
+    for (const orcDoc of orcamentosSnap.docs) {
+      const comSnap = await db.collection('comissoes').where('orcamentoId', '==', orcDoc.id).get();
+      comSnap.docs.forEach(d => opBatch.delete(d.ref));
+      opBatch.delete(orcDoc.ref);
+    }
+    opBatch.delete(db.collection('lotes').doc(l.id));
+    await opBatch.commit();
+  }
+  async function imprimirLote(l) {
+    setImprimindo(true);
+    try {
+      await gerarPdfLoteImpressao(l, clientes.find(c => c.id === l.clienteId));
+    } catch (err) {
+      console.error(err);
+      alert('Não consegui gerar o PDF.');
+    }
+    setImprimindo(false);
+    setMenuLote(null);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "painel-tela"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "painel-cabecalho"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 14,
+      flexWrap: 'wrap',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: 0
+    }
+  }, "Entrada de peças"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, podeEditar(usuario, 'lotes') && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: () => setModalNovoAberto(true)
+  }, "+ Dar entrada"), /*#__PURE__*/React.createElement("button", {
+    className: "btn secundario",
+    onClick: () => setModalArquivadosAberto(true)
+  }, "📁 Arquivados"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      flexWrap: 'wrap',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    placeholder: "Buscar por número da entrada ou cliente...",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    style: {
+      maxWidth: 320
+    }
+  }), /*#__PURE__*/React.createElement("select", {
+    value: filtroStatus,
+    onChange: e => setFiltroStatus(e.target.value),
+    style: {
+      maxWidth: 220
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Todos os status"), STATUS_LOTE.map(s => /*#__PURE__*/React.createElement("option", {
+    key: s,
+    value: s
+  }, s)))), resultadoArquivado && /*#__PURE__*/React.createElement("div", {
+    className: "card clicavel",
+    style: {
+      marginBottom: 14,
+      borderColor: 'var(--laranja)'
+    },
+    onClick: () => setLoteSelecionadoId(resultadoArquivado.id)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "badge estoque"
+  }, "📁 ARQUIVADO"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginTop: 4
+    }
+  }, "Entrada #", resultadoArquivado.numero, " — ", nomeCliente(resultadoArquivado.clienteId)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: 'var(--texto-fraco)'
+    }
+  }, formatData(resultadoArquivado.criadoEm))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setLoteSelecionadoId(resultadoArquivado.id)
+  }, "Abrir cartão")))), /*#__PURE__*/React.createElement("div", {
+    className: "card painel-tabela"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "tabela-lista com-lateral lista-entradas"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.slice(0, limiteLotes).map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.id,
+    className: `linha-clicavel${entradaAberta(l) && entradaTemGarantia(l) ? ' linha-garantia' : ''}${(prazoEntrada(l, agora) || {}).vencido ? ' linha-prazo-vencido' : ''}`,
+    onClick: () => setLoteSelecionadoId(l.id)
+  }, /*#__PURE__*/React.createElement("td", {
+    onClick: e => e.stopPropagation()
+  }, l.fotos && l.fotos[0] ? /*#__PURE__*/React.createElement(MiniaturaFotos, {
+    fotos: l.fotos,
+    aoAbrir: i => setFotoAmpliada({
+      fotos: fotosComRegistro(l.fotos, l.fotosRegistro),
+      indice: i
+    })
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "foto-thumb",
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--texto-fraco)'
+    }
+  }, "—")), /*#__PURE__*/React.createElement("td", null, l.numero ? `#${l.numero}` : '-'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(ClienteResumo, {
+    cliente: clientes.find(c => c.id === l.clienteId),
+    aoClicar: () => setClienteParaVer(clientes.find(c => c.id === l.clienteId)),
+    tamanho: 13.5
+  })), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+    className: "status-entrada"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `badge ${STATUS_CLASSE[l.status] || 'estoque'}`
+  }, l.status), /*#__PURE__*/React.createElement(IndicadorPrazoEntrada, {
+    lote: l,
+    agora: agora
+  }), /*#__PURE__*/React.createElement(EtiquetaGarantiaPrioridade, {
+    lote: l
+  }))), /*#__PURE__*/React.createElement("td", {
+    style: {
+      textAlign: 'right',
+      whiteSpace: 'nowrap'
+    },
+    onClick: e => e.stopPropagation()
+  }, podeEditar(usuario, 'lotes') ? /*#__PURE__*/React.createElement("button", {
+    className: `btn pequeno ${l.assinaturaEntrada ? 'verde' : 'secundario'}`,
+    onClick: () => setLoteAssinaturaId(l.id)
+  }, l.assinaturaEntrada ? '✓ Assinado' : '🖊️ Assinar') : l.assinaturaEntrada && /*#__PURE__*/React.createElement("span", {
+    className: "badge aprovado"
+  }, "✓ Assinado"), ' ', podeEditar(usuario, 'lotes') && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-menu-pontos",
+    onClick: () => setMenuLote(l),
+    title: "Mais ações"
+  }, "⋮")))), filtrados.length > limiteLotes && /*#__PURE__*/React.createElement("tr", {
+    className: "linha-carregar-mais"
+  }, /*#__PURE__*/React.createElement("td", {
+    colSpan: "7",
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(KanbanCarregarMais, {
+    mostrando: limiteLotes,
+    total: filtrados.length,
+    aoMais: () => setLimiteLotes(n => n + LISTA_LOTE)
+  }))), !carregando && filtrados.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "7",
+    style: {
+      color: 'var(--texto-fraco)',
+      textAlign: 'center',
+      padding: 22
+    }
+  }, "Nenhuma entrada cadastrada ainda."))))), modalNovoAberto && /*#__PURE__*/React.createElement(ModalNovoLote, {
+    clientes: clientes,
+    catalogo: catalogo,
+    usuario: usuario,
+    aoFechar: () => setModalNovoAberto(false)
+  }), loteParaCopiar && /*#__PURE__*/React.createElement(ModalNovoLote, {
+    clientes: clientes,
+    catalogo: catalogo,
+    usuario: usuario,
+    origemCopia: loteParaCopiar,
+    aoFechar: () => setLoteParaCopiar(null)
+  }), loteSelecionado && /*#__PURE__*/React.createElement(ModalLoteDetalhe, {
+    lote: loteSelecionado,
+    clientes: clientes,
+    funcionarios: funcionarios,
+    catalogo: catalogo,
+    usuario: usuario,
+    aoFechar: () => setLoteSelecionadoId(null)
+  }), modalArquivadosAberto && /*#__PURE__*/React.createElement(ModalArquivados, {
+    usuario: usuario,
+    clientes: clientes,
+    funcionarios: funcionarios,
+    catalogo: catalogo,
+    tipoInicial: "lotes",
+    aoFechar: () => setModalArquivadosAberto(false)
+  }), loteParaAssinar && /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo",
+    onClick: e => e.target === e.currentTarget && setLoteAssinaturaId(null)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 460
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "Assinatura de entrada — ", nomeCliente(loteParaAssinar.clienteId)), /*#__PURE__*/React.createElement(BlocoAssinatura, {
+    tipo: "entrada",
+    documento: loteParaAssinar,
+    cliente: clientes.find(c => c.id === loteParaAssinar.clienteId),
+    colecao: "lotes",
+    usuario: usuario
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: () => setLoteAssinaturaId(null)
+  }, "Fechar")))), menuLote && /*#__PURE__*/React.createElement(ModalMenuAcoes, {
+    titulo: nomeCliente(menuLote.clienteId),
+    imprimindo: imprimindo,
+    onCopiar: () => {
+      setLoteParaCopiar(menuLote);
+      setMenuLote(null);
+    },
+    onImprimir: () => imprimirLote(menuLote),
+    onExcluir: () => {
+      const l = menuLote;
+      setMenuLote(null);
+      excluirLote(l);
+    },
+    aoFechar: () => setMenuLote(null)
+  }), /*#__PURE__*/React.createElement(FotoAmpliada, {
+    url: fotoAmpliada,
+    aoFechar: () => setFotoAmpliada(null)
+  }), clienteParaVer && /*#__PURE__*/React.createElement(ModalDetalheCliente, {
+    cliente: clienteParaVer,
+    aoFechar: () => setClienteParaVer(null)
+  }));
+}
 function ModalNovoLote({
   clientes,
   catalogo,
