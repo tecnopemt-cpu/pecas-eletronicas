@@ -43,6 +43,10 @@
     --verde-bg:#E7F3EC;
     --vermelho:#C0392B;
     --vermelho-bg:#FBEAE8;
+    /* cores padrão dos status das peças: Conserto verde, Garantia amarelo, Sem conserto vermelho */
+    --st-conserto:#2E8B57;--st-conserto-bg:#E7F3EC;--st-conserto-borda:#9CCFB2;
+    --st-garantia:#8A6500;--st-garantia-cor:#EAB308;--st-garantia-bg:#FEF6D0;--st-garantia-borda:#F2CF55;
+    --st-sem:#C0392B;--st-sem-bg:#FBEAE8;--st-sem-borda:#EBA59D;
     --texto:#453B3C;
     --texto-fraco:#8A7A78;
     --card:#FFFFFF;
@@ -1406,8 +1410,45 @@
   .seguranca-acesso-credencial{background:#FFF8E8;border:1px solid #E7D3A6;border-radius:8px;padding:10px;display:grid;gap:6px;}
   .seguranca-acesso-credencial code{word-break:break-all;font-size:12px;}
   /* entrada: resultado da garantia (com / sem conserto) */
-  .resultado-garantia{margin-top:12px;padding:10px 12px;border:1px solid #E7D3A6;background:#FFF8E8;border-radius:10px;}
-  .resultado-garantia.pendente{border-color:var(--laranja);}
+  .resultado-garantia{margin-top:12px;padding:10px 12px;border:1px solid var(--st-garantia-borda);background:var(--st-garantia-bg);border-radius:10px;}
+  .resultado-garantia.pendente{border-color:var(--st-garantia-cor);box-shadow:0 0 0 1px var(--st-garantia-cor) inset;}
+  /* contadores da análise com as cores padrão */
+  .contador-status{padding:4px 0 4px 10px;border-left:4px solid var(--borda);}
+  .contador-status>label{font-weight:700;}
+  .contador-status.st-conserto{border-left-color:var(--st-conserto);}.contador-status.st-conserto>label{color:var(--st-conserto);}
+  .contador-status.st-garantia{border-left-color:var(--st-garantia-cor);}.contador-status.st-garantia>label{color:var(--st-garantia);}
+  .contador-status.st-sem{border-left-color:var(--st-sem);}.contador-status.st-sem>label{color:var(--st-sem);}
+  /* etiquetas de status */
+  .etq-status{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11.5px;font-weight:700;border:1px solid transparent;white-space:nowrap;}
+  .etq-status.st-conserto{background:var(--st-conserto-bg);color:var(--st-conserto);border-color:var(--st-conserto-borda);}
+  .etq-status.st-garantia{background:var(--st-garantia-bg);color:var(--st-garantia);border-color:var(--st-garantia-borda);}
+  .etq-status.st-sem{background:var(--st-sem-bg);color:var(--st-sem);border-color:var(--st-sem-borda);}
+  .prazo-entrada{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11.5px;font-weight:700;white-space:nowrap;background:var(--fundo);color:var(--texto-fraco);border:1px solid var(--borda);}
+  .prazo-entrada.perto{background:var(--laranja-bg);color:var(--laranja-escuro);border-color:#F2C49B;}
+  .prazo-entrada.vencido{background:var(--st-sem);color:#fff;border-color:var(--st-sem);}
+  .status-entrada{display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+  .lista-entradas tr.linha-garantia,.lista-entradas tr.linha-garantia td{background:var(--st-garantia-bg);}
+  .lista-entradas tr.linha-garantia td:first-child{box-shadow:inset 4px 0 0 var(--st-garantia-cor);}
+  .lista-entradas tr.linha-prazo-vencido td:first-child{box-shadow:inset 4px 0 0 var(--st-sem);}
+  @media (max-width:640px){
+    .lista-entradas tr.linha-garantia td:first-child,.lista-entradas tr.linha-prazo-vencido td:first-child{box-shadow:none;}
+    .lista-entradas tr.linha-garantia{box-shadow:inset 4px 0 0 var(--st-garantia-cor);}
+    .lista-entradas tr.linha-prazo-vencido{box-shadow:inset 4px 0 0 var(--st-sem);}
+    .lista-entradas tr.linha-garantia.linha-prazo-vencido{box-shadow:inset 4px 0 0 var(--st-sem),inset 8px 0 0 var(--st-garantia-cor);}
+  }
+  .faixa-prazo-lote{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .etq-status-linha{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .etq-status.st-teste{background:#E8F0FB;color:#1E4B84;border-color:#BFD3EE;}
+  /* confirmação de sem conserto */
+  .modal-sem-conserto-fundo{z-index:1200;}
+  .modal-sem-conserto{max-width:420px;text-align:center;border-top:5px solid var(--st-sem);}
+  .modal-sem-conserto h3{margin:6px 0 8px;color:var(--st-sem);}
+  .modal-sem-conserto p{margin:0 0 10px;font-size:14.5px;line-height:1.45;}
+  .sem-conserto-icone{width:44px;height:44px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:var(--st-sem-bg);color:var(--st-sem);font-weight:800;font-size:22px;}
+  .sem-conserto-peca{font-size:13px !important;color:var(--texto-fraco);}
+  .sem-conserto-acoes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
+  .sem-conserto-acoes .btn{min-height:44px;flex:1 1 140px;}
+  .btn.sem-conserto-confirmar{background:var(--st-sem);color:#fff;}
   .resultado-garantia-titulo{font-size:12.5px;font-weight:700;margin-bottom:6px;}
   .resultado-garantia-titulo span{font-weight:400;color:var(--texto-fraco);}
   .resultado-garantia-opcoes{display:flex;gap:18px;flex-wrap:wrap;}
@@ -2919,6 +2960,12 @@ function useCodigoAssinatura(tipo, id, ativo) {
     };
   }, [ativo]);
   return ativo ? CODIGOS_VIVOS.mapa.get(`${tipo}_${id}`) || null : null;
+}
+// Mensagem enviada ao cliente com o link (e, se quiser, o código) da assinatura eletrônica
+function mensagemAssinatura(tipo, documento, link, codigo) {
+  const doc = tipo === 'entrada' ? `da entrada nº ${documento.numero || ''} (recebimento do equipamento para análise e conserto)` : tipo === 'teste' ? `do recibo de entrega para teste do orçamento nº ${documento.numero || ''}` : `da entrega do orçamento nº ${documento.numero || ''}`;
+  const objetivo = tipo === 'entrada' ? 'confirmar o recebimento do equipamento e formalizar a autorização do serviço' : tipo === 'teste' ? 'confirmar o recebimento das peças para teste' : 'confirmar o recebimento e formalizar a autorização correspondente';
+  return ['Olá! Encaminhamos o link para assinatura eletrônica ' + doc.replace(/nº \s*\(/, '(') + ', referente ao atendimento do equipamento.', '', `Por gentileza, acesse o link abaixo e realize a assinatura solicitada para ${objetivo}.`, '', `🔗 Link: ${link}`, codigo ? `🔑 Código de verificação: ${codigo}` : '🔑 O código de verificação será enviado em outra mensagem.', '', 'É importante concluir a assinatura para que possamos dar continuidade ao processo.', 'Em caso de dúvidas, estamos à disposição.'].join('\n');
 }
 function linkAssinatura(tipo, id) {
   return `${window.location.origin}${window.location.pathname}?assinar=${tipo}&id=${id}`;
@@ -4895,8 +4942,16 @@ function BlocoAssinatura({
       marginTop: 8,
       width: '100%'
     },
-    onClick: () => copiar(`Link para assinatura: ${linkAssinatura(tipo, documento.id)}\nCódigo de verificação: ${codigo}`)
-  }, "📋 Copiar link e código juntos")), modalPresencialAberto && /*#__PURE__*/React.createElement(ModalAssinarPresencial, {
+    onClick: () => copiar(mensagemAssinatura(tipo, documento, linkAssinatura(tipo, documento.id), codigo))
+  }, "📋 Copiar mensagem com link e código"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    style: {
+      marginTop: 6,
+      width: '100%'
+    },
+    onClick: () => copiar(mensagemAssinatura(tipo, documento, linkAssinatura(tipo, documento.id), null))
+  }, "📋 Copiar mensagem só com o link (código à parte)")), modalPresencialAberto && /*#__PURE__*/React.createElement(ModalAssinarPresencial, {
     tipo: tipo,
     documento: documento,
     cliente: cliente,
@@ -21971,6 +22026,82 @@ function fotosComRegistro(fotos, registros) {
     };
   });
 }
+// ---------- Entrada de Peças: prazo de 48 h, garantia prioritária e ordem automática ----------
+// O prazo conta da data/hora de entrada gravada no banco (criadoEm), então não reinicia ao atualizar a
+// página. Entrada concluída não tem prazo. Nada disso é gravado: é só exibição e ordenação.
+const PRAZO_ENTRADA_HORAS = 48;
+function entradaAberta(l) {
+  return l.status !== 'Concluído';
+}
+function entradaTemGarantia(l) {
+  return (l.itens || []).some(i => (Number(i.qtdGarantia) || 0) > 0);
+}
+function prazoEntrada(l, agora) {
+  if (!entradaAberta(l)) return null;
+  const ini = dataDe(l.criadoEm);
+  const inicio = ini && !isNaN(ini) ? ini.getTime() : agora; // gravando agora: começa agora
+  const limite = inicio + PRAZO_ENTRADA_HORAS * 3600e3;
+  return {
+    inicio,
+    limite,
+    vencido: agora >= limite,
+    restanteMs: limite - agora,
+    esperaMs: agora - inicio
+  };
+}
+function textoDuracao(ms) {
+  const min = Math.max(0, Math.round(ms / 60000));
+  const d = Math.floor(min / 1440),
+    h = Math.floor(min % 1440 / 60),
+    m = min % 60;
+  // até 3 dias, em horas (o prazo é de 48 h); acima disso, em dias e horas
+  if (min >= 72 * 60) return `${d}d ${h}h`;
+  if (min >= 60) return `${Math.floor(min / 60)}h ${String(m).padStart(2, '0')}min`;
+  if (h) return `${h}h ${String(m).padStart(2, '0')}min`;
+  return `${m}min`;
+}
+// abertas primeiro (quem espera há mais tempo no topo); depois as concluídas (mais recentes primeiro)
+function ordenarEntradas(lista) {
+  const ms = l => {
+    const d = dataDe(l.criadoEm);
+    return d && !isNaN(d) ? d.getTime() : Date.now();
+  };
+  return lista.slice().sort((a, b) => {
+    const aa = entradaAberta(a),
+      ab = entradaAberta(b);
+    if (aa !== ab) return aa ? -1 : 1;
+    return aa ? ms(a) - ms(b) : ms(b) - ms(a);
+  });
+}
+function useAgoraMinuto() {
+  const [agora, setAgora] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setAgora(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  return agora;
+}
+function IndicadorPrazoEntrada({
+  lote,
+  agora
+}) {
+  const p = prazoEntrada(lote, agora);
+  if (!p) return null;
+  const titulo = `Entrada em ${new Date(p.inicio).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} · prazo até ${new Date(p.limite).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
+  return /*#__PURE__*/React.createElement("span", {
+    className: `prazo-entrada ${p.vencido ? 'vencido' : p.restanteMs < 12 * 3600e3 ? 'perto' : ''}`,
+    title: titulo
+  }, p.vencido ? `⚠ Prazo de 48h vencido há ${textoDuracao(-p.restanteMs)}` : `⏱ ${textoDuracao(p.restanteMs)} restantes`);
+}
+function EtiquetaGarantiaPrioridade({
+  lote
+}) {
+  if (!entradaAberta(lote) || !entradaTemGarantia(lote)) return null;
+  return /*#__PURE__*/React.createElement("span", {
+    className: "etq-status st-garantia etq-garantia-prioridade",
+    title: "Garantia: prioridade para conserto imediato"
+  }, "🟡 Garantia · conserto imediato");
+}
 function AbaLotes({
   usuario,
   funcionarios
@@ -22012,7 +22143,8 @@ function AbaLotes({
       cancelado = true;
     };
   }, [busca, lotes]);
-  const filtrados = lotes.filter(l => {
+  const agora = useAgoraMinuto();
+  const filtrados = ordenarEntradas(lotes).filter(l => {
     if (filtroStatus && l.status !== filtroStatus) return false;
     if (busca) {
       const b = busca.trim().toLowerCase();
@@ -22137,7 +22269,7 @@ function AbaLotes({
     className: "tabela-lista com-lateral lista-entradas"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Foto"), /*#__PURE__*/React.createElement("th", null, "Entrada"), /*#__PURE__*/React.createElement("th", null, "Cliente"), /*#__PURE__*/React.createElement("th", null, "Data"), /*#__PURE__*/React.createElement("th", null, "Itens"), /*#__PURE__*/React.createElement("th", null, "Status"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, filtrados.slice(0, limiteLotes).map(l => /*#__PURE__*/React.createElement("tr", {
     key: l.id,
-    className: "linha-clicavel",
+    className: `linha-clicavel${entradaAberta(l) && entradaTemGarantia(l) ? ' linha-garantia' : ''}${(prazoEntrada(l, agora) || {}).vencido ? ' linha-prazo-vencido' : ''}`,
     onClick: () => setLoteSelecionadoId(l.id)
   }, /*#__PURE__*/React.createElement("td", {
     onClick: e => e.stopPropagation()
@@ -22159,9 +22291,16 @@ function AbaLotes({
     cliente: clientes.find(c => c.id === l.clienteId),
     aoClicar: () => setClienteParaVer(clientes.find(c => c.id === l.clienteId)),
     tamanho: 13.5
-  })), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("span", {
+  })), /*#__PURE__*/React.createElement("td", null, formatData(l.criadoEm)), /*#__PURE__*/React.createElement("td", null, (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0), " peça(s)"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+    className: "status-entrada"
+  }, /*#__PURE__*/React.createElement("span", {
     className: `badge ${STATUS_CLASSE[l.status] || 'estoque'}`
-  }, l.status)), /*#__PURE__*/React.createElement("td", {
+  }, l.status), /*#__PURE__*/React.createElement(IndicadorPrazoEntrada, {
+    lote: l,
+    agora: agora
+  }), /*#__PURE__*/React.createElement(EtiquetaGarantiaPrioridade, {
+    lote: l
+  }))), /*#__PURE__*/React.createElement("td", {
     style: {
       textAlign: 'right',
       whiteSpace: 'nowrap'
@@ -22578,6 +22717,8 @@ function ModalLoteDetalhe({
   const orcamentosVinculados = useColecaoOnde('orcamentos', 'loteId', lote.id);
   const [orcamentoParaVer, setOrcamentoParaVer] = useState(null);
   const [clienteParaVer, setClienteParaVer] = useState(null);
+  // "Sem conserto" só é gravado depois de confirmar (evita marcar por engano)
+  const [confirmarSem, setConfirmarSem] = useState(null);
   async function mudarStatusManual(novoStatus) {
     if (novoStatus === 'Concluído' && !loteTotalmenteOrcado(lote.itens)) {
       alert(AVISO_LOTE_CONCLUIDO);
@@ -22958,7 +23099,18 @@ function ModalLoteDetalhe({
     style: {
       maxWidth: 680
     }
-  }, lote.arquivado && /*#__PURE__*/React.createElement("div", {
+  }, confirmarSem && /*#__PURE__*/React.createElement(ModalConfirmarSemConserto, {
+    peca: confirmarSem.peca,
+    garantia: confirmarSem.tipo === 'garantiaSem',
+    aoVoltar: () => setConfirmarSem(null),
+    aoConfirmar: async () => {
+      const c = confirmarSem;
+      setConfirmarSem(null);
+      if (c.tipo === 'garantiaSem') await alterarResultadoGarantia(c.idx, 'sem', 1);else await alterarContagem(c.idx, 'naoConsertada', 1);
+    }
+  }), /*#__PURE__*/React.createElement(FaixaPrazoLote, {
+    lote: lote
+  }), lote.arquivado && /*#__PURE__*/React.createElement("div", {
     style: {
       background: 'var(--fundo)',
       border: '1px solid var(--borda)',
@@ -23102,7 +23254,9 @@ function ModalLoteDetalhe({
         marginTop: 12,
         flexWrap: 'wrap'
       }
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "contador-status st-conserto"
+    }, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
       }
@@ -23128,7 +23282,9 @@ function ModalLoteDetalhe({
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'consertada', 1),
       disabled: somenteLeitura || restante <= 0
-    }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    }, "＋"))), /*#__PURE__*/React.createElement("div", {
+      className: "contador-status st-garantia"
+    }, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
       }
@@ -23154,7 +23310,9 @@ function ModalLoteDetalhe({
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'garantia', 1),
       disabled: somenteLeitura || restante <= 0
-    }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    }, "＋"))), /*#__PURE__*/React.createElement("div", {
+      className: "contador-status st-teste"
+    }, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
       }
@@ -23180,7 +23338,9 @@ function ModalLoteDetalhe({
       className: "btn secundario pequeno",
       onClick: () => alterarContagem(idx, 'teste', 1),
       disabled: somenteLeitura || restante <= 0
-    }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    }, "＋"))), /*#__PURE__*/React.createElement("div", {
+      className: "contador-status st-sem"
+    }, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
       }
@@ -23204,7 +23364,12 @@ function ModalLoteDetalhe({
     }, it.qtdNaoConsertada || 0), /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn secundario pequeno",
-      onClick: () => alterarContagem(idx, 'naoConsertada', 1),
+      onClick: () => setConfirmarSem({
+        idx,
+        tipo: 'naoConsertada',
+        peca: it.pecaDescricao
+      }),
+      "aria-label": "Sem conserto: mais",
       disabled: somenteLeitura || restante <= 0
     }, "＋"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       style: {
@@ -23222,7 +23387,8 @@ function ModalLoteDetalhe({
     }, "Resultado da garantia ", /*#__PURE__*/React.createElement("span", null, "(obrigatório)")), /*#__PURE__*/React.createElement("div", {
       className: "resultado-garantia-opcoes"
     }, [['com', 'Garantia com conserto', 'qtdGarantiaComConserto'], ['sem', 'Garantia sem conserto', 'qtdGarantiaSemConserto']].map(([qual, rotulo, k]) => /*#__PURE__*/React.createElement("div", {
-      key: qual
+      key: qual,
+      className: `contador-status ${qual === 'sem' ? 'st-sem' : 'st-conserto'}`
     }, /*#__PURE__*/React.createElement("label", {
       style: {
         marginTop: 0
@@ -23249,7 +23415,11 @@ function ModalLoteDetalhe({
       type: "button",
       className: "btn secundario pequeno",
       "aria-label": `${rotulo}: mais`,
-      onClick: () => alterarResultadoGarantia(idx, qual, 1),
+      onClick: () => qual === 'sem' ? setConfirmarSem({
+        idx,
+        tipo: 'garantiaSem',
+        peca: it.pecaDescricao
+      }) : alterarResultadoGarantia(idx, qual, 1),
       disabled: somenteLeitura || (it.qtdGarantiaComConserto || 0) + (it.qtdGarantiaSemConserto || 0) >= (it.qtdGarantia || 0)
     }, "＋"))))), garantiaPendenteSemResultado(it) > 0 && /*#__PURE__*/React.createElement("div", {
       className: "resultado-garantia-aviso"
@@ -23335,7 +23505,7 @@ function ModalLoteDetalhe({
   }, orcamentosVinculados.map(o => {
     const qtdPecas = (o.loteAjustes || []).reduce((s, a) => s + (a.qtd || 0), 0);
     const categorias = [...new Set((o.loteAjustes || []).map(a => a.categoria))];
-    const rotuloCategorias = categorias.map(c => c === 'consertada' ? '🔧 Conserto' : c === 'garantia' ? '🟡 Garantia' : c === 'teste' ? '🧪 Teste' : '⚪ Sem conserto').join(' · ');
+    const rotuloCategorias = categorias.map(c => c === 'consertada' ? '🟢 Conserto' : c === 'garantia' ? '🟡 Garantia' : c === 'teste' ? '🧪 Teste' : '🔴 Sem conserto').join(' · ');
     return /*#__PURE__*/React.createElement("div", {
       key: o.id,
       className: "card",
@@ -23423,6 +23593,111 @@ function ModalLoteDetalhe({
 }
 
 // ======================= ORÇAMENTOS =======================
+// Confirmação obrigatória antes de gravar "Sem conserto" (Voltar = nada muda; Confirmar = registra)
+// etiqueta padrão de status da peça (mesmas cores em todo o sistema)
+const STATUS_PECA = {
+  consertada: ['st-conserto', 'Conserto'],
+  garantia: ['st-garantia', 'Garantia'],
+  naoConsertada: ['st-sem', 'Sem conserto'],
+  teste: ['st-teste', 'Teste']
+};
+function EtiquetaStatusPeca({
+  tipo,
+  texto
+}) {
+  const [cls, nome] = STATUS_PECA[tipo] || ['', tipo || ''];
+  if (!nome) return null;
+  return /*#__PURE__*/React.createElement("span", {
+    className: `etq-status ${cls}`
+  }, texto || nome);
+}
+// etiquetas do cartão do orçamento: Garantia (amarelo) e Sem conserto (vermelho), quando houver
+function EtiquetasStatusOrcamento({
+  orcamento
+}) {
+  const soma = t => (orcamento.itens || []).filter(i => i.tipo === t).reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const g = soma('garantia'),
+    n = soma('naoConsertada');
+  if (!g && !n) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "etq-status-linha"
+  }, g > 0 && /*#__PURE__*/React.createElement(EtiquetaStatusPeca, {
+    tipo: "garantia",
+    texto: `🟡 Garantia · ${g}`
+  }), n > 0 && /*#__PURE__*/React.createElement(EtiquetaStatusPeca, {
+    tipo: "naoConsertada",
+    texto: `🔴 Sem conserto · ${n}`
+  }));
+}
+function FaixaPrazoLote({
+  lote
+}) {
+  const agora = useAgoraMinuto();
+  const p = prazoEntrada(lote, agora);
+  const g = entradaAberta(lote) && entradaTemGarantia(lote);
+  if (!p && !g) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "faixa-prazo-lote"
+  }, /*#__PURE__*/React.createElement(IndicadorPrazoEntrada, {
+    lote: lote,
+    agora: agora
+  }), /*#__PURE__*/React.createElement(EtiquetaGarantiaPrioridade, {
+    lote: lote
+  }));
+}
+function ModalConfirmarSemConserto({
+  peca,
+  garantia,
+  aoVoltar,
+  aoConfirmar
+}) {
+  const [gravando, setGravando] = useState(false);
+  useEffect(() => {
+    const esc = e => {
+      if (e.key === 'Escape' && !gravando) aoVoltar();
+    };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [gravando]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-fundo modal-sem-conserto-fundo",
+    onClick: e => e.target === e.currentTarget && !gravando && aoVoltar()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal modal-sem-conserto",
+    role: "alertdialog",
+    "aria-modal": "true",
+    "aria-labelledby": "titulo-sem-conserto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sem-conserto-icone",
+    "aria-hidden": "true"
+  }, "!"), /*#__PURE__*/React.createElement("h3", {
+    id: "titulo-sem-conserto"
+  }, garantia ? 'Confirmar garantia sem conserto' : 'Confirmar sem conserto'), /*#__PURE__*/React.createElement("p", null, "Tem certeza de que este equipamento foi avaliado e realmente não possui possibilidade de conserto?"), peca && /*#__PURE__*/React.createElement("p", {
+    className: "sem-conserto-peca"
+  }, "Peça: ", /*#__PURE__*/React.createElement("strong", null, peca), " · 1 unidade"), /*#__PURE__*/React.createElement("div", {
+    className: "sem-conserto-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario",
+    onClick: aoVoltar,
+    disabled: gravando,
+    autoFocus: true
+  }, "Voltar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn sem-conserto-confirmar",
+    disabled: gravando,
+    onClick: async () => {
+      setGravando(true);
+      try {
+        await aoConfirmar();
+      } catch (e) {
+        console.error(e);
+        alert('Não consegui gravar. Verifique a conexão e tente de novo.');
+        setGravando(false);
+      }
+    }
+  }, gravando ? 'Gravando…' : 'Confirmar sem conserto'))));
+}
 function ModalConfirmarTeste({
   orcamento,
   usuario,
@@ -25028,6 +25303,8 @@ function AbaOrcamentos({
       }, "💰 ", formatMoeda(comissaoElegivel(o) ? o.comissaoTotal : 0))), /*#__PURE__*/React.createElement(SeloIndicacao, {
         parc: parcKanban,
         orcamento: o
+      }), /*#__PURE__*/React.createElement(EtiquetasStatusOrcamento, {
+        orcamento: o
       }), /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 11,
@@ -25532,7 +25809,9 @@ function ModalOrcamento({
       style: {
         fontSize: 12.5
       }
-    }, "- ", item?.pecaDescricao || 'Peça', sufixoFrota(item), " (", rotuloCategoria, ", ", a.qtd, "x)");
+    }, "- ", item?.pecaDescricao || 'Peça', sufixoFrota(item), " ", /*#__PURE__*/React.createElement(EtiquetaStatusPeca, {
+      tipo: a.categoria
+    }), " ", a.qtd, "x");
   })), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario pequeno",
@@ -25619,7 +25898,13 @@ function ModalOrcamento({
       placeholder: "Descrição",
       value: it.descricao,
       onChange: e => mudarItem(i, 'descricao', e.target.value)
-    }), frotaDe(it) && /*#__PURE__*/React.createElement("div", {
+    }), it.tipo && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 3
+      }
+    }, /*#__PURE__*/React.createElement(EtiquetaStatusPeca, {
+      tipo: it.tipo
+    })), frotaDe(it) && /*#__PURE__*/React.createElement("div", {
       className: "frota-peca",
       style: {
         fontSize: 11.5,
@@ -32284,10 +32569,12 @@ function AbaDashboard({
     cor: "var(--laranja)"
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "Peças em garantia no período",
-    valor: totalGarantia
+    valor: totalGarantia,
+    cor: "var(--st-garantia)"
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "% de garantia",
-    valor: `${percentualGarantia.toFixed(1)}%`
+    valor: `${percentualGarantia.toFixed(1)}%`,
+    cor: "var(--st-garantia)"
   }), /*#__PURE__*/React.createElement(CartaoMetrica, {
     titulo: "Média consertadas/dia",
     valor: mediaConsertadasDia.toFixed(1)
@@ -32395,7 +32682,7 @@ function AbaDashboard({
     }
   }, "Garantias por categoria"), /*#__PURE__*/React.createElement(BarraCategoria, {
     dados: porCategoriaGarantia,
-    cor: "var(--laranja)"
+    cor: "var(--st-garantia-cor)"
   })), /*#__PURE__*/React.createElement("div", {
     className: "card"
   }, /*#__PURE__*/React.createElement("h3", {
