@@ -21189,7 +21189,11 @@ function SeletorCliente({
     document.addEventListener('mousedown', aoClicarFora);
     return () => document.removeEventListener('mousedown', aoClicarFora);
   }, []);
-  const filtrados = ordenados.filter(c => (c.razaoSocial || '').toLowerCase().includes(busca.toLowerCase()));
+  // Busca por nome, cidade ou CNPJ/CPF (com ou sem pontuação), sem diferenciar acentos.
+  const semAcento = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const termo = semAcento(busca).trim();
+  const termoDig = termo.replace(/\D/g, '');
+  const filtrados = !termo ? ordenados : ordenados.filter(c => semAcento(c.razaoSocial).includes(termo) || semAcento([c.cidade, c.uf].filter(Boolean).join('/')).includes(termo) || termoDig.length >= 3 && String(c.cnpj || '').replace(/\D/g, '').includes(termoDig));
   return /*#__PURE__*/React.createElement("div", {
     ref: ref,
     style: {
@@ -25864,16 +25868,11 @@ function ModalOrcamento({
     cliente: clientes.find(c => c.id === clienteId),
     aoClicar: () => setClienteParaVer(clientes.find(c => c.id === clienteId)),
     tamanho: 15
-  })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Cliente"), /*#__PURE__*/React.createElement("select", {
+  })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Cliente"), /*#__PURE__*/React.createElement(SeletorCliente, {
+    clientes: clientes,
     value: clienteId,
-    onChange: e => setClienteId(e.target.value),
-    required: true
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Selecione..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
-    key: c.id,
-    value: c.id
-  }, c.razaoSocial)))), /*#__PURE__*/React.createElement("label", null, "N. Pedido de Compras"), /*#__PURE__*/React.createElement("input", {
+    onChange: setClienteId
+  })), /*#__PURE__*/React.createElement("label", null, "N. Pedido de Compras"), /*#__PURE__*/React.createElement("input", {
     value: numeroPedidoCompras,
     onChange: e => setNumeroPedidoCompras(e.target.value),
     placeholder: "Número do pedido de compras do cliente"
