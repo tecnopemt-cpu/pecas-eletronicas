@@ -22035,10 +22035,51 @@ function fotosComRegistro(fotos, registros) {
     };
   });
 }
-// ---------- Entrada de Peças: prazo de 48 h, garantia prioritária e ordem automática ----------
+// ---------- Entrada de Peças: prazo de 2 dias úteis (48 h úteis), garantia prioritária e ordem automática ----------
 // O prazo conta da data/hora de entrada gravada no banco (criadoEm), então não reinicia ao atualizar a
 // página. Entrada concluída não tem prazo. Nada disso é gravado: é só exibição e ordenação.
-const PRAZO_ENTRADA_HORAS = 48;
+const PRAZO_ENTRADA_HORAS = 48; // 2 dias úteis: só conta o tempo de segunda a sexta, fora feriados
+// Dia útil do prazo: segunda a sexta, menos feriados nacionais (inclui Sexta-feira Santa), estadual de SP e
+// municipais de Arujá (mesmo calendário automático dos Benefícios). Pontos facultativos contam como dia útil.
+const _feriadosPrazoCache = {};
+function diaUtilPrazo(d) {
+  const dow = d.getDay();
+  if (dow === 0 || dow === 6) return false;
+  const ano = d.getFullYear();
+  const fer = _feriadosPrazoCache[ano] || (_feriadosPrazoCache[ano] = benFeriadosAuto(ano));
+  const iso = `${ano}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return !(fer[iso] && fer[iso].tipo === 'feriado');
+}
+function proximaMeiaNoite(ms) {
+  const d = new Date(ms);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+}
+// tempo útil (ms) entre a e b (a <= b)
+function msUteisEntre(a, b) {
+  let t = 0,
+    cur = a;
+  for (let i = 0; i < 800 && cur < b; i++) {
+    const fim = Math.min(proximaMeiaNoite(cur), b);
+    if (diaUtilPrazo(new Date(cur))) t += fim - cur;
+    cur = fim;
+  }
+  return t;
+}
+// soma tempo útil a partir de ini (pula fins de semana e feriados)
+function somarMsUteis(ini, ms) {
+  let cur = ini,
+    falta = ms;
+  for (let i = 0; i < 800 && falta > 0; i++) {
+    const fim = proximaMeiaNoite(cur);
+    if (diaUtilPrazo(new Date(cur))) {
+      const usa = Math.min(fim - cur, falta);
+      falta -= usa;
+      if (falta <= 0) return cur + usa;
+    }
+    cur = fim;
+  }
+  return cur;
+}
 function entradaAberta(l) {
   return l.status !== 'Concluído';
 }
@@ -22049,12 +22090,14 @@ function prazoEntrada(l, agora) {
   if (!entradaAberta(l)) return null;
   const ini = dataDe(l.criadoEm);
   const inicio = ini && !isNaN(ini) ? ini.getTime() : agora; // gravando agora: começa agora
-  const limite = inicio + PRAZO_ENTRADA_HORAS * 3600e3;
+  const limite = somarMsUteis(inicio, PRAZO_ENTRADA_HORAS * 3600e3);
+  const vencido = agora >= limite;
   return {
     inicio,
     limite,
-    vencido: agora >= limite,
-    restanteMs: limite - agora,
+    vencido,
+    // em tempo útil: fim de semana e feriado não contam (nem para o que falta, nem para o atraso)
+    restanteMs: vencido ? -msUteisEntre(limite, agora) : msUteisEntre(agora, limite),
     esperaMs: agora - inicio
   };
 }
@@ -22096,11 +22139,11 @@ function IndicadorPrazoEntrada({
 }) {
   const p = prazoEntrada(lote, agora);
   if (!p) return null;
-  const titulo = `Entrada em ${new Date(p.inicio).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} · prazo até ${new Date(p.limite).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const titulo = `Entrada em ${new Date(p.inicio).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} · prazo de 2 dias úteis até ${new Date(p.limite).toLocaleString('pt-BR', { weekday: 'short', dateStyle: undefined, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} (fins de semana e feriados não contam)`;
   return /*#__PURE__*/React.createElement("span", {
     className: `prazo-entrada ${p.vencido ? 'vencido' : p.restanteMs < 12 * 3600e3 ? 'perto' : ''}`,
     title: titulo
-  }, p.vencido ? `⚠ Prazo de 48h vencido há ${textoDuracao(-p.restanteMs)}` : `⏱ ${textoDuracao(p.restanteMs)} restantes`);
+  }, p.vencido ? `⚠ Prazo de 2 dias úteis vencido há ${textoDuracao(-p.restanteMs)} úteis` : `⏱ ${textoDuracao(p.restanteMs)} úteis restantes`);
 }
 function EtiquetaGarantiaPrioridade({
   lote
