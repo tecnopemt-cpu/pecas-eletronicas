@@ -24,7 +24,8 @@ O backup copia o Firestore para fora do Google, e o código já está versionado
   Lê o Firestore inteiro direto da API do Google (não passa pelo site), junta o código, cifra e grava.
 - **Onde ficam os backups**: ramo `backups` do repositório —
   <https://github.com/tecnopemt-cpu/pecas-eletronicas/tree/backups>.
-  Fica fora do Firebase e do site. Retenção: últimos 30 dias + 1 por mês dos últimos 12 meses.
+  Fica fora do Firebase e do site. Retenção: últimos 7 dias + o último backup de cada um dos 3 meses anteriores, até 600 MB
+  (para o repositório ficar abaixo de 1 GB, como o GitHub recomenda). O que vale no dia a dia é o último.
   O arquivo `indice.json`/`LEIAME.md` do ramo lista todos os backups (data, tamanho, quantidade de documentos).
 - **Segunda cópia fora do GitHub (opcional)**: se os segredos `RCLONE_CONFIG` e `RCLONE_DESTINO` forem configurados
   no repositório (*Settings → Secrets and variables → Actions*), cada backup também é enviado para um armazenamento

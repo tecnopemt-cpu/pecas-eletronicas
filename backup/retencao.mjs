@@ -4,7 +4,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const [dir, metaNovoArq] = process.argv.slice(2);
-const DIARIOS = 30, MENSAIS = 12, MINIMO = 7, LIMITE_BYTES = 1.5 * 1024 ** 3;
+// O que vale no dia a dia é o último backup; os 7 dias anteriores e o último de cada um dos 3 meses anteriores
+// ficam para o caso de um problema só ser percebido depois. Limite de 600 MB para o repositório ficar abaixo
+// de 1 GB (recomendação do GitHub), mesmo com os backups crescendo junto com as fotos.
+const DIARIOS = 7, MENSAIS = 3, MINIMO = 3, LIMITE_BYTES = 600 * 1024 ** 2;
 const indiceArq = path.join(dir, 'indice.json');
 const indice = fs.existsSync(indiceArq) ? JSON.parse(fs.readFileSync(indiceArq, 'utf8')) : { backups: [] };
 let lista = (indice.backups || []).filter(b => (b.partes || [b.arquivo]).every(p => fs.existsSync(path.join(dir, p))));
