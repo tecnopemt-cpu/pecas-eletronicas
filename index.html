@@ -6322,6 +6322,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ======================= AVALIAÇÃO DE DESEMPENHO =======================
 // Registros diários feitos pela gestão (digitados ou por voz) → avaliação trimestral montada a partir
 // desses registros (sem inteligência artificial: o sistema só organiza o que foi registrado e indica de
@@ -6512,8 +6513,48 @@ function avConfigCompleta(c) {
     tipos: c.tipos && c.tipos.length ? [...c.tipos, ...AV_TIPOS_NOVOS.filter(t => !c.tipos.some(x => x.id === t.id))] : AV_TIPOS_PADRAO,
     criterios: c.criterios && c.criterios.length ? c.criterios : AV_CRITERIOS_PADRAO,
     registrosVisiveisFuncionario: !!c.registrosVisiveisFuncionario,
-    lembretesAtivos: c.lembretesAtivos !== false
+    lembretesAtivos: c.lembretesAtivos !== false,
+    // a Avaliação considera só o que foi lançado a partir desta data (o que veio antes foi teste e fica
+    // guardado no banco, só não aparece). Vazio = considerar tudo.
+    inicioDados: c.inicioDados === undefined ? AV_INICIO_PADRAO : String(c.inicioDados || '')
   };
+}
+// ---- início dos dados da Avaliação (testes anteriores ficam ocultos, nada é apagado)
+const AV_INICIO_PADRAO = '2026-11-24';
+const AV_COLECOES_INICIO = ['avaliacaoRegistros', 'avaliacoesTrimestrais', 'avaliacoesPublicadas', 'avaliacaoMetas', 'cursosProfissionais'];
+function avMsDe(v) {
+  if (!v) return 0;
+  if (typeof v.toMillis === 'function') return v.toMillis();
+  if (typeof v.seconds === 'number') return v.seconds * 1000;
+  if (typeof v === 'string') {
+    const t = Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(v) ? v + 'T12:00:00-03:00' : v);
+    return isNaN(t) ? 0 : t;
+  }
+  if (v instanceof Date) return v.getTime();
+  return 0;
+}
+// quando o documento foi lançado (avaliação reiniciada conta da data em que foi refeita)
+function avDataLancamento(colecao, d) {
+  if (colecao === 'avaliacoesTrimestrais') return avMsDe(d.reiniciadoEm || d.geradoEm);
+  if (colecao === 'avaliacoesPublicadas') return avMsDe(d.reiniciadoEm || d.aprovadaEm);
+  if (colecao === 'avaliacaoRegistros') return avMsDe(d.registradoEm);
+  return avMsDe(d.criadoEm || d.criadoEmDia);
+}
+function avInicioMs(inicio) {
+  return inicio ? Date.parse(inicio + 'T00:00:00-03:00') : 0;
+}
+function avDentroDoInicio(colecao, d, inicio) {
+  if (!inicio || !AV_COLECOES_INICIO.includes(colecao)) return true;
+  return avDataLancamento(colecao, d) >= avInicioMs(inicio);
+}
+async function avLerInicioDados() {
+  try {
+    const s = await db.collection('avaliacaoConfig').doc('geral').get();
+    return avConfigCompleta(s.exists ? s.data() : null).inicioDados;
+  } catch (err) {
+    console.error('avaliacaoConfig', err);
+    return AV_INICIO_PADRAO;
+  }
 }
 function avTipo(config, id) {
   return config.tipos.find(t => t.id === id) || {
@@ -6528,7 +6569,11 @@ function avDataHora(r) {
 
 // ---- leitura ao vivo (só enquanto a tela está aberta; não entra na cópia do aparelho)
 function useAvConsulta(colecao, filtros, ativo = true) {
-  const [lista, setLista] = useState([]);
+  const {
+    inicioDados
+  } = useAvConfig();
+  const [bruta, setLista] = useState([]);
+  const lista = useMemo(() => bruta.filter(d => avDentroDoInicio(colecao, d, inicioDados)), [bruta, colecao, inicioDados]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const chave = JSON.stringify(filtros || []);
@@ -6546,7 +6591,9 @@ function useAvConsulta(colecao, filtros, ativo = true) {
     return ref.onSnapshot(snap => {
       setLista(snap.docs.map(d => ({
         id: d.id,
-        ...d.data()
+        ...d.data({
+          serverTimestamps: 'estimate'
+        })
       })));
       setCarregando(false);
       setErro('');
@@ -8997,8 +9044,62 @@ async function avGerarAvaliacao(f, tri, usuario, registros, metas, config) {
   const id = avIdAvaliacao(f.id, tri);
   const refDoc = db.collection('avaliacoesTrimestrais').doc(id);
   const existe = await refDoc.get();
-  if (existe.exists) return id;
   const g = avGerarRascunho(f.id, tri, registros, metas, config);
+  if (existe.exists) {
+    const a = existe.data();
+    if (avDentroDoInicio('avaliacoesTrimestrais', a, config.inicioDados)) return id;
+    // avaliação de teste (antes do início dos dados): refaz do zero, guardando o que havia em "versões"
+    const agora = new Date().toISOString();
+    const just = `Avaliação de teste reiniciada — a Avaliação considera os dados a partir de ${formatarDataBr(config.inicioDados)}.`;
+    const versao = {
+      em: agora,
+      porNome: usuario.nome || '-',
+      justificativa: just,
+      statusAnterior: a.status,
+      conteudo: a.conteudo || null,
+      notas: a.notas || null,
+      comentariosAvaliador: a.comentariosAvaliador || '',
+      media: a.media || null
+    };
+    let versoes = a.versoes || [],
+      historico = a.historico || [];
+    if (['aprovada', 'feedback'].includes(a.status)) {
+      // aprovada: as regras só deixam reabrir guardando a versão, com justificativa
+      versoes = [...versoes, versao];
+      historico = [...historico, {
+        em: agora,
+        porNome: usuario.nome || '-',
+        texto: `reabriu a avaliação aprovada para correção: ${just}`
+      }];
+      await refDoc.update({
+        status: 'em_revisao',
+        versoes,
+        historico
+      });
+    }
+    await refDoc.update({
+      ...g,
+      status: 'rascunho',
+      comentariosAvaliador: '',
+      reiniciadoEm: agora,
+      reiniciadoPorNome: usuario.nome || '-',
+      aprovadoPorNome: '',
+      feedbackEm: '',
+      feedbackPorId: '',
+      feedbackPorNome: '',
+      compromissosFeedback: '',
+      versoes: [...versoes, {
+        ...versao,
+        statusAnterior: ['aprovada', 'feedback'].includes(a.status) ? 'em_revisao' : a.status
+      }],
+      historico: [...historico, {
+        em: agora,
+        porNome: usuario.nome || '-',
+        texto: 'gerou a avaliação preliminar a partir dos registros (a versão de teste ficou guardada em Versões anteriores)'
+      }]
+    });
+    return id;
+  }
   await refDoc.set({
     funcionarioId: f.id,
     funcionarioNome: f.nome,
@@ -9027,7 +9128,11 @@ function AvTrimestrais({
   aoNovaMeta
 }) {
   const tris = avTrimestresRecentes(6);
-  const [tri, setTri] = useState(() => avTriAnterior(tris[0]));
+  // abre no trimestre anterior; se ele terminou antes do início dos dados da Avaliação, abre no atual
+  const [tri, setTri] = useState(() => {
+    const ant = avTriAnterior(tris[0]);
+    return config.inicioDados && avLimites(ant).fim < config.inicioDados ? tris[0] : ant;
+  });
   const [aberta, setAberta] = useState(null);
   const [gerando, setGerando] = useState('');
   const [erro, setErro] = useState('');
@@ -10002,10 +10107,11 @@ function DesenvolvimentoProfissional({
 // ---- dados para o PDF (seção opcional "Formação e Desenvolvimento Profissional")
 async function fpDadosParaPdf(funcionarioId) {
   const [cs, rs] = await Promise.all([db.collection('cursosProfissionais').where('funcionarioId', '==', funcionarioId).get(), db.collection('resumosProfissionais').doc(funcionarioId).get()]);
+  const inicio = await avLerInicioDados();
   const cursos = fpOrdenar(cs.docs.map(d => ({
     id: d.id,
     ...d.data()
-  })).filter(c => c.status !== 'excluido'));
+  })).filter(c => c.status !== 'excluido' && avDentroDoInicio('cursosProfissionais', c, inicio)));
   const r = rs.exists ? rs.data() : null;
   return {
     cursos,
@@ -10597,6 +10703,7 @@ function AvConfiguracoes({
         })),
         registrosVisiveisFuncionario: !!c.registrosVisiveisFuncionario,
         lembretesAtivos: !!c.lembretesAtivos,
+        inicioDados: c.inicioDados || '',
         atualizadoPorNome: usuario.nome || '-',
         atualizadoEmTexto: new Date().toISOString()
       });
@@ -10623,6 +10730,18 @@ function AvConfiguracoes({
       registrosVisiveisFuncionario: e.target.checked
     })
   }), " O funcion\xE1rio pode ver os pr\xF3prios registros di\xE1rios (por padr\xE3o s\xF3 v\xEA avalia\xE7\xF5es aprovadas e metas vis\xEDveis)"), /*#__PURE__*/React.createElement("label", {
+    className: "av-inicio-dados"
+  }, "Considerar os dados da Avalia\xE7\xE3o a partir de ", /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: c.inicioDados || '',
+    onChange: e => setC({
+      ...c,
+      inicioDados: e.target.value
+    }),
+    "aria-label": "In\xEDcio dos dados da Avalia\xE7\xE3o"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, "O que foi lan\xE7ado antes desta data (registros, avalia\xE7\xF5es, metas e cursos) fica guardado no banco, mas n\xE3o aparece nas telas, na ficha nem nos relat\xF3rios. Deixe vazio para mostrar tudo."), /*#__PURE__*/React.createElement("label", {
     className: "av-check"
   }, /*#__PURE__*/React.createElement("input", {
     type: "checkbox",
@@ -12012,10 +12131,11 @@ function rgRotuloPeriodo(p) {
 }
 // lê os dados do colaborador (só dele) no banco — consultas pontuais, sem gravar nada
 async function rgCarregar(fid) {
+  const inicio = await avLerInicioDados();
   const ler = async c => (await db.collection(c).where('funcionarioId', '==', fid).get()).docs.map(d => ({
     id: d.id,
     ...d.data()
-  }));
+  })).filter(d => avDentroDoInicio(c, d, inicio));
   const [registros, avaliacoes, metas, cursos] = await Promise.all(['avaliacaoRegistros', 'avaliacoesTrimestrais', 'avaliacaoMetas', 'cursosProfissionais'].map(ler));
   return {
     registros,

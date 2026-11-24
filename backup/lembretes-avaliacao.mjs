@@ -19,15 +19,22 @@ export function calcularLembretes(dados, hoje = hojeBrasil()) {
   if (!dados.config && !Object.keys(dados.registros || {}).length) return [];
   const avaliaveis = Object.entries(dados.funcionarios || {}).filter(([, f]) => ATIVO(f) && f.perfil !== 'master').map(([id, f]) => ({ id, nome: f.nome || id }));
   if (!avaliaveis.length) return [];
-  const regs = Object.values(dados.registros || {}).filter(r => r.status !== 'removido');
-  const avs = dados.avaliacoes || {};
+  // a Avaliação só considera o que foi lançado a partir de "inicioDados" (antes disso foi teste; fica guardado, mas não conta)
+  const inicio = cfg.inicioDados === undefined ? '2026-11-24' : String(cfg.inicioDados || '');
+  const inicioMs = inicio ? Date.parse(inicio + 'T00:00:00-03:00') : 0;
+  const msDe = v => { const t = Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? v + 'T12:00:00-03:00' : String(v || '')); return isNaN(t) ? 0 : t; };
+  const valeDesde = v => !inicioMs || msDe(v) >= inicioMs;
+  const regs = Object.values(dados.registros || {}).filter(r => r.status !== 'removido' && valeDesde(r.registradoEm));
+  const avs = Object.fromEntries(Object.entries(dados.avaliacoes || {}).filter(([, a]) => valeDesde(a.reiniciadoEm || a.geradoEm)));
+  dados = { ...dados, metas: Object.fromEntries(Object.entries(dados.metas || {}).filter(([, m]) => valeDesde(m.criadoEm || m.criadoEmDia))) };
   const out = [];
   const tri = trimestreDe(hoje), triAnt = anterior(tri);
   // 1) fim do trimestre chegando
   const faltam = diasEntre(hoje, fimDo(tri));
   if (faltam >= 0 && faltam <= 7) out.push({ chave: `fim-${tri}`, texto: `O ${rotulo(tri)} termina em ${br(fimDo(tri))} (${faltam} dia(s)). Revise se os registros do período estão completos antes de gerar as avaliações.` });
   // 2) avaliações do trimestre anterior pendentes
-  const pend = avaliaveis.filter(f => { const a = avs[`${f.id}_${triAnt}`]; return !a || a.status === 'rascunho' || a.status === 'em_revisao'; });
+  // trimestre que terminou antes do início dos dados não tem avaliação a cobrar
+  const pend = inicio && fimDo(triAnt) < inicio ? [] : avaliaveis.filter(f => { const a = avs[`${f.id}_${triAnt}`]; return !a || a.status === 'rascunho' || a.status === 'em_revisao'; });
   if (pend.length) out.push({ chave: `pendentes-${triAnt}-${pend.map(f => f.id).sort().join(',')}`, texto: `Avaliações do ${rotulo(triAnt)} ainda não aprovadas (${pend.length}): ${pend.map(f => f.nome).join(', ')}.` });
   // 3) aprovadas há mais de 15 dias sem feedback
   const semFb = Object.values(avs).filter(a => a.status === 'aprovada' && a.aprovadaEm && diasEntre(String(a.aprovadaEm).slice(0, 10), hoje) > 15);
