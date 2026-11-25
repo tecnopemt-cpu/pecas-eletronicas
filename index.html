@@ -6881,9 +6881,23 @@ function avOcorrenciasDe(docs) {
   return [...vistos.values()].sort((a, b) => b.data.localeCompare(a.data));
 }
 // (só nas telas da gestão; vem da cópia sincronizada da Comissão, sem leitura extra do banco)
-function useAvOcorrencias() {
+// Na Avaliação, faltas/atrasos da Comissão contam a partir do início dos dados da Avaliação (os anteriores
+// continuam na Comissão e nos Benefícios, só não aparecem aqui). Benefícios passa todas=true.
+function useAvOcorrencias(todas) {
   const [docs] = useColecao('apuracaoRegistros');
-  return useMemo(() => avOcorrenciasDe(docs), [docs]);
+  const { inicioDados } = useAvConfig();
+  return useMemo(() => {
+    const l = avOcorrenciasDe(docs);
+    return todas || !inicioDados ? l : l.filter(o => o.data >= inicioDados);
+  }, [docs, todas, inicioDados]);
+}
+// trimestre que abre por padrão: o anterior (que está sendo avaliado); se ele terminou antes do início dos
+// dados da Avaliação, o atual
+function avTriPadrao(config) {
+  const atual = avTrimestreDe(avHoje());
+  const ant = avTriAnterior(atual);
+  const ini = config && config.inicioDados;
+  return ini && avLimites(ant).fim < ini ? atual : ant;
 }
 function avOcorrenciasNoPeriodo(lista, fid, inicio, fim, comRemovidas) {
   return lista.filter(o => (!fid || o.funcionarioId === fid) && o.data >= inicio && o.data <= fim && (comRemovidas || !o.removido));
@@ -11828,7 +11842,8 @@ function AvPainelGeral({
   });
   const triAtual = avTrimestreDe(avHoje());
   const triAnt = avTriAnterior(triAtual);
-  const atrasadasAv = avaliaveis.filter(f => {
+  const triAntAntesDoInicio = !!config.inicioDados && avLimites(triAnt).fim < config.inicioDados;
+  const atrasadasAv = triAntAntesDoInicio ? [] : avaliaveis.filter(f => {
     const a = avaliacoes.find(x => x.id === avIdAvaliacao(f.id, triAnt));
     return !a || a.status === 'rascunho' || a.status === 'em_revisao';
   });
@@ -11996,7 +12011,7 @@ function AbaAvaliacoes({
   const [tela, setTela] = useState({
     nome: 'equipe'
   });
-  const [tri, setTri] = useState(() => avTrimestresRecentes(2)[1]); // o trimestre que está sendo avaliado
+  const [tri, setTri] = useState(() => avTriPadrao(config)); // o trimestre que está sendo avaliado
   const [registrando, setRegistrando] = useState(null);
   const [novaMeta, setNovaMeta] = useState(null);
   if (!gestor) return /*#__PURE__*/React.createElement("div", {
@@ -12395,7 +12410,7 @@ function RelatorioGeralColaborador({
 }) {
   const tris = avTrimestresRecentes(8);
   const [tipo, setTipo] = useState('tudo');
-  const [tri, setTri] = useState(tris[1]);
+  const [tri, setTri] = useState(() => avTriPadrao(config));
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
   const [dados, setDados] = useState(null);
@@ -18694,7 +18709,7 @@ function AbaBeneficios({
   const [configs, carregandoCfg] = useColecao('beneficiosFuncionarios');
   const [cals] = useColecao('beneficiosCalendario');
   const [fechamentos] = useColecao('beneficiosFechamentos');
-  const ocorrencias = useAvOcorrencias();
+  const ocorrencias = useAvOcorrencias(true);
   const [aberto, setAberto] = useState(null);
   const [calGeral, setCalGeral] = useState(false);
   const [conferir, setConferir] = useState(false);
