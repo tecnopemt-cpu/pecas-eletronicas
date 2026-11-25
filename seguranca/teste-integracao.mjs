@@ -224,13 +224,16 @@ try {
   passo('avaliação: anexo do registro gravado com as regras valendo (protegido, à parte)', regsAv[0] && (regsAv[0].anexos || []).length === 1 && certsReg.length === 1 && certsReg[0].funcionarioId === 'FUN', JSON.stringify(regsAv[0] && regsAv[0].anexos));
   etapa = 'avaliação passo 4'; await mr.locator('button', { hasText: 'Fechar' }).click();
   etapa = 'avaliação passo 5'; await w.page.waitForTimeout(800);
-  etapa = 'avaliação passo 6'; await w.page.locator('.av-tl-item', { hasText: 'Organizou a bancada' }).locator('button').click(); await w.page.waitForTimeout(500);
+  etapa = 'avaliação passo 6'; await w.page.locator('.av-tl-item', { hasText: 'Organizou a bancada' }).locator('.av-tl-btn').click(); await w.page.waitForTimeout(500);
   const mc = w.page.locator('.modal').last();
   etapa = 'avaliação passo 7'; await mc.locator('button', { hasText: 'Corrigir' }).click(); await mc.locator('textarea').first().fill('Organizou a bancada e as peças antes do serviço.');
   etapa = 'avaliação passo 8'; await mc.locator('button', { hasText: 'Salvar correção' }).click(); await esperar(1500);
   regsAv = await listar('avaliacaoRegistros');
   passo('avaliação: correção gravada com histórico', /e as peças/.test(regsAv[0].descricao) && regsAv[0].historicoAlteracoes.length === 1, JSON.stringify(regsAv[0]).slice(0, 300));
   etapa = 'avaliação passo 9'; await mc.locator('button', { hasText: 'Fechar' }).first().click();
+  etapa = 'avaliação passo 9b'; await w.page.locator('.av-tl-item', { hasText: 'Organizou a bancada' }).locator('.av-tl-excluir').click(); await w.page.waitForTimeout(400);
+  passo('avaliação: botão Excluir do registro abre direto a remoção (com justificativa obrigatória)', await w.page.locator('.modal').last().locator('.av-confirmar input').count() === 1 && /Confirmar remo/.test(await w.page.locator('.modal').last().innerText()));
+  await w.page.locator('.modal').last().locator('button', { hasText: 'Fechar' }).first().click(); await w.page.waitForTimeout(300);
   etapa = 'avaliação passo 10'; await w.page.locator('.av-secao-cab .av-voltar').click(); await w.page.locator('.av-ficha-btn-av').click(); await w.page.waitForTimeout(800);
   // 2ª linha = trimestre anterior (o que está sendo avaliado)
   etapa = 'avaliação passo 11'; await w.page.locator('.av-perfil-secao .av-tabela tbody tr').nth(1).locator('button').click(); await w.page.waitForSelector('.av-modal-avaliacao', { timeout: 15000 });
