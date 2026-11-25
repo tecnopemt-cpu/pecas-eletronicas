@@ -6485,10 +6485,14 @@ function avTriAnterior(tri) {
   const [a, t] = tri.split('-T').map(Number);
   return t === 1 ? `${a - 1}-T4` : `${a}-T${t - 1}`;
 }
+// trimestres que aparecem para escolher: o atual e os anteriores, mas nenhum que terminou antes do início dos
+// dados da Avaliação (avaliacaoConfig.geral.inicioDados — guardado aqui quando a configuração carrega)
+let avInicioDadosAtual = '2026-11-24'; // = AV_INICIO_PADRAO (definido mais abaixo)
 function avTrimestresRecentes(n) {
   const lista = [avTrimestreDe(avHoje())];
   while (lista.length < n) lista.push(avTriAnterior(lista[lista.length - 1]));
-  return lista;
+  const ini = avInicioDadosAtual;
+  return ini ? lista.filter((t, i) => i === 0 || avLimites(t).fim >= ini) : lista;
 }
 function avIdAvaliacao(fid, tri) {
   return `${fid}_${tri}`;
@@ -6612,6 +6616,7 @@ function useAvConsulta(colecao, filtros, ativo = true) {
 function useAvConfig() {
   const [cfg, setCfg] = useState(() => avConfigCompleta(null));
   useEffect(() => db.collection('avaliacaoConfig').doc('geral').onSnapshot(s => setCfg(avConfigCompleta(s.exists ? s.data() : null)), err => console.error('avaliacaoConfig', err)), []);
+  avInicioDadosAtual = cfg.inicioDados;
   return cfg;
 }
 

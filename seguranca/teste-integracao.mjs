@@ -235,8 +235,8 @@ try {
   passo('avaliação: botão Excluir do registro abre direto a remoção (com justificativa obrigatória)', await w.page.locator('.modal').last().locator('.av-confirmar input').count() === 1 && /Confirmar remo/.test(await w.page.locator('.modal').last().innerText()));
   await w.page.locator('.modal').last().locator('button', { hasText: 'Fechar' }).first().click(); await w.page.waitForTimeout(300);
   etapa = 'avaliação passo 10'; await w.page.locator('.av-secao-cab .av-voltar').click(); await w.page.locator('.av-ficha-btn-av').click(); await w.page.waitForTimeout(800);
-  // 2ª linha = trimestre anterior (o que está sendo avaliado)
-  etapa = 'avaliação passo 11'; await w.page.locator('.av-perfil-secao .av-tabela tbody tr').nth(1).locator('button').click(); await w.page.waitForSelector('.av-modal-avaliacao', { timeout: 15000 });
+  // trimestres anteriores ao início dos dados da Avaliação (24/11/2026) não aparecem: avalia o mais antigo da lista
+  etapa = 'avaliação passo 11'; await w.page.locator('.av-perfil-secao .av-tabela tbody tr').last().locator('button').click(); await w.page.waitForSelector('.av-modal-avaliacao', { timeout: 15000 });
   etapa = 'avaliação passo 12'; await w.page.locator('.av-modal-avaliacao button', { hasText: 'Salvar revisão' }).click(); await esperar(1200);
   etapa = 'avaliação passo 13'; await w.page.locator('.av-modal-avaliacao button', { hasText: 'Aprovar…' }).click();
   etapa = 'avaliação passo 14'; await w.page.locator('.av-modal-avaliacao .av-confirmar button', { hasText: /^Aprovar$/ }).click(); await esperar(2000);
