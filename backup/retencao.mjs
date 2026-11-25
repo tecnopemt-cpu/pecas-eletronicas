@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const [dir, metaNovoArq] = process.argv.slice(2);
-// O que vale no dia a dia é o último backup; os 7 dias anteriores e o último de cada um dos 3 meses anteriores
+// O que vale no dia a dia é o último backup; os 7 mais recentes e o último de cada um dos 3 meses já encerrados
 // ficam para o caso de um problema só ser percebido depois. Limite de 600 MB para o repositório ficar abaixo
 // de 1 GB (recomendação do GitHub), mesmo com os backups crescendo junto com as fotos.
 const DIARIOS = 7, MENSAIS = 3, MINIMO = 3, LIMITE_BYTES = 600 * 1024 ** 2;
@@ -19,8 +19,10 @@ if (metaNovoArq) {
 lista.sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1));
 const manter = new Set();
 lista.slice(0, DIARIOS).forEach(b => manter.add(b.arquivo));
+// mensal = o ÚLTIMO backup de cada mês que já terminou (o mês corrente fica coberto pelos diários)
+const mesAtual = (lista[0]?.criadoEm || new Date().toISOString()).slice(0, 7);
 const porMes = {};
-[...lista].reverse().forEach(b => { const mes = b.criadoEm.slice(0, 7); if (!porMes[mes]) porMes[mes] = b; });
+lista.forEach(b => { const mes = b.criadoEm.slice(0, 7); if (mes < mesAtual && !porMes[mes]) porMes[mes] = b; });
 Object.keys(porMes).sort().reverse().slice(0, MENSAIS).forEach(m => manter.add(porMes[m].arquivo));
 let total = 0, mantidos = [];
 for (const b of lista) {
