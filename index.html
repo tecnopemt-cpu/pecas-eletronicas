@@ -448,6 +448,10 @@
   .av-tl-lista,.av-tl-lista ol{list-style:none;margin:0;padding:0;}
   .av-tl-mes-tit{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--texto-fraco);margin:14px 0 6px;}
   .av-tl-item{position:relative;padding-left:18px;border-left:2px solid var(--borda);margin-left:22px;}
+  .av-tl-excluir{position:absolute;top:14px;right:10px;font:inherit;font-size:12.5px;font-weight:600;color:var(--vermelho);background:var(--vermelho-bg);border:1px solid transparent;border-radius:8px;padding:4px 9px;cursor:pointer;}
+  .av-tl-excluir:hover{border-color:var(--vermelho);}
+  .av-tl-item:has(.av-tl-excluir) .av-tl-btn{padding-right:96px;}
+  .av-remover-oc{margin-top:10px;} .av-remover-oc textarea{width:100%;box-sizing:border-box;}
   .av-tl-item::before{content:'';position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9CA3AF;border:2px solid var(--card);}
   .av-tl-item.sp::before{background:#16A34A;}.av-tl-item.sn::before{background:#DC2626;}.av-tl-item.sf::before,.av-tl-item.sa::before{background:#D97706;}
   .av-tl-btn{display:flex;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;margin:6px 0;cursor:pointer;}
@@ -6950,8 +6954,50 @@ function AvListaOcorrencias({
 function AvModalOcorrencia({
   o,
   nomeFuncionario,
-  aoFechar
+  aoFechar,
+  usuario,
+  iniciarRemovendo
 }) {
+  const podeExcluir = !!usuario && podeEditar(usuario, 'comissoes') && !o.removido && !!o.documentoComissao && !!o.ocorrenciaId;
+  const [motivo, setMotivo] = useState('');
+  const [removendo, setRemovendo] = useState(!!iniciarRemovendo && podeExcluir);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  async function excluir() {
+    if (!motivo.trim()) {
+      setErro('Informe o motivo da exclusão.');
+      return;
+    }
+    setSalvando(true);
+    setErro('');
+    try {
+      const ref = db.collection('apuracaoRegistros').doc(o.documentoComissao);
+      const snap = await ref.get();
+      const lista = snap.exists ? snap.data().ocorrencias || [] : [];
+      if (!lista.some(x => x.id === o.ocorrenciaId)) throw new Error('ocorrência não encontrada');
+      await ref.set({
+        ocorrencias: lista.map(x => x.id === o.ocorrenciaId ? {
+          ...x,
+          removido: true,
+          removidoPor: usuario.nome,
+          removidoEm: new Date().toISOString(),
+          motivoRemocao: motivo.trim()
+        } : x)
+      }, {
+        merge: true
+      });
+      await registrarHistoricoComissao({
+        tipo: 'ocorrencia',
+        descricao: `Removeu ocorrência de ${nomeFuncionario}: ${o.nome} em ${formatarDataBr(o.data)} — motivo: ${motivo.trim()} (pela Avaliação)`
+      }, usuario).catch(() => {});
+      await notificarFuncionario(o.funcionarioId, `A ocorrência "${o.nome}" de ${formatarDataBr(o.data)} foi removida da sua apuração de comissão.`, 'ocorrencia').catch(() => {});
+      aoFechar();
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui excluir. Nada foi alterado.');
+      setSalvando(false);
+    }
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-fundo",
     onClick: e => e.target === e.currentTarget && aoFechar()
@@ -6963,17 +7009,39 @@ function AvModalOcorrencia({
     }
   }, o.tipo === 'falta' ? 'Falta' : 'Atraso', " de ", nomeFuncionario), /*#__PURE__*/React.createElement("div", {
     className: "av-previa-aviso"
-  }, "Registrado na ", /*#__PURE__*/React.createElement("strong", null, "Comiss\xE3o"), ". Para corrigir ou remover, use a Comiss\xE3o \u2014 a mudan\xE7a aparece aqui automaticamente. N\xE3o altera a nota da avalia\xE7\xE3o."), o.removido && /*#__PURE__*/React.createElement("div", {
+  }, "Registrado na ", /*#__PURE__*/React.createElement("strong", null, "Comiss\xE3o"), ". Para corrigir, use a Comiss\xE3o; para excluir, use o bot\xE3o Excluir abaixo (ou a Comiss\xE3o) \u2014 a mudan\xE7a aparece nos dois lugares. N\xE3o altera a nota da avalia\xE7\xE3o."), o.removido && /*#__PURE__*/React.createElement("div", {
     className: "av-alerta"
   }, "Removida na Comiss\xE3o por ", o.removidoPor || '-', o.removidoEm ? ` em ${quandoBrasilia(o.removidoEm)}` : '', ". Motivo: ", o.motivoRemocao || '-', ". N\xE3o entra na contagem."), /*#__PURE__*/React.createElement("dl", {
     className: "av-previa"
-  }, /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, o.nome), /*#__PURE__*/React.createElement("dt", null, "Data da ocorr\xEAncia"), /*#__PURE__*/React.createElement("dd", null, formatarDataBr(o.data), " \xB7 ", avRotuloTri(o.trimestre)), o.tipo === 'atraso' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Hor\xE1rio"), /*#__PURE__*/React.createElement("dd", null, "Previsto ", o.previsto || '-', " \xB7 chegada ", o.chegada || '-', o.minutos ? ` · ${avMinTxt(o.minutos)} de atraso` : '')), o.obs && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Observa\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, o.obs)), /*#__PURE__*/React.createElement("dt", null, "Registrado por"), /*#__PURE__*/React.createElement("dd", null, o.por || '-', o.em ? ` em ${quandoBrasilia(o.em)}` : '')), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("dt", null, "Tipo"), /*#__PURE__*/React.createElement("dd", null, o.nome), /*#__PURE__*/React.createElement("dt", null, "Data da ocorr\xEAncia"), /*#__PURE__*/React.createElement("dd", null, formatarDataBr(o.data), " \xB7 ", avRotuloTri(o.trimestre)), o.tipo === 'atraso' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Hor\xE1rio"), /*#__PURE__*/React.createElement("dd", null, "Previsto ", o.previsto || '-', " \xB7 chegada ", o.chegada || '-', o.minutos ? ` · ${avMinTxt(o.minutos)} de atraso` : '')), o.obs && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", null, "Observa\xE7\xE3o"), /*#__PURE__*/React.createElement("dd", null, o.obs)), /*#__PURE__*/React.createElement("dt", null, "Registrado por"), /*#__PURE__*/React.createElement("dd", null, o.por || '-', o.em ? ` em ${quandoBrasilia(o.em)}` : '')), removendo && /*#__PURE__*/React.createElement("div", {
+    className: "av-remover-oc"
+  }, /*#__PURE__*/React.createElement("label", null, "Motivo da exclus\xE3o (obrigat\xF3rio)"), /*#__PURE__*/React.createElement("textarea", {
+    value: motivo,
+    onChange: e => setMotivo(e.target.value),
+    rows: 2,
+    autoFocus: true,
+    "aria-label": "Motivo da exclus\xE3o"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "av-dica"
+  }, o.tipo === 'falta' ? 'A falta' : 'O atraso', " sai da Avalia\xE7\xE3o, da Comiss\xE3o e dos Benef\xEDcios (fica guardado como removido, com o motivo, igual quando se remove pela Comiss\xE3o).")), erro && /*#__PURE__*/React.createElement("div", {
+    className: "av-erro",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
     className: "av-acoes"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario",
     onClick: aoFechar
-  }, "Fechar"))));
+  }, "Fechar"), podeExcluir && !removendo && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    onClick: () => setRemovendo(true)
+  }, "\uD83D\uDDD1 Excluir"), removendo && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn perigo",
+    disabled: salvando,
+    onClick: excluir
+  }, salvando ? 'Excluindo...' : 'Confirmar exclusão'))));
 }
 
 // ---- anexos dos registros (foto ou PDF): guardados como os certificados (em partes, fora do registro);
@@ -7504,7 +7572,8 @@ function AvModalRegistro({
   usuario,
   funcionarios,
   config,
-  aoFechar
+  aoFechar,
+  iniciarRemovendo
 }) {
   const [editando, setEditando] = useState(false);
   const [f, setF] = useState({
@@ -7517,7 +7586,7 @@ function AvModalRegistro({
     comentarios: registro.comentarios || ''
   });
   const [justificativa, setJustificativa] = useState('');
-  const [removendo, setRemovendo] = useState(false);
+  const [removendo, setRemovendo] = useState(!!iniciarRemovendo);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const [novosAnexos, setNovosAnexos] = useState([]);
@@ -8030,6 +8099,8 @@ function AvLinhaDoTempo({
   const [categoria, setCategoria] = useState('');
   const [removidos, setRemovidos] = useState(false);
   const [aberto, setAberto] = useState(null);
+  const [abrirExcluindo, setAbrirExcluindo] = useState(false);
+  const abrir = (id, excluir) => { setAbrirExcluindo(!!excluir); setAberto(id); };
   const [limite, setLimite] = useState(60);
   const ocorrencias = useAvOcorrencias();
   const intervalo = avIntervaloTL(periodo, de, ate);
@@ -8136,7 +8207,7 @@ function AvLinhaDoTempo({
     }, /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "av-tl-btn",
-      onClick: () => setAberto(r.id)
+      onClick: () => abrir(r.id)
     }, /*#__PURE__*/React.createElement("span", {
       className: "av-tl-data"
     }, /*#__PURE__*/React.createElement("b", null, (r.dataOcorrido || '').slice(8, 10)), /*#__PURE__*/React.createElement("small", null, r.horaOcorrido || '')), /*#__PURE__*/React.createElement("span", {
@@ -8156,7 +8227,13 @@ function AvLinhaDoTempo({
       className: "av-tl-desc"
     }, r.descricao), /*#__PURE__*/React.createElement("span", {
       className: "av-tl-por"
-    }, r._oc ? `lançado na Comissão por ${r.registradoPorNome}` : `por ${r.registradoPorNome}`, r.status === 'removido' ? ' · removido' : '', (r.historicoAlteracoes || []).length ? ' · corrigido' : ''))));
+    }, r._oc ? `lançado na Comissão por ${r.registradoPorNome}` : `por ${r.registradoPorNome}`, r.status === 'removido' ? ' · removido' : '', (r.historicoAlteracoes || []).length ? ' · corrigido' : ''))), !somenteLeitura && r.status !== 'removido' && !(r._oc && r._oc.removido) && (r._oc ? podeEditar(usuario, 'comissoes') : avEhGestor(usuario)) && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "av-tl-excluir",
+      title: "Excluir este registro",
+      "aria-label": "Excluir registro",
+      onClick: () => abrir(r.id, true)
+    }, "\uD83D\uDDD1 Excluir"));
   }))))), lista.length > limite && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn secundario av-tl-mais",
@@ -8164,12 +8241,15 @@ function AvLinhaDoTempo({
   }, "Mostrar mais (", lista.length - limite, ")"), registroAberto && (registroAberto._oc ? /*#__PURE__*/React.createElement(AvModalOcorrencia, {
     o: registroAberto._oc,
     nomeFuncionario: nomeDe(registroAberto.funcionarioId),
+    usuario: usuario,
+    iniciarRemovendo: abrirExcluindo,
     aoFechar: () => setAberto(null)
   }) : /*#__PURE__*/React.createElement(AvModalRegistro, {
     registro: registroAberto,
     usuario: usuario,
     funcionarios: funcionarios,
     config: config,
+    iniciarRemovendo: abrirExcluindo,
     aoFechar: () => setAberto(null)
   })));
 }
