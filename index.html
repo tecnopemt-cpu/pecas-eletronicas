@@ -83,6 +83,20 @@
   .sino-coluna-btn.ligado{color:var(--st-garantia-cor,#EAB308);}
   .sino-coluna-btn:disabled{opacity:.6;cursor:wait;}
   .notif-clicavel{cursor:pointer;}
+  .aviso-vivo-pilha{position:fixed;top:14px;right:14px;z-index:9000;display:flex;flex-direction:column;gap:10px;width:360px;max-width:calc(100vw - 28px);}
+  .aviso-vivo{position:relative;display:flex;gap:12px;background:#fff;color:var(--texto);border:2px solid var(--st-garantia-cor,#EAB308);border-left-width:6px;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.28);padding:12px 34px 12px 12px;animation:avisoEntra .35s ease-out;}
+  .aviso-vivo-icone{font-size:26px;line-height:1;animation:avisoSino 1s ease-in-out 2;}
+  .aviso-vivo-titulo{font-weight:800;font-size:14.5px;margin-bottom:3px;}
+  .aviso-vivo-texto{font-size:13px;line-height:1.4;}
+  .aviso-vivo-acoes{display:flex;gap:8px;margin-top:9px;}
+  .aviso-vivo-x{position:absolute;top:6px;right:8px;border:none;background:transparent;font-size:20px;line-height:1;color:var(--texto-fraco);cursor:pointer;padding:2px 6px;}
+  @keyframes avisoEntra{from{opacity:0;transform:translateY(-12px) scale(.97);}to{opacity:1;transform:none;}}
+  @keyframes avisoSino{0%,100%{transform:rotate(0);}20%{transform:rotate(18deg);}40%{transform:rotate(-14deg);}60%{transform:rotate(9deg);}80%{transform:rotate(-5deg);}}
+  @media (max-width:600px){.aviso-vivo-pilha{top:auto;bottom:14px;left:14px;right:14px;width:auto;}}
+  @media (prefers-reduced-motion:reduce){.aviso-vivo,.aviso-vivo-icone{animation:none;}}
+  .avisos-aparelho-btn{width:100%;margin-bottom:8px;}
+  .avisos-aparelho-ok{font-size:12px;color:var(--st-conserto,#2E8B57);margin-bottom:8px;font-weight:600;}
+  .avisos-aparelho-dica{font-size:11.5px;color:var(--texto-fraco);margin-bottom:8px;line-height:1.4;}
   .notif-clicavel:hover{outline:1px solid var(--laranja);}
   .btn.verde{background:var(--verde-bg);color:var(--verde);}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
@@ -19851,6 +19865,43 @@ function App() {
   const [fichaPropria, setFichaPropria] = useState(undefined);
   const [erroAcesso, setErroAcesso] = useState('');
   const [menuNotificacoesAberto, setMenuNotificacoesAberto] = useState(false);
+  // abrir o orçamento de uma notificação (do 🔔, do aviso na tela ou da notificação do aparelho)
+  const abrirNotificacaoRef = useRef(null);
+  abrirNotificacaoRef.current = n => {
+    setMenuNotificacoesAberto(false);
+    if (!usuario || !n || !n.orcamentoId) return;
+    if (!podeVisualizar(usuario, 'orcamentos')) {
+      alert('Você não tem acesso ao módulo Orçamentos.');
+      return;
+    }
+    window.__tpAbrirOrcamento = n.orcamentoId;
+    setAba('orcamentos');
+    setSidebarMobileAberta(false);
+    window.dispatchEvent(new Event('tp-abrir-orcamento'));
+  };
+  useEffect(() => {
+    const doSw = e => e.data && e.data.abrirOrcamento && abrirNotificacaoRef.current({
+      orcamentoId: e.data.abrirOrcamento
+    });
+    const daNotif = e => abrirNotificacaoRef.current(e.detail);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', doSw);
+    window.addEventListener('tp-notificacao-clicada', daNotif);
+    return () => {
+      if ('serviceWorker' in navigator) navigator.serviceWorker.removeEventListener('message', doSw);
+      window.removeEventListener('tp-notificacao-clicada', daNotif);
+    };
+  }, []);
+  useEffect(() => {
+    if (!usuario) return;
+    if (avisosAparelhoSuportados() && Notification.permission === 'granted') registrarAvisosAparelho();
+    const pedido = new URLSearchParams(location.search).get('abrirOrcamento');
+    if (pedido) {
+      history.replaceState(null, '', location.pathname);
+      abrirNotificacaoRef.current({
+        orcamentoId: pedido
+      });
+    }
+  }, [usuario && usuario.id]);
   useEffect(() => {
     const mq = window.matchMedia('(max-width:900px)');
     function aoMudar(e) {
@@ -20316,7 +20367,10 @@ function App() {
   }, "🔔", /*#__PURE__*/React.createElement(PontoNotificacoes, {
     usuarioId: usuario.id,
     extra: pendentesAniversario.length > 0
-  })), menuNotificacoesAberto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement(AvisosAoVivo, {
+    usuarioId: usuario.id,
+    aoAbrir: n => abrirNotificacaoRef.current(n)
+  }), menuNotificacoesAberto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     onClick: () => setMenuNotificacoesAberto(false),
     style: {
       position: 'fixed',
@@ -20344,19 +20398,9 @@ function App() {
       fontSize: 13,
       marginBottom: 8
     }
-  }, "🔔 Notificações"), /*#__PURE__*/React.createElement(NotificacoesPessoais, {
+  }, "🔔 Notificações"), /*#__PURE__*/React.createElement(BotaoAvisosAparelho, null), /*#__PURE__*/React.createElement(NotificacoesPessoais, {
     usuarioId: usuario.id,
-    aoAbrir: n => {
-      setMenuNotificacoesAberto(false);
-      if (!podeVisualizar(usuario, 'orcamentos')) {
-        alert('Você não tem acesso ao módulo Orçamentos.');
-        return;
-      }
-      window.__tpAbrirOrcamento = n.orcamentoId;
-      setAba('orcamentos');
-      setSidebarMobileAberta(false);
-      window.dispatchEvent(new Event('tp-abrir-orcamento'));
-    },
+    aoAbrir: n => abrirNotificacaoRef.current(n),
     temOutras: aniversariantesHoje.length > 0 || proximosAniversarios.length > 0
   }), aniversariantesHoje.length === 0 && proximosAniversarios.length === 0 ? null : /*#__PURE__*/React.createElement("div", {
     style: {
@@ -21063,6 +21107,7 @@ function SinoColunaOrc({
   async function alternar(e) {
     e.stopPropagation();
     if (salvando) return;
+    if (!ligado) pedirAvisosAparelho(); // ao ligar, o aparelho pergunta se pode mostrar notificações
     setSalvando(true);
     try {
       const fv = firebase.firestore.FieldValue;
@@ -29293,6 +29338,181 @@ function ModalOcorrencia({
     className: "btn",
     disabled: salvando
   }, salvando ? 'Salvando...' : 'Registrar'))));
+}
+// ---------- Aviso na hora (cartão na tela + som + notificação do aparelho) ----------
+let _audioAviso = null;
+function prepararSomAviso() {
+  try {
+    if (!_audioAviso) _audioAviso = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioAviso.state === 'suspended') _audioAviso.resume();
+  } catch (e) {}
+}
+if (typeof window !== 'undefined') ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, prepararSomAviso, { once: true, passive: true }));
+function tocarSomAviso() {
+  try {
+    prepararSomAviso();
+    const ctx = _audioAviso;
+    if (!ctx) return;
+    [[880, 0], [1320, 0.16]].forEach(([freq, ini]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = freq;
+      const t = ctx.currentTime + ini;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+      o.connect(g).connect(ctx.destination);
+      o.start(t);
+      o.stop(t + 0.4);
+    });
+  } catch (e) {}
+}
+// service worker só para notificações (Android exige; não faz cache de nada)
+let _regAvisos = null;
+function registrarAvisosAparelho() {
+  if (!('serviceWorker' in navigator) || EMULADOR_SEM_SW()) return Promise.resolve(null);
+  if (!_regAvisos) _regAvisos = navigator.serviceWorker.register('sw.js').catch(() => null);
+  return _regAvisos;
+}
+function EMULADOR_SEM_SW() {
+  return !/^https:|^http:\/\/(localhost|127\.0\.0\.1)/.test(location.href);
+}
+function avisosAparelhoSuportados() {
+  return typeof window !== 'undefined' && 'Notification' in window;
+}
+async function pedirAvisosAparelho() {
+  if (!avisosAparelhoSuportados()) return 'indisponivel';
+  registrarAvisosAparelho();
+  if (Notification.permission !== 'default') return Notification.permission;
+  try {
+    return await Notification.requestPermission();
+  } catch (e) {
+    return Notification.permission;
+  }
+}
+async function mostrarNotificacaoAparelho(n) {
+  if (!avisosAparelhoSuportados() || Notification.permission !== 'granted') return;
+  const titulo = n.titulo || 'Controle de Peças';
+  const op = {
+    body: n.texto || '',
+    tag: n.id,
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    data: {
+      orcamentoId: n.orcamentoId || ''
+    }
+  };
+  try {
+    const reg = await registrarAvisosAparelho();
+    if (reg && reg.showNotification) return await reg.showNotification(titulo, op);
+    const nt = new Notification(titulo, op);
+    nt.onclick = () => {
+      window.focus();
+      if (n.orcamentoId) window.dispatchEvent(new CustomEvent('tp-notificacao-clicada', {
+        detail: n
+      }));
+      nt.close();
+    };
+  } catch (e) {}
+}
+// Escuta as notificações da pessoa e, quando chega uma NOVA (criada agora há pouco e não lida), mostra um cartão
+// grande na tela, toca um som, vibra o celular e — se a pessoa permitiu — mostra a notificação do aparelho.
+function AvisosAoVivo({
+  usuarioId,
+  aoAbrir
+}) {
+  const [cartoes, setCartoes] = useState([]);
+  const vistos = useRef(new Set());
+  useEffect(() => {
+    if (!usuarioId) return;
+    vistos.current = new Set();
+    const desde = Date.now() - 2 * 60 * 1000;
+    return db.collection('notificacoes').where('funcionarioId', '==', usuarioId).onSnapshot(snap => {
+      const novos = [];
+      snap.docChanges().forEach(ch => {
+        if (ch.type !== 'added' || vistos.current.has(ch.doc.id)) return;
+        vistos.current.add(ch.doc.id);
+        const n = {
+          id: ch.doc.id,
+          ...ch.doc.data({
+            serverTimestamps: 'estimate'
+          })
+        };
+        const quando = dataDe(n.criadoEm);
+        if (n.lida || !quando || quando.getTime() < desde) return;
+        novos.push(n);
+      });
+      if (!novos.length) return;
+      tocarSomAviso();
+      try {
+        if (navigator.vibrate) navigator.vibrate([180, 90, 180]);
+      } catch (e) {}
+      novos.forEach(n => mostrarNotificacaoAparelho(n));
+      setCartoes(c => [...novos.map(n => ({
+        ...n,
+        _ate: Date.now() + 15000
+      })), ...c].slice(0, 3));
+    }, () => {});
+  }, [usuarioId]);
+  useEffect(() => {
+    if (!cartoes.length) return;
+    const t = setTimeout(() => setCartoes(c => c.filter(x => x._ate > Date.now())), 1000);
+    return () => clearTimeout(t);
+  }, [cartoes]);
+  if (!cartoes.length) return null;
+  const fechar = id => setCartoes(c => c.filter(x => x.id !== id));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "aviso-vivo-pilha",
+    role: "status",
+    "aria-live": "polite"
+  }, cartoes.map(n => /*#__PURE__*/React.createElement("div", {
+    key: n.id,
+    className: "aviso-vivo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "aviso-vivo-icone",
+    "aria-hidden": "true"
+  }, "\uD83D\uDD14"), /*#__PURE__*/React.createElement("div", {
+    className: "aviso-vivo-corpo"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "aviso-vivo-titulo"
+  }, n.titulo || 'Nova notificação'), /*#__PURE__*/React.createElement("div", {
+    className: "aviso-vivo-texto"
+  }, n.texto), /*#__PURE__*/React.createElement("div", {
+    className: "aviso-vivo-acoes"
+  }, n.orcamentoId && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    onClick: () => {
+      fechar(n.id);
+      aoAbrir(n);
+    }
+  }, "Abrir or\xE7amento"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => fechar(n.id)
+  }, "Ok"))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "aviso-vivo-x",
+    "aria-label": "Fechar aviso",
+    onClick: () => fechar(n.id)
+  }, "\xD7"))));
+}
+function BotaoAvisosAparelho() {
+  const [estado, setEstado] = useState(() => avisosAparelhoSuportados() ? Notification.permission : 'indisponivel');
+  if (estado === 'granted') return /*#__PURE__*/React.createElement("div", {
+    className: "avisos-aparelho-ok"
+  }, "\u2713 Avisos deste aparelho ligados");
+  if (estado === 'indisponivel') return /*#__PURE__*/React.createElement("div", {
+    className: "avisos-aparelho-dica"
+  }, "Este navegador n\xE3o mostra notifica\xE7\xF5es do aparelho. No iPhone, instale o sistema na tela de in\xEDcio (Compartilhar \u2192 Adicionar \xE0 Tela de In\xEDcio) e abra por l\xE1. Os avisos na tela e o som continuam funcionando.");
+  if (estado === 'denied') return /*#__PURE__*/React.createElement("div", {
+    className: "avisos-aparelho-dica"
+  }, "As notifica\xE7\xF5es est\xE3o bloqueadas para este site no navegador. Para ligar: toque no cadeado ao lado do endere\xE7o \u2192 Notifica\xE7\xF5es \u2192 Permitir.");
+  return /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno avisos-aparelho-btn",
+    onClick: async () => setEstado(await pedirAvisosAparelho())
+  }, "\uD83D\uDD14 Ativar avisos neste aparelho");
 }
 // ---------- Notificações individuais no 🔔 ----------
 function useNotificacoesPessoais(funcionarioId) {

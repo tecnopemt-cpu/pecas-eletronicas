@@ -152,6 +152,11 @@ try {
   passo('mover o cartão no kanban grava no banco (status + histórico + carimbo)', o1.status === 'Em Análise' && o1.historico.length === 1 && !!o1.atualizadoEm, JSON.stringify(o1).slice(0, 200));
   const notifCol = (await listar('notificacoes')).filter(n => n.tipo === 'coluna-orcamento');
   passo('cartão movido: notificação para quem ligou a coluna (não para quem moveu)', notifCol.length === 1 && notifCol[0].funcionarioId === 'FUN' && notifCol[0].titulo === 'Novo cartão em Em Análise' && /orçamento nº 1 do cliente Cliente Integração Ltda foi movimentado para a coluna Em Análise/.test(notifCol[0].texto) && notifCol[0].orcamentoId === 'O1' && (await listar('notificacoes')).length === notifAntes + 1, JSON.stringify(notifCol));
+  await fabio.page.waitForSelector('.aviso-vivo', { timeout: 8000 }).catch(() => {});
+  const avisoF = await fabio.page.locator('.aviso-vivo').first().innerText().catch(() => '');
+  passo('aviso aparece na hora na tela de quem ligou o 🔔 (cartão grande com "Abrir orçamento")', /Novo cartão em Em Análise/.test(avisoF) && /Abrir orçamento/.test(avisoF) && await w.page.locator('.aviso-vivo').count() === 0, avisoF.slice(0, 160));
+  await fabio.page.locator('.aviso-vivo button', { hasText: 'Ok' }).first().click().catch(() => {});
+  passo('"Ok" fecha o aviso da tela', await fabio.page.locator('.aviso-vivo').count() === 0);
   // 3) Conta da rotina de backup (painel de segurança do master)
   await w.page.locator('.sidebar-item', { hasText: 'Equipe' }).first().click(); await w.page.waitForTimeout(800);
   await w.page.locator('.seguranca-acesso-resumo').click();
