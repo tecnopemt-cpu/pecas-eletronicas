@@ -11,7 +11,8 @@
 const PROJETO = 'controle-processos-a2f99';
 const FS = `https://firestore.googleapis.com/v1/projects/${PROJETO}/databases/(default)/documents`;
 const ORIGENS = ['https://tecnopemt-cpu.github.io', 'http://localhost', 'http://127.0.0.1'];
-const CONTATO = 'mailto:avisos@tecnopemt.invalid';
+// a Apple recusa o envio se o contato não for um endereço válido: usa o endereço do site
+const CONTATO = 'https://tecnopemt-cpu.github.io/pecas-eletronicas/';
 
 export default {
   async fetch(req, env, ctx) {
@@ -130,18 +131,27 @@ async function enviar(ids, token, env) {
       body: JSON.stringify({ fields: { pushEnviado: { booleanValue: true } } })
     });
     const dados = JSON.stringify({ id: n.id, titulo: n.titulo || 'Controle de Peças', texto: n.texto || '', orcamentoId: n.orcamentoId || '' });
+    const resultados = [];
     for (const ins of inscricoes.filter(i => i.funcionarioId === n.funcionarioId)) {
       const sub = ins.inscricao;
       if (!sub || !sub.endpoint || !sub.keys) continue;
       try {
         const r = await mandarPush(sub, dados, chave);
+        // resultado de cada aparelho (só o código e o motivo do serviço de envio — nada pessoal)
+        resultados.push(`${new URL(sub.endpoint).host.split('.').slice(-2, -1)[0]}:${r.status}${r.ok ? '' : ' ' + (await r.text().catch(() => '')).slice(0, 80)}`);
         if (r.status === 404 || r.status === 410) {
           // aparelho desinstalou ou revogou: tira a inscrição
           await fetch(`https://firestore.googleapis.com/v1/${ins.nome}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
           removidas++;
         } else if (r.ok) enviados++;
-      } catch (e) {}
+      } catch (e) {
+        resultados.push('erro: ' + String(e && e.message || e).slice(0, 80));
+      }
     }
+    await fs(`notificacoes/${n.id}?updateMask.fieldPaths=pushResultado`, token, {
+      method: 'PATCH',
+      body: JSON.stringify({ fields: { pushResultado: { stringValue: resultados.join(' | ') || 'nenhum aparelho inscrito' } } })
+    }).catch(() => {});
   }
   return { enviados, removidas };
 }

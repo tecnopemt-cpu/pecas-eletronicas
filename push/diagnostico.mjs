@@ -42,7 +42,7 @@ if (nts.erro) console.log('Avisos: ERRO', nts.erro);
 else {
   const rec = nts.docs.filter(n => Date.now() - Date.parse(n.criadoEm || 0) < 48 * 3600e3);
   console.log(`Avisos de coluna (48 h): ${rec.length} — enviados por push: ${rec.filter(n => n.pushEnviado).length} — cancelados: ${rec.filter(n => n.cancelada).length}`);
-  rec.slice(-8).forEach(n => console.log(`  ${new Date(n.criadoEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}  push=${n.pushEnviado ? 'sim' : 'não'}  cancelado=${n.cancelada ? 'sim' : 'não'}  espera=${n.liberarEm ? 'sim' : 'não'}`));
+  rec.slice(-8).forEach(n => console.log(`  ${new Date(n.criadoEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}  push=${n.pushEnviado ? 'sim' : 'não'}  cancelado=${n.cancelada ? 'sim' : 'não'}  espera=${n.liberarEm ? 'sim' : 'não'}${n.pushResultado ? '  resultado=' + n.pushResultado : ''}`));
 }
 // 5) servidor
 try {
