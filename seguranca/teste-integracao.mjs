@@ -202,7 +202,7 @@ try {
   await fabio.page.locator('button[title="Notificações"]').click().catch(() => {}); await fabio.page.waitForTimeout(800);
   const listaF = await fabio.page.locator('.notif-clicavel').allInnerTexts().catch(() => []);
   passo('cartão saiu da coluna: a notificação é cancelada e some do 🔔', notifSaiu.length === 1 && notifSaiu[0].cancelada === true && !listaF.some(t => /Novo cartão em Em Análise/.test(t)), JSON.stringify({ c: notifSaiu.map(n => n.cancelada), listaF }));
-  await fabio.page.locator('button[title="Notificações"]').click().catch(() => {}); await fabio.page.waitForTimeout(300); // fecha o menu do 🔔
+  await fabio.page.mouse.click(600, 500); await fabio.page.waitForTimeout(300); // clique fora fecha o menu do 🔔
   await fabio.page.locator('[data-orc-id="O1"] select').selectOption('Em Análise'); await esperar(1500);
   // 5) Assinatura por link (cliente, sem login)
   const cli = await novaPagina();
