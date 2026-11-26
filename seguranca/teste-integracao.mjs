@@ -152,7 +152,8 @@ try {
   passo('mover o cartão no kanban grava no banco (status + histórico + carimbo)', o1.status === 'Em Análise' && o1.historico.length === 1 && !!o1.atualizadoEm, JSON.stringify(o1).slice(0, 200));
   const notifCol = (await listar('notificacoes')).filter(n => n.tipo === 'coluna-orcamento');
   passo('cartão movido: notificação para quem ligou a coluna (não para quem moveu)', notifCol.length === 1 && notifCol[0].funcionarioId === 'FUN' && notifCol[0].titulo === 'Novo cartão em Em Análise' && /orçamento nº 1 do cliente Cliente Integração Ltda foi movimentado para a coluna Em Análise/.test(notifCol[0].texto) && notifCol[0].orcamentoId === 'O1' && (await listar('notificacoes')).length === notifAntes + 1, JSON.stringify(notifCol));
-  await fabio.page.waitForSelector('.aviso-vivo', { timeout: 8000 }).catch(() => {});
+  passo('aviso espera o cartão "assentar": não aparece logo após mover', await fabio.page.locator('.aviso-vivo').count() === 0 && !!notifCol[0].liberarEm);
+  await fabio.page.waitForSelector('.aviso-vivo', { timeout: 40000 }).catch(() => {});
   const avisoF = await fabio.page.locator('.aviso-vivo').first().innerText().catch(() => '');
   passo('aviso aparece na hora na tela de quem ligou o 🔔 (cartão grande com "Abrir orçamento")', /Novo cartão em Em Análise/.test(avisoF) && /Abrir orçamento/.test(avisoF) && await w.page.locator('.aviso-vivo').count() === 0, avisoF.slice(0, 160));
   await fabio.page.locator('.aviso-vivo button', { hasText: 'Ok' }).first().click().catch(() => {});
@@ -194,6 +195,15 @@ try {
   passo('clicar na notificação abre o orçamento correspondente', await fabio.page.locator('.modal').count() >= 1 && /#?1\b/.test(await fabio.page.locator('.modal').last().innerText()), await fabio.page.locator('.modal').last().innerText().catch(() => '-').then(t => t.slice(0, 120)));
   await fabio.page.keyboard.press('Escape'); await fabio.page.waitForTimeout(300);
   await fabio.page.locator('.modal button', { hasText: /Cancelar|Fechar/ }).first().click().catch(() => {}); await fabio.page.waitForTimeout(300);
+  // cartão sai da coluna: o aviso de "entrou em Em Análise" é cancelado e some da lista do 🔔
+  await w.page.locator('.sidebar-item', { hasText: 'Orçamento' }).first().click(); await w.page.waitForSelector('[data-orc-id="O1"]');
+  await w.page.locator('[data-orc-id="O1"] select').selectOption('Teste'); await esperar(2500);
+  const notifSaiu = (await listar('notificacoes')).filter(n => n.tipo === 'coluna-orcamento' && n.coluna === 'Em Análise');
+  await fabio.page.locator('button[title="Notificações"]').click().catch(() => {}); await fabio.page.waitForTimeout(800);
+  const listaF = await fabio.page.locator('.notif-clicavel').allInnerTexts().catch(() => []);
+  passo('cartão saiu da coluna: a notificação é cancelada e some do 🔔', notifSaiu.length === 1 && notifSaiu[0].cancelada === true && !listaF.some(t => /Novo cartão em Em Análise/.test(t)), JSON.stringify({ c: notifSaiu.map(n => n.cancelada), listaF }));
+  await fabio.page.keyboard.press('Escape').catch(() => {});
+  await w.page.locator('[data-orc-id="O1"] select').selectOption('Em Análise'); await esperar(1500);
   // 5) Assinatura por link (cliente, sem login)
   const cli = await novaPagina();
   await cli.page.goto(SITE + '?assinar=entrada&id=L1&emulador'); await cli.page.waitForSelector('input', { timeout: 30000 });

@@ -14,7 +14,7 @@ const ORIGENS = ['https://tecnopemt-cpu.github.io', 'http://localhost', 'http://
 const CONTATO = 'mailto:avisos@tecnopemt.invalid';
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const origem = req.headers.get('Origin') || '';
     const cors = {
       'Access-Control-Allow-Origin': ORIGENS.some(o => origem === o || origem.startsWith(o + ':')) ? origem : ORIGENS[0],
@@ -37,7 +37,9 @@ export default {
         const corpo = await req.json().catch(() => ({}));
         const ids = [...new Set((corpo.ids || []).filter(x => typeof x === 'string' && /^[\w-]{1,200}$/.test(x)))].slice(0, 30);
         if (!ids.length) return json({ enviados: 0 });
-        return json(await enviar(ids, token, env));
+        // responde na hora e envia em segundo plano, depois da espera (o cartão precisa continuar na coluna)
+        ctx.waitUntil(enviar(ids, token, env).catch(() => {}));
+        return json({ agendado: ids.length }, 202);
       }
       return json({ ok: true, servico: 'notificações do Controle de Peças' });
     } catch (err) {
@@ -70,15 +72,30 @@ function valor(v) {
 }
 const campos = doc => Object.fromEntries(Object.entries(doc.fields || {}).map(([k, v]) => [k, valor(v)]));
 
+const dormir = ms => new Promise(r => setTimeout(r, ms));
 async function enviar(ids, token, env) {
-  // 1) as notificações (só as recentes, ainda não enviadas por push)
+  // 0) espera o tempo de "assentar" do cartão (liberarEm), no máximo 27 s (limite do plano gratuito)
+  const inicio = Date.now();
+  const primeira = await fs(`notificacoes/${ids[0]}`, token);
+  const lib = primeira ? Date.parse(campos(primeira).liberarEm || '') || 0 : 0;
+  if (lib > Date.now()) await dormir(Math.min(lib - Date.now() + 1000, 27000 - (Date.now() - inicio)));
+  // 1) as notificações (só as recentes, ainda valendo e não enviadas por push)
   const notifs = [];
+  const situacao = {};
   for (const id of ids) {
     const d = await fs(`notificacoes/${id}`, token);
     if (!d) continue;
     const n = campos(d);
     const criado = Date.parse(n.criadoEm || '') || 0;
-    if (n.pushEnviado || !n.funcionarioId || Date.now() - criado > 10 * 60 * 1000) continue;
+    if (n.pushEnviado || n.cancelada || !n.funcionarioId || Date.now() - criado > 10 * 60 * 1000) continue;
+    // o cartão continua na coluna? (se já saiu, não avisa)
+    if (n.orcamentoId && n.coluna) {
+      if (!(n.orcamentoId in situacao)) {
+        const o = await fs(`orcamentos/${n.orcamentoId}`, token);
+        situacao[n.orcamentoId] = o ? campos(o).status : null;
+      }
+      if (situacao[n.orcamentoId] !== n.coluna) continue;
+    }
     notifs.push({ id, ...n });
   }
   if (!notifs.length) return { enviados: 0 };

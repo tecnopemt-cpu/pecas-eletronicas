@@ -21058,6 +21058,35 @@ const STATUS_ORCAMENTO = ['Pendente orçamento', 'Teste', 'Em Análise', 'Aprova
 // Guardado em config/notificacoesColunasOrcamento → colunas: { "<coluna>": [ids] }. Serve só para avisar:
 // não muda nenhuma permissão. Quem perde o acesso à coluna (ou ao módulo, ou fica inativo) deixa de receber.
 const DOC_NOTIF_COLUNAS = 'notificacoesColunasOrcamento';
+// O aviso só vale se o cartão PERMANECER na coluna: ele fica guardado por alguns segundos (tempo de desfazer um
+// movimento feito por engano) e só então aparece/é enviado; se o cartão sair da coluna, o aviso é cancelado e some.
+const ESPERA_NOTIF_COLUNA_MS = 25000;
+function notificacaoValida(n, agora) {
+  if (!n || n.cancelada) return false;
+  const lib = n.liberarEm ? dataDe(n.liberarEm) : null;
+  return !lib || lib.getTime() <= (agora || Date.now());
+}
+// Cartão saiu da coluna: cancela os avisos de "entrou nesta coluna" que ainda estão valendo.
+async function cancelarNotificacoesColuna(orcamentoId, coluna, usuario) {
+  try {
+    const snap = await db.collection('notificacoes').where('orcamentoId', '==', orcamentoId).get();
+    const lote = db.batch();
+    let n = 0;
+    snap.docs.forEach(d => {
+      const x = d.data();
+      if (x.tipo !== 'coluna-orcamento' || x.coluna !== coluna || x.cancelada) return;
+      lote.update(d.ref, {
+        cancelada: true,
+        canceladaEm: firebase.firestore.FieldValue.serverTimestamp(),
+        motivoCancelamento: `o cartão saiu da coluna ${coluna}${usuario && usuario.nome ? ` (movido por ${usuario.nome})` : ''}`
+      });
+      n++;
+    });
+    if (n) await lote.commit();
+  } catch (err) {
+    console.error('cancelar notificações da coluna', err);
+  }
+}
 function ativoParaNotificar(f) {
   return !!f && (f.status === 'ativo' || !f.status && f.ativo !== false);
 }
@@ -21093,6 +21122,7 @@ async function notificarEntradaNaColuna(o, destino, usuario, funcionarios, nomeC
         orcamentoNumero: o.numero || '',
         coluna: destino,
         lida: false,
+        liberarEm: firebase.firestore.Timestamp.fromMillis(Date.now() + ESPERA_NOTIF_COLUNA_MS),
         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
       });
       n++;
@@ -25436,7 +25466,9 @@ function AbaOrcamentos({
       alert(semRede ? `Sem conexão: o orçamento #${o.numero} NÃO foi movido. Ele continua em "${o.status}". Tente de novo quando a internet voltar.` : `Não consegui mover o orçamento #${o.numero} (${err && (err.code || err.message) || 'erro'}). Ele continua em "${o.status}".`);
       return;
     }
-    // avisa quem ligou o 🔔 da coluna de destino (não espera: a movimentação já está gravada)
+    // saiu da coluna anterior: os avisos de lá são cancelados (somem); e avisa quem ligou o 🔔 da coluna de destino
+    // (o aviso só aparece se o cartão continuar lá depois da espera). Não espera: a movimentação já está gravada.
+    cancelarNotificacoesColuna(o.id, o.status, usuario);
     notificarEntradaNaColuna(o, status, usuario, funcionarios, (clientes.find(c => c.id === o.clienteId) || {}).razaoSocial || o.clienteNome || '', movimentoId);
     if (entrouConcluido) {
       // Vincula o cartão ao período de apuração que contém a data de conclusão (periodoApuracaoId).
@@ -29526,33 +29558,58 @@ function AvisosAoVivo({
   useEffect(() => {
     if (!usuarioId) return;
     vistos.current = new Set();
+    const timers = [];
     const desde = Date.now() - 2 * 60 * 1000;
-    return db.collection('notificacoes').where('funcionarioId', '==', usuarioId).onSnapshot(snap => {
-      const novos = [];
+    const avisar = n => {
+      tocarSomAviso();
+      try {
+        if (navigator.vibrate) navigator.vibrate([180, 90, 180]);
+      } catch (e) {}
+      mostrarNotificacaoAparelho(n);
+      setCartoes(c => [{
+        ...n,
+        _ate: Date.now() + 15000
+      }, ...c.filter(x => x.id !== n.id)].slice(0, 3));
+    };
+    const unsub = db.collection('notificacoes').where('funcionarioId', '==', usuarioId).onSnapshot(snap => {
+      const cancelados = [];
       snap.docChanges().forEach(ch => {
-        if (ch.type !== 'added' || vistos.current.has(ch.doc.id)) return;
-        vistos.current.add(ch.doc.id);
         const n = {
           id: ch.doc.id,
           ...ch.doc.data({
             serverTimestamps: 'estimate'
           })
         };
+        if (n.cancelada) cancelados.push(n.id);
+        if (ch.type !== 'added' || vistos.current.has(n.id)) return;
+        vistos.current.add(n.id);
         const quando = dataDe(n.criadoEm);
-        if (n.lida || !quando || quando.getTime() < desde) return;
-        novos.push(n);
+        if (n.lida || n.cancelada || !quando || quando.getTime() < desde) return;
+        const lib = n.liberarEm ? dataDe(n.liberarEm).getTime() : 0;
+        if (lib > Date.now()) {
+          // espera o cartão "assentar" na coluna; se foi cancelado nesse meio tempo, não avisa
+          timers.push(setTimeout(async () => {
+            try {
+              const d = await ch.doc.ref.get();
+              const atual = d.exists ? {
+                id: d.id,
+                ...d.data()
+              } : null;
+              if (atual && notificacaoValida(atual)) avisar(atual);
+            } catch (e) {}
+          }, lib - Date.now() + 800));
+        } else avisar(n);
       });
-      if (!novos.length) return;
-      tocarSomAviso();
-      try {
-        if (navigator.vibrate) navigator.vibrate([180, 90, 180]);
-      } catch (e) {}
-      novos.forEach(n => mostrarNotificacaoAparelho(n));
-      setCartoes(c => [...novos.map(n => ({
-        ...n,
-        _ate: Date.now() + 15000
-      })), ...c].slice(0, 3));
+      if (cancelados.length) {
+        // o cartão saiu da coluna: o aviso some da tela e da barra do aparelho
+        setCartoes(c => c.filter(x => !cancelados.includes(x.id)));
+        fecharNotificacoesCanceladas(cancelados);
+      }
     }, () => {});
+    return () => {
+      unsub();
+      timers.forEach(clearTimeout);
+    };
   }, [usuarioId]);
   useEffect(() => {
     if (!cartoes.length) return;
@@ -29620,18 +29677,39 @@ function BotaoAvisosAparelho() {
 }
 // ---------- Notificações individuais no 🔔 ----------
 function useNotificacoesPessoais(funcionarioId) {
-  const [lista, setLista] = useState([]);
+  const [todas, setTodas] = useState([]);
+  const [tique, setTique] = useState(0);
   useEffect(() => {
     if (!funcionarioId) return;
     const unsub = db.collection('notificacoes').where('funcionarioId', '==', funcionarioId).onSnapshot(snap => {
-      setLista(snap.docs.map(d => ({
+      setTodas(snap.docs.map(d => ({
         id: d.id,
-        ...d.data()
+        ...d.data({
+          serverTimestamps: 'estimate'
+        })
       })).sort((a, b) => (dataDe(b.criadoEm) || 0) - (dataDe(a.criadoEm) || 0)));
     }, () => {});
     return unsub;
   }, [funcionarioId]);
-  return lista;
+  // avisos em espera aparecem sozinhos quando a espera acaba
+  const esperando = todas.some(n => !n.cancelada && n.liberarEm && dataDe(n.liberarEm) > Date.now());
+  useEffect(() => {
+    if (!esperando) return;
+    const t = setTimeout(() => setTique(x => x + 1), 3000);
+    return () => clearTimeout(t);
+  }, [esperando, tique]);
+  return useMemo(() => todas.filter(n => notificacaoValida(n)), [todas, tique]);
+}
+// fecha, na barra do aparelho, as notificações que foram canceladas (o cartão saiu da coluna)
+async function fecharNotificacoesCanceladas(idsCancelados) {
+  try {
+    if (!idsCancelados.length || !('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg || !reg.getNotifications) return;
+    (await reg.getNotifications()).forEach(nt => {
+      if (idsCancelados.includes(nt.tag)) nt.close();
+    });
+  } catch (e) {}
 }
 function PontoNotificacoes({
   usuarioId,
