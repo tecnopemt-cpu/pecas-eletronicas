@@ -78,6 +78,19 @@
   .btn:active:not(:disabled){transform:translateY(1px);box-shadow:none;}
   .btn.secundario{background:var(--fundo);color:var(--texto);border:1px solid var(--borda);}
   .btn.perigo{background:var(--vermelho-bg);color:var(--vermelho);}
+  .sino-coluna{position:relative;display:inline-flex;}
+  .sino-coluna-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:none;border-radius:7px;background:transparent;color:var(--texto-fraco);cursor:pointer;}
+  .sino-coluna-btn:hover{background:var(--borda);color:var(--texto);}
+  .sino-coluna-btn.ligado{color:var(--laranja);}
+  .sino-coluna-fundo{position:fixed;inset:0;z-index:60;}
+  .sino-coluna-pop{position:absolute;top:30px;right:-40px;z-index:61;width:280px;max-width:calc(100vw - 32px);background:#fff;color:var(--texto);border:1px solid var(--borda);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px;font-weight:400;}
+  .sino-coluna-titulo{font-weight:700;font-size:13.5px;margin-bottom:8px;}
+  .sino-coluna-opcao{display:flex;gap:7px;align-items:flex-start;font-size:13px;cursor:pointer;}
+  .sino-coluna-opcao input{margin-top:2px;}
+  .sino-coluna-dica{font-size:11.5px;color:var(--texto-fraco);margin-top:8px;line-height:1.4;}
+  .sino-coluna-acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;}
+  .notif-clicavel{cursor:pointer;}
+  .notif-clicavel:hover{outline:1px solid var(--laranja);}
   .btn.verde{background:var(--verde-bg);color:var(--verde);}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
   .btn.pequeno{padding:7px 11px;font-size:12.5px;min-height:34px;}
@@ -20340,6 +20353,17 @@ function App() {
     }
   }, "🔔 Notificações"), /*#__PURE__*/React.createElement(NotificacoesPessoais, {
     usuarioId: usuario.id,
+    aoAbrir: n => {
+      setMenuNotificacoesAberto(false);
+      if (!podeVisualizar(usuario, 'orcamentos')) {
+        alert('Você não tem acesso ao módulo Orçamentos.');
+        return;
+      }
+      window.__tpAbrirOrcamento = n.orcamentoId;
+      setAba('orcamentos');
+      setSidebarMobileAberta(false);
+      window.dispatchEvent(new Event('tp-abrir-orcamento'));
+    },
     temOutras: aniversariantesHoje.length > 0 || proximosAniversarios.length > 0
   }), aniversariantesHoje.length === 0 && proximosAniversarios.length === 0 ? null : /*#__PURE__*/React.createElement("div", {
     style: {
@@ -20989,6 +21013,150 @@ function ModalCliente({
 const CATEGORIAS_PECA = ['Joystick', 'Placa', 'Módulo', 'Carregador', 'Display', 'Controle', 'Outros'];
 const STATUS_LOTE = ['Em análise', 'Concluído'];
 const STATUS_ORCAMENTO = ['Pendente orçamento', 'Teste', 'Em Análise', 'Aprovado', 'Aprovado/Aguardando pedido', 'Rota', 'Concluído'];
+// ---- Notificações por coluna do quadro de Orçamentos: cada pessoa liga o 🔔 da coluna para si mesma.
+// Guardado em config/notificacoesColunasOrcamento → colunas: { "<coluna>": [ids] }. Serve só para avisar:
+// não muda nenhuma permissão. Quem perde o acesso à coluna (ou ao módulo, ou fica inativo) deixa de receber.
+const DOC_NOTIF_COLUNAS = 'notificacoesColunasOrcamento';
+function ativoParaNotificar(f) {
+  return !!f && (f.status === 'ativo' || !f.status && f.ativo !== false);
+}
+function podeReceberNotifColuna(f, coluna) {
+  return ativoParaNotificar(f) && podeVisualizar(f, 'orcamentos') && colunaPermitida(f, coluna);
+}
+function useNotifColunasOrc() {
+  const [colunas, setColunas] = useState({});
+  useEffect(() => db.collection('config').doc(DOC_NOTIF_COLUNAS).onSnapshot(s => setColunas(s.exists && s.data().colunas || {}), () => {}), []);
+  return colunas;
+}
+// Chamado só depois que a mudança de coluna foi gravada. Um id fixo por movimento e pessoa: se a gravação for
+// repetida, a notificação é sobrescrita, não duplicada. Quem moveu o cartão não recebe aviso do próprio movimento.
+async function notificarEntradaNaColuna(o, destino, usuario, funcionarios, nomeCliente, movimentoId) {
+  try {
+    const s = await db.collection('config').doc(DOC_NOTIF_COLUNAS).get();
+    const ids = [...new Set((s.exists && (s.data().colunas || {})[destino]) || [])];
+    const lote = db.batch();
+    let n = 0;
+    ids.forEach(fid => {
+      if (usuario && fid === usuario.id) return;
+      const f = (funcionarios || []).find(x => x.id === fid);
+      if (!podeReceberNotifColuna(f, destino)) return;
+      lote.set(db.collection('notificacoes').doc(`col_${o.id}_${movimentoId}_${fid}`.replace(/[^\w-]/g, '_')), {
+        funcionarioId: fid,
+        tipo: 'coluna-orcamento',
+        titulo: `Novo cartão em ${destino}`,
+        texto: `O orçamento nº ${o.numero} do cliente ${nomeCliente || '—'} foi movimentado para a coluna ${destino}${usuario && usuario.nome ? ` por ${usuario.nome}` : ''}.`,
+        orcamentoId: o.id,
+        orcamentoNumero: o.numero || '',
+        coluna: destino,
+        lida: false,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      n++;
+    });
+    if (n) await lote.commit();
+  } catch (err) {
+    console.error('notificações da coluna', err);
+  }
+}
+function SinoColunaOrc({
+  coluna,
+  usuario,
+  inscritos
+}) {
+  const [aberto, setAberto] = useState(false);
+  const ligado = (inscritos || []).includes(usuario.id);
+  const [marcar, setMarcar] = useState(ligado);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  useEffect(() => {
+    if (aberto) {
+      setMarcar(ligado);
+      setErro('');
+    }
+  }, [aberto]);
+  if (!podeReceberNotifColuna(usuario, coluna)) return null;
+  async function salvar() {
+    setSalvando(true);
+    setErro('');
+    try {
+      const fv = firebase.firestore.FieldValue;
+      await db.collection('config').doc(DOC_NOTIF_COLUNAS).set({
+        colunas: {
+          [coluna]: marcar ? fv.arrayUnion(usuario.id) : fv.arrayRemove(usuario.id)
+        }
+      }, {
+        merge: true
+      });
+      setAberto(false);
+    } catch (err) {
+      console.error(err);
+      setErro('Não consegui salvar. Tente de novo.');
+    }
+    setSalvando(false);
+  }
+  return /*#__PURE__*/React.createElement("span", {
+    className: "sino-coluna"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: 'sino-coluna-btn' + (ligado ? ' ligado' : ''),
+    title: ligado ? `Você recebe notificação quando um cartão entra em ${coluna}` : `Ativar notificações desta coluna`,
+    "aria-label": `Notificações da coluna ${coluna}${ligado ? ' (ativadas)' : ''}`,
+    "aria-pressed": ligado,
+    onClick: e => {
+      e.stopPropagation();
+      setAberto(v => !v);
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    width: 15,
+    height: 15,
+    fill: ligado ? 'currentColor' : 'none',
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M13.7 21a2 2 0 0 1-3.4 0"
+  }))), aberto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "sino-coluna-fundo",
+    onClick: () => setAberto(false)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "sino-coluna-pop",
+    role: "dialog",
+    "aria-label": "Notificações desta coluna",
+    onKeyDown: e => {
+      if (e.key === 'Escape') setAberto(false);
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sino-coluna-titulo"
+  }, "Notificações desta coluna"), /*#__PURE__*/React.createElement("label", {
+    className: "sino-coluna-opcao"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: marcar,
+    onChange: e => setMarcar(e.target.checked),
+    autoFocus: true
+  }), " Me avisar quando um cart\xE3o entrar em ", /*#__PURE__*/React.createElement("strong", null, coluna)), /*#__PURE__*/React.createElement("div", {
+    className: "sino-coluna-dica"
+  }, "Voc\xEA recebe uma notifica\xE7\xE3o no \uD83D\uDD14 sempre que um cart\xE3o for movido para esta coluna (n\xE3o avisa quando o cart\xE3o s\xF3 \xE9 editado, nem quando foi voc\xEA quem moveu). Isso n\xE3o muda nenhuma permiss\xE3o."), erro && /*#__PURE__*/React.createElement("div", {
+    className: "erro-form",
+    role: "alert"
+  }, erro), /*#__PURE__*/React.createElement("div", {
+    className: "sino-coluna-acoes"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn secundario pequeno",
+    onClick: () => setAberto(false)
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn pequeno",
+    disabled: salvando,
+    onClick: salvar
+  }, salvando ? 'Salvando...' : 'Salvar configurações')))));
+}
 // "Liberado para faturar": marcação MANUAL só da coluna Aprovado/Aguardando pedido. Não muda status,
 // valores, pedido, entrega, comissão nem faturamento — é apenas a confirmação do responsável.
 const STATUS_LIBERACAO_FATURAR = 'Aprovado/Aguardando pedido';
@@ -25087,6 +25255,30 @@ function AbaOrcamentos({
   const [buscaFocada, setBuscaFocada] = useState(false);
   const [testeParaConfirmar, setTesteParaConfirmar] = useState(null);
   const [funcionarios] = useColecao('funcionarios');
+  const notifColunas = useNotifColunasOrc();
+  // aberto a partir de uma notificação (🔔 → "Novo cartão em ...")
+  const [pedidoAbrir, setPedidoAbrir] = useState(() => window.__tpAbrirOrcamento || null);
+  useEffect(() => {
+    const f = () => setPedidoAbrir(window.__tpAbrirOrcamento || null);
+    window.addEventListener('tp-abrir-orcamento', f);
+    return () => window.removeEventListener('tp-abrir-orcamento', f);
+  }, []);
+  useEffect(() => {
+    if (!pedidoAbrir || carregando) return;
+    window.__tpAbrirOrcamento = null;
+    setPedidoAbrir(null);
+    const o = orcamentos.find(x => x.id === pedidoAbrir);
+    if (!o) {
+      alert('Este orçamento não está mais no quadro (pode ter sido excluído).');
+      return;
+    }
+    if (!colunaPermitida(usuario, o.status)) {
+      alert(`O orçamento #${o.numero} está agora na coluna "${o.status}", à qual você não tem acesso.`);
+      return;
+    }
+    setEditando(o);
+    setModalAberto(true);
+  }, [pedidoAbrir, carregando, orcamentos]);
   const [menuOrcamento, setMenuOrcamento] = useState(null);
   const [filtroLiberacao, setFiltroLiberacao] = useState('todos');
   const [conferirDatasAberto, setConferirDatasAberto] = useState(false);
@@ -25179,6 +25371,7 @@ function AbaOrcamentos({
   }
   async function mudarStatus(o, status) {
     if (status === o.status) return;
+    const movimentoId = `${Date.now()}`;
     const dados = {
       status
     };
@@ -25242,6 +25435,8 @@ function AbaOrcamentos({
       alert(semRede ? `Sem conexão: o orçamento #${o.numero} NÃO foi movido. Ele continua em "${o.status}". Tente de novo quando a internet voltar.` : `Não consegui mover o orçamento #${o.numero} (${err && (err.code || err.message) || 'erro'}). Ele continua em "${o.status}".`);
       return;
     }
+    // avisa quem ligou o 🔔 da coluna de destino (não espera: a movimentação já está gravada)
+    notificarEntradaNaColuna(o, status, usuario, funcionarios, (clientes.find(c => c.id === o.clienteId) || {}).razaoSocial || o.clienteNome || '', movimentoId);
     if (entrouConcluido) {
       // Vincula o cartão ao período de apuração que contém a data de conclusão (periodoApuracaoId).
       if (!o.periodoConsolidadoId) await vincularPeriodoAoFaturar(o.id, agora);
@@ -25437,7 +25632,11 @@ function AbaOrcamentos({
     }, colunaLiberacao && qtdLiberados > 0 && /*#__PURE__*/React.createElement("span", {
       className: "contagem-liberados",
       title: `${qtdLiberados} liberado(s) para faturar`
-    }, "\u2713 ", qtdLiberados), /*#__PURE__*/React.createElement("span", {
+    }, "\u2713 ", qtdLiberados), /*#__PURE__*/React.createElement(SinoColunaOrc, {
+      coluna: status,
+      usuario: usuario,
+      inscritos: notifColunas[status]
+    }), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 12,
         color: 'var(--texto-fraco)',
@@ -29191,7 +29390,8 @@ function PontoNotificacoes({
 }
 function NotificacoesPessoais({
   usuarioId,
-  temOutras
+  temOutras,
+  aoAbrir
 }) {
   const lista = useNotificacoesPessoais(usuarioId);
   const recentes = lista.slice(0, 8);
@@ -29223,6 +29423,14 @@ function NotificacoesPessoais({
     }
   }, recentes.map(n => /*#__PURE__*/React.createElement("div", {
     key: n.id,
+    className: n.orcamentoId && aoAbrir ? 'notif-clicavel' : undefined,
+    role: n.orcamentoId && aoAbrir ? 'button' : undefined,
+    tabIndex: n.orcamentoId && aoAbrir ? 0 : undefined,
+    title: n.orcamentoId && aoAbrir ? 'Abrir o orçamento' : undefined,
+    onClick: n.orcamentoId && aoAbrir ? () => aoAbrir(n) : undefined,
+    onKeyDown: n.orcamentoId && aoAbrir ? e => {
+      if (e.key === 'Enter') aoAbrir(n);
+    } : undefined,
     style: {
       fontSize: 12.5,
       lineHeight: 1.4,
@@ -29231,7 +29439,11 @@ function NotificacoesPessoais({
       background: n.lida ? 'var(--fundo)' : 'var(--laranja-bg)',
       borderLeft: `3px solid ${n.lida ? 'var(--borda)' : 'var(--laranja)'}`
     }
-  }, /*#__PURE__*/React.createElement("div", null, n.texto), /*#__PURE__*/React.createElement("div", {
+  }, n.titulo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700
+    }
+  }, n.titulo), /*#__PURE__*/React.createElement("div", null, n.texto), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: 'var(--texto-fraco)',

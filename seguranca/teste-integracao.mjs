@@ -135,9 +135,21 @@ try {
   passo('master passa por todas as telas sem erro de permissão', w.erros.length === 0, w.erros.join(' | '));
   passo('migrações de primeiro login rodam com o banco fechado (carimbo e índice de CPFs)', !!(await ler('config/migracaoCarimboSincronizacao')) && !!(await ler('config/migracaoIndiceCpfs')));
   await w.page.locator('.sidebar-item', { hasText: 'Orçamento' }).first().click(); await w.page.waitForSelector('[data-orc-id="O1"]');
-  await w.page.locator('[data-orc-id="O1"] select').selectOption('Em Análise'); await esperar(1500);
+  // 🔔 da coluna: o próprio usuário liga a notificação da coluna (Walter liga "Em Análise"; o Fábio já estava ligado)
+  await gravar('config/notificacoesColunasOrcamento', { colunas: { 'Em Análise': ['FUN'] } });
+  await w.page.waitForTimeout(800);
+  const colAnalise = w.page.locator('.kanban-coluna', { hasText: 'Em Análise' }).first();
+  await colAnalise.locator('.sino-coluna-btn').click(); await w.page.waitForTimeout(200);
+  passo('🔔 da coluna abre "Notificações desta coluna" com a explicação', /Notificações desta coluna/.test(await w.page.locator('.sino-coluna-pop').innerText()) && /sempre que um cartão for movido para esta coluna/.test(await w.page.locator('.sino-coluna-pop').innerText()));
+  await w.page.locator('.sino-coluna-pop input[type=checkbox]').check(); await w.page.locator('.sino-coluna-pop button', { hasText: 'Salvar configurações' }).click(); await esperar(1000);
+  const cfgN = await ler('config/notificacoesColunasOrcamento');
+  passo('salvar liga a notificação só para quem marcou (e mantém quem já estava)', JSON.stringify(cfgN.colunas['Em Análise'].sort()) === JSON.stringify(['FUN', 'WAL']) && await colAnalise.locator('.sino-coluna-btn.ligado').count() === 1, JSON.stringify(cfgN));
+  const notifAntes = (await listar('notificacoes')).length;
+  await w.page.locator('[data-orc-id="O1"] select').selectOption('Em Análise'); await esperar(2000);
   const o1 = await ler('orcamentos/O1');
   passo('mover o cartão no kanban grava no banco (status + histórico + carimbo)', o1.status === 'Em Análise' && o1.historico.length === 1 && !!o1.atualizadoEm, JSON.stringify(o1).slice(0, 200));
+  const notifCol = (await listar('notificacoes')).filter(n => n.tipo === 'coluna-orcamento');
+  passo('cartão movido: notificação para quem ligou a coluna (não para quem moveu)', notifCol.length === 1 && notifCol[0].funcionarioId === 'FUN' && notifCol[0].titulo === 'Novo cartão em Em Análise' && /orçamento nº 1 do cliente Cliente Integração Ltda foi movimentado para a coluna Em Análise/.test(notifCol[0].texto) && notifCol[0].orcamentoId === 'O1' && (await listar('notificacoes')).length === notifAntes + 1, JSON.stringify(notifCol));
   // 3) Conta da rotina de backup (painel de segurança do master)
   await w.page.locator('.sidebar-item', { hasText: 'Equipe' }).first().click(); await w.page.waitForTimeout(800);
   await w.page.locator('.seguranca-acesso-resumo').click();
@@ -168,6 +180,13 @@ try {
   passo('funcionário entra com a senha temporária e usa o sistema', await fabio.page.locator('.sidebar').count() === 1);
   for (const t of ['Painel', 'Entrada de Peças', 'Orçamento', 'Clientes']) { await fabio.page.locator('.sidebar-item', { hasText: t }).first().click().catch(() => {}); await fabio.page.waitForTimeout(1000); }
   passo('funcionário usa as telas sem erro de permissão', fabio.erros.filter(e => !/redefinida/.test(e)).length === 0, fabio.erros.join(' | '));
+  // clicar na notificação da coluna abre o orçamento
+  await fabio.page.locator('.sidebar-item', { hasText: 'Painel' }).first().click(); await fabio.page.waitForTimeout(500);
+  await fabio.page.locator('button[title="Notificações"]').click(); await fabio.page.waitForTimeout(500);
+  await fabio.page.locator('.notif-clicavel', { hasText: 'Novo cartão em Em Análise' }).first().click(); await fabio.page.waitForTimeout(1500);
+  passo('clicar na notificação abre o orçamento correspondente', await fabio.page.locator('.modal').count() >= 1 && /#?1\b/.test(await fabio.page.locator('.modal').last().innerText()), await fabio.page.locator('.modal').last().innerText().catch(() => '-').then(t => t.slice(0, 120)));
+  await fabio.page.keyboard.press('Escape'); await fabio.page.waitForTimeout(300);
+  await fabio.page.locator('.modal button', { hasText: /Cancelar|Fechar/ }).first().click().catch(() => {}); await fabio.page.waitForTimeout(300);
   // 5) Assinatura por link (cliente, sem login)
   const cli = await novaPagina();
   await cli.page.goto(SITE + '?assinar=entrada&id=L1&emulador'); await cli.page.waitForSelector('input', { timeout: 30000 });
