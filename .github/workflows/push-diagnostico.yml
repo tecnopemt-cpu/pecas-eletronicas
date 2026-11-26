@@ -1,0 +1,17 @@
+# Diagnóstico das notificações com o sistema fechado — rodar à mão (Actions → Run workflow). Só contagens.
+name: Diagnóstico das notificações
+on:
+  workflow_dispatch:
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Diagnóstico
+        env:
+          FIREBASE_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+          FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
+        run: node push/diagnostico.mjs
