@@ -161,6 +161,43 @@ async function coletarGithub() {
   return out;
 }
 
+// ---- notificações com o sistema fechado (servidor no Cloudflare Workers, plano gratuito: 100.000 pedidos/dia)
+const CF_SCRIPT = 'tecnopemt-notificacoes';
+async function coletarCloudflare() {
+  const token = process.env.CLOUDFLARE_API_TOKEN, conta = process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (!token || !conta) return { disponivel: false, motivo: 'faltam os segredos do Cloudflare no GitHub' };
+  const fim = new Date(), ini = new Date(Date.now() - 13 * 864e5);
+  const q = `query($a:String!,$i:Date!,$f:Date!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:100,filter:{date_geq:$i,date_leq:$f,scriptName:"${CF_SCRIPT}"}){sum{requests errors}dimensions{date}}}}}`;
+  const r = await fetch('https://api.cloudflare.com/client/v4/graphql', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q, variables: { a: conta, i: ini.toISOString().slice(0, 10), f: fim.toISOString().slice(0, 10) } }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || (j.errors && j.errors.length)) {
+    const msg = String((j.errors && j.errors[0] && j.errors[0].message) || r.status);
+    return { disponivel: false, motivo: /auth|permission|not authorized/i.test(msg) ? 'o token do Cloudflare não tem a permissão “Análises da conta: Ler” (Account Analytics: Read)' : `o Cloudflare respondeu: ${msg.slice(0, 120)}` };
+  }
+  const linhas = ((((j.data || {}).viewer || {}).accounts || [])[0] || {}).workersInvocationsAdaptive || [];
+  const dias = {};
+  linhas.forEach(l => { const d = l.dimensions.date; dias[d] = { pedidos: (dias[d] ? dias[d].pedidos : 0) + (l.sum.requests || 0), erros: (dias[d] ? dias[d].erros : 0) + (l.sum.errors || 0) }; });
+  return { disponivel: true, limiteDia: 100000, dias };
+}
+async function coletarNotificacoes(fsCli) {
+  const conv = docs => Object.values(docs).map(f => campos(f));
+  const config = await fsCli.listarDocumentos('config');
+  const ins = Object.entries(config).filter(([id]) => id.startsWith('push-')).map(([, f]) => campos(f)).filter(x => x.tipo === 'push-inscricao');
+  const porTipo = {};
+  ins.forEach(x => { porTipo[x.aparelho || '?'] = (porTipo[x.aparelho || '?'] || 0) + 1; });
+  const cols = (config.notificacoesColunasOrcamento ? campos(config.notificacoesColunasOrcamento).colunas : null) || {};
+  const sete = Date.now() - 7 * 864e5;
+  const avisos = conv(await fsCli.listarDocumentos('notificacoes')).filter(n => n.tipo === 'coluna-orcamento' && Date.parse(n.criadoEm || 0) >= sete);
+  const res = avisos.map(n => String(n.pushResultado || ''));
+  return {
+    aparelhos: ins.length, pessoasComAparelho: new Set(ins.map(x => x.funcionarioId)).size, porTipo,
+    sinosLigados: Object.values(cols).reduce((s, v) => s + (v || []).length, 0),
+    avisos7d: avisos.length, cancelados7d: avisos.filter(n => n.cancelada).length, enviados7d: avisos.filter(n => n.pushEnviado).length,
+    aceitos7d: res.filter(t => /:20\d/.test(t)).length, recusados7d: res.filter(t => /:(4|5)\d\d/.test(t)).length,
+    cloudflare: await coletarCloudflare().catch(e => ({ disponivel: false, motivo: String(e.message || e).slice(0, 120) }))
+  };
+}
+
 // ---- 3. saúde
 async function medir(fn) { const t = Date.now(); try { const r = await fn(); return { ok: true, ms: Date.now() - t, ...r }; } catch (e) { return { ok: false, ms: Date.now() - t, erro: String(e.message || e).slice(0, 160) }; } }
 
@@ -194,8 +231,10 @@ export async function coletar({ fsCli, projeto, chaveGcp }) {
   }
   const github = await coletarGithub().catch(e => ({ disponivel: false, motivo: String(e.message || e).slice(0, 160) }));
   fontes.github = { disponivel: github.disponivel !== false };
+  const notificacoes = await coletarNotificacoes(fsCli).catch(e => ({ erro: String(e.message || e).slice(0, 160) }));
+  log(`Notificações: ${notificacoes.aparelhos ?? '?'} aparelho(s), ${notificacoes.avisos7d ?? '?'} aviso(s) em 7 dias · Cloudflare: ${notificacoes.cloudflare && notificacoes.cloudflare.disponivel ? 'OK' : 'indisponível (' + ((notificacoes.cloudflare || {}).motivo || notificacoes.erro || '') + ')'}.`);
   // grava: infra do dia, operações (por mês, juntando com o que já estava guardado) e fontes
-  await gravarMonitoramento(fsCli, `infra_${dia}`, { data: dia, coletadoEm: agora.toISOString(), saude, github });
+  await gravarMonitoramento(fsCli, `infra_${dia}`, { data: dia, coletadoEm: agora.toISOString(), saude, github, notificacoes });
   if (operacoes) {
     const meses = new Set([...Object.keys(operacoes.dias), ...Object.keys(operacoes.diasCota)].map(d => d.slice(0, 7)));
     for (const mes of meses) {

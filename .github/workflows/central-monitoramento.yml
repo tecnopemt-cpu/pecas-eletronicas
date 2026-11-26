@@ -4,7 +4,8 @@ name: Central de Monitoramento
 #  - leituras, gravações e exclusões OFICIAIS do Firestore (Google Cloud Monitoring), se o segredo
 #    GCP_MONITORAMENTO_CHAVE estiver cadastrado; sem ele, o painel mostra "Métrica indisponível";
 #  - backups (índice do ramo backups e resultado real de cada execução), repositório e publicação do site;
-#  - se o site e o banco estão respondendo, e em quanto tempo.
+#  - se o site e o banco estão respondendo, e em quanto tempo;
+#  - notificações com o sistema fechado: aparelhos, avisos e pedidos do servidor no Cloudflare (100.000/dia grátis).
 # O tamanho do banco (documentos, fotos, certificados) é medido pela própria rotina de backup.
 # Só lê e grava os resumos em monitoramento/ — não apaga nada. O registro não mostra dados nem segredos.
 on:
@@ -43,4 +44,6 @@ jobs:
           FIREBASE_SENHA: ${{ secrets.BACKUP_SENHA }}
           GCP_MONITORAMENTO_CHAVE: ${{ secrets.GCP_MONITORAMENTO_CHAVE }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node backup/monitoramento.mjs

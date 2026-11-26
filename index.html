@@ -14853,8 +14853,10 @@ function MonProgresso({
   detalhe,
   tag,
   niveis,
-  rotLimite
+  rotLimite,
+  formatar
 }) {
+  const fmtV = formatar || monFormatarBytes;
   const pct = limite && valor != null ? monPct(valor + (estimado || 0), limite) : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "mon-prog"
@@ -14869,7 +14871,7 @@ function MonProgresso({
     tam: 16
   })), nome), /*#__PURE__*/React.createElement("span", {
     className: "mon-prog-val"
-  }, valor != null ? /*#__PURE__*/React.createElement("b", null, monFormatarBytes(valor)) : null, limite && valor != null ? /*#__PURE__*/React.createElement(React.Fragment, null, " de ", monFormatarBytes(limite), rotLimite ? ` ${rotLimite}` : '') : null)), limite && valor != null ? /*#__PURE__*/React.createElement(MonBarra, {
+  }, valor != null ? /*#__PURE__*/React.createElement("b", null, fmtV(valor)) : null, limite && valor != null ? /*#__PURE__*/React.createElement(React.Fragment, null, " de ", fmtV(limite), rotLimite ? ` ${rotLimite}` : '') : null)), limite && valor != null ? /*#__PURE__*/React.createElement(MonBarra, {
     valor: valor,
     estimado: estimado,
     limite: limite,
@@ -14881,6 +14883,50 @@ function MonProgresso({
   }, monPctTxt(pct), " usado", estimado ? ' (com estimativa)' : '') : valor != null ? /*#__PURE__*/React.createElement("span", {
     className: "mon-tag"
   }, "limite n\xE3o informado") : null)));
+}
+// Notificações com o sistema fechado: servidor no Cloudflare Workers (plano gratuito, 100.000 pedidos por dia)
+function MonNotificacoes({
+  n,
+  cfg
+}) {
+  const nome = 'Notificações no celular (Cloudflare)';
+  if (!n || n.erro) return /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "sino",
+    cor: "laranja",
+    nome: nome,
+    valor: null,
+    tag: /*#__PURE__*/React.createElement(MonStatus, {
+      s: "neutro"
+    }, "Sem dados"),
+    detalhe: n && n.erro ? `Não consegui medir: ${n.erro}` : 'Os números aparecem depois da próxima coleta da Central (todo dia, após o backup).'
+  });
+  const cf = n.cloudflare || {};
+  const dias = Object.entries(cf.dias || {}).sort((a, b) => a[0].localeCompare(b[0]));
+  const maior = dias.reduce((m, [, v]) => Math.max(m, v.pedidos || 0), 0);
+  const ultimo = dias.length ? dias[dias.length - 1] : null;
+  const fmt = v => `${monNum(v)} pedidos`;
+  const resumo = `${n.aparelhos} aparelho(s) de ${n.pessoasComAparelho} pessoa(s) · ${n.sinosLigados} sino(s) ligado(s) · 7 dias: ${n.avisos7d} avisos, ${n.enviados7d} enviados ao celular${n.recusados7d ? `, ${n.recusados7d} recusados` : ''}, ${n.cancelados7d} cancelados (cartão saiu da coluna)`;
+  if (!cf.disponivel) return /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "sino",
+    cor: "laranja",
+    nome: nome,
+    valor: null,
+    tag: /*#__PURE__*/React.createElement(MonStatus, {
+      s: "neutro"
+    }, "Limite de 100.000/dia"),
+    detalhe: `${resumo}. Pedidos por dia indisponíveis: ${cf.motivo || 'sem dados'}.`
+  });
+  return /*#__PURE__*/React.createElement(MonProgresso, {
+    icone: "sino",
+    cor: "laranja",
+    nome: nome,
+    valor: maior,
+    limite: cf.limiteDia || 100000,
+    rotLimite: "por dia (grátis)",
+    formatar: fmt,
+    niveis: cfg.niveis,
+    detalhe: `dia de maior uso nos últimos 14 dias${ultimo ? ` · último dia: ${monNum(ultimo[1].pedidos)}` : ''} · ${resumo}`
+  });
 }
 // barra de seleção (segmentos) usada no período e nos gráficos
 function MonSegmentos({
@@ -16015,6 +16061,9 @@ function MonArmazenamento({
     rotLimite: "(recomendado)",
     niveis: cfg.niveis,
     detalhe: "O GitHub recomenda ficar abaixo de 1 GB (n\xE3o \xE9 um limite r\xEDgido)."
+  }), /*#__PURE__*/React.createElement(MonNotificacoes, {
+    n: infra && infra.notificacoes,
+    cfg: cfg
   }), /*#__PURE__*/React.createElement(MonDrive, {
     d: d,
     cfg: cfg
