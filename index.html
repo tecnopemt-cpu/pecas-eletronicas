@@ -78,17 +78,10 @@
   .btn:active:not(:disabled){transform:translateY(1px);box-shadow:none;}
   .btn.secundario{background:var(--fundo);color:var(--texto);border:1px solid var(--borda);}
   .btn.perigo{background:var(--vermelho-bg);color:var(--vermelho);}
-  .sino-coluna{position:relative;display:inline-flex;}
   .sino-coluna-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:none;border-radius:7px;background:transparent;color:var(--texto-fraco);cursor:pointer;}
   .sino-coluna-btn:hover{background:var(--borda);color:var(--texto);}
-  .sino-coluna-btn.ligado{color:var(--laranja);}
-  .sino-coluna-fundo{position:fixed;inset:0;z-index:60;}
-  .sino-coluna-pop{position:absolute;top:30px;right:-40px;z-index:61;width:280px;max-width:calc(100vw - 32px);background:#fff;color:var(--texto);border:1px solid var(--borda);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px;font-weight:400;}
-  .sino-coluna-titulo{font-weight:700;font-size:13.5px;margin-bottom:8px;}
-  .sino-coluna-opcao{display:flex;gap:7px;align-items:flex-start;font-size:13px;cursor:pointer;}
-  .sino-coluna-opcao input{margin-top:2px;}
-  .sino-coluna-dica{font-size:11.5px;color:var(--texto-fraco);margin-top:8px;line-height:1.4;}
-  .sino-coluna-acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;}
+  .sino-coluna-btn.ligado{color:var(--st-garantia-cor,#EAB308);}
+  .sino-coluna-btn:disabled{opacity:.6;cursor:wait;}
   .notif-clicavel{cursor:pointer;}
   .notif-clicavel:hover{outline:1px solid var(--laranja);}
   .btn.verde{background:var(--verde-bg);color:var(--verde);}
@@ -21063,53 +21056,41 @@ function SinoColunaOrc({
   usuario,
   inscritos
 }) {
-  const [aberto, setAberto] = useState(false);
+  // um toque liga/desliga: sino amarelo preenchido = recebe notificação; vazio = não recebe
   const ligado = (inscritos || []).includes(usuario.id);
-  const [marcar, setMarcar] = useState(ligado);
   const [salvando, setSalvando] = useState(false);
-  const [erro, setErro] = useState('');
-  useEffect(() => {
-    if (aberto) {
-      setMarcar(ligado);
-      setErro('');
-    }
-  }, [aberto]);
   if (!podeReceberNotifColuna(usuario, coluna)) return null;
-  async function salvar() {
+  async function alternar(e) {
+    e.stopPropagation();
+    if (salvando) return;
     setSalvando(true);
-    setErro('');
     try {
       const fv = firebase.firestore.FieldValue;
       await db.collection('config').doc(DOC_NOTIF_COLUNAS).set({
         colunas: {
-          [coluna]: marcar ? fv.arrayUnion(usuario.id) : fv.arrayRemove(usuario.id)
+          [coluna]: ligado ? fv.arrayRemove(usuario.id) : fv.arrayUnion(usuario.id)
         }
       }, {
         merge: true
       });
-      setAberto(false);
     } catch (err) {
       console.error(err);
-      setErro('Não consegui salvar. Tente de novo.');
+      alert('Não consegui mudar a notificação desta coluna. Tente de novo.');
     }
     setSalvando(false);
   }
-  return /*#__PURE__*/React.createElement("span", {
-    className: "sino-coluna"
-  }, /*#__PURE__*/React.createElement("button", {
+  return /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: 'sino-coluna-btn' + (ligado ? ' ligado' : ''),
-    title: ligado ? `Você recebe notificação quando um cartão entra em ${coluna}` : `Ativar notificações desta coluna`,
-    "aria-label": `Notificações da coluna ${coluna}${ligado ? ' (ativadas)' : ''}`,
+    title: ligado ? `Notificação ligada: você é avisado quando um cartão entra em ${coluna}. Toque para desligar.` : `Toque para ser avisado quando um cartão entrar em ${coluna}.`,
+    "aria-label": `Notificações da coluna ${coluna}`,
     "aria-pressed": ligado,
-    onClick: e => {
-      e.stopPropagation();
-      setAberto(v => !v);
-    }
+    disabled: salvando,
+    onClick: alternar
   }, /*#__PURE__*/React.createElement("svg", {
     viewBox: "0 0 24 24",
-    width: 15,
-    height: 15,
+    width: 16,
+    height: 16,
     fill: ligado ? 'currentColor' : 'none',
     stroke: "currentColor",
     strokeWidth: 2,
@@ -21120,42 +21101,7 @@ function SinoColunaOrc({
     d: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M13.7 21a2 2 0 0 1-3.4 0"
-  }))), aberto && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "sino-coluna-fundo",
-    onClick: () => setAberto(false)
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "sino-coluna-pop",
-    role: "dialog",
-    "aria-label": "Notificações desta coluna",
-    onKeyDown: e => {
-      if (e.key === 'Escape') setAberto(false);
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "sino-coluna-titulo"
-  }, "Notificações desta coluna"), /*#__PURE__*/React.createElement("label", {
-    className: "sino-coluna-opcao"
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: marcar,
-    onChange: e => setMarcar(e.target.checked),
-    autoFocus: true
-  }), " Me avisar quando um cart\xE3o entrar em ", /*#__PURE__*/React.createElement("strong", null, coluna)), /*#__PURE__*/React.createElement("div", {
-    className: "sino-coluna-dica"
-  }, "Voc\xEA recebe uma notifica\xE7\xE3o no \uD83D\uDD14 sempre que um cart\xE3o for movido para esta coluna (n\xE3o avisa quando o cart\xE3o s\xF3 \xE9 editado, nem quando foi voc\xEA quem moveu). Isso n\xE3o muda nenhuma permiss\xE3o."), erro && /*#__PURE__*/React.createElement("div", {
-    className: "erro-form",
-    role: "alert"
-  }, erro), /*#__PURE__*/React.createElement("div", {
-    className: "sino-coluna-acoes"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn secundario pequeno",
-    onClick: () => setAberto(false)
-  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn pequeno",
-    disabled: salvando,
-    onClick: salvar
-  }, salvando ? 'Salvando...' : 'Salvar configurações')))));
+  })));
 }
 // "Liberado para faturar": marcação MANUAL só da coluna Aprovado/Aguardando pedido. Não muda status,
 // valores, pedido, entrega, comissão nem faturamento — é apenas a confirmação do responsável.

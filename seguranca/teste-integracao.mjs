@@ -139,11 +139,13 @@ try {
   await gravar('config/notificacoesColunasOrcamento', { colunas: { 'Em Análise': ['FUN'] } });
   await w.page.waitForTimeout(800);
   const colAnalise = w.page.locator('.kanban-coluna[data-coluna="Em Análise"]');
-  await colAnalise.locator('.sino-coluna-btn').click(); await w.page.waitForTimeout(200);
-  passo('🔔 da coluna abre "Notificações desta coluna" com a explicação', /Notificações desta coluna/.test(await w.page.locator('.sino-coluna-pop').innerText()) && /sempre que um cartão for movido para esta coluna/.test(await w.page.locator('.sino-coluna-pop').innerText()));
-  await w.page.locator('.sino-coluna-pop input[type=checkbox]').check(); await w.page.locator('.sino-coluna-pop button', { hasText: 'Salvar configurações' }).click(); await esperar(1000);
+  passo('🔔 da coluna começa vazio (sem notificação)', await colAnalise.locator('.sino-coluna-btn[aria-pressed="false"]').count() === 1);
+  await colAnalise.locator('.sino-coluna-btn').click(); await esperar(1000);
   const cfgN = await ler('config/notificacoesColunasOrcamento');
-  passo('salvar liga a notificação só para quem marcou (e mantém quem já estava)', JSON.stringify(cfgN.colunas['Em Análise'].sort()) === JSON.stringify(['FUN', 'WAL']) && await colAnalise.locator('.sino-coluna-btn.ligado').count() === 1, JSON.stringify(cfgN));
+  passo('um toque no 🔔 liga a notificação (sino amarelo) só para quem tocou, mantendo quem já estava', JSON.stringify(cfgN.colunas['Em Análise'].sort()) === JSON.stringify(['FUN', 'WAL']) && await colAnalise.locator('.sino-coluna-btn.ligado').count() === 1, JSON.stringify(cfgN));
+  const colTeste = w.page.locator('.kanban-coluna[data-coluna="Teste"] .sino-coluna-btn');
+  await colTeste.click(); await esperar(800); await colTeste.click(); await esperar(800);
+  passo('tocar de novo desliga (sino vazio, sem notificação)', await colTeste.getAttribute('aria-pressed') === 'false' && !((await ler('config/notificacoesColunasOrcamento')).colunas['Teste'] || []).includes('WAL'));
   const notifAntes = (await listar('notificacoes')).length;
   await w.page.locator('[data-orc-id="O1"] select').selectOption('Em Análise'); await esperar(2000);
   const o1 = await ler('orcamentos/O1');
