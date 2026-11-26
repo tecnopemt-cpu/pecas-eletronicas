@@ -82,6 +82,85 @@
   .sino-coluna-btn:hover{background:var(--borda);color:var(--texto);}
   .sino-coluna-btn.ligado{color:var(--st-garantia-cor,#EAB308);}
   .sino-coluna-btn:disabled{opacity:.6;cursor:wait;}
+  /* ---- Painel (tela redesenhada) ---- */
+  .pd-tela{display:flex;flex-direction:column;gap:18px;}
+  .pd-cab{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;}
+  .pd-titulo{border-left:6px solid var(--laranja);padding-left:14px;}
+  .pd-titulo h2{margin:0;font-size:30px;color:var(--dark);line-height:1.1;}
+  .pd-titulo p{margin:4px 0 0;color:var(--texto-fraco);font-size:14px;}
+  .pd-cab-acoes{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .pd-periodo{position:relative;}
+  .pd-periodo-btn{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--borda);border-radius:10px;padding:10px 14px;font-size:14px;color:var(--texto);min-height:44px;box-shadow:0 1px 3px rgba(15,42,71,.06);}
+  .pd-periodo-btn span{font-weight:600;color:var(--dark);white-space:nowrap;}
+  .pd-pop-fundo{position:fixed;inset:0;z-index:60;}
+  .pd-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:61;width:270px;max-width:calc(100vw - 32px);background:#fff;border:1px solid var(--borda);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.16);padding:10px;display:flex;flex-direction:column;gap:4px;}
+  .pd-pop-preset{text-align:left;background:transparent;border:none;border-radius:8px;padding:9px 10px;font-size:14px;color:var(--texto);}
+  .pd-pop-preset:hover{background:var(--fundo);}
+  .pd-pop-datas{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--borda);margin-top:4px;padding-top:4px;}
+  .pd-pop-datas input{padding:8px;font-size:14px;}
+  .pd-pop .btn{margin-top:8px;}
+  .pd-exportar{display:inline-flex;align-items:center;gap:8px;background:var(--dark);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;min-height:44px;}
+  .pd-exportar:hover{background:#1a3d63;}
+  .pd-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;}
+  .pd-kpi{--c:var(--verde);--cbg:var(--verde-bg);position:relative;overflow:hidden;background:#fff;border:1px solid var(--borda);border-radius:14px;padding:14px 14px 12px;box-shadow:0 2px 8px rgba(15,42,71,.05);display:flex;flex-direction:column;gap:8px;}
+  .pd-kpi::after{content:'';position:absolute;right:-30px;bottom:-40px;width:130px;height:90px;border-radius:50%;background:var(--cbg);opacity:.7;}
+  .pd-kpi>*{position:relative;z-index:1;}
+  .pd-kpi.pd-laranja{--c:var(--laranja);--cbg:var(--laranja-bg);}
+  .pd-kpi.pd-azul{--c:#2563EB;--cbg:#E3ECFD;}
+  .pd-kpi.pd-roxo{--c:#7C3AED;--cbg:#EEE6FD;}
+  .pd-kpi.pd-cinza{--c:var(--dark);--cbg:#E7ECF3;}
+  .pd-kpi.pd-amarelo{--c:#B7791F;--cbg:var(--st-garantia-bg);}
+  .pd-kpi-cab{display:flex;align-items:center;gap:9px;}
+  .pd-kpi-icone{flex-shrink:0;width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--cbg);color:var(--c);}
+  .pd-kpi-titulo{font-size:13px;font-weight:700;color:var(--dark);line-height:1.2;}
+  .pd-kpi-valor{font-size:34px;font-weight:800;color:var(--dark);line-height:1.05;letter-spacing:-.5px;text-align:center;white-space:nowrap;}
+  .pd-var{display:flex;flex-direction:column;align-items:center;font-size:11.5px;color:var(--texto-fraco);line-height:1.25;}
+  .pd-var strong{font-size:13px;}
+  .pd-var.bom strong{color:var(--verde);} .pd-var.ruim strong{color:var(--vermelho);} .pd-var.neutro strong{color:var(--texto-fraco);}
+  .pd-bloco{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:16px 18px;box-shadow:0 2px 8px rgba(15,42,71,.05);}
+  .pd-bloco-cab{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;}
+  .pd-bloco-cab h3{margin:0;font-size:18px;color:var(--dark);display:flex;align-items:center;gap:9px;flex:1;min-width:200px;}
+  .pd-h3-icone{color:var(--laranja);display:inline-flex;}
+  .pd-modos{display:flex;gap:6px;}
+  .pd-modos button{border:none;background:#EEF1F5;color:var(--dark);border-radius:9px;padding:8px 16px;font-size:13.5px;font-weight:600;}
+  .pd-modos button.ativo{background:var(--dark);color:#fff;}
+  .pd-modos button:disabled{opacity:.45;cursor:not-allowed;}
+  .pd-legenda{display:flex;gap:14px;font-size:13px;color:var(--texto);margin-left:auto;}
+  .pd-legenda span{display:inline-flex;align-items:center;gap:6px;}
+  .pd-bola{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .pd-bola.laranja{background:var(--laranja);} .pd-bola.verde{background:var(--verde);}
+  .pd-grafico-caixa{width:100%;}
+  .pd-grafico{width:100%;height:auto;display:block;}
+  .pd-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+  .pd-cat{--c:var(--st-conserto);--cab:#0E5132;background:#fff;border:1px solid var(--borda);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(15,42,71,.05);display:flex;flex-direction:column;}
+  .pd-cat-amarelo{--c:var(--st-garantia-cor);--cab:#9A6B00;}
+  .pd-cat-vermelho{--c:var(--st-sem);--cab:#A12E22;}
+  .pd-cat-cab{display:flex;align-items:center;gap:9px;background:var(--cab);color:#fff;padding:11px 14px;font-weight:700;font-size:14.5px;}
+  .pd-cat-total{margin-left:auto;font-size:13.5px;}
+  .pd-cat-corpo{padding:12px 14px 14px;display:flex;flex-direction:column;gap:9px;flex:1;}
+  .pd-cat-linha{display:grid;grid-template-columns:minmax(70px,110px) 1fr 32px;align-items:center;gap:10px;font-size:13px;}
+  .pd-cat-nome{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pd-cat-trilho{height:8px;background:#EEF1F5;border-radius:6px;overflow:hidden;}
+  .pd-cat-trilho span{display:block;height:100%;background:var(--c);border-radius:6px;}
+  .pd-cat-qtd{text-align:right;font-weight:700;color:var(--dark);}
+  .pd-cat-vazio{color:var(--texto-fraco);font-size:13px;padding:6px 0;}
+  .pd-cat-info{margin-top:auto;display:flex;gap:10px;align-items:center;background:var(--st-garantia-bg);border:1px solid var(--st-garantia-borda);color:var(--st-garantia);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.35;}
+  .pd-cat-info svg{flex-shrink:0;color:#D97706;}
+  .pd-resumo{display:grid;grid-template-columns:minmax(200px,1.3fr) repeat(3,minmax(90px,.7fr)) minmax(240px,1.6fr);align-items:stretch;background:#fff;border:1px solid var(--borda);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(15,42,71,.05);}
+  .pd-resumo>div{padding:16px 18px;display:flex;align-items:center;}
+  .pd-resumo-tit{gap:12px;color:var(--dark);}
+  .pd-resumo-tit div{display:flex;flex-direction:column;}
+  .pd-resumo-tit strong{font-size:16px;} .pd-resumo-tit span{font-size:13.5px;color:var(--texto);}
+  .pd-resumo-num{flex-direction:column;justify-content:center;border-left:1px solid var(--borda);}
+  .pd-resumo-num strong{font-size:30px;line-height:1.1;} .pd-resumo-num span{font-size:13px;color:var(--dark);font-weight:600;}
+  .pd-resumo-num.laranja strong{color:var(--laranja);} .pd-resumo-num.verde strong{color:var(--verde);} .pd-resumo-num.azul strong{color:#2563EB;}
+  .pd-tendencia{gap:14px;color:#fff;background:linear-gradient(110deg,#F59E0B,var(--laranja));clip-path:polygon(18px 0,100% 0,100% 100%,0 100%);padding-left:34px!important;}
+  .pd-tendencia.queda{background:linear-gradient(110deg,#E35D4F,var(--vermelho));}
+  .pd-tendencia.estavel,.pd-tendencia.neutra{background:linear-gradient(110deg,#33557D,var(--dark));}
+  .pd-tendencia div{display:flex;flex-direction:column;} .pd-tendencia strong{font-size:17px;} .pd-tendencia span{font-size:12.5px;opacity:.95;}
+  @media (max-width:1280px){.pd-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}}
+  @media (max-width:1000px){.pd-cats{grid-template-columns:1fr;}.pd-resumo{grid-template-columns:repeat(3,1fr);}.pd-resumo-tit,.pd-tendencia{grid-column:1/-1;}.pd-resumo-num{border-left:none;border-top:1px solid var(--borda);}.pd-resumo-num+.pd-resumo-num{border-left:1px solid var(--borda);}.pd-tendencia{clip-path:none;padding-left:18px!important;}}
+  @media (max-width:640px){.pd-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}.pd-kpi-valor{font-size:27px;}.pd-titulo h2{font-size:25px;}.pd-cab-acoes{width:100%;}.pd-periodo{flex:1;}.pd-periodo-btn{width:100%;justify-content:space-between;font-size:13px;padding:10px 12px;}.pd-exportar{padding:10px 12px;}.pd-pop{left:0;right:auto;}.pd-bloco{padding:14px 12px;}.pd-legenda{margin-left:0;}.pd-resumo-num strong{font-size:24px;}}
   .notif-clicavel{cursor:pointer;}
   .aviso-vivo-pilha{position:fixed;top:14px;right:14px;z-index:9000;display:flex;flex-direction:column;gap:10px;width:360px;max-width:calc(100vw - 28px);}
   .aviso-vivo{position:relative;display:flex;gap:12px;background:#fff;color:var(--texto);border:2px solid var(--st-garantia-cor,#EAB308);border-left-width:6px;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.28);padding:12px 34px 12px 12px;animation:avisoEntra .35s ease-out;}
@@ -33277,251 +33356,237 @@ function ModalGerenciarAvisos({
     onClick: aoFechar
   }, "Fechar"))));
 }
-function AbaDashboard({
-  usuario,
-  funcionarios
-}) {
-  const [lotes] = useColecao('lotes');
-  const [orcamentos] = useColecao('orcamentos');
-  const [comissoes] = useColecao('comissoes');
-  const hoje = new Date();
-  const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-  const [dataInicioPrincipal, setDataInicioPrincipal] = useState(formatarDataInput(primeiroDiaMes));
-  const [dataFimPrincipal, setDataFimPrincipal] = useState(formatarDataInput(hoje));
-  const [dataInicio, setDataInicio] = useState(formatarDataInput(primeiroDiaMes));
-  const [dataFim, setDataFim] = useState(formatarDataInput(hoje));
-  const orcamentosDoMes = orcamentos.filter(o => dentroDoIntervalo(dataDe(o.criadoEm), dataInicioPrincipal, dataFimPrincipal));
-  const lotesDoMes = lotes.filter(l => dentroDoIntervalo(dataDe(l.criadoEm), dataInicioPrincipal, dataFimPrincipal));
-  // comissão do período: pela data de faturamento do orçamento (só faturados contam — ver comissaoElegivel)
-  const orcPorIdComissao = {};
-  orcamentos.forEach(o => {
-    orcPorIdComissao[o.id] = o;
+const PD_PRESETS = [["mes", "Este m\xEAs"], ["mesPassado", "M\xEAs passado"], ["7", "\xDAltimos 7 dias"], ["30", "\xDAltimos 30 dias"], ["ano", "Este ano"]];
+function pdDia(s, n) {
+  const d = /* @__PURE__ */ new Date(s + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return formatarDataInput(d);
+}
+function pdPreset(id) {
+  const h = /* @__PURE__ */ new Date();
+  const hoje = formatarDataInput(h);
+  if (id === "mesPassado") return [formatarDataInput(new Date(h.getFullYear(), h.getMonth() - 1, 1)), formatarDataInput(new Date(h.getFullYear(), h.getMonth(), 0))];
+  if (id === "7") return [pdDia(hoje, -6), hoje];
+  if (id === "30") return [pdDia(hoje, -29), hoje];
+  if (id === "ano") return [`${h.getFullYear()}-01-01`, hoje];
+  return [formatarDataInput(new Date(h.getFullYear(), h.getMonth(), 1)), hoje];
+}
+function pdBr(s) {
+  return s ? s.split("-").reverse().join("/") : "";
+}
+function pdMetricas(lotes, orcamentos, comissoes, ini, fim) {
+  const orcPorId = {};
+  orcamentos.forEach((o) => {
+    orcPorId[o.id] = o;
   });
-  const comissoesDoMes = comissoes.filter(c => {
-    const o = orcPorIdComissao[c.orcamentoId];
-    return dentroDoIntervalo(o ? dataReferenciaOrcamento(o) : dataDe(c.data), dataInicioPrincipal, dataFimPrincipal);
-  });
-  const itensDoMes = orcamentosDoMes.flatMap(o => o.itens || []);
-  const totalConsertadas = itensDoMes.filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
-  const totalGarantia = itensDoMes.filter(i => i.tipo === 'garantia').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
-  const totalSemConserto = itensDoMes.filter(i => i.tipo === 'naoConsertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
-  const totalEntrada = lotesDoMes.flatMap(l => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
-  const percentualGarantia = totalConsertadas > 0 ? totalGarantia / totalConsertadas * 100 : 0;
-  const dias = diasNoIntervalo(dataInicioPrincipal, dataFimPrincipal);
-  const mediaConsertadasDia = totalConsertadas / dias;
-  const orcamentoPorIdDash = {};
-  orcamentos.forEach(o => {
-    orcamentoPorIdDash[o.id] = o;
-  });
-  const totalComissaoMes = comissoesDoMes.filter(c => comissaoElegivel(orcamentoPorIdDash[c.orcamentoId])).reduce((s, c) => s + (Number(c.valor) || 0), 0);
-  const mediaComissaoDia = totalComissaoMes / dias;
-  const porCategoriaConsertada = agruparPorCategoria(itensDoMes, 'consertada');
-  const porCategoriaGarantia = agruparPorCategoria(itensDoMes, 'garantia');
-  const porCategoriaSemConserto = agruparPorCategoria(itensDoMes, 'naoConsertada');
-  const diasArray = [];
-  if (dataInicio && dataFim) {
-    let cursor = new Date(dataInicio + 'T00:00:00');
-    const fim = new Date(dataFim + 'T00:00:00');
-    let protecao = 0;
-    while (cursor <= fim && protecao < 366) {
-      diasArray.push({
-        chave: chaveDia(cursor),
-        label: cursor.toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit'
-        })
-      });
-      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
-      protecao++;
-    }
+  const orcs = orcamentos.filter((o) => dentroDoIntervalo(dataDe(o.criadoEm), ini, fim));
+  const lts = lotes.filter((l) => dentroDoIntervalo(dataDe(l.criadoEm), ini, fim));
+  const itens = orcs.flatMap((o) => o.itens || []);
+  const soma = (tipo) => itens.filter((i) => i.tipo === tipo).reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  const consertadas = soma("consertada"), garantia = soma("garantia"), semConserto = soma("naoConsertada");
+  const entradas = lts.flatMap((l) => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
+  const dias = diasNoIntervalo(ini, fim);
+  const comissao = comissoes.filter((c) => {
+    const o = orcPorId[c.orcamentoId];
+    return dentroDoIntervalo(o ? dataReferenciaOrcamento(o) : dataDe(c.data), ini, fim);
+  }).filter((c) => comissaoElegivel(orcPorId[c.orcamentoId])).reduce((s, c) => s + (Number(c.valor) || 0), 0);
+  return {
+    itens,
+    consertadas,
+    garantia,
+    semConserto,
+    entradas,
+    dias,
+    pctGarantia: consertadas > 0 ? garantia / consertadas * 100 : 0,
+    mediaDia: consertadas / dias,
+    comissaoDia: comissao / dias
+  };
+}
+function pdVariacao(atual, anterior, modo, bom) {
+  const fmt = (v, casas) => v.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
+  let texto, delta;
+  if (modo === "pp") {
+    delta = atual - anterior;
+    texto = `${delta > 0 ? "+" : delta < 0 ? "\u2212" : ""}${fmt(Math.abs(delta), 1)} p.p.`;
+  } else if (modo === "abs") {
+    delta = atual - anterior;
+    texto = `${delta > 0 ? "+" : delta < 0 ? "\u2212" : ""}${fmt(Math.abs(delta), 1)}`;
+  } else if (modo === "qtd") {
+    delta = atual - anterior;
+    texto = `${delta > 0 ? "+" : delta < 0 ? "\u2212" : ""}${Math.abs(delta)}`;
+  } else {
+    if (!anterior) return atual ? { texto: "novo", classe: "neutro", seta: "" } : { texto: "\u2014", classe: "neutro", seta: "" };
+    delta = (atual - anterior) / anterior * 100;
+    texto = `${delta > 0 ? "+" : delta < 0 ? "\u2212" : ""}${fmt(Math.abs(delta), 0)}%`;
   }
-  const dadosComparativo = diasArray.map(dia => {
-    const entradaDia = lotes.filter(l => chaveDia(dataDe(l.criadoEm)) === dia.chave).flatMap(l => l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
-    const consertadaDia = orcamentos.filter(o => chaveDia(dataDe(o.criadoEm)) === dia.chave).flatMap(o => o.itens || []).filter(i => i.tipo === 'consertada').reduce((s, i) => s + (Number(i.qtd) || 0), 0);
-    return {
-      ...dia,
-      entrada: entradaDia,
-      consertada: consertadaDia
-    };
+  if (Math.abs(delta) < 1e-9) return { texto: modo === "pct" ? "0%" : texto.replace(/^[+−]/, ""), classe: "neutro", seta: "\u2192" };
+  const subiu = delta > 0;
+  return { texto, classe: subiu === bom ? "bom" : "ruim", seta: subiu ? "\u2191" : "\u2193" };
+}
+function pdBaldes(ini, fim, modo) {
+  const baldes = [];
+  let cur = /* @__PURE__ */ new Date(ini + "T00:00:00");
+  const ultimo = /* @__PURE__ */ new Date(fim + "T00:00:00");
+  const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  let prot = 0;
+  while (cur <= ultimo && prot++ < 800) {
+    let fimB;
+    if (modo === "mensal") fimB = new Date(cur.getFullYear(), cur.getMonth() + 1, 0);
+    else if (modo === "semanal") {
+      fimB = new Date(cur);
+      fimB.setDate(cur.getDate() + (7 - (cur.getDay() || 7)));
+    } else fimB = new Date(cur);
+    if (fimB > ultimo) fimB = new Date(ultimo);
+    const a = formatarDataInput(cur), b = formatarDataInput(fimB);
+    const label = modo === "mensal" ? `${meses[cur.getMonth()]}/${String(cur.getFullYear()).slice(2)}` : `${String(cur.getDate()).padStart(2, "0")}/${String(cur.getMonth() + 1).padStart(2, "0")}`;
+    baldes.push({ ini: a, fim: b, label, titulo: a === b ? pdBr(a) : `${pdBr(a)} a ${pdBr(b)}` });
+    cur = new Date(fimB.getFullYear(), fimB.getMonth(), fimB.getDate() + 1);
+  }
+  return baldes;
+}
+function pdSerie(lotes, orcamentos, ini, fim, modo) {
+  const ent = {}, cons = {};
+  lotes.forEach((l) => {
+    const k = chaveDia(dataDe(l.criadoEm));
+    if (k && k >= ini && k <= fim) ent[k] = (ent[k] || 0) + (l.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
   });
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 16,
-      flexWrap: 'wrap',
-      gap: 10
+  orcamentos.forEach((o) => {
+    const k = chaveDia(dataDe(o.criadoEm));
+    if (k && k >= ini && k <= fim) cons[k] = (cons[k] || 0) + (o.itens || []).filter((i) => i.tipo === "consertada").reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+  });
+  const somaEntre = (mapa, a, b) => Object.entries(mapa).reduce((s, [k, v]) => k >= a && k <= b ? s + v : s, 0);
+  return pdBaldes(ini, fim, modo).map((b) => ({ ...b, entrada: somaEntre(ent, b.ini, b.fim), consertada: somaEntre(cons, b.ini, b.fim) }));
+}
+function pdEscala(max) {
+  if (max <= 5) return [5, 1];
+  const bruto = max / 4;
+  const pot = Math.pow(10, Math.floor(Math.log10(bruto)));
+  const passo = [1, 2, 2.5, 5, 10].map((m) => m * pot).find((p) => p >= bruto);
+  return [Math.ceil(max / passo) * passo, passo];
+}
+function PdGrafico({ dados }) {
+  const ref = useRef(null);
+  const [W, setW] = useState(960);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const medir = () => setW(Math.max(280, Math.round(el.clientWidth)));
+    medir();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const H = W < 600 ? 220 : 260, m = { t: 14, r: 6, b: 30, l: 32 };
+  const aw = W - m.l - m.r, ah = H - m.t - m.b;
+  const [topo, passo] = pdEscala(Math.max(1, ...dados.flatMap((d) => [d.entrada, d.consertada])));
+  const gw = aw / Math.max(1, dados.length);
+  const bw = Math.max(2, Math.min(18, gw * 0.34));
+  const cadaRotulo = Math.max(1, Math.ceil(dados.length / Math.max(3, Math.floor(W / 64))));
+  const y = (v) => m.t + ah - v / topo * ah;
+  const linhas = [];
+  for (let v = 0; v <= topo + 1e-9; v += passo) linhas.push(v);
+  return /* @__PURE__ */ React.createElement("div", { ref, className: "pd-grafico-caixa" }, /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, className: "pd-grafico", role: "img", "aria-label": "Gr\xE1fico de entradas e pe\xE7as consertadas" }, linhas.map((v) => /* @__PURE__ */ React.createElement("g", { key: v }, /* @__PURE__ */ React.createElement("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: "var(--borda)", strokeDasharray: v ? "3 4" : "" }), /* @__PURE__ */ React.createElement("text", { x: m.l - 8, y: y(v) + 4, textAnchor: "end", fontSize: "12", fill: "var(--texto-fraco)" }, v.toLocaleString("pt-BR")))), dados.map((d, i) => {
+    const cx = m.l + i * gw + gw / 2;
+    return /* @__PURE__ */ React.createElement("g", { key: d.ini }, /* @__PURE__ */ React.createElement("title", null, `${d.titulo}
+Entradas: ${d.entrada}
+Consertadas: ${d.consertada}`), /* @__PURE__ */ React.createElement("rect", { x: m.l + i * gw, y: m.t, width: gw, height: ah, fill: "transparent" }), d.entrada > 0 && /* @__PURE__ */ React.createElement("rect", { x: cx - bw - 1, y: y(d.entrada), width: bw, height: m.t + ah - y(d.entrada), rx: "2.5", fill: "var(--laranja)" }), d.consertada > 0 && /* @__PURE__ */ React.createElement("rect", { x: cx + 1, y: y(d.consertada), width: bw, height: m.t + ah - y(d.consertada), rx: "2.5", fill: "var(--verde)" }), i % cadaRotulo === 0 && /* @__PURE__ */ React.createElement("text", { x: cx, y: H - 9, textAnchor: "middle", fontSize: "12", fill: "var(--texto-fraco)" }, d.label));
+  })));
+}
+const PD_ICONES = {
+  chave: /* @__PURE__ */ React.createElement("path", { d: "M14.7 6.3a4 4 0 0 0-5.4 5.1L3 17.7V21h3.3l6.3-6.3a4 4 0 0 0 5.1-5.4l-2.6 2.6-2.4-.6-.6-2.4z" }),
+  caixa: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M21 8l-9-5-9 5 9 5 9-5z" }), /* @__PURE__ */ React.createElement("path", { d: "M3 8v8l9 5 9-5V8" }), /* @__PURE__ */ React.createElement("path", { d: "M12 13v8" })),
+  escudo: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" }), /* @__PURE__ */ React.createElement("path", { d: "M8.5 12l2.5 2.5 4.5-5" })),
+  porcento: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M19 5L5 19" }), /* @__PURE__ */ React.createElement("circle", { cx: "7", cy: "7", r: "2.5" }), /* @__PURE__ */ React.createElement("circle", { cx: "17", cy: "17", r: "2.5" })),
+  calendario: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: "3", y: "5", width: "18", height: "16", rx: "2" }), /* @__PURE__ */ React.createElement("path", { d: "M16 3v4M8 3v4M3 10h18" }), /* @__PURE__ */ React.createElement("path", { d: "M8 14h2M14 14h2M8 17h2" })),
+  moedas: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("ellipse", { cx: "9", cy: "7", rx: "6", ry: "2.5" }), /* @__PURE__ */ React.createElement("path", { d: "M3 7v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V7" }), /* @__PURE__ */ React.createElement("path", { d: "M9 13.5v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4c0-1.4-2.7-2.5-6-2.5" })),
+  barras: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M4 20V10M10 20V4M16 20v-7M22 20H2" })),
+  download: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M12 3v12M7 10l5 5 5-5" }), /* @__PURE__ */ React.createElement("path", { d: "M4 19h16" })),
+  ok: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "9" }), /* @__PURE__ */ React.createElement("path", { d: "M8 12l3 3 5-6" })),
+  menos: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "9" }), /* @__PURE__ */ React.createElement("path", { d: "M8 12h8" })),
+  info: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "9" }), /* @__PURE__ */ React.createElement("path", { d: "M12 11v6M12 7.5v.5" })),
+  subindo: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M3 17l6-6 4 4 8-8" }), /* @__PURE__ */ React.createElement("path", { d: "M15 7h6v6" })),
+  descendo: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M3 7l6 6 4-4 8 8" }), /* @__PURE__ */ React.createElement("path", { d: "M15 17h6v-6" })),
+  seta: /* @__PURE__ */ React.createElement("path", { d: "M6 9l6 6 6-6" })
+};
+function PdIcone({ nome, tam = 22 }) {
+  return /* @__PURE__ */ React.createElement("svg", { viewBox: "0 0 24 24", width: tam, height: tam, fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, PD_ICONES[nome]);
+}
+function PdKpi({ icone, cor, titulo, valor, variacao }) {
+  return /* @__PURE__ */ React.createElement("div", { className: `pd-kpi pd-${cor}` }, /* @__PURE__ */ React.createElement("div", { className: "pd-kpi-cab" }, /* @__PURE__ */ React.createElement("span", { className: "pd-kpi-icone" }, /* @__PURE__ */ React.createElement(PdIcone, { nome: icone })), /* @__PURE__ */ React.createElement("span", { className: "pd-kpi-titulo" }, titulo)), /* @__PURE__ */ React.createElement("div", { className: "pd-kpi-valor" }, valor), variacao && /* @__PURE__ */ React.createElement("div", { className: `pd-var ${variacao.classe}` }, /* @__PURE__ */ React.createElement("strong", null, variacao.seta, " ", variacao.texto), /* @__PURE__ */ React.createElement("span", null, "vs. per\xEDodo anterior")));
+}
+function PdCategoria({ titulo, icone, cor, dados, total, children }) {
+  const max = Math.max(1, ...dados.map((d) => d[1]));
+  return /* @__PURE__ */ React.createElement("div", { className: `pd-cat pd-cat-${cor}` }, /* @__PURE__ */ React.createElement("div", { className: "pd-cat-cab" }, /* @__PURE__ */ React.createElement(PdIcone, { nome: icone, tam: 20 }), /* @__PURE__ */ React.createElement("span", null, titulo), /* @__PURE__ */ React.createElement("span", { className: "pd-cat-total" }, "Total: ", total)), /* @__PURE__ */ React.createElement("div", { className: "pd-cat-corpo" }, dados.length === 0 && /* @__PURE__ */ React.createElement("div", { className: "pd-cat-vazio" }, "Nenhuma pe\xE7a no per\xEDodo."), dados.map(([cat, qtd]) => /* @__PURE__ */ React.createElement("div", { className: "pd-cat-linha", key: cat }, /* @__PURE__ */ React.createElement("span", { className: "pd-cat-nome", title: cat }, cat), /* @__PURE__ */ React.createElement("span", { className: "pd-cat-trilho" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${Math.max(3, qtd / max * 100)}%` } })), /* @__PURE__ */ React.createElement("span", { className: "pd-cat-qtd" }, qtd))), children));
+}
+function PdPeriodo({ ini, fim, aoMudar }) {
+  const [aberto, setAberto] = useState(false);
+  const [a, setA] = useState(ini);
+  const [b, setB] = useState(fim);
+  useEffect(() => {
+    if (aberto) {
+      setA(ini);
+      setB(fim);
     }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      margin: 0
-    }
-  }, "Painel"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      alignItems: 'center',
-      flexWrap: 'wrap'
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      margin: 0
-    }
-  }, "De"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: dataInicioPrincipal,
-    onChange: e => setDataInicioPrincipal(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      margin: 0
-    }
-  }, "Até"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: dataFimPrincipal,
-    onChange: e => setDataFimPrincipal(e.target.value)
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
-      gap: 12,
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Peças consertadas no período",
-    valor: totalConsertadas,
-    cor: "var(--verde)"
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Entrada de peças no período",
-    valor: totalEntrada,
-    cor: "var(--laranja)"
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Peças em garantia no período",
-    valor: totalGarantia,
-    cor: "var(--st-garantia)"
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "% de garantia",
-    valor: `${percentualGarantia.toFixed(1)}%`,
-    cor: "var(--st-garantia)"
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Média consertadas/dia",
-    valor: mediaConsertadasDia.toFixed(1)
-  }), /*#__PURE__*/React.createElement(CartaoMetrica, {
-    titulo: "Média de comissão/dia",
-    valor: formatMoeda(mediaComissaoDia)
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 10,
-      flexWrap: 'wrap',
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      margin: 0,
-      fontSize: 15
-    }
-  }, "Entrada de peças × Peças consertadas"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      alignItems: 'center',
-      flexWrap: 'wrap'
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      margin: 0
-    }
-  }, "De"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: dataInicio,
-    onChange: e => setDataInicio(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      margin: 0
-    }
-  }, "Até"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: dataFim,
-    onChange: e => setDataFim(e.target.value)
-  })))), diasArray.length > 90 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--vermelho)',
-      marginBottom: 8
-    }
-  }, "Período muito longo (", diasArray.length, " dias) — escolha um intervalo menor para o gráfico ficar legível."), /*#__PURE__*/React.createElement(GraficoComparativo, {
-    dados: dadosComparativo
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 16,
-      marginTop: 8,
-      fontSize: 12,
-      color: 'var(--texto-fraco)'
-    }
-  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: 'inline-block',
-      width: 10,
-      height: 10,
-      background: 'var(--laranja)',
-      borderRadius: 2,
-      marginRight: 5
-    }
-  }), "Entrada"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: 'inline-block',
-      width: 10,
-      height: 10,
-      background: 'var(--verde)',
-      borderRadius: 2,
-      marginRight: 5
-    }
-  }), "Consertadas"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))',
-      gap: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      margin: '0 0 12px',
-      fontSize: 15
-    }
-  }, "Consertadas por categoria"), /*#__PURE__*/React.createElement(BarraCategoria, {
-    dados: porCategoriaConsertada,
-    cor: "var(--verde)"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      margin: '0 0 12px',
-      fontSize: 15
-    }
-  }, "Garantias por categoria"), /*#__PURE__*/React.createElement(BarraCategoria, {
-    dados: porCategoriaGarantia,
-    cor: "var(--st-garantia-cor)"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      margin: '0 0 12px',
-      fontSize: 15
-    }
-  }, "Sem conserto por categoria"), /*#__PURE__*/React.createElement(BarraCategoria, {
-    dados: porCategoriaSemConserto,
-    cor: "var(--vermelho)"
-  }))));
+  }, [aberto]);
+  const escolher = (x, y) => {
+    aoMudar(x, y);
+    setAberto(false);
+  };
+  return /* @__PURE__ */ React.createElement("div", { className: "pd-periodo" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "pd-periodo-btn", onClick: () => setAberto((v) => !v), "aria-expanded": aberto }, /* @__PURE__ */ React.createElement(PdIcone, { nome: "calendario", tam: 18 }), /* @__PURE__ */ React.createElement("span", null, pdBr(ini), " \u2013 ", pdBr(fim)), /* @__PURE__ */ React.createElement(PdIcone, { nome: "seta", tam: 16 })), aberto && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "pd-pop-fundo", onClick: () => setAberto(false) }), /* @__PURE__ */ React.createElement("div", { className: "pd-pop", role: "dialog", "aria-label": "Escolher per\xEDodo", onKeyDown: (e) => e.key === "Escape" && setAberto(false) }, PD_PRESETS.map(([id, nome]) => /* @__PURE__ */ React.createElement("button", { type: "button", key: id, className: "pd-pop-preset", onClick: () => escolher(...pdPreset(id)) }, nome)), /* @__PURE__ */ React.createElement("div", { className: "pd-pop-datas" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", null, "De"), /* @__PURE__ */ React.createElement("input", { type: "date", value: a, max: b || void 0, onChange: (e) => setA(e.target.value) })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", null, "At\xE9"), /* @__PURE__ */ React.createElement("input", { type: "date", value: b, min: a || void 0, onChange: (e) => setB(e.target.value) }))), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn", disabled: !a || !b || a > b, onClick: () => escolher(a, b) }, "Aplicar"))));
+}
+function pdExportarCsv(ini, fim, m, ant, serie, cats) {
+  const n = (v) => String(v).replace(".", ",");
+  const linhas = [
+    ["Painel \u2014 Controle de Pe\xE7as"],
+    [`Per\xEDodo: ${pdBr(ini)} a ${pdBr(fim)}`],
+    [],
+    ["Indicador", "Per\xEDodo", "Per\xEDodo anterior"],
+    ["Pe\xE7as consertadas", m.consertadas, ant.consertadas],
+    ["Entradas de pe\xE7as", m.entradas, ant.entradas],
+    ["Pe\xE7as em garantia", m.garantia, ant.garantia],
+    ["Pe\xE7as sem conserto", m.semConserto, ant.semConserto],
+    ["% de garantia", n(m.pctGarantia.toFixed(1)), n(ant.pctGarantia.toFixed(1))],
+    ["M\xE9dia consertadas/dia", n(m.mediaDia.toFixed(1)), n(ant.mediaDia.toFixed(1))],
+    ["M\xE9dia de comiss\xE3o/dia (R$)", n(m.comissaoDia.toFixed(2)), n(ant.comissaoDia.toFixed(2))],
+    [],
+    ["Data", "Entradas", "Consertadas"],
+    ...serie.map((d) => [d.titulo, d.entrada, d.consertada]),
+    [],
+    ["Categoria", "Consertadas", "Garantia", "Sem conserto"],
+    ...[...new Set([...cats.c, ...cats.g, ...cats.s].map((x) => x[0]))].map((cat) => [cat, ...[cats.c, cats.g, cats.s].map((l) => (l.find((x) => x[0] === cat) || [0, 0])[1])])
+  ];
+  const csv = "\uFEFF" + linhas.map((l) => l.map((c) => /[;"\n]/.test(String(c)) ? `"${String(c).replace(/"/g, '""')}"` : c).join(";")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const el = document.createElement("a");
+  el.href = url;
+  el.download = `painel-${ini}_a_${fim}.csv`;
+  document.body.appendChild(el);
+  el.click();
+  el.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2e3);
+}
+function AbaDashboard({ usuario, funcionarios }) {
+  const [lotes] = useColecao("lotes");
+  const [orcamentos] = useColecao("orcamentos");
+  const [comissoes] = useColecao("comissoes");
+  const [[ini, fim], setPeriodo] = useState(() => pdPreset("mes"));
+  const dias = diasNoIntervalo(ini, fim);
+  const [modoEscolhido, setModo] = useState(null);
+  const modo = modoEscolhido || (dias > 200 ? "mensal" : dias > 62 ? "semanal" : "diario");
+  const fimAnt = pdDia(ini, -1), iniAnt = pdDia(fimAnt, -(dias - 1));
+  const m = useMemo(() => pdMetricas(lotes, orcamentos, comissoes, ini, fim), [lotes, orcamentos, comissoes, ini, fim]);
+  const ant = useMemo(() => pdMetricas(lotes, orcamentos, comissoes, iniAnt, fimAnt), [lotes, orcamentos, comissoes, iniAnt, fimAnt]);
+  const serie = useMemo(() => pdSerie(lotes, orcamentos, ini, fim, modo), [lotes, orcamentos, ini, fim, modo]);
+  const cats = useMemo(() => ({ c: agruparPorCategoria(m.itens, "consertada"), g: agruparPorCategoria(m.itens, "garantia"), s: agruparPorCategoria(m.itens, "naoConsertada") }), [m]);
+  const fmt1 = (v) => v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const tend = pdVariacao(m.consertadas, ant.consertadas, "pct", true);
+  const deltaCons = ant.consertadas ? (m.consertadas - ant.consertadas) / ant.consertadas * 100 : null;
+  const tendencia = deltaCons === null ? { titulo: "Primeiro per\xEDodo com dados", sub: "sem dados do per\xEDodo anterior para comparar", icone: "barras", classe: "neutra" } : deltaCons >= 5 ? { titulo: "Desempenho em alta!", sub: `${tend.texto} de pe\xE7as consertadas em rela\xE7\xE3o ao per\xEDodo anterior`, icone: "subindo", classe: "alta" } : deltaCons <= -5 ? { titulo: "Desempenho em queda", sub: `${tend.texto} de pe\xE7as consertadas em rela\xE7\xE3o ao per\xEDodo anterior`, icone: "descendo", classe: "queda" } : { titulo: "Desempenho est\xE1vel", sub: `${tend.texto} de pe\xE7as consertadas em rela\xE7\xE3o ao per\xEDodo anterior`, icone: "barras", classe: "estavel" };
+  return /* @__PURE__ */ React.createElement("div", { className: "pd-tela" }, /* @__PURE__ */ React.createElement("div", { className: "pd-cab" }, /* @__PURE__ */ React.createElement("div", { className: "pd-titulo" }, /* @__PURE__ */ React.createElement("h2", null, "Painel"), /* @__PURE__ */ React.createElement("p", null, "Acompanhe o desempenho e os principais indicadores do per\xEDodo.")), /* @__PURE__ */ React.createElement("div", { className: "pd-cab-acoes" }, /* @__PURE__ */ React.createElement(PdPeriodo, { ini, fim, aoMudar: (a, b) => {
+    setPeriodo([a, b]);
+    setModo(null);
+  } }), /* @__PURE__ */ React.createElement("button", { type: "button", className: "pd-exportar", onClick: () => pdExportarCsv(ini, fim, m, ant, serie, cats), title: "Baixar planilha (CSV, abre no Excel)" }, /* @__PURE__ */ React.createElement(PdIcone, { nome: "download", tam: 18 }), "Exportar"))), /* @__PURE__ */ React.createElement("div", { className: "pd-kpis" }, /* @__PURE__ */ React.createElement(PdKpi, { icone: "chave", cor: "verde", titulo: "Pe\xE7as consertadas", valor: m.consertadas, variacao: pdVariacao(m.consertadas, ant.consertadas, "pct", true) }), /* @__PURE__ */ React.createElement(PdKpi, { icone: "caixa", cor: "laranja", titulo: "Entradas de pe\xE7as", valor: m.entradas, variacao: pdVariacao(m.entradas, ant.entradas, "pct", true) }), /* @__PURE__ */ React.createElement(PdKpi, { icone: "escudo", cor: "azul", titulo: "Pe\xE7as em garantia", valor: m.garantia, variacao: pdVariacao(m.garantia, ant.garantia, "qtd", false) }), /* @__PURE__ */ React.createElement(PdKpi, { icone: "porcento", cor: "roxo", titulo: "% de garantia", valor: `${fmt1(m.pctGarantia)}%`, variacao: pdVariacao(m.pctGarantia, ant.pctGarantia, "pp", false) }), /* @__PURE__ */ React.createElement(PdKpi, { icone: "calendario", cor: "cinza", titulo: "M\xE9dia consertadas/dia", valor: fmt1(m.mediaDia), variacao: pdVariacao(m.mediaDia, ant.mediaDia, "abs", true) }), /* @__PURE__ */ React.createElement(PdKpi, { icone: "moedas", cor: "amarelo", titulo: "M\xE9dia de comiss\xE3o/dia", valor: formatMoeda(m.comissaoDia), variacao: pdVariacao(m.comissaoDia, ant.comissaoDia, "pct", true) })), /* @__PURE__ */ React.createElement("div", { className: "pd-bloco" }, /* @__PURE__ */ React.createElement("div", { className: "pd-bloco-cab" }, /* @__PURE__ */ React.createElement("h3", null, /* @__PURE__ */ React.createElement("span", { className: "pd-h3-icone" }, /* @__PURE__ */ React.createElement(PdIcone, { nome: "barras", tam: 20 })), "Entradas x Consertadas"), /* @__PURE__ */ React.createElement("div", { className: "pd-modos", role: "tablist" }, [["diario", "Di\xE1rio"], ["semanal", "Semanal"], ["mensal", "Mensal"]].map(([id, nome]) => /* @__PURE__ */ React.createElement("button", { type: "button", key: id, role: "tab", "aria-selected": modo === id, className: modo === id ? "ativo" : "", onClick: () => setModo(id), disabled: id === "diario" && dias > 120, title: id === "diario" && dias > 120 ? "Per\xEDodo longo demais para ver por dia" : void 0 }, nome))), /* @__PURE__ */ React.createElement("div", { className: "pd-legenda" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("i", { className: "pd-bola laranja" }), "Entradas"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("i", { className: "pd-bola verde" }), "Consertadas"))), /* @__PURE__ */ React.createElement(PdGrafico, { dados: serie })), /* @__PURE__ */ React.createElement("div", { className: "pd-cats" }, /* @__PURE__ */ React.createElement(PdCategoria, { titulo: "Consertadas por categoria", icone: "ok", cor: "verde", dados: cats.c, total: m.consertadas }), /* @__PURE__ */ React.createElement(PdCategoria, { titulo: "Garantias por categoria", icone: "escudo", cor: "amarelo", dados: cats.g, total: m.garantia }, /* @__PURE__ */ React.createElement("div", { className: "pd-cat-info" }, /* @__PURE__ */ React.createElement(PdIcone, { nome: "info", tam: 20 }), /* @__PURE__ */ React.createElement("span", null, "Pe\xE7as em garantia representam ", /* @__PURE__ */ React.createElement("strong", null, fmt1(m.pctGarantia), "%"), " das pe\xE7as consertadas no per\xEDodo."))), /* @__PURE__ */ React.createElement(PdCategoria, { titulo: "Sem conserto por categoria", icone: "menos", cor: "vermelho", dados: cats.s, total: m.semConserto })), /* @__PURE__ */ React.createElement("div", { className: "pd-resumo" }, /* @__PURE__ */ React.createElement("div", { className: "pd-resumo-tit" }, /* @__PURE__ */ React.createElement(PdIcone, { nome: "barras", tam: 30 }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, "Resumo do per\xEDodo"), /* @__PURE__ */ React.createElement("span", null, pdBr(ini), " a ", pdBr(fim)))), /* @__PURE__ */ React.createElement("div", { className: "pd-resumo-num laranja" }, /* @__PURE__ */ React.createElement("strong", null, m.entradas), /* @__PURE__ */ React.createElement("span", null, "Entradas")), /* @__PURE__ */ React.createElement("div", { className: "pd-resumo-num verde" }, /* @__PURE__ */ React.createElement("strong", null, m.consertadas), /* @__PURE__ */ React.createElement("span", null, "Consertadas")), /* @__PURE__ */ React.createElement("div", { className: "pd-resumo-num azul" }, /* @__PURE__ */ React.createElement("strong", null, m.garantia), /* @__PURE__ */ React.createElement("span", null, "Garantias")), /* @__PURE__ */ React.createElement("div", { className: `pd-tendencia ${tendencia.classe}` }, /* @__PURE__ */ React.createElement(PdIcone, { nome: tendencia.icone, tam: 34 }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, tendencia.titulo), /* @__PURE__ */ React.createElement("span", null, tendencia.sub)))));
 }
 
 // ======================= FUNCIONÁRIOS =======================

@@ -133,6 +133,10 @@ try {
     await w.page.locator('.sidebar-item', { hasText: t }).first().click(); await w.page.waitForTimeout(1200);
   }
   passo('master passa por todas as telas sem erro de permissão', w.erros.length === 0, w.erros.join(' | '));
+  await w.page.locator('.sidebar-item', { hasText: 'Painel' }).first().click(); await w.page.waitForTimeout(1200);
+  const kpisPainel = await w.page.locator('.pd-kpi').count();
+  await w.page.locator('.pd-modos button', { hasText: 'Semanal' }).click(); await w.page.waitForTimeout(300);
+  passo('Painel novo: 6 indicadores, gráfico (diário/semanal), 3 quadros por categoria e resumo do período', kpisPainel === 6 && await w.page.locator('.pd-grafico').count() === 1 && await w.page.locator('.pd-cat').count() === 3 && await w.page.locator('.pd-resumo').count() === 1 && w.erros.length === 0, w.erros.join(' | '));
   passo('migrações de primeiro login rodam com o banco fechado (carimbo e índice de CPFs)', !!(await ler('config/migracaoCarimboSincronizacao')) && !!(await ler('config/migracaoIndiceCpfs')));
   await w.page.locator('.sidebar-item', { hasText: 'Orçamento' }).first().click(); await w.page.waitForSelector('[data-orc-id="O1"]');
   // 🔔 da coluna: o próprio usuário liga a notificação da coluna (Walter liga "Em Análise"; o Fábio já estava ligado)
