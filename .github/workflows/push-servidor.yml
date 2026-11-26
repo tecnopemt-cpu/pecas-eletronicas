@@ -1,0 +1,81 @@
+# Publica o servidor de notificações (pasta push/) no Cloudflare Workers — plano gratuito.
+# Precisa de dois segredos no repositório (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN  (token com o modelo "Edit Cloudflare Workers")
+#   CLOUDFLARE_ACCOUNT_ID (ID da conta, na página inicial do painel do Cloudflare)
+# Na primeira vez cria as chaves de envio (VAPID) direto como segredos do Worker — elas não aparecem em lugar
+# nenhum — e grava o endereço do servidor em push/servidor.json, que o site lê.
+name: Servidor de notificações (Cloudflare)
+
+on:
+  push:
+    branches: [main]
+    paths: ['push/worker.js', 'push/wrangler.toml', 'push/gerar-vapid.mjs', '.github/workflows/push-servidor.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: push-servidor
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      TEM_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Conferir segredos
+        if: env.TEM_CLOUDFLARE != 'true'
+        run: echo "::notice::Faltam os segredos CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID — servidor de notificações não publicado."
+      - uses: actions/checkout@v4
+        if: env.TEM_CLOUDFLARE == 'true'
+      - uses: actions/setup-node@v4
+        if: env.TEM_CLOUDFLARE == 'true'
+        with:
+          node-version: 20
+      - name: Publicar o servidor
+        if: env.TEM_CLOUDFLARE == 'true'
+        working-directory: push
+        run: |
+          set -o pipefail
+          npx --yes wrangler@4 deploy 2>&1 | tee /tmp/publicar.log
+          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' /tmp/publicar.log | head -1)
+          if [ -z "$URL" ]; then
+            echo "::error::Publicado, mas sem endereço workers.dev. No painel do Cloudflare, abra 'Workers e Pages' uma vez para criar o subdomínio workers.dev e rode de novo."
+            exit 1
+          fi
+          echo "URL=$URL" >> "$GITHUB_ENV"
+      - name: Chaves de envio (só na primeira vez)
+        if: env.TEM_CLOUDFLARE == 'true'
+        working-directory: push
+        run: |
+          if npx --yes wrangler@4 secret list 2>/dev/null | grep -q '"VAPID_PRIVADA"'; then
+            echo "Chaves de envio já existem (mantidas)."
+          else
+            export ARQ_VAPID="$RUNNER_TEMP/vapid.json"
+            node gerar-vapid.mjs privada | npx --yes wrangler@4 secret put VAPID_PRIVADA >/dev/null
+            node gerar-vapid.mjs publica | npx --yes wrangler@4 secret put VAPID_PUBLICA >/dev/null
+            rm -f "$ARQ_VAPID"
+            echo "::notice::Chaves de envio criadas e guardadas como segredos do servidor."
+          fi
+      - name: Conferir o servidor
+        if: env.TEM_CLOUDFLARE == 'true'
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS "$URL/chave" | grep -q '"chave"'; then echo "Servidor respondendo em $URL"; exit 0; fi
+            sleep 10
+          done
+          echo "::error::O servidor não respondeu em $URL/chave"; exit 1
+      - name: Gravar o endereço para o site
+        if: env.TEM_CLOUDFLARE == 'true'
+        run: |
+          printf '{ "url": "%s" }\n' "$URL" > push/servidor.json
+          if git diff --quiet push/servidor.json; then echo "Endereço já estava gravado."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add push/servidor.json
+          git commit -m "Servidor de notificações: endereço $URL"
+          git push

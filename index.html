@@ -19867,6 +19867,7 @@ function App() {
   const [menuNotificacoesAberto, setMenuNotificacoesAberto] = useState(false);
   // abrir o orçamento de uma notificação (do 🔔, do aviso na tela ou da notificação do aparelho)
   const abrirNotificacaoRef = useRef(null);
+  window.__tpUsuarioAtual = usuario;
   abrirNotificacaoRef.current = n => {
     setMenuNotificacoesAberto(false);
     if (!usuario || !n || !n.orcamentoId) return;
@@ -19893,7 +19894,7 @@ function App() {
   }, []);
   useEffect(() => {
     if (!usuario) return;
-    if (avisosAparelhoSuportados() && Notification.permission === 'granted') registrarAvisosAparelho();
+    if (avisosAparelhoSuportados() && Notification.permission === 'granted') registrarAvisosAparelho().then(() => inscreverPushAparelho(usuario));
     const pedido = new URLSearchParams(location.search).get('abrirOrcamento');
     if (pedido) {
       history.replaceState(null, '', location.pathname);
@@ -20195,9 +20196,12 @@ function App() {
     })();
   }, [usuario?.id]);
   function sair() {
-    setUsuario(null);
-    encerrarSincronizacao(true);
-    authApp.signOut();
+    // este aparelho deixa de receber as notificações desta pessoa (depois sai, mesmo se falhar)
+    desinscreverPushAparelho().finally(() => {
+      setUsuario(null);
+      encerrarSincronizacao(true);
+      authApp.signOut();
+    });
   }
   function alternarMenu() {
     if (ehMobile) setSidebarMobileAberta(v => !v);else setSidebarRecolhida(v => !v);
@@ -21073,11 +21077,14 @@ async function notificarEntradaNaColuna(o, destino, usuario, funcionarios, nomeC
     const ids = [...new Set((s.exists && (s.data().colunas || {})[destino]) || [])];
     const lote = db.batch();
     let n = 0;
+    const criadas = [];
     ids.forEach(fid => {
       if (usuario && fid === usuario.id) return;
       const f = (funcionarios || []).find(x => x.id === fid);
       if (!podeReceberNotifColuna(f, destino)) return;
-      lote.set(db.collection('notificacoes').doc(`col_${o.id}_${movimentoId}_${fid}`.replace(/[^\w-]/g, '_')), {
+      const idNotif = `col_${o.id}_${movimentoId}_${fid}`.replace(/[^\w-]/g, '_');
+      criadas.push(idNotif);
+      lote.set(db.collection('notificacoes').doc(idNotif), {
         funcionarioId: fid,
         tipo: 'coluna-orcamento',
         titulo: `Novo cartão em ${destino}`,
@@ -21090,7 +21097,10 @@ async function notificarEntradaNaColuna(o, destino, usuario, funcionarios, nomeC
       });
       n++;
     });
-    if (n) await lote.commit();
+    if (n) {
+      await lote.commit();
+      enviarPushNotificacoes(criadas);
+    }
   } catch (err) {
     console.error('notificações da coluna', err);
   }
@@ -21107,7 +21117,7 @@ function SinoColunaOrc({
   async function alternar(e) {
     e.stopPropagation();
     if (salvando) return;
-    if (!ligado) pedirAvisosAparelho(); // ao ligar, o aparelho pergunta se pode mostrar notificações
+    if (!ligado) pedirAvisosAparelho().then(r => r === 'granted' && inscreverPushAparelho(usuario)); // ao ligar, o aparelho pergunta se pode mostrar notificações
     setSalvando(true);
     try {
       const fv = firebase.firestore.FieldValue;
@@ -29390,6 +29400,96 @@ async function pedirAvisosAparelho() {
     return Notification.permission;
   }
 }
+// ---- Notificação com o sistema fechado (push pelo servidor de notificações no Cloudflare) ----
+// O endereço do servidor fica em push/servidor.json (preenchido pela rotina que publica o servidor).
+let _servidorPush = null;
+function servidorPush() {
+  if (!_servidorPush) _servidorPush = fetch('push/servidor.json', {
+    cache: 'no-store'
+  }).then(r => r.ok ? r.json() : {}).then(j => (j.url || '').replace(/\/$/, '')).catch(() => '');
+  return _servidorPush;
+}
+function b64uParaBytes(s) {
+  const b = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4));
+  return Uint8Array.from(b, c => c.charCodeAt(0));
+}
+async function idInscricaoPush(endpoint) {
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(endpoint));
+  return 'push-' + [...new Uint8Array(h)].slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+// Liga este aparelho ao usuário logado (uma inscrição por aparelho; trocar de usuário no aparelho troca o dono).
+async function inscreverPushAparelho(usuario) {
+  try {
+    if (!usuario || !avisosAparelhoSuportados() || Notification.permission !== 'granted' || !('PushManager' in window)) return false;
+    const url = await servidorPush();
+    if (!url) return false;
+    const reg = await registrarAvisosAparelho();
+    if (!reg) return false;
+    await navigator.serviceWorker.ready;
+    const chave = (await (await fetch(url + '/chave')).json()).chave;
+    if (!chave) return false;
+    let sub = await reg.pushManager.getSubscription();
+    const chaveAtual = sub && sub.options && sub.options.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+    const chaveNova = b64uParaBytes(chave);
+    if (sub && chaveAtual && chaveAtual.join() !== chaveNova.join()) {
+      await sub.unsubscribe().catch(() => {});
+      sub = null;
+    }
+    if (!sub) sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: chaveNova
+    });
+    const j = sub.toJSON();
+    await db.collection('config').doc(await idInscricaoPush(j.endpoint)).set({
+      tipo: 'push-inscricao',
+      funcionarioId: usuario.id,
+      inscricao: {
+        endpoint: j.endpoint,
+        keys: j.keys
+      },
+      aparelho: /iPhone|iPad/.test(navigator.userAgent) ? 'iPhone/iPad' : /Android/.test(navigator.userAgent) ? 'Android' : 'Computador',
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    return true;
+  } catch (err) {
+    console.warn('inscrição de notificações do aparelho', err);
+    return false;
+  }
+}
+// Ao sair: este aparelho para de receber as notificações desta pessoa.
+async function desinscreverPushAparelho() {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = reg && (await reg.pushManager.getSubscription());
+    if (!sub) return;
+    const apagar = db.collection('config').doc(await idInscricaoPush(sub.endpoint)).delete().catch(() => {});
+    await Promise.race([apagar, new Promise(r => setTimeout(r, 2500))]); // sem internet, não trava a saída
+  } catch (e) {}
+}
+// Depois de gravar as notificações, pede ao servidor para mandar o push (com o login de quem moveu o cartão).
+async function enviarPushNotificacoes(ids) {
+  try {
+    if (!ids.length) return;
+    const url = await servidorPush();
+    const conta = authApp.currentUser;
+    if (!url || !conta) return;
+    const token = await conta.getIdToken();
+    await fetch(url + '/enviar', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ids
+      }),
+      keepalive: true
+    });
+  } catch (err) {
+    console.warn('envio das notificações do aparelho', err);
+  }
+}
 async function mostrarNotificacaoAparelho(n) {
   if (!avisosAparelhoSuportados() || Notification.permission !== 'granted') return;
   const titulo = n.titulo || 'Controle de Peças';
@@ -29511,7 +29611,11 @@ function BotaoAvisosAparelho() {
   return /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn pequeno avisos-aparelho-btn",
-    onClick: async () => setEstado(await pedirAvisosAparelho())
+    onClick: async () => {
+      const r = await pedirAvisosAparelho();
+      setEstado(r);
+      if (r === 'granted') inscreverPushAparelho(window.__tpUsuarioAtual);
+    }
   }, "\uD83D\uDD14 Ativar avisos neste aparelho");
 }
 // ---------- Notificações individuais no 🔔 ----------

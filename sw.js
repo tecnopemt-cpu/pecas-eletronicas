@@ -16,3 +16,15 @@ self.addEventListener('notificationclick', e => {
     await self.clients.openWindow(self.registration.scope + (orc ? '?abrirOrcamento=' + encodeURIComponent(orc) : ''));
   })());
 });
+// Notificação enviada pelo servidor (chega mesmo com o sistema fechado).
+self.addEventListener('push', e => {
+  let n = {};
+  try { n = e.data ? e.data.json() : {}; } catch (err) { n = { texto: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(n.titulo || 'Controle de Peças', {
+    body: n.texto || '',
+    tag: n.id || undefined,
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    data: { orcamentoId: n.orcamentoId || '' }
+  }));
+});

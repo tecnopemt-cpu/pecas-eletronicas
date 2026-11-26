@@ -1,0 +1,6 @@
+# Servidor de notificações (Cloudflare Workers, plano gratuito). Publicado pela rotina
+# .github/workflows/push-servidor.yml — não precisa publicar à mão.
+name = "tecnopemt-notificacoes"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+workers_dev = true
