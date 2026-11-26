@@ -196,14 +196,14 @@ try {
   await fabio.page.keyboard.press('Escape'); await fabio.page.waitForTimeout(300);
   await fabio.page.locator('.modal button', { hasText: /Cancelar|Fechar/ }).first().click().catch(() => {}); await fabio.page.waitForTimeout(300);
   // cartão sai da coluna: o aviso de "entrou em Em Análise" é cancelado e some da lista do 🔔
-  await w.page.locator('.sidebar-item', { hasText: 'Orçamento' }).first().click(); await w.page.waitForSelector('[data-orc-id="O1"]');
-  await w.page.locator('[data-orc-id="O1"] select').selectOption('Teste'); await esperar(2500);
+  await fabio.page.locator('.sidebar-item', { hasText: 'Orçamento' }).first().click(); await fabio.page.waitForSelector('[data-orc-id="O1"]');
+  await fabio.page.locator('[data-orc-id="O1"] select').selectOption('Teste'); await esperar(2500);
   const notifSaiu = (await listar('notificacoes')).filter(n => n.tipo === 'coluna-orcamento' && n.coluna === 'Em Análise');
   await fabio.page.locator('button[title="Notificações"]').click().catch(() => {}); await fabio.page.waitForTimeout(800);
   const listaF = await fabio.page.locator('.notif-clicavel').allInnerTexts().catch(() => []);
   passo('cartão saiu da coluna: a notificação é cancelada e some do 🔔', notifSaiu.length === 1 && notifSaiu[0].cancelada === true && !listaF.some(t => /Novo cartão em Em Análise/.test(t)), JSON.stringify({ c: notifSaiu.map(n => n.cancelada), listaF }));
   await fabio.page.keyboard.press('Escape').catch(() => {});
-  await w.page.locator('[data-orc-id="O1"] select').selectOption('Em Análise'); await esperar(1500);
+  await fabio.page.locator('[data-orc-id="O1"] select').selectOption('Em Análise'); await esperar(1500);
   // 5) Assinatura por link (cliente, sem login)
   const cli = await novaPagina();
   await cli.page.goto(SITE + '?assinar=entrada&id=L1&emulador'); await cli.page.waitForSelector('input', { timeout: 30000 });
