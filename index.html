@@ -25597,6 +25597,7 @@ function AbaOrcamentos({
     const itensDoStatus = ordenarColunaKanban(colunaLiberacao && filtroLiberacao !== 'todos' ? todosDoStatus.filter(o => filtroLiberacao === 'liberados' ? !!o.liberadoFaturar : !o.liberadoFaturar) : todosDoStatus);
     return /*#__PURE__*/React.createElement("div", {
       key: status,
+      "data-coluna": status,
       className: "kanban-coluna",
       style: {
         flex: '0 0 310px',

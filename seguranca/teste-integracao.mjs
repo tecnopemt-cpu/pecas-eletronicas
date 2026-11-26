@@ -138,7 +138,7 @@ try {
   // 🔔 da coluna: o próprio usuário liga a notificação da coluna (Walter liga "Em Análise"; o Fábio já estava ligado)
   await gravar('config/notificacoesColunasOrcamento', { colunas: { 'Em Análise': ['FUN'] } });
   await w.page.waitForTimeout(800);
-  const colAnalise = w.page.locator('.kanban-coluna', { hasText: 'Em Análise' }).first();
+  const colAnalise = w.page.locator('.kanban-coluna[data-coluna="Em Análise"]');
   await colAnalise.locator('.sino-coluna-btn').click(); await w.page.waitForTimeout(200);
   passo('🔔 da coluna abre "Notificações desta coluna" com a explicação', /Notificações desta coluna/.test(await w.page.locator('.sino-coluna-pop').innerText()) && /sempre que um cartão for movido para esta coluna/.test(await w.page.locator('.sino-coluna-pop').innerText()));
   await w.page.locator('.sino-coluna-pop input[type=checkbox]').check(); await w.page.locator('.sino-coluna-pop button', { hasText: 'Salvar configurações' }).click(); await esperar(1000);
